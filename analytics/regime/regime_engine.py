@@ -1,25 +1,38 @@
 """
 =========================================================
-MARKET REGIME ENGINE
+REGIME ENGINE
 =========================================================
 
-Classifies market into:
+Purpose:
+Institutional Market Regime Detection
 
-- BULL
-- BEAR
-- SIDEWAYS
-- HIGH_VOL
-- LOW_VOL
+Inputs:
+data/raw/prices/*.parquet
+data/backtests/walk_forward_equity_curve.csv
 
-Output:
-data/processed/market_regime.csv
+Outputs:
+data/regime/regime_status.csv
+data/regime/regime_history.csv
+data/regime/regime_dashboard.csv
+
 =========================================================
 """
 
 from pathlib import Path
+from datetime import datetime
 
 import numpy as np
 import pandas as pd
+
+# =========================================================
+# CONFIG
+# =========================================================
+
+ENGINE_VERSION = "1.0.0"
+
+TRADING_DAYS = 252
+
+BREADTH_LOOKBACK = 200
 
 # =========================================================
 # PATHS
@@ -27,177 +40,364 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 
-BREADTH_FILE = (
-    ROOT
-    / "data"
-    / "processed"
-    / "market_breadth.csv"
-)
-
-BENCHMARK_FILE = (
+PRICE_DIR = (
     ROOT
     / "data"
     / "raw"
-    / "benchmark_prices.csv"
+    / "prices"
 )
 
-OUTPUT_FILE = (
+BACKTEST_FILE = (
     ROOT
     / "data"
-    / "processed"
-    / "market_regime.csv"
+    / "backtests"
+    / "walk_forward_equity_curve.csv"
+)
+
+OUTPUT_DIR = (
+    ROOT
+    / "data"
+    / "regime"
+)
+
+REPORT_FILE = (
+    ROOT
+    / "data"
+    / "logs"
+    / "regime_report.csv"
+)
+
+OUTPUT_DIR.mkdir(
+    parents=True,
+    exist_ok=True,
 )
 
 # =========================================================
-# LOAD DATA
-# =========================================================
-
-print("\n📥 Loading Regime Inputs...")
-
-breadth = pd.read_csv(
-    BREADTH_FILE
-)
-
-benchmark = pd.read_csv(
-    BENCHMARK_FILE
-)
-
-benchmark["Date"] = pd.to_datetime(
-    benchmark["Date"]
-)
-
-benchmark = benchmark.sort_values(
-    "Date"
-)
-
-# =========================================================
-# BENCHMARK INDICATORS
+# LOAD EQUITY CURVE
 # =========================================================
 
 print(
-    "\n📈 Calculating Trend Indicators..."
+    "\n📥 Loading Equity Curve..."
 )
 
-benchmark["DMA200"] = (
-    benchmark["Close"]
-    .rolling(
-        200,
-        min_periods=200,
-    )
+equity = pd.read_csv(
+    BACKTEST_FILE
+)
+
+equity["Date"] = pd.to_datetime(
+    equity["Date"]
+)
+
+# =========================================================
+# TREND SCORE
+# =========================================================
+
+equity["SMA_6M"] = (
+    equity["Portfolio_Value"]
+    .rolling(6)
     .mean()
 )
 
-benchmark["RET"] = (
-    benchmark["Close"]
-    .pct_change()
+equity["SMA_12M"] = (
+    equity["Portfolio_Value"]
+    .rolling(12)
+    .mean()
 )
 
-benchmark["VOL20"] = (
-    benchmark["RET"]
-    .rolling(
-        20,
-        min_periods=20,
+latest = equity.iloc[-1]
+
+trend_score = 50
+
+if latest["SMA_6M"] > latest["SMA_12M"]:
+    trend_score = 100
+else:
+    trend_score = 0
+
+# =========================================================
+# VOLATILITY SCORE
+# =========================================================
+
+returns = (
+    equity["Portfolio_Value"]
+    .pct_change()
+    .dropna()
+)
+
+annual_vol = (
+    returns.std()
+    * np.sqrt(12)
+)
+
+if annual_vol < 0.15:
+    vol_score = 100
+
+elif annual_vol < 0.25:
+    vol_score = 60
+
+else:
+    vol_score = 20
+
+# =========================================================
+# DRAWDOWN SCORE
+# =========================================================
+
+equity["High_Water_Mark"] = (
+    equity["Portfolio_Value"]
+    .cummax()
+)
+
+equity["Drawdown"] = (
+    equity["Portfolio_Value"]
+    / equity["High_Water_Mark"]
+    - 1
+)
+
+max_drawdown = (
+    equity["Drawdown"]
+    .min()
+)
+
+current_dd = equity["Drawdown"].iloc[-1]
+
+if current_dd > -0.05:
+    dd_score = 100
+
+elif current_dd > -0.15:
+    dd_score = 60
+
+else:
+    dd_score = 10
+
+# =========================================================
+# MARKET BREADTH
+# =========================================================
+
+print(
+    "\n📊 Calculating Breadth..."
+)
+
+breadth_records = []
+
+files = list(
+    PRICE_DIR.glob("*.parquet")
+)
+
+for file in files:
+
+    try:
+
+        df = pd.read_parquet(
+            file,
+            columns=[
+                "Date",
+                "Close",
+            ],
+        )
+
+        if len(df) < BREADTH_LOOKBACK:
+            continue
+
+        close = pd.to_numeric(
+            df["Close"],
+            errors="coerce"
+        )
+
+        sma200 = (
+            close
+            .tail(200)
+            .mean()
+        )
+
+        latest_price = (
+            close.iloc[-1]
+        )
+
+        breadth_records.append(
+
+            latest_price
+            > sma200
+
+        )
+
+    except Exception:
+
+        continue
+
+breadth_pct = (
+    np.mean(
+        breadth_records
     )
-    .std()
-    * np.sqrt(252)
     * 100
 )
 
-latest_benchmark = benchmark.iloc[-1]
+if breadth_pct > 70:
+    breadth_score = 100
+
+elif breadth_pct > 40:
+    breadth_score = 60
+
+else:
+    breadth_score = 20
 
 # =========================================================
-# BREADTH
+# REGIME SCORE
 # =========================================================
 
-latest_breadth = breadth.iloc[-1]
+regime_score = (
 
-breadth_score = (
-    latest_breadth["BREADTH_SCORE"]
+      0.35
+    * trend_score
+
+    + 0.30
+    * breadth_score
+
+    + 0.20
+    * dd_score
+
+    + 0.15
+    * vol_score
+
 )
 
 # =========================================================
 # REGIME CLASSIFICATION
 # =========================================================
 
-close = latest_benchmark["Close"]
+if regime_score >= 80:
 
-dma200 = latest_benchmark["DMA200"]
+    regime = "STRONG_BULL"
 
-volatility = latest_benchmark["VOL20"]
+elif regime_score >= 60:
 
-regime = "SIDEWAYS"
-
-if (
-    close > dma200
-    and breadth_score >= 60
-):
     regime = "BULL"
 
-elif (
-    close < dma200
-    and breadth_score <= 40
-):
+elif regime_score >= 40:
+
+    regime = "NEUTRAL"
+
+elif regime_score >= 20:
+
     regime = "BEAR"
-
-# volatility overlay
-
-if volatility >= 25:
-    regime = f"{regime}_HIGH_VOL"
-
-elif volatility <= 15:
-    regime = f"{regime}_LOW_VOL"
-
-# =========================================================
-# RISK BUDGET
-# =========================================================
-
-if "BULL" in regime:
-
-    equity_exposure = 1.00
-    cash_weight = 0.00
-
-elif "BEAR" in regime:
-
-    equity_exposure = 0.40
-    cash_weight = 0.60
 
 else:
 
-    equity_exposure = 0.70
-    cash_weight = 0.30
+    regime = "CRISIS"
 
 # =========================================================
-# OUTPUT
+# REGIME STATUS
 # =========================================================
 
-output = pd.DataFrame(
-    {
-        "DATE": [latest_benchmark["Date"]],
-        "REGIME": [regime],
-        "BENCHMARK_CLOSE": [close],
-        "DMA200": [dma200],
-        "VOL20": [round(volatility, 2)],
-        "BREADTH_SCORE": [round(breadth_score, 2)],
-        "TARGET_EQUITY_EXPOSURE": [
-            equity_exposure
-        ],
-        "TARGET_CASH_WEIGHT": [
-            cash_weight
-        ],
-    }
-)
+status = pd.DataFrame({
+
+    "Date": [
+        datetime.now()
+        .strftime("%Y-%m-%d")
+    ],
+
+    "Regime": [
+        regime
+    ],
+
+    "Regime_Score": [
+        round(
+            regime_score,
+            2
+        )
+    ],
+
+    "Trend_Score": [
+        trend_score
+    ],
+
+    "Breadth_Score": [
+        breadth_score
+    ],
+
+    "Volatility_Score": [
+        vol_score
+    ],
+
+    "Drawdown_Score": [
+        dd_score
+    ],
+
+    "Market_Breadth_Pct": [
+        round(
+            breadth_pct,
+            2
+        )
+    ],
+
+    "Current_Drawdown": [
+        current_dd
+    ],
+
+    "Annual_Volatility": [
+        annual_vol
+    ],
+
+    "Engine_Version": [
+        ENGINE_VERSION
+    ]
+})
+
+# =========================================================
+# DASHBOARD
+# =========================================================
+
+dashboard = pd.DataFrame({
+
+    "Metric": [
+
+        "Regime",
+
+        "Regime_Score",
+
+        "Market_Breadth",
+
+        "Current_Drawdown",
+
+        "Annual_Volatility",
+    ],
+
+    "Value": [
+
+        regime,
+
+        regime_score,
+
+        breadth_pct,
+
+        current_dd,
+
+        annual_vol,
+    ]
+})
 
 # =========================================================
 # SAVE
 # =========================================================
 
-OUTPUT_FILE.parent.mkdir(
-    parents=True,
-    exist_ok=True,
+status.to_csv(
+    OUTPUT_DIR
+    / "regime_status.csv",
+    index=False,
 )
 
-output.to_csv(
-    OUTPUT_FILE,
+status.to_csv(
+    OUTPUT_DIR
+    / "regime_history.csv",
+    index=False,
+)
+
+dashboard.to_csv(
+    OUTPUT_DIR
+    / "regime_dashboard.csv",
+    index=False,
+)
+
+dashboard.to_csv(
+    REPORT_FILE,
     index=False,
 )
 
@@ -214,27 +414,32 @@ print(
 print("=" * 70)
 
 print(
-    f"Regime             : {regime}"
+    f"Regime           : {regime}"
 )
 
 print(
-    f"Breadth Score      : {breadth_score:.2f}"
+    f"Regime Score     : "
+    f"{regime_score:.2f}"
 )
 
 print(
-    f"20D Volatility     : {volatility:.2f}%"
+    f"Breadth          : "
+    f"{breadth_pct:.2f}%"
 )
 
 print(
-    f"Target Exposure    : {equity_exposure:.0%}"
+    f"Current Drawdown : "
+    f"{current_dd:.2%}"
 )
 
 print(
-    f"Cash Allocation    : {cash_weight:.0%}"
+    f"Annual Vol       : "
+    f"{annual_vol:.2%}"
 )
 
 print(
-    f"\nSaved:\n{OUTPUT_FILE}"
+    f"\nOutput Directory:\n"
+    f"{OUTPUT_DIR}"
 )
 
 print("=" * 70)
