@@ -1,0 +1,13 @@
+Metric,Value
+Run_Date,2026-06-13
+Current_Regime,SIDEWAYS_LOW_VOL
+Capacity_Score,50.6
+Average_Cost_BPS,20.94
+Current_Holdings,50
+Target_Holdings,186
+Buy_Orders,136
+Sell_Orders,483
+Portfolio_Turnover,1.483681
+Execution_Score,80
+Execution_Status,CAUTION
+Engine_Version,2.0.0

@@ -1,7 +1,7 @@
 import pandas as pd
 
-liq = pd.read_csv(
-    "data/liquidity/liquidity_master.csv"
+df = pd.read_csv(
+    "data/factors/factor_snapshot_master.csv"
 )
 
-print(liq.columns.tolist())
+print(df.columns.tolist())

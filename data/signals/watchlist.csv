@@ -1,0 +1,101 @@
+Symbol,Company_Name,Sector,Signal,Signal_Score,In_Portfolio
+PAISALO,Paisalo Digital Limited,Financial Services,STRONG_BUY,87.49666221628837,False
+ADANIENSOL,Adani Energy Solutions Limited,Utilities,STRONG_BUY,86.51201602136182,True
+ADANIGREEN,Adani Green Energy Limited,Utilities,BUY,84.66955941255007,False
+STLTECH,Sterlite Technologies Limited,Technology,BUY,83.96528704939921,False
+HONASA,Honasa Consumer Limited,Consumer Defensive,BUY,83.11081441922565,False
+HFCL,HFCL Limited,Technology,BUY,81.74566088117491,False
+UFBL,UNITED FOODBRANDS LIMITED,Consumer Cyclical,BUY,81.3351134846462,False
+GAYAPROJ,Gayatri Projects Limited,Industrials,BUY,80.87783711615488,False
+BALAMINES,Balaji Amines Limited,Basic Materials,BUY,80.73765020026703,False
+ADANIPOWER,Adani Power Limited,Utilities,BUY,80.61415220293725,True
+GVPIL,GE Power India Limited,Industrials,BUY,80.303738317757,False
+JNKINDIA,JNK India Limited,Industrials,BUY,80.13684913217622,False
+SEAMECLTD,Seamec Limited,Industrials,BUY,79.84312416555407,False
+CUPID,Cupid Limited,Consumer Defensive,BUY,79.66955941255007,True
+APARINDS,APAR Industries Limited,Industrials,BUY,79.39919893190921,True
+UNIPARTS,Uniparts India Limited,Industrials,BUY,79.37583444592791,False
+GRANULES,Granules India Limited,Healthcare,BUY,79.27236315086783,False
+SPARC,Sun Pharma Advanced Research Company Limited,Healthcare,BUY,79.21562082777037,False
+GLAND,Gland Pharma Limited,Healthcare,BUY,79.14218958611482,False
+HARDWYN,Hardwyn India Limited,Industrials,BUY,78.95861148197596,False
+MUFIN,Mufin Green Finance Limited,Financial Services,BUY,78.91855807743659,False
+PARAS,Paras Defence and Space Technologies Limited,Industrials,BUY,78.6214953271028,False
+ADANIENT,Adani Enterprises Limited,Energy,BUY,78.5313751668892,False
+SBC,SBC Exports Limited,Industrials,BUY,78.22429906542055,False
+IDEAFORGE,ideaForge Technology Limited,Technology,BUY,78.0574098798398,False
+E2E,E2E Networks Limited,Technology,BUY,77.95727636849132,False
+LAURUSLABS,Laurus Labs Limited,Healthcare,BUY,77.716955941255,True
+POWERINDIA,Hitachi Energy India Limited,Industrials,BUY,77.64018691588785,True
+HSCL,Himadri Speciality Chemical Limited,Basic Materials,BUY,77.32309746328437,False
+MTARTECH,MTAR Technologies Limited,Industrials,BUY,77.1762349799733,False
+CGCL,Capri Global Capital Limited,Financial Services,BUY,77.1762349799733,False
+AKUMS,AKUMS DRUGS AND PHARMA L,Healthcare,BUY,76.83578104138853,False
+GPIL,Godawari Power & Ispat Limited,Basic Materials,BUY,76.80240320427237,True
+WELCORP,Welspun Corp Limited,Basic Materials,BUY,76.7690253671562,True
+RAIN,Rain Industries Limited,Basic Materials,BUY,76.75901201602136,False
+STYLAMIND,Stylam Industries Limited,Consumer Cyclical,BUY,76.70560747663552,False
+THERMAX,Thermax Limited,Industrials,BUY,76.68558077436583,False
+KOTYARK,KOTYARK INDUSTRIES LTD,Basic Materials,BUY,76.56542056074765,False
+BHEL,Bharat Heavy Electricals Limited,Industrials,BUY,76.40520694259013,True
+SYRMA,Syrma SGS Technology Limited,Technology,BUY,76.3351134846462,True
+CGPOWER,CG Power and Industrial Solutions Limited,Industrials,BUY,76.30173564753004,True
+SAMMAANCAP,Sammaan Capital Limited,Financial Services,BUY,76.27837116154872,False
+BSE,BSE Limited,Financial Services,BUY,76.0781041388518,True
+CEIGALL,CEIGALL INDIA LIMITED,Industrials,BUY,75.97463284379172,False
+SCPL,Sheetal Cool Products Limited,Consumer Defensive,BUY,75.93124165554072,False
+SATIN,Satin Creditcare Network Limited,Financial Services,BUY,75.8811748998665,False
+SHILPAMED,Shilpa Medicare Limited,Healthcare,BUY,75.69092122830442,False
+BBOX,Black Box Limited,Technology,BUY,75.34045393858479,False
+FCL,Fineotex Chemical Limited,Basic Materials,BUY,75.32376502002671,False
+POLYCAB,Polycab India Limited,Industrials,BUY,75.31041388518024,True
+KIRLOSENG,Kirloskar Oil Engines Limited,Industrials,BUY,75.19025367156208,True
+IBULLSLTD,INDIABULLS LIMITED,Real Estate,BUY,75.14686248331108,False
+BHARATFORG,Bharat Forge Limited,Consumer Cyclical,BUY,75.14352469959947,True
+ORCHPHARMA,Orchid Pharma Limited,Healthcare,BUY,75.13017356475301,False
+CARBORUNIV,Carborundum Universal Limited,Industrials,BUY,75.05674232309745,False
+CONFIPET,Confidence Petroleum India Limited,Energy,BUY,75.01001335113484,False
+BAJAJCON,Bajaj Consumer Care Limited,Consumer Defensive,BUY,74.89986648865153,False
+NRBBEARING,NRB Bearings Limited,Consumer Cyclical,BUY,74.78971962616824,False
+APOLLO,Apollo Micro Systems Limited,Industrials,BUY,74.77970627503338,False
+NEOGEN,Neogen Chemicals Limited,Basic Materials,BUY,74.64619492656877,False
+GAEL,Gujarat Ambuja Exports Limited,Consumer Defensive,BUY,74.58277703604806,False
+ELGIEQUIP,Elgi Equipments Limited,Industrials,BUY,74.49265687583444,False
+RPTECH,Rashi Peripherals Limited,Technology,BUY,74.47596795727637,False
+MAHABANK,Bank of Maharashtra,Financial Services,BUY,74.33911882510013,True
+ATHERENERG,Ather Energy Limited,Consumer Cyclical,BUY,74.2690253671562,True
+NYKAA,FSN E-Commerce Ventures Limited,Consumer Cyclical,BUY,74.2423230974633,True
+PARACABLES,Paramount Communications Limited,Technology,BUY,74.2056074766355,False
+RATEGAIN,RateGain Travel Technologies Limited,Technology,BUY,74.16221628838453,False
+NGLFINE,NGL Fine-Chem Limited,Healthcare,BUY,74.11214953271028,False
+SAILIFE,SAI LIFE SCIENCES LIMITED,Healthcare,BUY,74.09879839786382,False
+DEEDEV,DEE DEVELOPMENT ENG LTD,Industrials,BUY,74.04539385847796,False
+KTKBANK,The Karnataka Bank Limited,Financial Services,BUY,73.94192256341789,False
+AUROPHARMA,Aurobindo Pharma Limited,Healthcare,BUY,73.91522029372497,False
+DIACABS,Diamond Power Infrastructure Limited,Industrials,BUY,73.80841121495327,False
+VINDHYATEL,Vindhya Telelinks Limited,Industrials,BUY,73.80507343124165,False
+FEDERALBNK,The Federal Bank Limited,Financial Services,BUY,73.71495327102805,True
+TATATECH,Tata Technologies Limited,Technology,BUY,73.68491321762349,False
+ANTELOPUS,ANTELOPUS SELAN ENRGY LTD,Energy,BUY,73.56141522029372,False
+RRKABEL,R R Kabel Limited,Industrials,BUY,73.52136181575435,True
+ASTERDM,Aster DM Healthcare Limited,Healthcare,BUY,73.22096128170895,False
+SOTL,Savita Oil Technologies Limited,Basic Materials,BUY,73.22096128170895,False
+BANDHANBNK,Bandhan Bank Limited,Financial Services,BUY,73.13751668891857,False
+SANSERA,Sansera Engineering Limited,Consumer Cyclical,BUY,73.13084112149534,False
+ARVIND,Arvind Limited,Consumer Cyclical,BUY,73.1241655540721,False
+CAPLIPOINT,Caplin Point Laboratories Limited,Healthcare,BUY,73.07409879839786,False
+NAVINFLUOR,Navin Fluorine International Limited,Basic Materials,BUY,73.0607476635514,True
+SASKEN,Sasken Technologies Limited,Technology,BUY,73.03070761014686,False
+IOLCP,IOL Chemicals and Pharmaceuticals Limited,Healthcare,BUY,72.98731642189586,False
+ACMESOLAR,ACME SOLAR HOLDINGS LTD,Utilities,BUY,72.91388518024031,False
+SONACOMS,Sona BLW Precision Forgings Limited,Consumer Cyclical,BUY,72.8871829105474,True
+NETWEB,Netweb Technologies India Limited,Technology,BUY,72.8671562082777,False
+LOKESHMACH,Lokesh Machines Limited,Industrials,BUY,72.80373831775701,False
+AVALON,Avalon Technologies Limited,Technology,BUY,72.73364485981307,False
+ATGL,Adani Total Gas Limited,Utilities,BUY,72.6935914552737,False
+KIRLPNU,Kirloskar Pneumatic Company Limited,Industrials,BUY,72.60013351134847,False
+NITINSPIN,Nitin Spinners Limited,Consumer Cyclical,BUY,72.52002670226969,False
+KEI,KEI Industries Limited,Industrials,BUY,72.51335113484647,True
+GVT&D,GE Vernova T&D India Ltd,Industrials,BUY,72.50667556742323,True
+SUVEN,Suven Life Sciences Limited,Healthcare,BUY,72.40320427236315,False
+GRWRHITECH,Garware Hi-Tech Films Limited,Basic Materials,BUY,72.33311081441923,False
