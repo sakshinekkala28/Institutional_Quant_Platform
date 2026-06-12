@@ -1,8 +1,7 @@
 import pandas as pd
 
-df = pd.read_csv(
-    "data/backtests/backtest_results.csv"
+liq = pd.read_csv(
+    "data/liquidity/liquidity_master.csv"
 )
 
-print(df.columns.tolist())
-print(df.head())
+print(liq.columns.tolist())

@@ -1,0 +1,2 @@
+Date,Regime,Regime_Score,Trend_Score,Breadth_Score,Volatility_Score,Drawdown_Score,Market_Breadth_Pct,Current_Drawdown,Annual_Volatility,Engine_Version
+2026-06-12,NEUTRAL,52.0,100,20,60,10,37.98,-0.15756745894099722,0.19758538893921646,1.0.0
