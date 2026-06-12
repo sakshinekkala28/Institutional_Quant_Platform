@@ -1,0 +1,12 @@
+Metric,Value
+Portfolio_Size,50
+Top5_Weight,0.11821744364226619
+Top10_Weight,0.23308999716246878
+HHI,0.020427911759501777
+Effective_Positions,48.95262970454447
+Largest_Sector,Basic Materials
+Largest_Sector_Weight,0.2585383367732013
+Average_Days_To_Liquidate,0.0010799464051371172
+Maximum_Days_To_Liquidate,0.003322871672216213
+Run_Date,2026-06-12
+Engine_Version,1.0.0

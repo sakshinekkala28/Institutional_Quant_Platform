@@ -1,10 +1,8 @@
 import pandas as pd
 
 df = pd.read_csv(
-    "data/raw/updated_stocks.csv"
+    "data/backtests/backtest_results.csv"
 )
 
-print(
-    "CIGNITITEC" in
-    df["Symbol"].values
-)
+print(df.columns.tolist())
+print(df.head())
