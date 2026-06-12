@@ -4,7 +4,7 @@ SYMBOL METADATA ENGINE
 =========================================================
 
 Purpose:
-Build Security Master from Yahoo Finance
+Build / Enrich Security Master from Yahoo Finance
 
 Input:
 data/raw/valid_stocks.xlsx
@@ -18,18 +18,15 @@ Yahoo_Symbol
 Company_Name
 Sector
 Industry
-Market_Cap
+Last_Updated
 
 =========================================================
 """
 
 from pathlib import Path
-from concurrent.futures import (
-    ThreadPoolExecutor,
-    as_completed,
-)
-
+import random
 import time
+
 import pandas as pd
 import yfinance as yf
 
@@ -37,9 +34,17 @@ import yfinance as yf
 # CONFIG
 # =========================================================
 
-MAX_WORKERS = 5
+MAX_RETRIES = 3
+
 SAVE_INTERVAL = 50
-MAX_RETRIES = 2
+
+COOLDOWN_AFTER = 100
+
+COOLDOWN_SECONDS = 30
+
+TODAY = pd.Timestamp.now().strftime(
+    "%Y-%m-%d"
+)
 
 # =========================================================
 # PATHS
@@ -84,17 +89,21 @@ symbol_col = None
 for col in possible_columns:
 
     if col in stocks.columns:
+
         symbol_col = col
+
         break
 
 if symbol_col is None:
 
     raise ValueError(
-        "Symbol column not found."
+        f"Symbol column not found.\n"
+        f"Available columns: {list(stocks.columns)}"
     )
 
 symbols = (
     stocks[symbol_col]
+    .dropna()
     .astype(str)
     .str.upper()
     .str.strip()
@@ -103,7 +112,6 @@ symbols = (
         "",
         regex=False,
     )
-    .dropna()
     .drop_duplicates()
     .tolist()
 )
@@ -113,16 +121,35 @@ print(
 )
 
 # =========================================================
-# RESUME SUPPORT
+# LOAD CACHE
 # =========================================================
 
 metadata = []
 
 if OUTPUT_FILE.exists():
 
+    print(
+        "\n♻️ Loading Existing Cache..."
+    )
+
     existing = pd.read_csv(
         OUTPUT_FILE
-    )
+    ).fillna("")
+
+    required_cols = [
+        "Symbol",
+        "Yahoo_Symbol",
+        "Company_Name",
+        "Sector",
+        "Industry",
+        "Last_Updated",
+    ]
+
+    for col in required_cols:
+
+        if col not in existing.columns:
+
+            existing[col] = ""
 
     existing["Symbol"] = (
         existing["Symbol"]
@@ -131,207 +158,212 @@ if OUTPUT_FILE.exists():
         .str.strip()
     )
 
-    existing["Market_Cap"] = pd.to_numeric(
-        existing["Market_Cap"],
-        errors="coerce",
-    ).fillna(0)
-
-    existing["Company_Name"] = (
-        existing["Company_Name"]
-        .fillna("")
-        .astype(str)
-    )
-
-    # Good records
-    good_records = existing[
-        (existing["Market_Cap"] > 0)
+    complete_records = existing[
+        (
+            existing["Company_Name"]
+            .astype(str)
+            .str.strip()
+            != ""
+        )
         &
-        (existing["Company_Name"] != "")
-    ]
-
-    # Bad records to refetch
-    bad_records = existing[
-        (existing["Market_Cap"] <= 0)
-        |
-        (existing["Company_Name"] == "")
-    ]
-
-    good_symbols = set(
-        good_records["Symbol"]
-    )
+        (
+            existing["Sector"]
+            .astype(str)
+            .str.strip()
+            != ""
+        )
+        &
+        (
+            existing["Industry"]
+            .astype(str)
+            .str.strip()
+            != ""
+        )
+    ].copy()
 
     metadata = (
-        good_records.to_dict(
-            "records"
-        )
+        complete_records
+        .to_dict("records")
+    )
+
+    completed_symbols = set(
+        complete_records["Symbol"]
     )
 
     symbols = [
         s
         for s in symbols
-        if s not in good_symbols
+        if s not in completed_symbols
     ]
 
     print(
-        f"♻️ Existing Good Records : "
-        f"{len(good_records):,}"
+        f"Cached Complete Records : "
+        f"{len(complete_records):,}"
     )
 
+else:
+
     print(
-        f"🔄 Records To Re-Fetch : "
-        f"{len(bad_records):,}"
+        "\n🆕 No Cache Found"
     )
 
 print(
-    f"Remaining Symbols : "
-    f"{len(symbols):,}"
+    f"Need Fetch : {len(symbols):,}"
 )
 
 # =========================================================
 # FETCHER
 # =========================================================
-failed_symbols = []
 
 def fetch_metadata(symbol):
 
     yahoo_symbol = f"{symbol}.NS"
 
-    for attempt in range(MAX_RETRIES):
+    for attempt in range(
+        MAX_RETRIES
+    ):
 
         try:
 
-            ticker = yf.Ticker(
-                yahoo_symbol
+            time.sleep(
+                random.uniform(
+                    0.5,
+                    2.0,
+                )
             )
 
-            market_cap = 0
-
-            try:
-
-                fast_info = ticker.fast_info
-
-                market_cap = float(
-                    fast_info.get(
-                        "market_cap",
-                        0
-                    ) or 0
+            info = (
+                yf.Ticker(
+                    yahoo_symbol
                 )
-
-            except Exception:
-                pass
-
-            fast_info = {}
-
-            try:
-                fast_info = ticker.fast_info
-            except Exception:
-                pass
-
-            info = {}
-
-            try:
-                info = ticker.info
-            except Exception:
-                pass
+                .get_info()
+            )
 
             company_name = (
-                info.get(
-                    "longName",
-                    ""
+                info.get("longName")
+                or info.get(
+                    "shortName"
                 )
                 or ""
             )
 
             sector = (
                 info.get(
-                    "sector",
-                    ""
+                    "sector"
                 )
                 or ""
             )
 
             industry = (
                 info.get(
-                    "industry",
-                    ""
+                    "industry"
                 )
                 or ""
             )
 
-            if market_cap > 0:
-
-                print(
-                    f"✓ {symbol} "
-                    f"MCAP={market_cap:,.0f}"
-                )
+            if company_name:
 
                 return {
                     "Symbol": symbol,
-                    "Yahoo_Symbol": yahoo_symbol,
-                    "Company_Name": company_name,
-                    "Sector": sector,
-                    "Industry": industry,
-                    "Market_Cap": market_cap,
-                    "Last_Updated": pd.Timestamp.now().strftime("%Y-%m-%d"),
+                    "Yahoo_Symbol":
+                        yahoo_symbol,
+                    "Company_Name":
+                        company_name,
+                    "Sector":
+                        sector,
+                    "Industry":
+                        industry,
+                    "Last_Updated":
+                        TODAY,
                 }
 
-        except Exception:
+        except Exception as e:
 
-            pass
+            error = str(e).lower()
 
-        time.sleep(1)
+            if (
+                "429" in error
+                or "rate limit"
+                in error
+                or "too many requests"
+                in error
+            ):
+
+                wait_time = (
+                    15
+                    * (attempt + 1)
+                )
+
+                print(
+                    f"⚠️ Rate Limit: "
+                    f"{symbol}"
+                )
+
+                print(
+                    f"⏳ Sleeping "
+                    f"{wait_time}s"
+                )
+
+                time.sleep(
+                    wait_time
+                )
+
+            else:
+
+                print(
+                    f"❌ {symbol}: {e}"
+                )
+
+                time.sleep(3)
 
     return {
         "Symbol": symbol,
-        "Yahoo_Symbol": yahoo_symbol,
+        "Yahoo_Symbol":
+            yahoo_symbol,
         "Company_Name": "",
         "Sector": "",
         "Industry": "",
-        "Market_Cap": 0,
+        "Last_Updated":
+            TODAY,
     }
 
 # =========================================================
-# SAVE CHECKPOINT
+# SAVE
 # =========================================================
 
 def save_checkpoint(records):
 
-    df = pd.DataFrame(records)
+    df = pd.DataFrame(
+        records
+    )
 
-    required_columns = [
+    required_cols = [
         "Symbol",
         "Yahoo_Symbol",
         "Company_Name",
         "Sector",
         "Industry",
-        "Market_Cap",
+        "Last_Updated",
     ]
 
-    for col in required_columns:
+    for col in required_cols:
 
         if col not in df.columns:
 
-            if col == "Market_Cap":
-                df[col] = 0
-            else:
-                df[col] = ""
-
-    df["Market_Cap"] = (
-        pd.to_numeric(
-            df["Market_Cap"],
-            errors="coerce",
-        )
-        .fillna(0)
-        .astype("int64")
-    )
+            df[col] = ""
 
     df = (
         df
-        .sort_values("Symbol")
-        .drop_duplicates(
-            subset="Symbol"
+        .sort_values(
+            "Symbol"
         )
-        .reset_index(drop=True)
+        .drop_duplicates(
+            subset="Symbol",
+            keep="last",
+        )
+        .reset_index(
+            drop=True
+        )
     )
 
     OUTPUT_FILE.parent.mkdir(
@@ -345,141 +377,116 @@ def save_checkpoint(records):
     )
 
 # =========================================================
-# FETCH METADATA
+# PROCESS
 # =========================================================
 
 print(
     "\n📊 Fetching Metadata..."
 )
 
-completed = 0
+total = len(symbols)
 
-with ThreadPoolExecutor(
-    max_workers=MAX_WORKERS
-) as executor:
+for idx, symbol in enumerate(
+    symbols,
+    start=1,
+):
 
-    future_map = {
-        executor.submit(
-            fetch_metadata,
-            symbol,
-        ): symbol
-        for symbol in symbols
-    }
+    record = fetch_metadata(
+        symbol
+    )
 
-    for future in as_completed(
-        future_map
+    metadata.append(
+        record
+    )
+
+    print(
+        f"[{idx:,}/{total:,}] "
+        f"{symbol}"
+    )
+
+    if (
+        idx
+        % SAVE_INTERVAL
+        == 0
     ):
 
-        symbol = (
-            future_map[
-                future
-            ]
+        save_checkpoint(
+            metadata
         )
-
-        try:
-
-            record = (
-                future.result()
-            )
-
-        except Exception:
-
-            record = {
-                "Symbol": symbol,
-                "Yahoo_Symbol": (
-                    f"{symbol}.NS"
-                ),
-                "Company_Name": "",
-                "Sector": "",
-                "Industry": "",
-                "Market_Cap": 0,
-            }
-
-        metadata.append(
-            record
-        )
-
-        completed += 1
 
         print(
-            f"[{completed:,}/"
-            f"{len(symbols):,}] "
-            f"{symbol}"
+            f"💾 Checkpoint Saved "
+            f"({idx:,})"
         )
 
-        # checkpoint save
-        if (
-            completed
-            % SAVE_INTERVAL
-            == 0
-        ):
+    if (
+        idx
+        % COOLDOWN_AFTER
+        == 0
+    ):
 
-            save_checkpoint(
-                metadata
-            )
+        print(
+            "\n🛑 Cooling Yahoo..."
+        )
 
-            print(
-                f"💾 Checkpoint Saved "
-                f"({completed:,})"
-            )
+        time.sleep(
+            COOLDOWN_SECONDS
+        )
 
 # =========================================================
 # FINAL SAVE
 # =========================================================
 
+print(
+    "\n💾 Final Save..."
+)
+
 save_checkpoint(
     metadata
-)
-
-metadata_df = pd.read_csv(
-    OUTPUT_FILE
-)
-
-print("\n📊 METADATA QUALITY REPORT")
-print("=" * 60)
-
-print(
-    f"Total Symbols      : "
-    f"{len(metadata_df):,}"
-)
-
-print(
-    f"Company Names      : "
-    f"{(metadata_df['Company_Name'] != '').sum():,}"
-)
-
-print(
-    f"Sectors Available  : "
-    f"{(metadata_df['Sector'] != '').sum():,}"
-)
-
-print(
-    f"Industries Present : "
-    f"{(metadata_df['Industry'] != '').sum():,}"
-)
-
-print(
-    f"Market Caps Filled : "
-    f"{(metadata_df['Market_Cap'] > 0).sum():,}"
-)
-
-print(
-    f"Missing Market Cap : "
-    f"{(metadata_df['Market_Cap'] <= 0).sum():,}"
 )
 
 # =========================================================
 # REPORT
 # =========================================================
 
-final_df = pd.read_csv(OUTPUT_FILE)
+final_df = pd.read_csv(
+    OUTPUT_FILE
+).fillna("")
 
-print("\n📊 METADATA QUALITY REPORT")
+print("\n" + "=" * 60)
+
+print(
+    "📊 METADATA QUALITY REPORT"
+)
+
 print("=" * 60)
 
-print(f"Total Symbols      : {len(final_df):,}")
-print(f"Company Names      : {(final_df['Company_Name'].fillna('') != '').sum():,}")
-print(f"Sectors Available  : {(final_df['Sector'].fillna('') != '').sum():,}")
-print(f"Industries Present : {(final_df['Industry'].fillna('') != '').sum():,}")
-print(f"Market Caps Filled : {(final_df['Market_Cap'] > 0).sum():,}")
-print(f"Missing Market Cap : {(final_df['Market_Cap'] <= 0).sum():,}")
+print(
+    f"Total Symbols      : "
+    f"{len(final_df):,}"
+)
+
+print(
+    f"Company Names      : "
+    f"{(final_df['Company_Name'] != '').sum():,}"
+)
+
+print(
+    f"Sectors Available  : "
+    f"{(final_df['Sector'] != '').sum():,}"
+)
+
+print(
+    f"Industries Present : "
+    f"{(final_df['Industry'] != '').sum():,}"
+)
+
+print("=" * 60)
+
+print(
+    f"\nSaved:\n{OUTPUT_FILE}"
+)
+
+print(
+    "\n✅ Metadata Build Complete"
+)

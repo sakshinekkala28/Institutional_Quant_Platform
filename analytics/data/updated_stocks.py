@@ -4,12 +4,11 @@ UNIVERSE CONSTRUCTION ENGINE
 =========================================================
 
 Purpose:
-Create investable universe from valid_stocks.xlsx
+Create investable universe for quantitative models
 
 Input:
-data/raw/valid_stocks.xlsx
 data/raw/symbol_metadata.csv
-data/raw/price_history.parquet
+data/raw/prices/*.parquet
 
 Output:
 data/raw/updated_stocks.csv
@@ -25,14 +24,10 @@ import pandas as pd
 # CONFIG
 # =========================================================
 
-MIN_MARKET_CAP = 500e7      # ₹500 Cr
-
-MIN_PRICE = 30
-
+MIN_MARKET_CAP = 100e7      # ₹100 Cr
+MIN_PRICE = 20
 MIN_ADV = 1e7              # ₹1 Cr
-
 MIN_HISTORY_DAYS = 252
-
 MAX_MISSING_PCT = 0.10
 
 # =========================================================
@@ -41,13 +36,6 @@ MAX_MISSING_PCT = 0.10
 
 ROOT = Path(__file__).resolve().parents[2]
 
-VALID_STOCKS_FILE = (
-    ROOT
-    / "data"
-    / "raw"
-    / "valid_stocks.xlsx"
-)
-
 METADATA_FILE = (
     ROOT
     / "data"
@@ -55,11 +43,11 @@ METADATA_FILE = (
     / "symbol_metadata.csv"
 )
 
-PRICE_FILE = (
+PRICE_DIR = (
     ROOT
     / "data"
     / "raw"
-    / "price_history.parquet"
+    / "prices"
 )
 
 OUTPUT_FILE = (
@@ -77,69 +65,34 @@ REPORT_FILE = (
 )
 
 # =========================================================
-# LOAD UNIVERSE
-# =========================================================
-
-print("\n📥 Loading Valid Stocks...")
-
-universe = pd.read_excel(
-    VALID_STOCKS_FILE
-)
-
-# =========================================================
-# IDENTIFY SYMBOL COLUMN
-# =========================================================
-
-possible_cols = [
-    "Symbol",
-    "SYMBOL",
-    "symbol",
-    "Stock",
-]
-
-symbol_col = None
-
-for col in possible_cols:
-
-    if col in universe.columns:
-
-        symbol_col = col
-
-        break
-
-if symbol_col is None:
-
-    raise ValueError(
-        "Symbol column not found."
-    )
-
-universe["Symbol"] = (
-    universe[symbol_col]
-    .astype(str)
-    .str.upper()
-    .str.strip()
-    .str.replace(".NS", "", regex=False)
-)
-
-universe = (
-    universe[["Symbol"]]
-    .drop_duplicates()
-)
-
-initial_count = len(universe)
-
-print(
-    f"Initial Universe: {initial_count:,}"
-)
-# =========================================================
 # LOAD METADATA
 # =========================================================
 
-print("\n📥 Loading Metadata...")
+print("\n📥 Loading Symbol Metadata...")
 
 metadata = pd.read_csv(
     METADATA_FILE
 )
+
+required_columns = [
+    "Symbol",
+    "Company_Name",
+    "Sector",
+    "Industry",
+    "Market_Cap",
+]
+
+missing = [
+    c
+    for c in required_columns
+    if c not in metadata.columns
+]
+
+if missing:
+
+    raise ValueError(
+        f"Missing columns in symbol_metadata.csv: {missing}"
+    )
 
 metadata["Symbol"] = (
     metadata["Symbol"]
@@ -148,52 +101,27 @@ metadata["Symbol"] = (
     .str.strip()
 )
 
-metadata["Market_Cap"] = pd.to_numeric(
-    metadata["Market_Cap"],
-    errors="coerce",
-).fillna(0)
-
-# =========================================================
-# MERGE METADATA
-# =========================================================
-
-universe = universe.merge(
-    metadata[
-        [
-            "Symbol",
-            "Company_Name",
-            "Sector",
-            "Industry",
-            "Market_Cap",
-        ]
-    ],
-    on="Symbol",
-    how="left",
+metadata["Market_Cap"] = (
+    pd.to_numeric(
+        metadata["Market_Cap"],
+        errors="coerce",
+    )
+    .fillna(0)
 )
 
-PRICE_DIR = (
-    ROOT
-    / "data"
-    / "raw"
-    / "prices"
+initial_count = len(metadata)
+
+print(
+    f"Initial Universe : {initial_count:,}"
 )
 
 # =========================================================
 # BUILD PRICE STATISTICS
 # =========================================================
 
-PRICE_DIR = (
-    ROOT
-    / "data"
-    / "raw"
-    / "prices"
+print(
+    "\n📊 Building Liquidity Metrics..."
 )
-
-files = list(
-    PRICE_DIR.glob("*.parquet")
-)
-
-print("\n📊 Building Liquidity Metrics...")
 
 stats = []
 
@@ -201,13 +129,20 @@ files = list(
     PRICE_DIR.glob("*.parquet")
 )
 
-for idx, file in enumerate(files, start=1):
+for idx, file in enumerate(
+    files,
+    start=1,
+):
 
     try:
 
-        symbol = file.stem.upper()
+        symbol = (
+            file.stem.upper()
+        )
 
-        df = pd.read_parquet(file)
+        df = pd.read_parquet(
+            file
+        )
 
         if df.empty:
             continue
@@ -218,40 +153,26 @@ for idx, file in enumerate(files, start=1):
             else "Adj Close"
         )
 
-        volume_col = "Volume"
-
-        df[close_col] = pd.to_numeric(
+        close = pd.to_numeric(
             df[close_col],
             errors="coerce",
         )
 
-        df[volume_col] = pd.to_numeric(
-            df[volume_col],
+        volume = pd.to_numeric(
+            df["Volume"],
             errors="coerce",
         )
 
+        if close.dropna().empty:
+            continue
+
         last_close = (
-            df[close_col]
-            .dropna()
+            close.dropna()
             .iloc[-1]
         )
 
         avg_volume = (
-            df[volume_col]
-            .mean()
-        )
-
-        history_days = len(df)
-
-        missing_close = (
-            df[close_col]
-            .isna()
-            .mean()
-        )
-
-        adv = (
-            last_close
-            * avg_volume
+            volume.mean()
         )
 
         stats.append(
@@ -259,9 +180,14 @@ for idx, file in enumerate(files, start=1):
                 "Symbol": symbol,
                 "Last_Close": last_close,
                 "Avg_Volume": avg_volume,
-                "ADV": adv,
-                "History_Days": history_days,
-                "Missing_Close": missing_close,
+                "ADV": (
+                    last_close
+                    * avg_volume
+                ),
+                "History_Days": len(df),
+                "Missing_Close": (
+                    close.isna().mean()
+                ),
             }
         )
 
@@ -274,22 +200,57 @@ for idx, file in enumerate(files, start=1):
     except Exception:
         continue
 
-stats = pd.DataFrame(stats)
+stats = pd.DataFrame(
+    stats
+)
+
+if stats.empty:
+
+    raise ValueError(
+        "No price statistics generated."
+    )
+
+print(
+    f"Price Files Processed : {len(stats):,}"
+)
 
 # =========================================================
 # MERGE
 # =========================================================
 
-universe = universe.merge(
+universe = metadata.merge(
     stats,
     on="Symbol",
     how="left",
 )
 
 # =========================================================
-# FILTER 1
-# MARKET CAP
+# REMOVE SYMBOLS WITH NO PRICE DATA
 # =========================================================
+
+before = len(universe)
+
+universe = universe.dropna(
+    subset=[
+        "Last_Close",
+        "ADV",
+        "History_Days",
+    ]
+)
+
+no_price_removed = (
+    before - len(universe)
+)
+
+# =========================================================
+# FILTERS
+# =========================================================
+
+filter_report = {}
+
+filter_report[
+    "No Price Data Removed"
+] = no_price_removed
 
 before = len(universe)
 
@@ -298,14 +259,9 @@ universe = universe[
     >= MIN_MARKET_CAP
 ]
 
-marketcap_removed = (
-    before - len(universe)
-)
-
-# =========================================================
-# FILTER 2
-# PENNY STOCK
-# =========================================================
+filter_report[
+    "MarketCap Removed"
+] = before - len(universe)
 
 before = len(universe)
 
@@ -314,14 +270,9 @@ universe = universe[
     >= MIN_PRICE
 ]
 
-penny_removed = (
-    before - len(universe)
-)
-
-# =========================================================
-# FILTER 3
-# LIQUIDITY
-# =========================================================
+filter_report[
+    "Penny Removed"
+] = before - len(universe)
 
 before = len(universe)
 
@@ -330,14 +281,9 @@ universe = universe[
     >= MIN_ADV
 ]
 
-liquidity_removed = (
-    before - len(universe)
-)
-
-# =========================================================
-# FILTER 4
-# HISTORY
-# =========================================================
+filter_report[
+    "Liquidity Removed"
+] = before - len(universe)
 
 before = len(universe)
 
@@ -346,14 +292,9 @@ universe = universe[
     >= MIN_HISTORY_DAYS
 ]
 
-history_removed = (
-    before - len(universe)
-)
-
-# =========================================================
-# FILTER 5
-# DATA QUALITY
-# =========================================================
+filter_report[
+    "History Removed"
+] = before - len(universe)
 
 before = len(universe)
 
@@ -362,9 +303,9 @@ universe = universe[
     <= MAX_MISSING_PCT
 ]
 
-quality_removed = (
-    before - len(universe)
-)
+filter_report[
+    "Data Quality Removed"
+] = before - len(universe)
 
 # =========================================================
 # FINAL SORT
@@ -373,10 +314,15 @@ quality_removed = (
 universe = (
     universe
     .sort_values(
-        "Market_Cap",
+        [
+            "Market_Cap",
+            "ADV",
+        ],
         ascending=False,
     )
-    .reset_index(drop=True)
+    .reset_index(
+        drop=True
+    )
 )
 
 # =========================================================
@@ -401,20 +347,12 @@ report = pd.DataFrame(
     {
         "Metric": [
             "Initial Universe",
-            "MarketCap Removed",
-            "Penny Removed",
-            "Liquidity Removed",
-            "History Removed",
-            "Data Quality Removed",
+            *filter_report.keys(),
             "Final Universe",
         ],
         "Value": [
             initial_count,
-            marketcap_removed,
-            penny_removed,
-            liquidity_removed,
-            history_removed,
-            quality_removed,
+            *filter_report.values(),
             len(universe),
         ],
     }
@@ -431,7 +369,7 @@ report.to_csv(
 )
 
 # =========================================================
-# REPORT
+# CONSOLE REPORT
 # =========================================================
 
 print("\n" + "=" * 70)
@@ -446,28 +384,14 @@ print(
     f"Initial Universe : {initial_count:,}"
 )
 
-print(
-    f"Final Universe   : {len(universe):,}"
-)
+for metric, value in filter_report.items():
+
+    print(
+        f"{metric:<25}: {value:,}"
+    )
 
 print(
-    f"MarketCap Filter : {marketcap_removed:,}"
-)
-
-print(
-    f"Penny Filter     : {penny_removed:,}"
-)
-
-print(
-    f"Liquidity Filter : {liquidity_removed:,}"
-)
-
-print(
-    f"History Filter   : {history_removed:,}"
-)
-
-print(
-    f"Quality Filter   : {quality_removed:,}"
+    f"Final Universe           : {len(universe):,}"
 )
 
 print(

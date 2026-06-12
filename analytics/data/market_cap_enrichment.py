@@ -3,26 +3,40 @@
 MARKET CAP ENRICHMENT ENGINE
 =========================================================
 
+Purpose:
+Populate missing Market_Cap values
+
 Input:
 data/raw/symbol_metadata.csv
 
 Output:
 data/raw/symbol_metadata.csv
 
-Adds:
-Market_Cap
-
 =========================================================
 """
 
 from pathlib import Path
-import warnings
+import random
 import time
 
 import pandas as pd
 import yfinance as yf
 
-warnings.filterwarnings("ignore")
+# =========================================================
+# CONFIG
+# =========================================================
+
+MAX_RETRIES = 3
+
+#SAVE_INTERVAL = 50
+
+#COOLDOWN_AFTER = 100
+
+#COOLDOWN_SECONDS = 30
+
+SAVE_INTERVAL = 50
+COOLDOWN_AFTER = 100
+COOLDOWN_SECONDS = 10
 
 # =========================================================
 # PATHS
@@ -38,107 +52,31 @@ INPUT_FILE = (
 )
 
 # =========================================================
-# CONFIG
-# =========================================================
-
-MAX_RETRIES = 3
-
-SAVE_INTERVAL = 100
-
-# =========================================================
-# FETCHER
-# =========================================================
-
-def fetch_market_cap(symbol: str) -> float:
-
-    yahoo_symbol = f"{symbol}.NS"
-
-    for attempt in range(MAX_RETRIES):
-
-        try:
-
-            ticker = yf.Ticker(
-                yahoo_symbol
-            )
-
-            # Fast path
-
-            try:
-
-                market_cap = (
-                    ticker.fast_info.get(
-                        "marketCap",
-                        0,
-                    )
-                )
-
-                if (
-                    market_cap is not None
-                    and market_cap > 0
-                ):
-                    return float(
-                        market_cap
-                    )
-
-            except Exception:
-                pass
-
-            # Fallback
-
-            try:
-
-                info = ticker.info
-
-                market_cap = (
-                    info.get(
-                        "marketCap",
-                        0,
-                    )
-                )
-
-                if (
-                    market_cap is not None
-                    and market_cap > 0
-                ):
-                    return float(
-                        market_cap
-                    )
-
-            except Exception:
-                pass
-
-        except Exception:
-            pass
-
-        time.sleep(0.5)
-
-    return 0.0
-
-
-# =========================================================
 # LOAD
 # =========================================================
 
-print("\n💰 Loading Universe...")
+print("\n💰 Loading Symbol Metadata...")
 
 df = pd.read_csv(
     INPUT_FILE
 )
 
+if "Symbol" not in df.columns:
+
+    raise ValueError(
+        "Symbol column not found."
+    )
+
 if "Market_Cap" not in df.columns:
 
     df["Market_Cap"] = 0.0
 
-df["Market_Cap"] = pd.to_numeric(
-    df["Market_Cap"],
-    errors="coerce",
-).fillna(0.0)
-
-# Force float column
-
 df["Market_Cap"] = (
-    df["Market_Cap"]
-    .astype(float)
+    pd.to_numeric(
+        df["Market_Cap"],
+        errors="coerce"
+    )
+    .fillna(0)
 )
 
 # =========================================================
@@ -153,64 +91,221 @@ total = len(
     missing_rows
 )
 
+existing = (
+    df["Market_Cap"] > 0
+).sum()
+
 print(
-    f"Fetching Market Caps for "
-    f"{total:,} stocks..."
+    f"Existing Market Caps : "
+    f"{existing:,}"
 )
 
+print(
+    f"Need Fetch : "
+    f"{total:,}"
+)
+
+if total == 0:
+
+    print(
+        "\n✅ All Market Caps Available"
+    )
+
+    raise SystemExit
+
 # =========================================================
-# ENRICH
+# FETCHER
 # =========================================================
+
+def fetch_market_cap(symbol):
+
+    yahoo_symbol = (
+        f"{symbol}.NS"
+    )
+
+    for attempt in range(
+        MAX_RETRIES
+    ):
+
+        try:
+
+            #time.sleep(
+                #random.uniform(
+                    #1.0,
+                    #3.0
+                #)
+            #)
+
+            ticker = yf.Ticker(
+                yahoo_symbol
+            )
+
+            try:
+
+                market_cap = (
+                    ticker.fast_info.get(
+                        "marketCap",
+                        0
+                    )
+                )
+
+                if (
+                    market_cap
+                    and market_cap > 0
+                ):
+
+                    return float(
+                        market_cap
+                    )
+
+            except Exception:
+                pass
+
+            try:
+
+                info = (
+                    ticker.get_info()
+                )
+
+                market_cap = (
+                    info.get(
+                        "marketCap",
+                        0
+                    )
+                )
+
+                if (
+                    market_cap
+                    and market_cap > 0
+                ):
+
+                    return float(
+                        market_cap
+                    )
+
+            except Exception:
+                pass
+
+        except Exception as e:
+
+            error = str(e).lower()
+
+            if (
+                "429" in error
+                or "rate limit" in error
+                or "too many requests"
+                in error
+            ):
+
+                wait_time = (
+                    15
+                    * (attempt + 1)
+                )
+
+                print(
+                    f"⚠️ Rate Limit: "
+                    f"{symbol}"
+                )
+
+                print(
+                    f"⏳ Sleeping "
+                    f"{wait_time}s"
+                )
+
+                time.sleep(
+                    wait_time
+                )
+
+            else:
+
+                time.sleep(2)
+
+    return 0.0
+
+# =========================================================
+# PROCESS
+# =========================================================
+
+print(
+    "\n📊 Fetching Market Caps..."
+)
 
 for counter, row_idx in enumerate(
     missing_rows,
     start=1,
 ):
 
-    symbol = df.loc[
-        row_idx,
-        "Symbol",
-    ]
+    symbol = str(
+        df.loc[
+            row_idx,
+            "Symbol"
+        ]
+    ).strip().upper()
 
-    market_cap = fetch_market_cap(
-        symbol
+    market_cap = (
+        fetch_market_cap(
+            symbol
+        )
     )
 
     df.loc[
         row_idx,
-        "Market_Cap",
-    ] = float(
-        market_cap
-    )
+        "Market_Cap"
+    ] = market_cap
 
     print(
         f"[{counter:,}/{total:,}] "
         f"{symbol:<15} "
-        f"MarketCap = "
         f"{market_cap:,.0f}"
     )
 
-    # Save checkpoint
+    # checkpoint
 
-    if counter % SAVE_INTERVAL == 0:
+    if (
+        counter
+        % SAVE_INTERVAL
+        == 0
+    ):
 
         df.to_csv(
             INPUT_FILE,
-            index=False,
+            index=False
         )
 
         print(
-            f"\n💾 Checkpoint Saved "
-            f"({counter:,}/{total:,})\n"
+            f"💾 Checkpoint Saved "
+            f"({counter:,})"
+        )
+
+    # cooldown
+
+    if (
+        counter
+        % COOLDOWN_AFTER
+        == 0
+    ):
+
+        print(
+            "\n🛑 Cooling Yahoo..."
+        )
+
+        time.sleep(
+            COOLDOWN_SECONDS
         )
 
 # =========================================================
-# SAVE
+# FINAL SAVE
 # =========================================================
+
+df = (
+    df
+    .sort_values("Symbol")
+    .reset_index(drop=True)
+)
 
 df.to_csv(
     INPUT_FILE,
-    index=False,
+    index=False
 )
 
 # =========================================================
@@ -225,6 +320,12 @@ missing = (
     df["Market_Cap"] <= 0
 ).sum()
 
+coverage = (
+    filled
+    / len(df)
+    * 100
+)
+
 print("\n" + "=" * 70)
 
 print(
@@ -234,11 +335,18 @@ print(
 print("=" * 70)
 
 print(
-    f"Filled Market Caps : {filled:,}"
+    f"Filled Market Caps : "
+    f"{filled:,}"
 )
 
 print(
-    f"Missing Market Caps: {missing:,}"
+    f"Missing Market Caps : "
+    f"{missing:,}"
+)
+
+print(
+    f"Coverage : "
+    f"{coverage:.2f}%"
 )
 
 print(
