@@ -1,0 +1,15 @@
+Metric,Value
+Current_Regime,SIDEWAYS_LOW_VOL
+Portfolio_Holdings,50
+Target_Holdings,186
+Buy_Orders,136
+Sell_Orders,483
+Portfolio_Turnover,1.483681
+Gross_Buy_Weight,0.74184
+Gross_Sell_Weight,0.74184
+Net_Flow,0.0
+Capacity_Score,50.6
+Average_Cost_BPS,20.94
+Execution_Score,80
+Execution_Status,CAUTION
+Engine_Version,2.0.0

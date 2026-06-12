@@ -1,0 +1,1499 @@
+Symbol,Company_Name,Sector,Signal,Signal_Score,In_Portfolio
+PAISALO,Paisalo Digital Limited,Financial Services,STRONG_BUY,87.49666221628837,False
+ADANIENSOL,Adani Energy Solutions Limited,Utilities,STRONG_BUY,86.51201602136182,True
+ADANIGREEN,Adani Green Energy Limited,Utilities,BUY,84.66955941255007,False
+STLTECH,Sterlite Technologies Limited,Technology,BUY,83.96528704939921,False
+HONASA,Honasa Consumer Limited,Consumer Defensive,BUY,83.11081441922565,False
+HFCL,HFCL Limited,Technology,BUY,81.74566088117491,False
+UFBL,UNITED FOODBRANDS LIMITED,Consumer Cyclical,BUY,81.3351134846462,False
+GAYAPROJ,Gayatri Projects Limited,Industrials,BUY,80.87783711615488,False
+BALAMINES,Balaji Amines Limited,Basic Materials,BUY,80.73765020026703,False
+ADANIPOWER,Adani Power Limited,Utilities,BUY,80.61415220293725,True
+GVPIL,GE Power India Limited,Industrials,BUY,80.303738317757,False
+JNKINDIA,JNK India Limited,Industrials,BUY,80.13684913217622,False
+SEAMECLTD,Seamec Limited,Industrials,BUY,79.84312416555407,False
+CUPID,Cupid Limited,Consumer Defensive,BUY,79.66955941255007,True
+APARINDS,APAR Industries Limited,Industrials,BUY,79.39919893190921,True
+UNIPARTS,Uniparts India Limited,Industrials,BUY,79.37583444592791,False
+GRANULES,Granules India Limited,Healthcare,BUY,79.27236315086783,False
+SPARC,Sun Pharma Advanced Research Company Limited,Healthcare,BUY,79.21562082777037,False
+GLAND,Gland Pharma Limited,Healthcare,BUY,79.14218958611482,False
+HARDWYN,Hardwyn India Limited,Industrials,BUY,78.95861148197596,False
+MUFIN,Mufin Green Finance Limited,Financial Services,BUY,78.91855807743659,False
+PARAS,Paras Defence and Space Technologies Limited,Industrials,BUY,78.6214953271028,False
+ADANIENT,Adani Enterprises Limited,Energy,BUY,78.5313751668892,False
+SBC,SBC Exports Limited,Industrials,BUY,78.22429906542055,False
+IDEAFORGE,ideaForge Technology Limited,Technology,BUY,78.0574098798398,False
+E2E,E2E Networks Limited,Technology,BUY,77.95727636849132,False
+LAURUSLABS,Laurus Labs Limited,Healthcare,BUY,77.716955941255,True
+POWERINDIA,Hitachi Energy India Limited,Industrials,BUY,77.64018691588785,True
+HSCL,Himadri Speciality Chemical Limited,Basic Materials,BUY,77.32309746328437,False
+MTARTECH,MTAR Technologies Limited,Industrials,BUY,77.1762349799733,False
+CGCL,Capri Global Capital Limited,Financial Services,BUY,77.1762349799733,False
+AKUMS,AKUMS DRUGS AND PHARMA L,Healthcare,BUY,76.83578104138853,False
+GPIL,Godawari Power & Ispat Limited,Basic Materials,BUY,76.80240320427237,True
+WELCORP,Welspun Corp Limited,Basic Materials,BUY,76.7690253671562,True
+RAIN,Rain Industries Limited,Basic Materials,BUY,76.75901201602136,False
+STYLAMIND,Stylam Industries Limited,Consumer Cyclical,BUY,76.70560747663552,False
+THERMAX,Thermax Limited,Industrials,BUY,76.68558077436583,False
+KOTYARK,KOTYARK INDUSTRIES LTD,Basic Materials,BUY,76.56542056074765,False
+BHEL,Bharat Heavy Electricals Limited,Industrials,BUY,76.40520694259013,True
+SYRMA,Syrma SGS Technology Limited,Technology,BUY,76.3351134846462,True
+CGPOWER,CG Power and Industrial Solutions Limited,Industrials,BUY,76.30173564753004,True
+SAMMAANCAP,Sammaan Capital Limited,Financial Services,BUY,76.27837116154872,False
+BSE,BSE Limited,Financial Services,BUY,76.0781041388518,True
+CEIGALL,CEIGALL INDIA LIMITED,Industrials,BUY,75.97463284379172,False
+SCPL,Sheetal Cool Products Limited,Consumer Defensive,BUY,75.93124165554072,False
+SATIN,Satin Creditcare Network Limited,Financial Services,BUY,75.8811748998665,False
+SHILPAMED,Shilpa Medicare Limited,Healthcare,BUY,75.69092122830442,False
+BBOX,Black Box Limited,Technology,BUY,75.34045393858479,False
+FCL,Fineotex Chemical Limited,Basic Materials,BUY,75.32376502002671,False
+POLYCAB,Polycab India Limited,Industrials,BUY,75.31041388518024,True
+KIRLOSENG,Kirloskar Oil Engines Limited,Industrials,BUY,75.19025367156208,True
+IBULLSLTD,INDIABULLS LIMITED,Real Estate,BUY,75.14686248331108,False
+BHARATFORG,Bharat Forge Limited,Consumer Cyclical,BUY,75.14352469959947,True
+ORCHPHARMA,Orchid Pharma Limited,Healthcare,BUY,75.13017356475301,False
+CARBORUNIV,Carborundum Universal Limited,Industrials,BUY,75.05674232309745,False
+CONFIPET,Confidence Petroleum India Limited,Energy,BUY,75.01001335113484,False
+BAJAJCON,Bajaj Consumer Care Limited,Consumer Defensive,BUY,74.89986648865153,False
+NRBBEARING,NRB Bearings Limited,Consumer Cyclical,BUY,74.78971962616824,False
+APOLLO,Apollo Micro Systems Limited,Industrials,BUY,74.77970627503338,False
+NEOGEN,Neogen Chemicals Limited,Basic Materials,BUY,74.64619492656877,False
+GAEL,Gujarat Ambuja Exports Limited,Consumer Defensive,BUY,74.58277703604806,False
+ELGIEQUIP,Elgi Equipments Limited,Industrials,BUY,74.49265687583444,False
+RPTECH,Rashi Peripherals Limited,Technology,BUY,74.47596795727637,False
+MAHABANK,Bank of Maharashtra,Financial Services,BUY,74.33911882510013,True
+ATHERENERG,Ather Energy Limited,Consumer Cyclical,BUY,74.2690253671562,True
+NYKAA,FSN E-Commerce Ventures Limited,Consumer Cyclical,BUY,74.2423230974633,True
+PARACABLES,Paramount Communications Limited,Technology,BUY,74.2056074766355,False
+RATEGAIN,RateGain Travel Technologies Limited,Technology,BUY,74.16221628838453,False
+NGLFINE,NGL Fine-Chem Limited,Healthcare,BUY,74.11214953271028,False
+SAILIFE,SAI LIFE SCIENCES LIMITED,Healthcare,BUY,74.09879839786382,False
+DEEDEV,DEE DEVELOPMENT ENG LTD,Industrials,BUY,74.04539385847796,False
+KTKBANK,The Karnataka Bank Limited,Financial Services,BUY,73.94192256341789,False
+AUROPHARMA,Aurobindo Pharma Limited,Healthcare,BUY,73.91522029372497,False
+DIACABS,Diamond Power Infrastructure Limited,Industrials,BUY,73.80841121495327,False
+VINDHYATEL,Vindhya Telelinks Limited,Industrials,BUY,73.80507343124165,False
+FEDERALBNK,The Federal Bank Limited,Financial Services,BUY,73.71495327102805,True
+TATATECH,Tata Technologies Limited,Technology,BUY,73.68491321762349,False
+ANTELOPUS,ANTELOPUS SELAN ENRGY LTD,Energy,BUY,73.56141522029372,False
+RRKABEL,R R Kabel Limited,Industrials,BUY,73.52136181575435,True
+ASTERDM,Aster DM Healthcare Limited,Healthcare,BUY,73.22096128170895,False
+SOTL,Savita Oil Technologies Limited,Basic Materials,BUY,73.22096128170895,False
+BANDHANBNK,Bandhan Bank Limited,Financial Services,BUY,73.13751668891857,False
+SANSERA,Sansera Engineering Limited,Consumer Cyclical,BUY,73.13084112149534,False
+ARVIND,Arvind Limited,Consumer Cyclical,BUY,73.1241655540721,False
+CAPLIPOINT,Caplin Point Laboratories Limited,Healthcare,BUY,73.07409879839786,False
+NAVINFLUOR,Navin Fluorine International Limited,Basic Materials,BUY,73.0607476635514,True
+SASKEN,Sasken Technologies Limited,Technology,BUY,73.03070761014686,False
+IOLCP,IOL Chemicals and Pharmaceuticals Limited,Healthcare,BUY,72.98731642189586,False
+ACMESOLAR,ACME SOLAR HOLDINGS LTD,Utilities,BUY,72.91388518024031,False
+SONACOMS,Sona BLW Precision Forgings Limited,Consumer Cyclical,BUY,72.8871829105474,True
+NETWEB,Netweb Technologies India Limited,Technology,BUY,72.8671562082777,False
+LOKESHMACH,Lokesh Machines Limited,Industrials,BUY,72.80373831775701,False
+AVALON,Avalon Technologies Limited,Technology,BUY,72.73364485981307,False
+ATGL,Adani Total Gas Limited,Utilities,BUY,72.6935914552737,False
+KIRLPNU,Kirloskar Pneumatic Company Limited,Industrials,BUY,72.60013351134847,False
+NITINSPIN,Nitin Spinners Limited,Consumer Cyclical,BUY,72.52002670226969,False
+KEI,KEI Industries Limited,Industrials,BUY,72.51335113484647,True
+GVT&D,GE Vernova T&D India Ltd,Industrials,BUY,72.50667556742323,True
+SUVEN,Suven Life Sciences Limited,Healthcare,BUY,72.40320427236315,False
+GRWRHITECH,Garware Hi-Tech Films Limited,Basic Materials,BUY,72.33311081441923,False
+SFL,Sheela Foam Limited,Consumer Cyclical,BUY,72.2863818424566,False
+OFSS,Oracle Financial Services Software Limited,Technology,BUY,72.25967957276367,False
+PREMIERENE,PREMIER ENERGIES LIMITED,Technology,BUY,72.25634178905207,False
+KERNEX,Kernex Microsystems (India) Limited,Technology,BUY,72.22296395193592,False
+WALCHANNAG,Walchandnagar Industries Limited,Industrials,BUY,72.2196261682243,False
+SPORTKING,Sportking India Limited,Consumer Cyclical,BUY,72.1995994659546,False
+DBOL,Dhampur Bio Organics Limited,Consumer Defensive,BUY,72.19626168224299,False
+DATAPATTNS,Data Patterns (India) Limited,Industrials,BUY,72.14285714285714,False
+SANGHVIMOV,Sanghvi Movers Limited,Industrials,BUY,72.1328437917223,False
+ANANDRATHI,Anand Rathi Wealth Limited,Financial Services,BUY,72.11949265687583,True
+RBLBANK,RBL Bank Limited,Financial Services,BUY,72.09946595460615,False
+BLSE,BLS E-SERVICES LIMITED,Industrials,BUY,72.09612817089452,False
+AEROFLEX,Aeroflex Industries Limited,Industrials,BUY,72.0894526034713,False
+GRINDWELL,Grindwell Norton Limited,Industrials,BUY,72.08277703604806,False
+MCX,Multi Commodity Exchange of India Limited,Financial Services,BUY,71.98598130841121,False
+CUMMINSIND,Cummins India Limited,Industrials,BUY,71.94592790387182,False
+LLOYDSME,Lloyds Metals and Energy Limited,Basic Materials,BUY,71.91922563417891,False
+RISHABH,Rishabh Instruments Limited,Technology,BUY,71.82576769025367,False
+BLISSGVS,Bliss GVS Pharma Limited,Healthcare,BUY,71.82242990654206,False
+THYROCARE,Thyrocare Technologies Limited,Healthcare,BUY,71.80907877169558,False
+RSWM,RSWM Limited,Consumer Cyclical,BUY,71.79906542056075,False
+ZYDUSLIFE,Zydus Lifesciences Limited,Healthcare,BUY,71.78905206942589,False
+SIGMAADV,Sigma Advanced Systems Limited,Industrials,BUY,71.7456608811749,False
+EQUITASBNK,Equitas Small Finance Bank Limited,Financial Services,BUY,71.69893190921228,False
+IFCI,IFCI Limited,Financial Services,BUY,71.69225634178906,False
+BELRISE,BELRISE INDUSTRIES LTD,Consumer Cyclical,BUY,71.59212283044059,True
+APOLLOPIPE,Apollo Pipes Limited,Industrials,BUY,71.58878504672897,False
+IZMO,IZMO Limited,Technology,BUY,71.5520694259012,False
+THANGAMAYL,Thangamayil Jewellery Limited,Consumer Cyclical,BUY,71.5320427236315,False
+CHENNPETRO,Chennai Petroleum Corporation Limited,Energy,BUY,71.51869158878503,False
+JAYBARMARU,Jay Bharat Maruti Limited,Consumer Cyclical,BUY,71.49866488651536,False
+ADANIPORTS,Adani Ports and Special Economic Zone Limited,Industrials,BUY,71.45861148197596,True
+MWL,MANGALAM WORLDWIDE LTD,Basic Materials,BUY,71.4218958611482,False
+TDPOWERSYS,TD Power Systems Limited,Industrials,BUY,71.33177570093459,False
+STARHEALTH,Star Health and Allied Insurance Company Limited,Financial Services,BUY,71.32843791722296,False
+AXISCADES,AXISCADES Technologies Limited,Industrials,BUY,71.3150867823765,False
+STAR,Strides Pharma Science Limited,Healthcare,BUY,71.2716955941255,False
+LLOYDSENGG,Lloyds Engineering Works Limited,Industrials,BUY,71.25166889185581,False
+GULPOLY,Gulshan Polyols Limited,Basic Materials,BUY,71.24499332443258,False
+MSPL,MSP Steel & Power Limited,Basic Materials,BUY,71.20160213618156,False
+RICOAUTO,Rico Auto Industries Limited,Consumer Cyclical,BUY,71.19492656875835,False
+ACUTAAS,Acutaas Chemicals Limited,Basic Materials,BUY,71.13484646194925,True
+VTL,Vardhman Textiles Limited,Consumer Cyclical,BUY,71.12817089452604,False
+SBCL,Shivalik Bimetal Controls Limited,Industrials,BUY,71.03137516688919,False
+SKYGOLD,Sky Gold and Diamonds Limited,Consumer Cyclical,BUY,70.96461949265688,False
+VBL,Varun Beverages Limited,Consumer Defensive,BUY,70.92790387182912,False
+SOMANYCERA,Somany Ceramics Limited,Industrials,BUY,70.8811748998665,False
+SKMEGGPROD,SKM Egg Products Export (India) Limited,Consumer Defensive,BUY,70.78771695594125,False
+J&KBANK,Jammu and Kashmir Bank Limited,Financial Services,BUY,70.78437917222965,False
+INDOTECH,Indo Tech Transformers Limited,Industrials,BUY,70.6875834445928,False
+AIAENG,AIA Engineering Limited,Industrials,BUY,70.68090787716957,False
+TIINDIA,Tube Investments of India Limited,Industrials,BUY,70.66421895861149,False
+OLAELEC,OLA ELECTRIC MOBILITY LTD,Consumer Cyclical,BUY,70.65086782376501,False
+SIS,SIS Limited,Industrials,BUY,70.6441922563418,False
+AEGISLOG,AEGIS LOGISTICS LIMITED,Energy,BUY,70.5407209612817,False
+ABB,ABB India Limited,Industrials,BUY,70.5373831775701,False
+SANDHAR,Sandhar Technologies Limited,Consumer Cyclical,BUY,70.44392523364485,False
+DIFFNKG,DIFFUSION ENGINEERS LTD,Industrials,BUY,70.39052069425901,False
+INOXINDIA,INOX India Limited,Industrials,BUY,70.37383177570094,False
+VIYASH,Viyash Scientific Limited,Healthcare,BUY,70.37049399198932,False
+SENORES,SENORES PHARMACEUTICALS L,Healthcare,BUY,70.37049399198932,False
+ASTRAMICRO,Astra Microwave Products Limited,Technology,BUY,70.31708945260345,False
+MOTHERSON,Samvardhana Motherson International Limited,Consumer Cyclical,BUY,70.28704939919892,True
+VENUSREM,Venus Remedies Limited,Healthcare,BUY,70.12016021361815,False
+MARKSANS,Marksans Pharma Limited,Healthcare,BUY,70.0667556742323,False
+HINDALCO,Hindalco Industries Limited,Basic Materials,BUY,70.01001335113484,True
+RPEL,Raghav Productivity Enhancers Limited,Basic Materials,HOLD,69.91655540720961,False
+YASHO,Yasho Industries Limited,Basic Materials,HOLD,69.91655540720961,False
+WHEELS,Wheels India Limited,Consumer Cyclical,HOLD,69.85313751668892,False
+BAJAJ-AUTO,Bajaj Auto Limited,Consumer Cyclical,HOLD,69.79639519359147,True
+CEMPRO,Cemindia Projects Limited,Industrials,HOLD,69.783044058745,False
+MODISONLTD,Modison Limited,Industrials,HOLD,69.74966622162884,False
+SAIL,Steel Authority of India Limited,Basic Materials,HOLD,69.74966622162884,True
+MIRCELECTR,Onida Electronics Limited,Consumer Cyclical,HOLD,69.74299065420561,False
+APOLLOHOSP,Apollo Hospitals Enterprise Limited,Healthcare,HOLD,69.70293724966622,True
+NMDC,NMDC Limited,Basic Materials,HOLD,69.66622162883844,False
+TRITURBINE,Triveni Turbine Limited,Industrials,HOLD,69.64285714285714,False
+ANGELONE,Angel One Limited,Financial Services,HOLD,69.61949265687583,False
+JBCHEPHARM,J. B. Chemicals & Pharmaceuticals Limited,Healthcare,HOLD,69.56275033377835,False
+MAYURUNIQ,Mayur Uniquoters Limited,Consumer Cyclical,HOLD,69.50934579439252,False
+MCLEODRUSS,McLeod Russel India Limited,Consumer Defensive,HOLD,69.34245660881176,False
+PREMEXPLN,Premier Explosives Limited,Basic Materials,HOLD,69.32576769025367,False
+RAYMOND,Raymond Limited,Industrials,HOLD,69.24566088117489,False
+VMARCIND,"VMARCIND.NS,0P0001M1FR,196000",,HOLD,69.21562082777035,False
+FORTIS,Fortis Healthcare Limited,Healthcare,HOLD,69.19559412550066,False
+TORNTPHARM,Torrent Pharmaceuticals Limited,Healthcare,HOLD,69.19225634178905,True
+INDUSINDBK,IndusInd Bank Limited,Financial Services,HOLD,69.18891855807745,False
+INDSWFTLAB,Ind-Swift Laboratories Limited,Healthcare,HOLD,69.1822429906542,False
+SOLARINDS,Solar Industries India Limited,Basic Materials,HOLD,69.10881174899868,False
+ELECTHERM,Electrotherm (India) Limited,Basic Materials,HOLD,69.06542056074767,False
+WOCKPHARMA,Wockhardt Limited,Healthcare,HOLD,69.03871829105475,False
+VIJAYA,Vijaya Diagnostic Centre Limited,Healthcare,HOLD,68.97530040053404,False
+HIRECT,Hind Rectifiers Limited,Industrials,HOLD,68.93524699599467,False
+SCHNEIDER,Schneider Electric Infrastructure Limited,Industrials,HOLD,68.92523364485982,False
+QUESS,Quess Corp Limited,Industrials,HOLD,68.91522029372496,False
+PANACEABIO,Panacea Biotec Limited,Healthcare,HOLD,68.77837116154873,False
+ASIANPAINT,Asian Paints Limited,Basic Materials,HOLD,68.70827770360481,False
+CRAFTSMAN,Craftsman Automation Limited,Consumer Cyclical,HOLD,68.70493991989319,True
+RUBYMILLS,The Ruby Mills Limited,Consumer Cyclical,HOLD,68.69158878504673,False
+SCI,The Shipping Corporation of India Limited,Industrials,HOLD,68.6849132176235,False
+SOUTHBANK,The South Indian Bank Limited,Financial Services,HOLD,68.56141522029372,False
+SALSTEEL,S.A.L. Steel Limited,Basic Materials,HOLD,68.5547396528705,False
+ICIL,Indo Count Industries Limited,Consumer Cyclical,HOLD,68.5547396528705,False
+SHYAMMETL,Shyam Metalics and Energy Limited,Basic Materials,HOLD,68.52469959946596,True
+SANSTAR,SANSTAR LIMITED,Basic Materials,HOLD,68.48130841121495,False
+TMB,Tamilnad Mercantile Bank Limited,Financial Services,HOLD,68.47797062750332,False
+SKIPPER,Skipper Limited,Industrials,HOLD,68.28437917222965,False
+REDTAPE,REDTAPE Limited,Consumer Cyclical,HOLD,68.27770360480642,False
+UNIVCABLES,Universal Cables Limited,Industrials,HOLD,68.20761014686248,False
+BHAGYANGR,Bhagyanagar India Limited,Basic Materials,HOLD,68.13751668891855,False
+PRIZOR,"PRIZOR.NS,0P0001TBGW,1345600",,HOLD,68.13417890520695,False
+YATHARTH,Yatharth Hospital & Trauma Care Services Limited,Healthcare,HOLD,68.09746328437917,False
+TEJASNET,Tejas Networks Limited,Technology,HOLD,68.05073431241655,False
+SOLARA,Solara Active Pharma Sciences Limited,Healthcare,HOLD,68.03738317757009,False
+MSTCLTD,MSTC Limited,Industrials,HOLD,68.01068090787717,False
+KRN,KRN HEAT EXCHANGE N REF L,Technology,HOLD,67.98064085447263,False
+JSWSTEEL,JSW Steel Limited,Basic Materials,HOLD,67.91388518024031,True
+NAHARSPING,Nahar Spinning Mills Limited,Consumer Cyclical,HOLD,67.90053404539385,False
+NEULANDLAB,Neuland Laboratories Limited,Healthcare,HOLD,67.82042723631508,False
+FINCABLES,Finolex Cables Limited,Industrials,HOLD,67.77036048064086,False
+INNOVACAP,Innova Captab Limited,Healthcare,HOLD,67.74699599465954,False
+DPEL,"DPEL.NS,0P0001T8MW,69000",,HOLD,67.72029372496662,False
+ACCENTMIC,"ACCENTMIC.NS,0P0001S1I0,23500",,HOLD,67.7136181575434,False
+YESBANK,Yes Bank Limited,Financial Services,HOLD,67.6935914552737,False
+RADICO,Radico Khaitan Limited,Consumer Defensive,HOLD,67.68691588785047,False
+SANGAMIND,Sangam (India) Limited,Consumer Cyclical,HOLD,67.66355140186916,False
+NSLNISP,NMDC Steel Limited,Basic Materials,HOLD,67.60013351134847,False
+SJS,S.J.S. Enterprises Limited,Consumer Cyclical,HOLD,67.57009345794393,False
+METROPOLIS,Metropolis Healthcare Limited,Healthcare,HOLD,67.55340453938585,False
+JINDALSAW,Jindal Saw Limited,Basic Materials,HOLD,67.53671562082778,False
+AZAD,AZAD ENGINEERING LIMITED,Industrials,HOLD,67.42656875834444,False
+DELHIVERY,Delhivery Limited,Industrials,HOLD,67.42323097463284,False
+ZEEL,Zee Entertainment Enterprises Limited,Communication Services,HOLD,67.41989319092123,False
+APCOTEXIND,Apcotex Industries Limited,Basic Materials,HOLD,67.38651535380507,False
+GANESHBE,Ganesh Benzoplast Limited,Basic Materials,HOLD,67.3731642189586,False
+TALBROAUTO,Talbros Automotive Components Limited,Consumer Cyclical,HOLD,67.34646194926569,False
+ABSLAMC,Aditya Birla Sun Life AMC Limited,Financial Services,HOLD,67.31642189586114,False
+SAKAR,Sakar Healthcare Limited,Healthcare,HOLD,67.3064085447263,False
+NOVARTIND,Novartis India Limited,Healthcare,HOLD,67.3030707610147,False
+OMAXAUTO,Omax Autos Limited,Consumer Cyclical,HOLD,67.29305740987982,False
+APEX,Apex Frozen Foods Limited,Consumer Defensive,HOLD,67.21628838451268,False
+JSWENERGY,JSW Energy Limited,Utilities,HOLD,67.21295060080107,False
+PGHL,Procter & Gamble Health Limited,Healthcare,HOLD,67.18958611481976,False
+GRASIM,Grasim Industries Limited,Basic Materials,HOLD,67.1128170894526,True
+NESTLEIND,Nestlé India Limited,Consumer Defensive,HOLD,67.09946595460615,True
+PRIVISCL,Privi Speciality Chemicals Limited,Basic Materials,HOLD,67.06608811748998,False
+ANLON,"ANLON.NS,0P0001QAIM,6000",,HOLD,67.03604806408543,False
+NATIONALUM,National Aluminium Company Limited,Basic Materials,HOLD,67.01935914552737,True
+ZENTEC,Zen Technologies Limited,Industrials,HOLD,66.96929238985314,False
+CENTUM,Centum Electronics Limited,Technology,HOLD,66.96595460614152,False
+TFCILTD,Tourism Finance Corporation of India Limited,Financial Services,HOLD,66.9592790387183,False
+MBAPL,Madhya Bharat Agro Products Limited,Basic Materials,HOLD,66.95260347129505,False
+KOPRAN,Kopran Limited,Healthcare,HOLD,66.92590120160214,False
+PCCL,"PCCL.NS,0P0001T8EA,262400",,HOLD,66.88251001335114,False
+USHAMART,Usha Martin Limited,Basic Materials,HOLD,66.87249666221629,False
+JAYNECOIND,Jayaswal Neco Industries Limited,Basic Materials,HOLD,66.85914552736982,False
+WABAG,VA Tech Wabag Limited,Industrials,HOLD,66.81909212283044,False
+ADVENZYMES,Advanced Enzyme Technologies Limited,Basic Materials,HOLD,66.7456608811749,False
+TATACOMM,Tata Communications Limited,Communication Services,HOLD,66.72229639519358,False
+SOUTHWEST,South West Pinnacle Exploration Limited,Energy,HOLD,66.69225634178905,False
+DREDGECORP,Dredging Corporation of India Limited,Industrials,HOLD,66.68558077436583,False
+VETO,Veto Switchgears and Cables Limited,Industrials,HOLD,66.62883845126835,False
+ZIMLAB,ZIM Laboratories Limited,Healthcare,HOLD,66.52870493991989,False
+HINDCOPPER,Hindustan Copper Limited,Basic Materials,HOLD,66.49198931909213,True
+GOCLCORP,GOCL Corporation Limited,Basic Materials,HOLD,66.43524699599466,False
+PRECWIRE,Precision Wires India Limited,Industrials,HOLD,66.41855807743659,False
+SUPRIYA,Supriya Lifescience Limited,Healthcare,HOLD,66.21495327102804,False
+CARYSIL,Carysil Limited,Consumer Cyclical,HOLD,66.17156208277703,False
+MIDHANI,Mishra Dhatu Nigam Limited,Basic Materials,HOLD,66.10480640854473,False
+DEEPAKFERT,Deepak Fertilisers And Petrochemicals Corporation Limited,Basic Materials,HOLD,66.03805073431242,False
+ASIANENE,Asian Energy Services Limited,Energy,HOLD,66.03805073431242,False
+BIRLACABLE,Birla Cable Limited,Technology,HOLD,66.0380507343124,False
+HAPPYFORGE,HAPPY FORGINGS LIMITED,Industrials,HOLD,65.97463284379172,False
+AEROENTER,Aeroflex Enterprises Limited,Basic Materials,HOLD,65.85447263017357,False
+NAM-INDIA,Nippon Life India Asset Management Limited,Financial Services,HOLD,65.80106809078772,False
+KINGFA,Kingfa Science & Technology (India) Limited,Basic Materials,HOLD,65.78437917222963,False
+TVSSCS,TVS Supply Chain Solutions Limited,Industrials,HOLD,65.7743658210948,False
+STOVEKRAFT,Stove Kraft Limited,Consumer Cyclical,HOLD,65.72429906542055,False
+DLINKINDIA,D-Link (India) Limited,Technology,HOLD,65.68758344459279,False
+TATASTEEL,Tata Steel Limited,Basic Materials,HOLD,65.65086782376501,True
+NLCINDIA,NLC India Limited,Utilities,HOLD,65.63084112149532,False
+RBA,Restaurant Brands Asia Limited,Consumer Cyclical,HOLD,65.61081441922563,False
+BOROSCI,Borosil Scientific Limited,Consumer Cyclical,HOLD,65.57409879839786,False
+DSSL,Dynacons Systems & Solutions Limited,Technology,HOLD,65.55073431241655,False
+INDOBORAX,Indo Borax & Chemicals Limited,Basic Materials,HOLD,65.52736982643525,False
+SURYODAY,Suryoday Small Finance Bank Limited,Financial Services,HOLD,65.43724966622163,False
+JINDALPOLY,Jindal Poly Films Limited,Consumer Cyclical,HOLD,65.39719626168224,False
+BOSCHLTD,Bosch Limited,Consumer Cyclical,HOLD,65.32042723631507,False
+MARICO,Marico Limited,Consumer Defensive,HOLD,65.25367156208279,True
+KODYTECH,"KODYTECH.NS,0P0001RM18,8200",,HOLD,65.24365821094793,False
+EXIDEIND,Exide Industries Limited,Consumer Cyclical,HOLD,65.12349799732978,False
+AIMTRON,"AIMTRON.NS,0P0001T33D,126400",,HOLD,65.11682242990653,False
+AETHER,Aether Industries Limited,Basic Materials,HOLD,65.03671562082778,True
+NIBE,Nibe Limited,Industrials,HOLD,65.0200267022697,False
+PIXTRANS,PIX Transmissions Limited,Industrials,HOLD,64.97663551401868,False
+DHANBANK,Dhanlaxmi Bank Limited,Financial Services,HOLD,64.97663551401868,False
+KIMS,Krishna Institute of Medical Sciences Limited,Healthcare,HOLD,64.94993324432576,False
+SHAILY,Shaily Engineering Plastics Limited,Basic Materials,HOLD,64.88985313751668,False
+KRISHANA,Krishana Phoschem Limited,Basic Materials,HOLD,64.88651535380507,False
+ADFFOODS,ADF Foods Limited,Consumer Defensive,HOLD,64.87983978638184,False
+COALINDIA,Coal India Limited,Energy,HOLD,64.81308411214954,False
+BIOCON,Biocon Limited,Healthcare,HOLD,64.74966622162884,False
+MANCREDIT,Mangal Credit and Fincorp Limited,Financial Services,HOLD,64.72963951935915,False
+AJANTPHARM,Ajanta Pharma Limited,Healthcare,HOLD,64.6995994659546,False
+MUNJALAU,Munjal Auto Industries Limited,Consumer Cyclical,HOLD,64.68958611481976,False
+NRL,Nupur Recyclers Limited,Industrials,HOLD,64.68291054739653,False
+EXICOM,Exicom Tele-Systems Limited,Industrials,HOLD,64.61281708945259,False
+TITAGARH,Titagarh Rail Systems Limited,Industrials,HOLD,64.53604806408545,False
+CYIENTDLM,Cyient DLM Limited,Industrials,HOLD,64.4192256341789,False
+VADILALIND,Vadilal Industries Limited,Consumer Defensive,HOLD,64.38584779706275,False
+MINDACORP,Minda Corporation Limited,Consumer Cyclical,HOLD,64.36915887850468,False
+PFC,Power Finance Corporation Limited,Financial Services,HOLD,64.32242990654206,False
+EFFWA,"EFFWA.NS,0P0001TAFY,195200",,HOLD,64.29572763684914,False
+ROSSTECH,Rossell Techsys Limited,Industrials,HOLD,64.28571428571429,False
+SUPREMEPWR,"SUPREMEPWR.NS,0P0001S3NK,113000",,HOLD,64.28237650200268,False
+DIVGIITTS,Divgi TorqTransfer Systems Limited,Consumer Cyclical,HOLD,64.26568758344459,False
+AARTIIND,Aarti Industries Limited,Basic Materials,HOLD,64.21228304405875,False
+MANINDS,Man Industries (India) Limited,Basic Materials,HOLD,64.16555407209613,False
+ABSMARINE,"ABSMARINE.NS,0P0001SWTJ,135000",,HOLD,64.1154873164219,False
+AMBIKCO,Ambika Cotton Mills Limited,Consumer Cyclical,HOLD,64.09879839786382,False
+EMCURE,EMCURE PHARMACEUTICALS L,Healthcare,HOLD,64.08878504672897,False
+ABDL,ALLIED BLEND N DISTILS L,Consumer Defensive,HOLD,64.0720961281709,False
+PANAMAPET,Panama Petrochem Limited,Energy,HOLD,64.03871829105474,False
+AGIIL,AGI Infra Limited,Real Estate,HOLD,63.97196261682244,False
+MONARCH,Monarch Networth Capital Limited,Financial Services,HOLD,63.93858477970628,False
+SIGNPOST,Signpost India Limited,Communication Services,HOLD,63.90854472630174,False
+CERA,Cera Sanitaryware Limited,Industrials,HOLD,63.85847797062751,False
+NUVAMA,Nuvama Wealth Management Limited,Financial Services,HOLD,63.80507343124165,False
+UNIHEALTH,Unihealth Hospitals Limited,,HOLD,63.658210947930584,False
+UNIDT,United Drilling Tools Limited,Energy,HOLD,63.60814419225634,False
+VERANDA,Veranda Learning Solutions Limited,Consumer Defensive,HOLD,63.604806408544725,False
+HESTERBIO,Hester Biosciences Limited,Healthcare,HOLD,63.487983978638184,False
+VENUSPIPES,Venus Pipes and Tubes Limited,Basic Materials,HOLD,63.46461949265687,False
+OCCLLTD,OCCL Limited,Basic Materials,HOLD,63.39786381842457,False
+GALAPREC,GALA PRECISION ENG LTD,Industrials,HOLD,63.32109479305741,False
+DHAMPURSUG,Dhampur Sugar Mills Limited,Consumer Defensive,HOLD,63.2543391188251,False
+AVL,Aditya Vision Limited,Consumer Cyclical,HOLD,63.16421895861148,False
+SUNFLAG,Sunflag Iron and Steel Company Limited,Basic Materials,HOLD,63.147530040053404,False
+DEEPINDS,Deep Industries Limited,Energy,HOLD,63.134178905206944,False
+AXISBANK,Axis Bank Limited,Financial Services,HOLD,63.11415220293725,False
+MENONBE,Menon Bearings Limited,Consumer Cyclical,HOLD,62.95727636849133,False
+JBMA,JBM Auto Limited,Consumer Cyclical,HOLD,62.887182910547395,False
+GOODLUCK,Goodluck India Limited,Basic Materials,HOLD,62.887182910547395,False
+CCL,CCL Products (India) Limited,Consumer Defensive,HOLD,62.85380507343124,False
+KRISHNADEF,KRISHNA DEF AND ALD IND L,Industrials,HOLD,62.793724966622165,False
+IPCALAB,Ipca Laboratories Limited,Healthcare,HOLD,62.767022696929246,False
+ATALREAL,Atal Realtech Limited,Industrials,HOLD,62.74032042723631,False
+MANKIND,Mankind Pharma Limited,Healthcare,HOLD,62.71695594125501,False
+MMFL,M M Forgings Limited,Industrials,HOLD,62.69359145527369,False
+TIMKEN,Timken India Limited,Industrials,HOLD,62.68024032042724,False
+RAJRATAN,Rajratan Global Wire Limited,Basic Materials,HOLD,62.68024032042723,False
+MARINE,Marine Electricals (India) Limited,Industrials,HOLD,62.653538050734305,False
+VOLTAMP,Voltamp Transformers Limited,Industrials,HOLD,62.63017356475301,False
+MANALIPETC,Manali Petrochemicals Limited,Basic Materials,HOLD,62.630173564753,False
+COMSYN,Commercial Syn Bags Limited,Consumer Cyclical,HOLD,62.613484646194934,False
+TIPSMUSIC,Tips Music Limited,Communication Services,HOLD,62.59345794392523,False
+ALKYLAMINE,Alkyl Amines Chemicals Limited,Basic Materials,HOLD,62.586782376502,False
+GANDHAR,Gandhar Oil Refinery (India) Limited,Energy,HOLD,62.483311081441926,False
+PSPPROJECT,PSP Projects Limited,Industrials,HOLD,62.413217623498,False
+KPRMILL,K.P.R. Mill Limited,Consumer Cyclical,HOLD,62.396528704939925,False
+SIEMENS,Siemens Limited,Industrials,HOLD,62.35981308411215,False
+POWERMECH,Power Mech Projects Limited,Industrials,HOLD,62.32977303070761,False
+LUPIN,Lupin Limited,Healthcare,HOLD,62.31975967957276,False
+UNIVASTU,Univastu India Limited,Industrials,HOLD,62.30307076101469,False
+GESHIP,The Great Eastern Shipping Company Limited,Industrials,HOLD,62.28971962616823,False
+GOKULAGRO,Gokul Agro Resources Limited,Consumer Defensive,HOLD,62.176234979973295,False
+SHRIPISTON,SPR Auto Technologies Limited,Consumer Cyclical,HOLD,62.05273698264352,False
+KOVAI,Kovai Medical Center and Hospital Limited,Healthcare,HOLD,62.00267022696929,False
+NORTHARC,Northern Arc Capital Limited,Financial Services,HOLD,61.995994659546064,False
+OLECTRA,Olectra Greentech Limited,Industrials,HOLD,61.985981308411226,False
+ZYDUSWELL,Zydus Wellness Limited,Consumer Defensive,HOLD,61.90587449933244,False
+NIVABUPA,Niva Bupa Health Insurance Company Limited,Financial Services,HOLD,61.84245660881175,False
+MOTILALOFS,Motilal Oswal Financial Services Limited,Financial Services,HOLD,61.77903871829106,False
+SUZLON,Suzlon Energy Limited,Industrials,HOLD,61.7022696929239,False
+ALIVUS,Alivus Life Sciences Limited,Healthcare,HOLD,61.67890520694259,False
+FOCUS,Focus Lighting and Fixtures Limited,Consumer Cyclical,HOLD,61.67556742323097,False
+VISAKAIND,Visaka Industries Limited,Industrials,HOLD,61.66889185580774,False
+GABRIEL,Gabriel India Limited,Consumer Cyclical,HOLD,61.64552736982644,False
+SAREGAMA,Saregama India Limited,Communication Services,HOLD,61.60881174899866,False
+STALLION,STALLION IND FLUOROCHEM L,Basic Materials,HOLD,61.48865153538051,False
+KMEW,Knowledge Marine & Engineering Works Limited,Industrials,HOLD,61.46862483311081,False
+PONNIERODE,Ponni Sugars (Erode) Limited,Consumer Defensive,HOLD,61.42189586114819,False
+SBIN,State Bank of India,Financial Services,HOLD,61.41522029372497,True
+AUBANK,AU Small Finance Bank Limited,Financial Services,HOLD,61.388518024032045,False
+BHAGERIA,Bhageria Industries Limited,Basic Materials,HOLD,61.34512683578104,False
+PASUPTAC,Pasupati Acrylon Limited,Consumer Cyclical,HOLD,61.305073431241645,False
+PAGEIND,Page Industries Limited,Consumer Cyclical,HOLD,61.27837116154873,False
+BCLIND,BCL Industries Limited,Consumer Defensive,HOLD,61.2283044058745,False
+IKS,INVENTURUS KNOWLEDGE SO L,Healthcare,HOLD,61.20827770360481,False
+ASHAPURMIN,Ashapura Minechem Limited,Basic Materials,HOLD,61.17156208277703,False
+PTC,PTC India Limited,Utilities,HOLD,61.14485981308412,False
+ASHIANA,Ashiana Housing Limited,Real Estate,HOLD,61.12149532710281,False
+GLENMARK,Glenmark Pharmaceuticals Limited,Healthcare,HOLD,61.10480640854472,False
+BODALCHEM,Bodal Chemicals Limited,Basic Materials,HOLD,61.04806408544727,False
+GMRAIRPORT,GMR Airports Limited,Industrials,HOLD,61.024699599465954,False
+TIRUPATIFL,Tirupati Forge Limited,Industrials,HOLD,60.99465954606141,False
+OAL,Oriental Aromatics Limited,Basic Materials,HOLD,60.974632843791724,False
+KPIL,Kalpataru Projects International Limited,Industrials,HOLD,60.9712950600801,False
+MOREPENLAB,Morepen Laboratories Limited,Healthcare,HOLD,60.961281708945265,False
+INFOBEAN,InfoBeans Technologies Limited,Technology,HOLD,60.93124165554073,False
+MANAPPURAM,Manappuram Finance Limited,Financial Services,HOLD,60.90120160213619,False
+RML,Rane (Madras) Limited,Consumer Cyclical,HOLD,60.89452603471295,False
+PITTIENG,Pitti Engineering Limited,Industrials,HOLD,60.89452603471295,False
+JTLIND,JTL Industries Limited,Basic Materials,HOLD,60.867823765020034,False
+GUJALKALI,Gujarat Alkalies and Chemicals Limited,Basic Materials,HOLD,60.73765020026702,False
+WSTCSTPAPR,West Coast Paper Mills Limited,Basic Materials,HOLD,60.68758344459279,False
+WELSPUNLIV,Welspun Living Limited,Consumer Cyclical,HOLD,60.604138851802404,False
+KIOCL,KIOCL Limited,Basic Materials,HOLD,60.60080106809079,False
+LT,Larsen & Toubro Limited,Industrials,HOLD,60.53738317757009,False
+IGIL,International Gemological Institute Limited,Basic Materials,HOLD,60.517356475300396,False
+BAJEL,Bajel Projects Limited,Utilities,HOLD,60.50734312416556,False
+STEELCAS,Steelcast Limited,Basic Materials,HOLD,60.49065420560748,False
+LALPATHLAB,Dr. Lal PathLabs Limited,Healthcare,HOLD,60.450600801068084,False
+GHCLTEXTIL,GHCL Textiles Limited,Consumer Cyclical,HOLD,60.44392523364487,False
+BALRAMCHIN,Balrampur Chini Mills Limited,Consumer Defensive,HOLD,60.417222963951936,False
+GLOBAL,Global Education Limited,Consumer Defensive,HOLD,60.41388518024032,False
+JAGRAN,Jagran Prakashan Limited,Communication Services,HOLD,60.39052069425901,False
+KAMDHENU,Kamdhenu Limited,Basic Materials,HOLD,60.360480640854476,False
+VINYAS,"VINYAS.NS,0P0001RNO8,14000",,HOLD,60.33711615487317,False
+MMTC,MMTC Limited,Industrials,HOLD,60.32042723631508,False
+PGINVIT,"PGINVIT.NS,0P0001MGQ9,2267108",,HOLD,60.29038718291055,False
+PIDILITIND,Pidilite Industries Limited,Basic Materials,HOLD,60.2803738317757,False
+TBZ,Tribhovandas Bhimji Zaveri Limited,Consumer Cyclical,HOLD,60.243658210947935,False
+KARURVYSYA,The Karur Vysya Bank Limited,Financial Services,HOLD,60.2369826435247,False
+MEDPLUS,MedPlus Health Services Limited,Healthcare,HOLD,60.213618157543394,False
+NH,Narayana Hrudayalaya Limited,Healthcare,HOLD,60.19692923898532,False
+IDFCFIRSTB,IDFC First Bank Limited,Financial Services,HOLD,60.18691588785047,False
+HINDZINC,Hindustan Zinc Limited,Basic Materials,HOLD,60.14686248331108,False
+EICHERMOT,Eicher Motors Limited,Consumer Cyclical,HOLD,60.14352469959946,False
+CELLECOR,"CELLECOR.NS,0P0001RM26,155400",,HOLD,60.06008010680908,False
+SPECTRUM,SPECTRUM ELECTRIC IND LTD,Industrials,HOLD,60.040053404539385,False
+LUMAXTECH,Lumax Auto Technologies Limited,Consumer Cyclical,HOLD,60.03004005340454,False
+HONAUT,Honeywell Automation India Limited,Industrials,HOLD,59.98331108144192,False
+PHOENIXLTD,The Phoenix Mills Limited,Real Estate,HOLD,59.94325767690253,True
+DIVISLAB,Divi's Laboratories Limited,Healthcare,HOLD,59.82309746328438,False
+JGCHEM,J.G.CHEMICALS LIMITED,Basic Materials,HOLD,59.80974632843792,False
+IIFLCAPS,IIFL Capital Services Limited,Financial Services,HOLD,59.79973297730308,False
+VINCOFE,Vintage Coffee and Beverages Limited,Consumer Defensive,HOLD,59.75634178905207,False
+VSTIND,VST Industries Limited,Consumer Defensive,HOLD,59.70627503337785,False
+GAIL,GAIL (India) Limited,Utilities,HOLD,59.692923898531376,False
+DWARKESH,Dwarikesh Sugar Industries Limited,Consumer Defensive,HOLD,59.682910547396524,False
+GNFC,Gujarat Narmada Valley Fertilizers & Chemicals Limited,Basic Materials,HOLD,59.62283044058745,False
+MAHSEAMLES,Maharashtra Seamless Limited,Basic Materials,HOLD,59.60947930574099,False
+DEEPAKNTR,Deepak Nitrite Limited,Basic Materials,HOLD,59.59946595460614,False
+FLUOROCHEM,Gujarat Fluorochemicals Limited,Basic Materials,HOLD,59.57276368491323,False
+INDIGRID,Indigrid Infrastructure Trust,,HOLD,59.55607476635514,False
+AVTNPL,AVT Natural Products Limited,Basic Materials,HOLD,59.52937249666221,False
+XPROINDIA,Xpro India Limited,Basic Materials,HOLD,59.47930574098799,False
+ENGINERSIN,Engineers India Limited,Industrials,HOLD,59.45594125500667,False
+JSFB,Jana Small Finance Bank Limited,Financial Services,HOLD,59.42256341789053,False
+PRUDENT,Prudent Corporate Advisory Services Limited,Financial Services,HOLD,59.37917222963952,False
+VISHNU,Vishnu Chemicals Limited,Basic Materials,HOLD,59.33911882510014,False
+APTECHT,Aptech Limited,Consumer Defensive,HOLD,59.31241655540721,False
+INGERRAND,Ingersoll-Rand (India) Limited,Industrials,HOLD,59.2456608811749,False
+HCC,Hindustan Construction Company Limited,Industrials,HOLD,59.23564753004006,False
+WELENT,Welspun Enterprises Limited,Industrials,HOLD,59.192256341789054,False
+PNBHOUSING,PNB Housing Finance Limited,Financial Services,HOLD,59.15554072096128,False
+MOLDTKPAC,Mold-Tek Packaging Limited,Consumer Cyclical,HOLD,59.142189586114824,False
+JINDALSTEL,Jindal Steel Limited,Basic Materials,HOLD,59.0954606141522,True
+PREMIERPOL,Premier Polyfilm Ltd.,Basic Materials,HOLD,59.055407209612824,False
+CENTENKA,Century Enka Limited,Consumer Cyclical,HOLD,59.052069425901195,False
+SUNPHARMA,Sun Pharmaceutical Industries Limited,Healthcare,HOLD,58.99198931909213,False
+HARIOMPIPE,Hariom Pipe Industries Limited,Basic Materials,HOLD,58.99198931909212,False
+ROLEXRINGS,Rolex Rings Limited,Industrials,HOLD,58.92857142857142,False
+JINDRILL,Jindal Drilling & Industries Limited,Energy,HOLD,58.9218958611482,False
+SMSPHARMA,SMS Pharmaceuticals Limited,Healthcare,HOLD,58.90854472630175,False
+KDDL,KDDL Limited,Consumer Cyclical,HOLD,58.90520694259013,False
+ABCAPITAL,Aditya Birla Capital Limited,Financial Services,HOLD,58.895193591455275,False
+FAZE3Q,Faze Three Limited,Consumer Cyclical,HOLD,58.88184245660881,False
+ASTRAL,Astral Limited,Industrials,HOLD,58.84178905206942,False
+NTPC,NTPC Limited,Utilities,HOLD,58.82510013351135,False
+GREENPLY,Greenply Industries Limited,Basic Materials,HOLD,58.75500667556742,False
+LLOYDSENT,Lloyds Enterprises Limited,Basic Materials,HOLD,58.744993324432585,False
+NELCAST,Nelcast Limited,Industrials,HOLD,58.73164218958611,False
+GPTHEALTH,GPT Healthcare Limited,Healthcare,HOLD,58.71495327102804,False
+TITAN,Titan Company Limited,Consumer Cyclical,HOLD,58.691588785046726,True
+MUTHOOTMF,MUTHOOT MICROFIN LIMITED,Financial Services,HOLD,58.671562082777044,False
+NAZARA,Nazara Technologies Limited,Communication Services,HOLD,58.65487316421896,False
+LINCOLN,Lincoln Pharmaceuticals Limited,Healthcare,HOLD,58.6415220293725,False
+INDUSTOWER,Indus Towers Limited,Communication Services,HOLD,58.618157543391185,True
+ATUL,Atul Ltd,Basic Materials,HOLD,58.58477970627503,False
+ARROWGREEN,Arrow Greentech Limited,Consumer Cyclical,HOLD,58.54472630173565,False
+ASTEC,Astec LifeSciences Limited,Basic Materials,HOLD,58.461281708945265,False
+LICHSGFIN,LIC Housing Finance Limited,Financial Services,HOLD,58.3845126835781,False
+INDIANB,Indian Bank,Financial Services,HOLD,58.37783711615487,False
+TIIL,Technocraft Industries (India) Limited,Industrials,HOLD,58.21762349799734,False
+ADOR,Ador Welding Limited,Industrials,HOLD,58.20427236315087,False
+GUFICBIO,Gufic Biosciences Limited,Healthcare,HOLD,58.19425901201602,False
+MRPL,Mangalore Refinery and Petrochemicals Limited,Energy,HOLD,58.19425901201602,False
+COASTCORP,Coastal Corporation Limited,Consumer Defensive,HOLD,58.144192256341796,False
+TMPV,Tata Motors Passenger Vehicles Limited,Consumer Cyclical,HOLD,58.05740987983979,False
+FEDFINA,Fedbank Financial Services Limited,Financial Services,HOLD,57.96395193591456,False
+COLPAL,Colgate-Palmolive (India) Limited,Consumer Defensive,HOLD,57.953938584779706,False
+MANORAMA,Manorama Industries Limited,Consumer Defensive,HOLD,57.90720961281709,False
+MEDANTA,Global Health Limited,Healthcare,HOLD,57.90053404539386,False
+SWELECTES,Swelect Energy Systems Limited,Technology,HOLD,57.89052069425901,False
+DHARMAJ,Dharmaj Crop Guard Limited,Basic Materials,HOLD,57.87716955941255,False
+AVANTEL,Avantel Limited,Technology,HOLD,57.80707610146863,False
+UNIMECH,UNIMECH AEROSPACE N MFG L,Industrials,HOLD,57.76702269692924,False
+GMDCLTD,Gujarat Mineral Development Corporation Limited,Energy,HOLD,57.74032042723631,False
+KSB,KSB Limited,Industrials,HOLD,57.70360480640855,False
+SSWL,Steel Strips Wheels Limited,Consumer Cyclical,HOLD,57.67022696929238,False
+INDNIPPON,India Nippon Electricals Limited,Consumer Cyclical,HOLD,57.620160213618156,False
+BANKINDIA,Bank of India Limited,Financial Services,HOLD,57.479973297730304,False
+FINEORG,Fine Organic Industries Limited,Basic Materials,HOLD,57.456608811749,False
+LUXIND,Lux Industries Limited,Consumer Cyclical,HOLD,57.45327102803738,False
+SPAL,S.P. Apparels Limited,Consumer Cyclical,HOLD,57.346461949265695,False
+WAAREEENER,WAAREE ENERGIES LIMITED,Technology,HOLD,57.33978638184246,True
+IMFA,Indian Metals and Ferro Alloys Limited,Basic Materials,HOLD,57.33311081441922,False
+ZFCVINDIA,ZF Commercial Vehicle Control Systems India Limited,Consumer Cyclical,HOLD,57.31308411214953,False
+RAMCOSYS,Ramco Systems Limited,Technology,HOLD,57.27303070761015,False
+RAINBOW,Rainbow Children's Medicare Limited,Healthcare,HOLD,57.25967957276369,False
+SENCO,Senco Gold Limited,Consumer Cyclical,HOLD,57.20961281708945,False
+EMBASSY,Embassy Office Parks REIT,,HOLD,57.18958611481977,False
+QUADFUTURE,QUADRANT FUTURE TEK LTD,Industrials,HOLD,57.17957276368492,False
+CIEINDIA,CIE Automotive India Limited,Consumer Cyclical,HOLD,57.17289719626168,False
+WINDMACHIN,Windsor Machines Limited,Industrials,HOLD,57.096128170894524,False
+POWERGRID,Power Grid Corporation of India Limited,Utilities,HOLD,57.07943925233644,False
+AVADHSUGAR,Avadh Sugar & Energy Limited,Consumer Defensive,HOLD,57.07276368491322,False
+SANDUMA,The Sandur Manganese & Iron Ores Limited,Basic Materials,HOLD,57.039385847797064,False
+ANDHRSUGAR,The Andhra Sugars Limited,Basic Materials,HOLD,57.03604806408545,False
+BHARATWIRE,Bharat Wire Ropes Limited,Basic Materials,HOLD,56.93591455273698,False
+HARRMALAYA,Harrisons Malayalam Limited,Consumer Defensive,HOLD,56.9158878504673,False
+BANCOINDIA,Banco Products (India) Limited,Consumer Cyclical,HOLD,56.889185580774374,False
+GEOJITFSL,Geojit Financial Services Limited,Financial Services,HOLD,56.88918558077437,False
+HBLENGINE,HBL ENGINEERING LTD,Industrials,HOLD,56.87917222963952,False
+CHEMCON,Chemcon Speciality Chemicals Limited,Basic Materials,HOLD,56.8758344459279,False
+RKFORGE,Ramkrishna Forgings Limited,Industrials,HOLD,56.865821094793056,False
+VIMTALABS,Vimta Labs Limited,Healthcare,HOLD,56.73898531375167,False
+MANGLMCEM,Mangalam Cement Limited,Basic Materials,HOLD,56.702269692923906,False
+FIEMIND,Fiem Industries Limited,Consumer Cyclical,HOLD,56.618825100133506,False
+CARTRADE,CarTrade Tech Limited,Consumer Cyclical,HOLD,56.59546061415221,False
+CHAMBLFERT,Chambal Fertilisers and Chemicals Limited,Basic Materials,HOLD,56.55540720961282,False
+EMKAY,Emkay Global Financial Services Limited,Financial Services,HOLD,56.54205607476635,False
+VAIBHAVGBL,Vaibhav Global Limited,Consumer Cyclical,HOLD,56.53871829105474,False
+RECLTD,REC Limited,Financial Services,HOLD,56.475300400534046,False
+PRINCEPIPE,Prince Pipes and Fittings Limited,Industrials,HOLD,56.455273698264364,False
+GRAPHITE,Graphite India Limited,Industrials,HOLD,56.431909212283045,False
+GREAVESCOT,Greaves Cotton Limited,Industrials,HOLD,56.371829105473964,False
+FACT,The Fertilisers and Chemicals Travancore Limited,Basic Materials,HOLD,56.34178905206942,False
+AFSL,Abans Financial Services Limited,Financial Services,HOLD,56.31842456608811,False
+CORDSCABLE,Cords Cable Industries Limited,Industrials,HOLD,56.24165554072097,False
+BEPL,Bhansali Engineering Polymers Limited,Basic Materials,HOLD,56.21161548731642,False
+NPST,NETWORK PEOPLE SRV TECH L,Technology,HOLD,56.204939919893185,False
+JAGSNPHARM,Jagsonpal Pharmaceuticals Limited,Healthcare,HOLD,56.17823765020027,False
+MAWANASUG,Mawana Sugars Limited,Consumer Defensive,HOLD,56.14485981308411,False
+IGPL,I G Petrochemicals Limited,Basic Materials,HOLD,56.11481975967956,False
+ZTECH,"ZTECH.NS,0P0001T2S3,255600",,HOLD,56.08144192256342,False
+SERVOTECH,Servotech Renewable Power System Limited,Industrials,HOLD,55.9479305740988,False
+SHRIRAMFIN,Shriram Finance Limited,Financial Services,HOLD,55.944592790387176,False
+RANEHOLDIN,Rane Holdings Limited,Consumer Cyclical,HOLD,55.93124165554072,False
+ELECON,Elecon Engineering Company Limited,Industrials,HOLD,55.9279038718291,False
+V2RETAIL,V2 Retail Limited,Consumer Cyclical,HOLD,55.914552736982635,False
+BANKBARODA,Bank of Baroda Limited,Financial Services,HOLD,55.911214953271035,False
+KANSAINER,Kansai Nerolac Paints Limited,Basic Materials,HOLD,55.91121495327103,False
+ITDC,India Tourism Development Corporation Limited,Consumer Cyclical,HOLD,55.881174899866494,False
+TATAPOWER,Tata Power Company Limited,Utilities,HOLD,55.88117489986649,False
+KSL,Kalyani Steels Limited,Basic Materials,HOLD,55.8411214953271,False
+ONGC,Oil and Natural Gas Corporation Limited,Energy,HOLD,55.8411214953271,False
+LINDEINDIA,Linde India Limited,Basic Materials,HOLD,55.83778371161549,False
+CAMS,Computer Age Management Services Limited,Technology,HOLD,55.7977303070761,False
+STYLEBAAZA,Baazar Style Retail Limited,Consumer Cyclical,HOLD,55.77770360480641,False
+HARSHA,Harsha Engineers International Limited,Industrials,HOLD,55.76769025367157,False
+INOXGREEN,Inox Green Energy Services Limited,Utilities,HOLD,55.744325767690256,False
+COFFEEDAY,Coffee Day Enterprises Limited,Consumer Cyclical,HOLD,55.704272363150864,False
+PGIL,Pearl Global Industries Limited,Consumer Cyclical,HOLD,55.67757009345795,False
+DMART,Avenue Supermarts Limited,Consumer Defensive,HOLD,55.670894526034715,False
+JSWINFRA,JSW Infrastructure Limited,Industrials,HOLD,55.607476635514026,False
+MUKANDLTD,Mukand Limited,Basic Materials,HOLD,55.54072096128172,False
+UNIONBANK,Union Bank of India,Financial Services,HOLD,55.52403204272363,False
+KENNAMET,Kennametal India Limited,Industrials,HOLD,55.48731642189586,False
+BORORENEW,Borosil Renewables Limited,Technology,HOLD,55.40387182910547,False
+ITI,ITI Limited,Technology,HOLD,55.380507343124165,False
+ICICIBANK,ICICI Bank Limited,Financial Services,HOLD,55.34045393858478,False
+360ONE,360 One Wam Limited,Financial Services,HOLD,55.267022696929246,False
+STEL,STEL Holdings Limited,Financial Services,HOLD,55.24699599465955,False
+WEBELSOLAR,Websol Energy System Limited,Technology,HOLD,55.156875834445934,False
+HMVL,Hindustan Media Ventures Limited,Communication Services,HOLD,55.15687583444593,False
+CESC,CESC Limited,Utilities,HOLD,55.15020026702269,False
+ONEPOINT,One Point One Solutions Limited,Industrials,HOLD,55.14686248331108,False
+BHAGCHEM,Bhagiradha Chemicals & Industries Limited,Basic Materials,HOLD,55.1068090787717,False
+SMLMAH,SML MAHINDRA LIMITED,Consumer Cyclical,HOLD,55.09679572763685,False
+MAHASTEEL,Mahamaya Steel Industries Limited,Basic Materials,HOLD,55.00333778371162,False
+CAPITALSFB,Capital Small Finance Bank Limited,Financial Services,HOLD,54.98331108144192,False
+CLSEL,Chaman Lal Setia Exports Ltd.,Consumer Defensive,HOLD,54.923230974632844,False
+INDOCO,Indoco Remedies Limited,Healthcare,HOLD,54.886515353805066,False
+HINDOILEXP,Hindustan Oil Exploration Company Limited,Energy,HOLD,54.87650200267023,False
+KOTAKBANK,Kotak Mahindra Bank Limited,Financial Services,HOLD,54.856475300400525,False
+AVANTIFEED,Avanti Feeds Limited,Consumer Defensive,HOLD,54.80307076101468,False
+UNICHEMLAB,Unichem Laboratories Limited,Healthcare,HOLD,54.72963951935915,False
+BHARATGEAR,Bharat Gears Limited,Consumer Cyclical,HOLD,54.72963951935914,False
+RAMRAT,Ram Ratna Wires Limited,Industrials,HOLD,54.6995994659546,False
+KAJARIACER,Kajaria Ceramics Limited,Industrials,HOLD,54.696261682242984,False
+SUPRAJIT,Suprajit Engineering Limited,Consumer Cyclical,HOLD,54.676234979973295,False
+HUDCO,Housing and Urban Development Corporation Limited,Financial Services,HOLD,54.64285714285714,False
+BBL,Bharat Bijlee Limited,Industrials,HOLD,54.59612817089453,False
+EPL,EPL Limited,Consumer Cyclical,HOLD,54.589452603471294,False
+EVEREADY,Eveready Industries India Limited,Industrials,HOLD,54.526034712950604,False
+RATNAVEER,Ratnaveer Precision Engineering Limited,Basic Materials,HOLD,54.42590120160213,False
+AAVAS,Aavas Financiers Limited,Financial Services,HOLD,54.38584779706275,False
+BEL,Bharat Electronics Limited,Industrials,HOLD,54.36582109479305,False
+MOSCHIP,MOSCHIP TECHNOLOGIES LTD,Technology,HOLD,54.292389853137514,False
+ANURAS,Anupam Rasayan India Ltd,Basic Materials,HOLD,54.26234979973298,False
+TATACONSUM,Tata Consumer Products Limited,Consumer Defensive,HOLD,54.17222963951936,False
+HNDFDS,Hindustan Foods Limited,Industrials,HOLD,54.1588785046729,False
+TNPL,Tamil Nadu Newsprint and Papers Limited,Basic Materials,HOLD,54.13885180240321,False
+TATVA,Tatva Chintan Pharma Chem Limited,Basic Materials,HOLD,54.09212283044059,False
+FUSION,Fusion Finance Limited,Financial Services,HOLD,54.09212283044058,False
+BERGEPAINT,Berger Paints India Limited,Basic Materials,HOLD,54.04539385847797,False
+DYNAMATECH,Dynamatic Technologies Limited,Consumer Cyclical,HOLD,54.03538050734313,False
+CREDITACC,CreditAccess Grameen Limited,Financial Services,HOLD,54.01201602136181,False
+IRBINVIT,IRB InvIT Fund,,HOLD,53.98531375166889,False
+INDIGOPNTS,Indigo Paints Limited,Basic Materials,HOLD,53.95861148197597,False
+INDOAMIN,Indo Amines Limited,Basic Materials,HOLD,53.89853137516689,False
+GATEWAY,Gateway Distriparks Limited,Industrials,HOLD,53.87516688918558,False
+AMBER,Amber Enterprises India Limited,Consumer Cyclical,HOLD,53.8351134846462,False
+PTCIL,PTC Industries Limited,Industrials,HOLD,53.801735647530045,False
+POCL,Pondy Oxides And Chemicals Limited,Basic Materials,HOLD,53.79839786381842,False
+HCG,HealthCare Global Enterprises Limited,Healthcare,HOLD,53.78170894526035,False
+ARMANFIN,Arman Financial Services Limited,Financial Services,HOLD,53.71495327102804,False
+MINDSPACE,"MINDSPACE.NS,0P0001KHWX,214689",,HOLD,53.71495327102803,False
+TVSSRICHAK,TVS Srichakra Limited,Consumer Cyclical,HOLD,53.62149532710281,False
+GALLANTT,Gallantt Ispat Limited,Basic Materials,HOLD,53.6214953271028,False
+OBEROIRLTY,Oberoi Realty Limited,Real Estate,HOLD,53.61481975967957,False
+LTF,L&T Finance Limited,Financial Services,HOLD,53.598130841121495,False
+GUJTHEM,Gujarat Themis Biosyn Limited,Healthcare,HOLD,53.59813084112149,False
+JSWDULUX,JSW Dulux Limited,,HOLD,53.588117489986644,False
+BFINVEST,BF Investment Limited,Financial Services,HOLD,53.50467289719626,False
+JASH,Jash Engineering Limited,Industrials,HOLD,53.4913217623498,False
+ALKEM,Alkem Laboratories Limited,Healthcare,HOLD,53.487983978638184,False
+TORNTPOWER,Torrent Power Limited,Utilities,HOLD,53.454606141522035,False
+BFUTILITIE,BF Utilities Limited,Industrials,HOLD,53.44459279038718,False
+ESAFSFB,ESAF Small Finance Bank,Financial Services,HOLD,53.434579439252346,False
+INSECTICID,Insecticides (India) Limited,Basic Materials,HOLD,53.37116154873164,False
+CIPLA,Cipla Limited,Healthcare,HOLD,53.36782376502003,False
+TAKE,TAKE Solutions Limited,Healthcare,HOLD,53.32109479305741,False
+HGS,Hinduja Global Solutions Limited,Industrials,HOLD,53.294392523364486,False
+LIKHITHA,Likhitha Infrastructure Limited,Energy,HOLD,53.271028037383175,False
+POLYPLEX,Polyplex Corporation Limited,Basic Materials,HOLD,53.26435246995994,False
+SIYSIL,Siyaram Silk Mills Limited,Consumer Cyclical,HOLD,53.257676902536716,False
+JAMNAAUTO,Jamna Auto Industries Limited,Consumer Cyclical,HOLD,53.24432576769025,False
+RELIGARE,Religare Enterprises Limited,Financial Services,HOLD,53.19092122830441,False
+AYMSYNTEX,AYM Syntex Limited,Consumer Cyclical,HOLD,53.1675567423231,False
+TERASOFT,Tera Software Limited,Technology,HOLD,53.104138851802404,False
+DCBBANK,DCB Bank Limited,Financial Services,HOLD,53.07409879839786,False
+NBCC,NBCC (India) Limited,Industrials,HOLD,53.070761014686255,False
+SCHAEFFLER,Schaeffler India Limited,Consumer Cyclical,HOLD,53.04405874499332,False
+WENDT,Wendt (India) Limited,Industrials,HOLD,53.0373831775701,False
+GENUSPOWER,Genus Power Infrastructures Limited,Industrials,HOLD,53.01401869158879,False
+GIPCL,Gujarat Industries Power Company Limited,Utilities,HOLD,52.90720961281709,False
+NRAIL,N R Agarwal Industries Limited,Basic Materials,HOLD,52.86048064085447,False
+PFOCUS,Prime Focus Limited,Communication Services,HOLD,52.84045393858479,False
+DIAMONDYD,Prataap Snacks Limited,Consumer Defensive,HOLD,52.81041388518024,False
+ANANTRAJ,Anant Raj Limited,Real Estate,HOLD,52.79372496662216,False
+GREENLAM,Greenlam Industries Limited,Consumer Cyclical,HOLD,52.780373831775705,False
+ENTERO,Entero Healthcare Solutions Limited,Healthcare,HOLD,52.700267022696934,False
+OIL,Oil India Limited,Energy,HOLD,52.686915887850475,False
+AIIL,Authum Investment & Infrastructure Limited,Financial Services,HOLD,52.64352469959946,False
+KICL,Kalyani Investment Company Limited,Financial Services,HOLD,52.626835781041386,False
+VMART,V-Mart Retail Limited,Consumer Cyclical,HOLD,52.61682242990655,False
+NTPCGREEN,NTPC GREEN ENERGY LIMITED,Utilities,HOLD,52.580106809078764,False
+NXST,"NXST.NS,0P0001QYGB,295316",,HOLD,52.55674232309746,False
+PRAJIND,Praj Industries Limited,Industrials,HOLD,52.533377837116156,False
+NITCO,NITCO Limited,Industrials,HOLD,52.53004005340454,False
+MANAKSTEEL,Manaksia Steels Limited,Basic Materials,HOLD,52.50667556742324,False
+REFEX,Refex Industries Limited,Energy,HOLD,52.489986648865155,False
+GANDHITUBE,Gandhi Special Tubes Limited,Industrials,HOLD,52.466622162883844,False
+STARCEMENT,Star Cement Limited,Basic Materials,HOLD,52.46328437917222,False
+NACLIND,NACL Industries Limited,Basic Materials,HOLD,52.44993324432576,False
+WANBURY,Wanbury Limited,Healthcare,HOLD,52.43658210947931,False
+KIRLOSBROS,Kirloskar Brothers Limited,Industrials,HOLD,52.41321762349801,False
+CANFINHOME,Can Fin Homes Limited,Financial Services,HOLD,52.31642189586115,False
+INDHOTEL,The Indian Hotels Company Limited,Consumer Cyclical,HOLD,52.31642189586115,False
+TVSMOTOR,TVS Motor Company Limited,Consumer Cyclical,HOLD,52.17289719626168,False
+TRIVENI,Triveni Engineering & Industries Limited,Consumer Defensive,HOLD,52.09946595460614,False
+DRREDDY,Dr. Reddy's Laboratories Limited,Healthcare,HOLD,52.09279038718291,False
+SARDAEN,Sarda Energy & Minerals Limited,Basic Materials,HOLD,52.0694259012016,False
+TINNARUBR,Tinna Rubber and Infrastructure Limited,Basic Materials,HOLD,52.032710280373834,False
+PRIMESECU,Prime Securities Limited,Financial Services,HOLD,51.95927903871829,False
+GPTINFRA,GPT Infraprojects Limited,Industrials,HOLD,51.89252336448598,False
+HAL,Hindustan Aeronautics Limited,Industrials,HOLD,51.87249666221629,False
+HYUNDAI,HYUNDAI MOTOR INDIA LTD,Consumer Cyclical,HOLD,51.86915887850467,False
+THELEELA,Leela Palaces Hotels & Resorts Limited,Consumer Cyclical,HOLD,51.83578104138852,False
+BANSWRAS,Banswara Syntex Limited,Consumer Cyclical,HOLD,51.77236315086783,False
+INDGN,INDEGENE LIMITED,Healthcare,HOLD,51.70560747663551,False
+SARLAPOLY,Sarla Performance Fibers Limited,Consumer Cyclical,HOLD,51.632176234979966,False
+LMW,LMW Limited,Industrials,HOLD,51.62550066755674,False
+JSLL,JEENA SIKHO LIFECARE LTD,Healthcare,HOLD,51.612149532710276,False
+HEMIPROP,Hemisphere Properties India Limited,Real Estate,HOLD,51.57877169559413,False
+BIRET,"BIRET.NS,0P0001LR17,171521",,HOLD,51.56542056074767,False
+IIFL,IIFL Finance Limited,Financial Services,HOLD,51.51869158878505,False
+ULTRACEMCO,UltraTech Cement Limited,Basic Materials,HOLD,51.518691588785046,False
+UFO,UFO Moviez India Limited,Communication Services,HOLD,51.46194926568758,False
+FILATEX,Filatex India Limited,Consumer Cyclical,HOLD,51.32510013351135,False
+TEAMLEASE,TeamLease Services Limited,Industrials,HOLD,51.321762349799734,False
+WINDLAS,Windlas Biotech Limited,Healthcare,HOLD,51.30507343124165,False
+RATNAMANI,Ratnamani Metals & Tubes Limited,Basic Materials,HOLD,51.27503337783712,False
+BHARATSE,Bharat Seats Limited,Consumer Cyclical,HOLD,51.258344459279044,False
+SUMICHEM,Sumitomo Chemical India Limited,Basic Materials,HOLD,51.20827770360481,False
+HINDUNILVR,Hindustan Unilever Limited,Consumer Defensive,HOLD,51.1849132176235,False
+PVRINOX,PVR INOX Limited,Communication Services,HOLD,51.13150867823765,False
+ASAL,Automotive Stampings and Assemblies Limited,Consumer Cyclical,HOLD,51.11481975967957,False
+HLEGLAS,HLE Glascoat Limited,Industrials,HOLD,51.06809078771696,False
+KRYSTAL,KRYSTAL INTEGRATED SER L,Industrials,HOLD,51.024699599465954,False
+MAZDA,Mazda Limited,Industrials,HOLD,50.997997329773035,False
+CONCORDBIO,Concord Biotech Limited,Healthcare,HOLD,50.987983978638184,False
+PAYTM,One97 Communications Limited,Technology,HOLD,50.96128170894526,False
+MGL,Mahanagar Gas Limited,Utilities,HOLD,50.95794392523364,False
+PVP,PVP Ventures Limited,Industrials,HOLD,50.92456608811749,False
+TATACHEM,Tata Chemicals Limited,Basic Materials,HOLD,50.92122830440587,False
+SINDHUTRAD,Sindhu Trade Links Limited,Industrials,HOLD,50.9045393858478,False
+SRM,SRM CONTRACTORS LIMITED,Industrials,HOLD,50.88117489986649,False
+SWSOLAR,Sterling and Wilson Renewable Energy Limited,Technology,HOLD,50.87783711615488,False
+SHRIRAMPPS,Shriram Properties Limited,Real Estate,HOLD,50.74098798397863,False
+MARUTI,Maruti Suzuki India Limited,Consumer Cyclical,HOLD,50.73765020026702,False
+NOCIL,NOCIL Limited,Basic Materials,HOLD,50.68090787716955,False
+PYRAMID,Pyramid Technoplast Limited,Consumer Cyclical,HOLD,50.647530040053404,False
+DENORA,De Nora India Limited,Industrials,HOLD,50.63751668891856,False
+RPSGVENT,RPSG Ventures Limited,Technology,HOLD,50.59412550066756,False
+DATAMATICS,Datamatics Global Services Limited,Technology,HOLD,50.51401869158878,False
+TASTYBITE,Tasty Bite Eatables Limited,Consumer Defensive,HOLD,50.50400534045394,False
+EDELWEISS,Edelweiss Financial Services Limited,Financial Services,HOLD,50.4739652870494,False
+BIKAJI,Bikaji Foods International Limited,Consumer Defensive,HOLD,50.40053404539386,False
+APTUS,Aptus Value Housing Finance India Limited,Financial Services,HOLD,50.35714285714286,False
+UJJIVANSFB,Ujjivan Small Finance Bank Limited,Financial Services,HOLD,50.35714285714286,False
+BHARTIARTL,Bharti Airtel Limited,Communication Services,HOLD,50.33377837116155,False
+VMM,VISHAL MEGA MART LIMITED,Consumer Cyclical,HOLD,50.24365821094793,False
+JAICORPLTD,Jai Corp Limited,Basic Materials,HOLD,50.21695594125501,False
+FDC,FDC Limited,Healthcare,HOLD,50.213618157543394,False
+RACLGEAR,RACL Geartech Limited,Consumer Cyclical,HOLD,50.13684913217623,False
+CARRARO,CARRARO INDIA LIMITED,Consumer Cyclical,HOLD,50.06341789052069,False
+SMCGLOBAL,SMC Global Securities Limited,Financial Services,HOLD,50.05006675567423,False
+TATAINVEST,Tata Investment Corporation Limited,Financial Services,HOLD,49.91989319092122,False
+GNA,G N A Axles Limited,Consumer Cyclical,HOLD,49.88317757009345,False
+CNL,Creative Newtech Limited,Technology,HOLD,49.83311081441923,False
+GICRE,General Insurance Corporation of India,Financial Services,HOLD,49.799732977303066,False
+FINPIPE,Finolex Industries Limited,Industrials,HOLD,49.76635514018692,False
+IRB,IRB Infrastructure Developers Limited,Industrials,HOLD,49.739652870494,False
+MACPOWER,Macpower CNC Machines Limited,Industrials,HOLD,49.7196261682243,False
+GPECO,"GPECO.NS,0P0001T5Y4,294000",,HOLD,49.696261682243,False
+PPLPHARMA,Piramal Pharma Limited,Healthcare,HOLD,49.649532710280376,False
+UGARSUGAR,The Ugar Sugar Works Limited,Consumer Defensive,HOLD,49.649532710280376,False
+MAXHEALTH,Max Healthcare Institute Limited,Healthcare,HOLD,49.64953271028037,False
+HEROMOTOCO,Hero MotoCorp Limited,Consumer Cyclical,HOLD,49.642857142857146,False
+WAAREERTL,Waaree Renewable Technologies Limited,Industrials,HOLD,49.62616822429907,False
+TEXINFRA,Texmaco Infrastructure & Holdings Limited,Real Estate,HOLD,49.606141522029375,False
+CROMPTON,Crompton Greaves Consumer Electricals Limited,Consumer Cyclical,HOLD,49.60280373831776,False
+CAMPUS,Campus Activewear Limited,Consumer Cyclical,HOLD,49.579439252336456,False
+INDIACEM,The India Cements Limited,Basic Materials,HOLD,49.576101468624834,False
+TANLA,Tanla Platforms Limited,Technology,HOLD,49.56275033377837,False
+JUBLPHARMA,Jubilant Pharmova Limited,Healthcare,HOLD,49.542723631508686,False
+BAJFINANCE,Bajaj Finance Limited,Financial Services,HOLD,49.53604806408545,False
+AADHARHFC,AADHAR HOUSING FINANCE L,Financial Services,HOLD,49.509345794392516,False
+SUPREMEIND,The Supreme Industries Limited,Industrials,HOLD,49.472630173564745,False
+JWL,Jupiter Wagons Limited,Industrials,HOLD,49.45260347129506,False
+BORANA,BORANA WEAVES LIMITED,Consumer Cyclical,HOLD,49.43591455273698,False
+MMP,MMP Industries Limited,Basic Materials,HOLD,49.40587449933244,False
+JAYAGROGN,Jayant Agro-Organics Limited,Basic Materials,HOLD,49.37249666221629,False
+LICI,Life Insurance Corporation of India,Financial Services,HOLD,49.36915887850466,False
+CASTROLIND,Castrol India Limited,Energy,HOLD,49.359145527369826,False
+KMSUGAR,K.M. Sugar Mills Limited,Consumer Defensive,HOLD,49.33911882510014,False
+AURUM,Aurum PropTech Limited,Real Estate,HOLD,49.309078771695596,False
+TECHM,Tech Mahindra Limited,Technology,HOLD,49.27903871829106,False
+ASAHIINDIA,Asahi India Glass Limited,Consumer Cyclical,HOLD,49.272363150867825,False
+SWARAJENG,Swaraj Engines Limited,Consumer Cyclical,HOLD,49.252336448598136,False
+NHPC,NHPC Limited,Utilities,HOLD,49.1822429906542,False
+TI,Tilaknagar Industries Ltd.,Consumer Defensive,HOLD,49.17222963951936,False
+MAHLOG,Mahindra Logistics Limited,Industrials,HOLD,49.15220293724967,False
+NAVKARCORP,Navkar Corporation Limited,Industrials,HOLD,49.1154873164219,False
+CANBK,Canara Bank,Financial Services,HOLD,49.10881174899867,False
+VSSL,Vardhman Special Steels Limited,Basic Materials,HOLD,49.03538050734313,False
+LUMAXIND,Lumax Industries Limited,Consumer Cyclical,HOLD,48.951935914552735,False
+PRAKASH,Prakash Industries Limited,Basic Materials,HOLD,48.92857142857143,False
+PETRONET,Petronet LNG Limited,Energy,HOLD,48.91855807743658,False
+ATULAUTO,Atul Auto Limited,Consumer Cyclical,HOLD,48.851802403204275,False
+LXCHEM,Laxmi Organic Industries Limited,Basic Materials,HOLD,48.80841121495327,False
+INDIAGLYCO,India Glycols Limited,Basic Materials,HOLD,48.79172229639519,False
+BEML,BEML Limited,Industrials,HOLD,48.78838451268358,False
+GODAVARIB,GODAVARI BIOREFINERIES L,Basic Materials,HOLD,48.78170894526035,False
+DOMS,DOMS Industries Limited,Industrials,HOLD,48.758344459279044,False
+ENDURANCE,Endurance Technologies Limited,Consumer Cyclical,HOLD,48.69492656875834,False
+SRF,SRF Limited,Industrials,HOLD,48.61481975967957,False
+JKPAPER,JK Paper Limited,Basic Materials,HOLD,48.58811748998665,False
+KRBL,KRBL Limited,Consumer Defensive,HOLD,48.564753004005354,False
+UCOBANK,UCO Bank,Financial Services,HOLD,48.504672897196265,False
+TVSHLTD,TVS Holdings Limited,Consumer Cyclical,HOLD,48.49465954606142,False
+IOB,Indian Overseas Bank,Financial Services,HOLD,48.467957276368494,False
+GUJGASLTD,Gujarat Energy Limited,Utilities,HOLD,48.46461949265687,False
+MAXESTATES,MAX ESTATES LIMITED,Real Estate,HOLD,48.46128170894526,False
+ROTO,Roto Pumps Limited,Industrials,HOLD,48.441255006675576,False
+VARROC,Varroc Engineering Limited,Consumer Cyclical,HOLD,48.44125500667556,False
+3MINDIA,3M India Limited,Industrials,HOLD,48.431241655540724,False
+SIMPLEXINF,Simplex Infrastructures Limited,Industrials,HOLD,48.381174899866494,False
+VENKEYS,Venky's (India) Limited,Consumer Defensive,HOLD,48.36782376502003,False
+NATCOPHARM,NATCO Pharma Limited,Healthcare,HOLD,48.32443257676903,False
+CREST,Crest Ventures Limited,Financial Services,HOLD,48.28437917222964,False
+TEGA,Tega Industries Limited,Industrials,HOLD,48.247663551401864,False
+MFSL,Max Financial Services Limited,Financial Services,HOLD,48.23431241655542,False
+ALBERTDAVD,Albert David Limited,Healthcare,HOLD,48.23431241655541,False
+ORBTEXP,Orbit Exports Limited,Consumer Cyclical,HOLD,48.22763684913218,False
+NIITLTD,NIIT Limited,Consumer Defensive,HOLD,48.194259012016026,False
+BAHETI,"BAHETI.NS,0P0001Q4XC,12750",,HOLD,48.190921228304404,False
+ACE,Action Construction Equipment Limited,Industrials,HOLD,48.16088117489987,False
+BALMLAWRIE,Balmer Lawrie & Co. Ltd.,Industrials,HOLD,48.13751668891856,False
+SETL,Standard Engineering Technology Limited,Industrials,HOLD,48.03404539385848,False
+ONESOURCE,ONESOURCE SPECL PHARMA L,Healthcare,HOLD,47.923898531375166,False
+IOC,Indian Oil Corporation Limited,Energy,HOLD,47.87716955941256,False
+MUNJALSHOW,Munjal Showa Limited,Consumer Cyclical,HOLD,47.87716955941255,False
+ALLDIGI,Alldigi Tech Limited,Industrials,HOLD,47.8671562082777,False
+VEEDOL,Veedol Corporation Limited,Basic Materials,HOLD,47.853805073431246,False
+NAVA,Nava Limited,Industrials,HOLD,47.83377837116155,False
+PRICOLLTD,Pricol Limited,Consumer Cyclical,HOLD,47.82710280373831,False
+GICHSGFIN,GIC Housing Finance Limited,Financial Services,HOLD,47.8237650200267,False
+TRIDENT,Trident Limited,Consumer Cyclical,HOLD,47.81708945260347,False
+APLAPOLLO,APL Apollo Tubes Limited,Basic Materials,HOLD,47.79706275033378,False
+ORIENTELEC,Orient Electric Limited,Consumer Cyclical,HOLD,47.77703604806409,False
+GRSE,Garden Reach Shipbuilders & Engineers Limited,Industrials,HOLD,47.750333778371164,False
+HTMEDIA,HT Media Limited,Communication Services,HOLD,47.73698264352469,False
+ISGEC,Isgec Heavy Engineering Limited,Industrials,HOLD,47.73364485981308,False
+ICEMAKE,Ice Make Refrigeration Limited,Industrials,HOLD,47.68357810413885,False
+GSFC,Gujarat State Fertilizers & Chemicals Limited,Basic Materials,HOLD,47.676902536715616,False
+HDFCAMC,HDFC Asset Management Company Limited,Financial Services,HOLD,47.64352469959947,False
+GARFIBRES,Garware Technical Fibres Limited,Consumer Cyclical,HOLD,47.64352469959947,False
+UDS,Updater Services Limited,Industrials,HOLD,47.53004005340454,False
+THEMISMED,Themis Medicare Limited,Healthcare,HOLD,47.496662216288385,False
+ASHOKLEY,Ashok Leyland Limited,Industrials,HOLD,47.45327102803739,False
+KABRAEXTRU,Kabra Extrusiontechnik Limited,Industrials,HOLD,47.446595460614155,False
+OMAXE,Omaxe Limited,Real Estate,HOLD,47.43991989319092,False
+HITECH,Hi-Tech Pipes Limited,Basic Materials,HOLD,47.43991989319092,False
+ACI,Archean Chemical Industries Limited,Basic Materials,HOLD,47.39986648865153,False
+BOMDYEING,The Bombay Dyeing and Manufacturing Company Limited,Consumer Cyclical,HOLD,47.36982643524699,False
+INDIAMART,IndiaMART InterMESH Limited,Communication Services,HOLD,47.32309746328438,False
+VINYLINDIA,Vinyl Chemicals (India) Limited,Basic Materials,HOLD,47.31642189586115,False
+ETERNAL,Eternal Limited,Consumer Cyclical,HOLD,47.25967957276369,False
+FORCEMOT,Force Motors Limited,Consumer Cyclical,HOLD,47.25300400534046,False
+ESABINDIA,ESAB India Limited,Industrials,HOLD,47.23297730307076,False
+CONCOR,Container Corporation of India Limited,Industrials,HOLD,47.21628838451268,False
+TARIL,TRANS & RECTI. LTD,Industrials,HOLD,47.186248331108146,False
+GODREJCP,Godrej Consumer Products Limited,Consumer Defensive,HOLD,47.086114819759686,False
+TTML,Tata Teleservices (Maharashtra) Limited,Communication Services,HOLD,47.05941255006675,False
+SURYAROSNI,Surya Roshni Limited,Basic Materials,HOLD,47.02937249666221,False
+JINDWORLD,Jindal Worldwide Limited,Consumer Cyclical,HOLD,47.01602136181575,False
+GRAVITA,Gravita India Limited,Industrials,HOLD,47.00600801068091,False
+AGARWALEYE,DR AGARWALS HEALTH CARE L,Healthcare,HOLD,47.002670226969286,False
+RAMCOIND,Ramco Industries Limited,Industrials,HOLD,46.97930574098798,False
+IGL,Indraprastha Gas Limited,Utilities,HOLD,46.979305740987975,False
+NELCO,Nelco Limited,Technology,HOLD,46.95594125500668,False
+AUTOIND,Autoline Industries Limited,Consumer Cyclical,HOLD,46.89252336448599,False
+PNB,Punjab National Bank,Financial Services,HOLD,46.77570093457945,False
+HOMEFIRST,Home First Finance Company India Limited,Financial Services,HOLD,46.759012016021366,False
+SJVN,SJVN Limited,Utilities,HOLD,46.75567423230975,False
+TNPETRO,Tamilnadu Petroproducts Limited,Basic Materials,HOLD,46.722296395193595,False
+RCF,Rashtriya Chemicals and Fertilizers Limited,Basic Materials,HOLD,46.715620827770366,False
+BLKASHYAP,B.L. Kashyap and Sons Limited,Industrials,HOLD,46.66555407209613,False
+VOLTAS,Voltas Limited,Consumer Cyclical,HOLD,46.655540720961284,False
+JLHL,Jupiter Life Line Hospitals Limited,Healthcare,HOLD,46.63217623497997,False
+MAITHANALL,Maithan Alloys Limited,Basic Materials,HOLD,46.58544726301735,False
+GPPL,Gujarat Pipavav Port Limited,Industrials,HOLD,46.56875834445928,False
+SPLPETRO,Supreme Petrochem Limited,Basic Materials,HOLD,46.53871829105474,False
+JUBLINGREA,Jubilant Ingrevia Limited,Basic Materials,HOLD,46.525367156208276,False
+ATMASTCO,"ATMASTCO.NS,0P0001SEJZ,69600",,HOLD,46.52202937249667,False
+REPCOHOME,Repco Home Finance Limited,Financial Services,HOLD,46.458611481975964,False
+ASKAUTOLTD,ASK AUTOMOTIVE LIMITED,Consumer Cyclical,HOLD,46.425233644859816,False
+ARVSMART,Arvind SmartSpaces Limited,Real Estate,HOLD,46.41522029372497,False
+RBZJEWEL,RBZ Jewellers Limited,Consumer Cyclical,HOLD,46.41188251001335,False
+TTKPRESTIG,TTK Prestige Limited,Consumer Cyclical,HOLD,46.34846461949265,False
+GANESHHOU,Ganesh Housing Limited,Real Estate,HOLD,46.32510013351134,False
+BLUEJET,Blue Jet Healthcare Limited,Healthcare,HOLD,46.30507343124166,False
+COSMOFIRST,Cosmo First Limited,Consumer Cyclical,HOLD,46.30173564753004,False
+GMBREW,G.M. Breweries Limited,Consumer Defensive,HOLD,46.248331108144185,False
+IREDA,Indian Renewable Energy Development Agency Limited,Financial Services,HOLD,46.22496662216288,False
+SHALBY,Shalby Limited,Healthcare,HOLD,46.16822429906542,False
+SUYOG,Suyog Telematics Limited,Communication Services,HOLD,46.16488651535381,False
+CENTURYPLY,Century Plyboards (India) Limited,Basic Materials,HOLD,46.12483311081442,False
+NESCO,Nesco Limited,Industrials,HOLD,46.09813084112149,False
+ARIES,Aries Agro Limited,Basic Materials,HOLD,46.068090787716955,False
+PARAGMILK,Parag Milk Foods Limited,Consumer Defensive,HOLD,46.05140186915888,False
+AARTIDRUGS,Aarti Drugs Limited,Healthcare,HOLD,46.02803738317757,False
+INDORAMA,Indo Rama Synthetics (India) Limited,Consumer Cyclical,HOLD,45.93124165554072,False
+BGRENERGY,BGR Energy Systems Limited,Industrials,HOLD,45.917890520694264,False
+SGIL,Synergy Green Industries Limited,Industrials,HOLD,45.91455273698264,False
+SHREECEM,Shree Cement Limited,Basic Materials,HOLD,45.777703604806405,False
+SUNDRMFAST,Sundram Fasteners Limited,Consumer Cyclical,HOLD,45.76769025367156,False
+EMIL,Electronics Mart India Limited,Consumer Cyclical,HOLD,45.751001335113486,False
+MANBA,MANBA FINANCE LIMITED,Financial Services,HOLD,45.68758344459279,False
+SRHHYPOLTD,Sree Rayalaseema Hi-Strength Hypo Limited,Basic Materials,HOLD,45.67089452603471,False
+ARVINDFASN,Arvind Fashions Limited,Consumer Cyclical,HOLD,45.5607476635514,False
+NCC,NCC Limited,Industrials,HOLD,45.510680907877166,False
+RPGLIFE,RPG Life Sciences Limited,Healthcare,HOLD,45.504005340453936,False
+M&M,Mahindra & Mahindra Limited,Consumer Cyclical,HOLD,45.50066755674232,False
+RIIL,Reliance Industrial Infrastructure Limited,Industrials,HOLD,45.467289719626166,False
+INDIGO,InterGlobe Aviation Limited,Industrials,HOLD,45.37716955941255,False
+CARERATING,CARE Ratings Limited,Financial Services,HOLD,45.31708945260347,False
+SANOFICONR,SANOFI CONS HEALTHC IND L,Healthcare,HOLD,45.313751668891854,False
+ORIENTHOT,Oriental Hotels Limited,Consumer Cyclical,HOLD,45.263684913217624,False
+TEMBO,Tembo Global Industries Limited,Industrials,HOLD,45.21695594125501,False
+JITFINFRA,JITF Infralogistics Limited,Industrials,HOLD,45.18024032042723,False
+ORICONENT,Oricon Enterprises Limited,Consumer Cyclical,HOLD,45.133511348464616,False
+TVSELECT,TVS Electronics Limited,Technology,HOLD,45.09345794392523,False
+PPL,Prakash Pipes Limited,Industrials,HOLD,45.003337783711615,False
+HATSUN,Hatsun Agro Product Limited,Consumer Defensive,HOLD,44.94325767690253,False
+JPOLYINVST,Jindal Poly Investment and Finance Company Limited,Financial Services,HOLD,44.933244325767696,False
+CHOICEIN,Choice International Limited,Financial Services,HOLD,44.8931909212283,False
+NAVNETEDUL,Navneet Education Limited,Communication Services,HOLD,44.85981308411214,False
+CYBERTECH,CyberTech Systems and Software Limited,Technology,HOLD,44.82643524699599,False
+RITCO,Ritco Logistics Limited,Industrials,HOLD,44.81308411214953,False
+TBOTEK,TBO TEK LIMITED,Consumer Cyclical,HOLD,44.8064085447263,False
+JAYSREETEA,Jay Shree Tea & Industries Limited,Consumer Defensive,HOLD,44.78304405874499,False
+ABBOTINDIA,Abbott India Limited,Healthcare,HOLD,44.74632843791722,False
+ALPEXSOLAR,"ALPEXSOLAR.NS,0P0001SDK4,104400",,HOLD,44.65287049399199,False
+TREL,Transindia Real Estate Limited,Real Estate,HOLD,44.632843791722294,False
+LANDMARK,Landmark Cars Limited,Consumer Cyclical,HOLD,44.59279038718291,False
+SPMLINFRA,SPML Infra Limited,Industrials,HOLD,44.582777036048064,False
+BAJAJHFL,BAJAJ HOUSING FINANCE LTD,Financial Services,HOLD,44.576101468624834,False
+RELAXO,Relaxo Footwears Limited,Consumer Cyclical,HOLD,44.562750333778375,False
+GOACARBON,Goa Carbon Limited,Basic Materials,HOLD,44.50934579439252,False
+SIRCA,Sirca Paints India Limited,Basic Materials,HOLD,44.47263017356475,False
+PRESTIGE,Prestige Estates Projects Limited,Real Estate,HOLD,44.40921228304406,False
+GANECOS,Ganesha Ecosphere Limited,Consumer Cyclical,HOLD,44.409212283044056,False
+IFBIND,IFB Industries Limited,Consumer Cyclical,HOLD,44.38918558077437,False
+ERIS,Eris Lifesciences Limited,Healthcare,HOLD,44.38918558077436,False
+VIVIANA,VIVIANA POWER TECH LTD,Industrials,HOLD,44.3758344459279,False
+MUTHOOTFIN,Muthoot Finance Limited,Financial Services,HOLD,44.34245660881175,False
+ARE&M,Amara Raja Energy & Mobility Limited,Industrials,HOLD,44.2456608811749,False
+BLACKBUCK,BlackBuck Limited,Technology,HOLD,44.24566088117489,False
+JSL,Jindal Stainless Limited,Basic Materials,HOLD,44.20894526034713,False
+IPL,India Pesticides Limited,Basic Materials,HOLD,44.13551401869158,False
+UTTAMSUGAR,Uttam Sugar Mills Limited,Consumer Defensive,HOLD,44.068758344459276,False
+KPIGREEN,KPI Green Energy Limited,Utilities,HOLD,43.95527369826436,False
+SUNCLAY,Sundaram-Clayton Limited,Industrials,HOLD,43.93524699599466,False
+KIRLOSIND,Kirloskar Industries Limited,Industrials,HOLD,43.91188251001335,False
+DIXON,Dixon Technologies (India) Limited,Technology,HOLD,43.871829105473964,False
+RELIANCE,Reliance Industries Limited,Energy,HOLD,43.86849132176235,False
+BANSALWIRE,BANSAL WIRE INDUSTRIES L,Basic Materials,HOLD,43.85514018691589,False
+CENTRALBK,Central Bank of India,Financial Services,HOLD,43.85514018691589,False
+5PAISA,5paisa Capital Limited,Financial Services,HOLD,43.80507343124165,False
+PRSMJOHNSN,Prism Johnson Limited,Basic Materials,HOLD,43.78838451268358,False
+DELTACORP,Delta Corp Limited,Consumer Cyclical,HOLD,43.76168224299065,False
+DBL,Dilip Buildcon Limited,Industrials,HOLD,43.728304405874496,False
+BPCL,Bharat Petroleum Corporation Limited,Energy,HOLD,43.71829105473965,False
+THEJO,Thejo Engineering Limited,Industrials,HOLD,43.71495327102804,False
+HINDWAREAP,Hindware Home Innovation Limited,Consumer Cyclical,HOLD,43.71161548731642,False
+BRITANNIA,Britannia Industries Limited,Consumer Defensive,HOLD,43.65487316421896,False
+20MICRONS,20 Microns Limited,Basic Materials,HOLD,43.5981308411215,False
+SHREEPUSHK,Shree Pushkar Chemicals & Fertilisers Limited,Basic Materials,HOLD,43.58477970627503,False
+AWL,AWL Agri Business Limited,Consumer Defensive,HOLD,43.58144192256342,False
+MAZDOCK,Mazagon Dock Shipbuilders Limited,Industrials,HOLD,43.56475300400534,False
+IEX,Indian Energy Exchange Limited,Financial Services,HOLD,43.541388518024036,False
+VALIANTORG,Valiant Organics Limited,Basic Materials,HOLD,43.504672897196265,False
+KPEL,K.P. Energy Limited,Industrials,HOLD,43.49465954606141,False
+NFL,National Fertilizers Limited,Basic Materials,HOLD,43.48130841121495,False
+FLAIR,FLAIR WRITING INDUST LTD,Industrials,HOLD,43.424566088117494,False
+STCINDIA,The State Trading Corporation of India Limited,Industrials,HOLD,43.41121495327103,False
+GODFRYPHLP,Godfrey Phillips India Limited,Consumer Defensive,HOLD,43.3411214953271,False
+RITES,RITES Limited,Industrials,HOLD,43.30106809078772,False
+CHOLAFIN,Cholamandalam Investment and Finance Company Limited,Financial Services,HOLD,43.28437917222964,False
+SOBHA,Sobha Limited,Real Estate,HOLD,43.28104138851802,False
+KSCL,Kaveri Seed Company Limited,Basic Materials,HOLD,43.27770360480641,False
+SBILIFE,SBI Life Insurance Company Limited,Financial Services,HOLD,43.23097463284379,False
+GILLETTE,Gillette India Limited,Consumer Defensive,HOLD,43.207610146862486,False
+LTFOODS,LT Foods Limited,Consumer Defensive,HOLD,43.177570093457945,False
+PFS,PTC India Financial Services Limited,Financial Services,HOLD,43.15420560747664,False
+EIEL,ENVIRO INFRA ENGINEERS L,Industrials,HOLD,43.147530040053404,False
+SCILAL,Shipping Corporation of India Land and Assets Limited,Real Estate,HOLD,43.10747663551402,False
+DHANUKA,Dhanuka Agritech Limited,Basic Materials,HOLD,43.08744993324432,False
+VIPIND,V.I.P. Industries Limited,Consumer Cyclical,HOLD,43.08744993324432,False
+SHOPERSTOP,Shoppers Stop Limited,Consumer Cyclical,HOLD,43.04405874499332,False
+POKARNA,Pokarna Limited,Industrials,HOLD,43.02069425901202,False
+DALMIASUG,Dalmia Bharat Sugar and Industries Limited,Consumer Defensive,HOLD,43.00400534045394,False
+INDOTHAI,Indo Thai Securities Limited,Financial Services,HOLD,42.97730307076101,False
+AJAXENGG,AJAX ENGINEERING LIMITED,Industrials,HOLD,42.923898531375166,False
+POLICYBZR,PB Fintech Limited,Financial Services,HOLD,42.873831775700936,False
+SAGILITY,Sagility Limited,Healthcare,HOLD,42.8437917222964,False
+DABUR,Dabur India Limited,Consumer Defensive,HOLD,42.77036048064085,False
+MPHASIS,Mphasis Limited,Technology,HOLD,42.76702269692924,False
+KIRLFER,Kirloskar Ferrous Industries Limited,Industrials,HOLD,42.76034712950601,False
+MASFIN,MAS Financial Services Limited,Financial Services,HOLD,42.74699599465954,False
+HINDPETRO,Hindustan Petroleum Corporation Limited,Energy,HOLD,42.7369826435247,False
+UPL,UPL Limited,Basic Materials,HOLD,42.69692923898532,False
+INDOSTAR,IndoStar Capital Finance Limited,Financial Services,HOLD,42.65353805073431,False
+BAYERCROP,Bayer CropScience Limited,Basic Materials,HOLD,42.50333778371162,False
+ICICIGI,ICICI Lombard General Insurance Company Limited,Financial Services,HOLD,42.49332443257676,False
+MINDTECK,Mindteck (India) Limited,Technology,HOLD,42.46995994659546,False
+AEGISVOPAK,AEGIS VOPAK TERMINALS LTD,Energy,HOLD,42.44659546061415,False
+GMRP&UI,GMR Power And Urban Infra Limited,Energy,HOLD,42.439919893190925,False
+IFGLEXPOR,IFGL Refractories Limited,Basic Materials,HOLD,42.423230974632844,False
+BAJAJHLDNG,Bajaj Holdings & Investment Limited,Financial Services,HOLD,42.389853137516695,False
+STYRENIX,Styrenix Performance Materials Limited,Basic Materials,HOLD,42.33311081441923,False
+IRMENERGY,IRM Energy Limited,Utilities,HOLD,42.28304405874499,False
+TCIEXP,TCI Express Limited,Industrials,HOLD,42.27636849132176,False
+PROZONER,Prozone Realty Limited,Real Estate,HOLD,42.20961281708945,False
+DCXINDIA,DCX Systems Limited,Industrials,HOLD,42.192923898531376,False
+GODREJPROP,Godrej Properties Limited,Real Estate,HOLD,42.16622162883844,False
+KSOLVES,Ksolves India Limited,Technology,HOLD,42.15287049399199,False
+NUVOCO,Nuvoco Vistas Corporation Limited,Basic Materials,HOLD,42.15287049399198,False
+BUTTERFLY,Butterfly Gandhimathi Appliances Limited,Consumer Cyclical,HOLD,42.14619492656876,False
+TRENT,Trent Limited,Consumer Cyclical,HOLD,42.09612817089453,False
+SHANTIGEAR,Shanthi Gears Limited,Industrials,HOLD,42.082777036048064,False
+DOLATALGO,Dolat Algotech Limited,Financial Services,HOLD,42.062750333778375,False
+IRFC,Indian Railway Finance Corporation Limited,Financial Services,HOLD,42.039385847797064,False
+DONEAR,Donear Industries Limited,Consumer Cyclical,HOLD,41.98598130841122,False
+UNITDSPR,UNITED SPIRITS LIMITED,Consumer Defensive,HOLD,41.97930574098798,False
+NIACL,The New India Assurance Company Limited,Financial Services,HOLD,41.96595460614152,False
+AHLUCONT,Ahluwalia Contracts (India) Limited,Industrials,HOLD,41.86915887850468,False
+FMGOETZE,Federal-Mogul Goetze (India) Limited,Consumer Cyclical,HOLD,41.829105473965285,False
+SUNTV,Sun TV Network Limited,Communication Services,HOLD,41.81909212283044,False
+HEG,HEG Limited,Industrials,HOLD,41.6822429906542,False
+ASIANTILES,Asian Granito India Limited,Industrials,HOLD,41.642189586114824,False
+ABFRL,Aditya Birla Fashion and Retail Limited,Consumer Cyclical,HOLD,41.58878504672897,False
+ANDHRAPAP,Andhra Paper Limited,Basic Materials,HOLD,41.57877169559413,False
+DLF,DLF Limited,Real Estate,HOLD,41.55874499332443,False
+SHAREINDIA,Share India Securities Limited,Financial Services,HOLD,41.538718291054735,False
+ALEMBICLTD,Alembic Limited,Real Estate,HOLD,41.48531375166889,False
+SPANDANA,Spandana Sphoorty Financial Limited,Financial Services,HOLD,41.481975967957275,False
+SHREDIGCEM,Shree Digvijay Cement Company Limited,Basic Materials,HOLD,41.42857142857143,False
+INTLCONV,International Conveyors Limited,Industrials,HOLD,41.41522029372497,False
+KCP,The KCP Limited,Basic Materials,HOLD,41.40520694259013,False
+PARADEEP,Paradeep Phosphates Limited,Basic Materials,HOLD,41.36515353805073,False
+BLUESTARCO,Blue Star Limited,Industrials,HOLD,41.28838451268358,False
+PDSL,PDS Limited,Industrials,HOLD,41.26168224299066,False
+VLSFINANCE,VLS Finance Limited,Financial Services,HOLD,41.22162883845127,False
+POONAWALLA,Poonawalla Fincorp Limited,Financial Services,HOLD,41.10480640854473,False
+SHARDACROP,Sharda Cropchem Limited,Basic Materials,HOLD,41.104806408544725,False
+TPLPLASTEH,TPL Plastech Limited,Consumer Cyclical,HOLD,41.0981308411215,False
+KRONOX,KRONOX LAB SCIENCES LTD,Basic Materials,HOLD,41.07476635514019,False
+REDINGTON,Redington Limited,Technology,HOLD,41.07142857142857,False
+MUKKA,Mukka Proteins Limited,Consumer Defensive,HOLD,41.05807743658211,False
+LGBBROSLTD,L.G. Balakrishnan & Bros Limited,Consumer Cyclical,HOLD,41.04806408544726,False
+SUNDROP,Sundrop Brands Limited,Consumer Defensive,HOLD,41.038050734312414,False
+GODREJIND,Godrej Industries Limited,Industrials,HOLD,41.01468624833111,False
+UNOMINDA,Uno Minda Limited,Consumer Cyclical,HOLD,40.99799732977303,False
+BLAL,BEML Land Assets Limited,Financial Services,HOLD,40.95794392523364,False
+PCBL,PCBL Chemical Limited,Basic Materials,HOLD,40.93791722296396,False
+VRAJ,VRAJ IRON AND STEEL LTD,Basic Materials,HOLD,40.93124165554072,False
+NCLIND,NCL Industries Limited,Basic Materials,HOLD,40.92790387182911,False
+TATAELXSI,Tata Elxsi Limited,Technology,HOLD,40.92456608811749,False
+PSB,Punjab & Sind Bank,Financial Services,HOLD,40.9045393858478,False
+SPECIALITY,Speciality Restaurants Limited,Consumer Cyclical,HOLD,40.87116154873164,False
+IFBAGRO,IFB Agro Industries Limited,Consumer Defensive,HOLD,40.84779706275033,False
+PROSTARM,PROSTARM INFO SYSTEMS LTD,Industrials,HOLD,40.81108144192256,False
+KECL,Kirloskar Electric Company Limited,Industrials,HOLD,40.78104138851802,False
+KOKUYOCMLN,Kokuyo Camlin Limited,Industrials,HOLD,40.7543391188251,False
+VGUARD,V-Guard Industries Limited,Industrials,HOLD,40.737650200267026,False
+GOKEX,Gokaldas Exports Limited,Consumer Cyclical,HOLD,40.72096128170895,False
+RUPA,Rupa & Company Limited,Consumer Cyclical,HOLD,40.71762349799733,False
+DEN,DEN Networks Limited,Communication Services,HOLD,40.69425901201602,False
+CSBBANK,CSB Bank Limited,Financial Services,HOLD,40.62750333778371,False
+KROSS,KROSS LIMITED,Consumer Cyclical,HOLD,40.54739652870494,False
+IRCTC,Indian Railway Catering & Tourism Corporation Limited,Consumer Cyclical,HOLD,40.53404539385848,False
+TSFINV,TSF Investments Limited,Financial Services,HOLD,40.52736982643525,False
+PFIZER,Pfizer Limited,Healthcare,HOLD,40.510680907877166,False
+INTENTECH,Intense Technologies Limited,Technology,HOLD,40.50400534045394,False
+IGARASHI,Igarashi Motors India Limited,Consumer Cyclical,HOLD,40.48731642189586,False
+ONMOBILE,OnMobile Global Limited,Communication Services,HOLD,40.473965287049396,False
+RESPONIND,Responsive Industries Limited,Basic Materials,HOLD,40.46728971962617,False
+PATELENG,Patel Engineering Limited,Industrials,HOLD,40.42723631508679,False
+ROSSARI,Rossari Biotech Limited,Basic Materials,HOLD,40.42389853137516,False
+GODIGIT,GO DIGIT GENERAL INS LTD,Financial Services,HOLD,40.36048064085447,False
+RTNINDIA,RattanIndia Enterprises Limited,Consumer Cyclical,HOLD,40.350467289719624,False
+INDIASHLTR,India Shelter Finance Corporation Limited,Financial Services,HOLD,40.32710280373832,False
+ASTRAZEN,AstraZeneca Pharma India Limited,Healthcare,HOLD,40.300400534045394,False
+SHARDAMOTR,Sharda Motor Industries Limited,Consumer Cyclical,HOLD,40.19692923898532,False
+GEECEE,GeeCee Ventures Limited,Real Estate,HOLD,40.1935914552737,False
+HUHTAMAKI,Huhtamaki India Limited,Consumer Cyclical,HOLD,40.086782376502,False
+MRF,MRF Limited,Consumer Cyclical,HOLD,40.07676902536716,False
+AGI,AGI Greenpac Limited,Consumer Cyclical,REDUCE,39.98998664886515,False
+COFORGE,Coforge Limited,Technology,REDUCE,39.95660881174899,False
+MANINFRA,Man Infraconstruction Limited,Industrials,REDUCE,39.90320427236315,False
+POLYMED,Poly Medicure Limited,Healthcare,REDUCE,39.87650200267022,False
+CLEAN,Clean Science and Technology Limited,Basic Materials,REDUCE,39.83644859813084,False
+MAHLIFE,Mahindra Lifespace Developers Limited,Real Estate,REDUCE,39.73631508678238,False
+EKC,Everest Kanto Cylinder Limited,Industrials,REDUCE,39.70293724966622,False
+SURAKSHA,SURAKSHA DIAGNOSTIC LTD,Healthcare,REDUCE,39.686248331108146,False
+NDRAUTO,NDR Auto Components Limited,Consumer Cyclical,REDUCE,39.619492656875835,False
+ANUP,The Anup Engineering Limited,Industrials,REDUCE,39.58611481975968,False
+KOLTEPATIL,Kolte-Patil Developers Limited,Real Estate,REDUCE,39.582777036048064,False
+APLLTD,Alembic Pharmaceuticals Limited,Healthcare,REDUCE,39.55607476635514,False
+FOSECOIND,Foseco India Limited,Basic Materials,REDUCE,39.489319092122834,False
+KPITTECH,KPIT Technologies Limited,Technology,REDUCE,39.44592790387183,False
+CRISIL,CRISIL Limited,Financial Services,REDUCE,39.39919893190921,False
+METROBRAND,Metro Brands Limited,Consumer Cyclical,REDUCE,39.35580774365821,False
+ZOTA,Zota Health Care Limited,Healthcare,REDUCE,39.34245660881175,False
+GODREJAGRO,Godrej Agrovet Limited,Consumer Defensive,REDUCE,39.285714285714285,False
+MICEL,MIC Electronics Limited,Technology,REDUCE,39.28571428571428,False
+MOBIKWIK,ONE MOBIKWIK SYSTEMS LTD,Technology,REDUCE,39.25567423230975,False
+BAJAJFINSV,Bajaj Finserv Ltd.,Financial Services,REDUCE,39.23898531375167,False
+SAMHI,SAMHI Hotels Limited,Consumer Cyclical,REDUCE,39.23230974632844,False
+EXCELINDUS,Excel Industries Limited,Basic Materials,REDUCE,39.222296395193595,False
+MPSLTD,MPS Limited,Communication Services,REDUCE,39.208945260347136,False
+M&MFIN,Mahindra & Mahindra Financial Services Limited,Financial Services,REDUCE,39.16555407209613,False
+GARUDA,GARUDA CONSTRUCT N ENG L,Industrials,REDUCE,39.14552736982644,False
+RAILTEL,RailTel Corporation of India Limited,Communication Services,REDUCE,39.11882510013351,False
+JKTYRE,JK Tyre & Industries Limited,Consumer Cyclical,REDUCE,39.04873164218959,False
+JIOFIN,Jio Financial Services Limited,Financial Services,REDUCE,39.00867823765021,False
+SYNGENE,Syngene International Limited,Healthcare,REDUCE,39.0086782376502,False
+NILKAMAL,Nilkamal Limited,Consumer Cyclical,REDUCE,38.99866488651536,False
+VSTTILLERS,V.S.T. Tillers Tractors Limited,Industrials,REDUCE,38.925233644859816,False
+WONDERLA,Wonderla Holidays Limited,Consumer Cyclical,REDUCE,38.918558077436586,False
+BALKRISIND,Balkrishna Industries Limited,Consumer Cyclical,REDUCE,38.91855807743658,False
+DCMSHRIRAM,DCM Shriram Limited,Industrials,REDUCE,38.90186915887851,False
+CMSINFO,CMS Info Systems Limited,Industrials,REDUCE,38.78170894526035,False
+DMCC,DMCC Speciality Chemicals Limited,Basic Materials,REDUCE,38.77503337783712,False
+AUTOAXLES,Automotive Axles Limited,Consumer Cyclical,REDUCE,38.76835781041388,False
+BHARTIHEXA,BHARTI HEXACOM LIMITED,Communication Services,REDUCE,38.76168224299066,False
+CYIENT,Cyient Limited,Industrials,REDUCE,38.74165554072096,False
+BIRLACORPN,Birla Corporation Limited,Basic Materials,REDUCE,38.71829105473965,False
+MUFTI,CREDO BRANDS MARKETING L,Consumer Cyclical,REDUCE,38.70160213618158,False
+HITECHGEAR,The Hi-Tech Gears Limited,Consumer Cyclical,REDUCE,38.69492656875834,False
+BOSCH-HCIL,Bosch Home Comfort India Limited,Consumer Cyclical,REDUCE,38.67823765020027,False
+ITC,ITC Limited,Consumer Defensive,REDUCE,38.654873164218955,False
+PERSISTENT,Persistent Systems Limited,Technology,REDUCE,38.611481975967955,False
+TARSONS,Tarsons Products Limited,Healthcare,REDUCE,38.57476635514019,False
+SUBROS,Subros Limited,Consumer Cyclical,REDUCE,38.554739652870495,False
+63MOONS,63 moons technologies limited,Technology,REDUCE,38.49799732977303,False
+VALIANTLAB,Valiant Laboratories Limited,Healthcare,REDUCE,38.4913217623498,False
+IRCON,Ircon International Limited,Industrials,REDUCE,38.41789052069426,False
+PNGJL,P N GADGIL JEWELLERS LTD,Consumer Cyclical,REDUCE,38.39118825100134,False
+IXIGO,LE TRAVENUES TECHNOLOGY L,Consumer Cyclical,REDUCE,38.357810413885176,False
+NAUKRI,Info Edge (India) Limited,Communication Services,REDUCE,38.35447263017356,False
+RENUKA,Shree Renuka Sugars Limited,Consumer Defensive,REDUCE,38.33444592790387,False
+TTKHLTCARE,TTK Healthcare Limited,Healthcare,REDUCE,38.32777036048064,False
+COROMANDEL,Coromandel International Limited,Basic Materials,REDUCE,38.301068090787716,False
+VINSYS,"VINSYS.NS,0P0001REJ0,9000",,REDUCE,38.25100133511349,False
+HAVELLS,Havells India Limited,Industrials,REDUCE,38.234312416555404,False
+AMRUTANJAN,Amrutanjan Health Care Limited,Healthcare,REDUCE,38.190921228304404,False
+SHAKTIPUMP,Shakti Pumps (India) Limited,Industrials,REDUCE,38.170894526034715,False
+MAANALU,Maan Aluminium Limited,Basic Materials,REDUCE,38.13751668891856,False
+FAIRCHEMOR,Fairchem Organics Limited,Basic Materials,REDUCE,38.097463284379174,False
+NAHARPOLY,Nahar Poly Films Limited,Consumer Cyclical,REDUCE,37.96061415220294,False
+IONEXCHANG,Ion Exchange (India) Limited,Industrials,REDUCE,37.94726301735648,False
+BBTC,The Bombay Burmah Trading Corporation Limited,Consumer Defensive,REDUCE,37.82710280373832,False
+RAMKY,Ramky Infrastructure Limited,Industrials,REDUCE,37.800400534045394,False
+RHIM,RHI Magnesita India Limited,Industrials,REDUCE,37.780373831775705,False
+CDSL,Central Depository Services (India) Limited,Financial Services,REDUCE,37.76368491321763,False
+ZUARI,Zuari Agro Chemicals Limited,Basic Materials,REDUCE,37.72029372496662,False
+SJLOGISTIC,"SJLOGISTIC.NS,0P0001S278,56500",,REDUCE,37.71695594125501,False
+BASF,BASF India Limited,Basic Materials,REDUCE,37.6935914552737,False
+MATRIMONY,Matrimony.com Limited,Communication Services,REDUCE,37.596795727636845,False
+PRECAM,Precision Camshafts Limited,Consumer Cyclical,REDUCE,37.54672897196262,False
+NDTV,New Delhi Television Limited,Communication Services,REDUCE,37.53004005340454,False
+LYKALABS,Lyka Labs Limited,Healthcare,REDUCE,37.526702269692926,False
+JKCEMENT,J.K. Cement Limited,Basic Materials,REDUCE,37.42990654205608,False
+PIIND,PI Industries Limited,Basic Materials,REDUCE,37.41989319092123,False
+MOIL,MOIL Limited,Basic Materials,REDUCE,37.41989319092123,False
+JAIBALAJI,Jai Balaji Industries Limited,Basic Materials,REDUCE,37.41989319092123,False
+SPIC,Southern Petrochemical Industries Corporation Limited,Basic Materials,REDUCE,37.37650200267023,False
+AFCONS,AFCONS INFRASTRUCTURE LTD,Industrials,REDUCE,37.36982643524699,False
+IKIO,IKIO Technologies Limited,Technology,REDUCE,37.25634178905207,False
+AFFLE,Affle 3i Limited,Communication Services,REDUCE,37.23965287049399,False
+COCHINSHIP,Cochin Shipyard Limited,Industrials,REDUCE,37.22963951935915,False
+MONTECARLO,Monte Carlo Fashions Limited,Consumer Cyclical,REDUCE,37.21628838451269,False
+SESHAPAPER,Seshasayee Paper and Boards Limited,Basic Materials,REDUCE,37.206275033377835,False
+AWHCL,Antony Waste Handling Cell Limited,Industrials,REDUCE,37.189586114819754,False
+JUBLCPL,Jubilant Agri and Consumer Products Limited,Basic Materials,REDUCE,37.169559412550065,False
+HDFCBANK,HDFC Bank Limited,Financial Services,REDUCE,37.126168224299064,False
+MSUMI,Motherson Sumi Wiring India Limited,Consumer Cyclical,REDUCE,37.07610146862483,False
+WIPRO,Wipro Limited,Technology,REDUCE,37.05607476635514,False
+MAGADSUGAR,Magadh Sugar & Energy Limited,Consumer Defensive,REDUCE,37.04939919893191,False
+KKCL,Kewal Kiran Clothing Limited,Consumer Cyclical,REDUCE,37.04606141522029,False
+THOMASCOOK,Thomas Cook (India) Limited,Consumer Cyclical,REDUCE,37.04272363150868,False
+BLUEDART,Blue Dart Express Limited,Industrials,REDUCE,36.98598130841121,False
+PATANJALI,Patanjali Foods Limited,Consumer Defensive,REDUCE,36.98598130841121,False
+LODHA,Lodha Developers Limited,Real Estate,REDUCE,36.935914552736975,False
+APOLLOTYRE,Apollo Tyres Limited,Consumer Cyclical,REDUCE,36.90587449933245,False
+PURVA,Puravankara Limited,Real Estate,REDUCE,36.895861148197596,False
+JINDALPHOT,Jindal Photo Limited,Financial Services,REDUCE,36.889185580774374,False
+KOTHARIPET,Kothari Petrochemicals Limited,Basic Materials,REDUCE,36.88918558077437,False
+SALZERELEC,Salzer Electronics Limited,Industrials,REDUCE,36.8758344459279,False
+ELECTCAST,Electrosteel Castings Limited,Industrials,REDUCE,36.85914552736983,False
+BSOFT,Birlasoft Limited,Technology,REDUCE,36.83911882510014,False
+LAXMIDENTL,LAXMI DENTAL LIMITED,Healthcare,REDUCE,36.8324432576769,False
+LAOPALA,La Opala RG Limited,Consumer Cyclical,REDUCE,36.8324432576769,False
+LTTS,L&T Technology Services Limited,Technology,REDUCE,36.822429906542055,False
+SBFC,SBFC Finance Limited,Financial Services,REDUCE,36.815754339118826,False
+MADRASFERT,Madras Fertilizers Limited,Basic Materials,REDUCE,36.81241655540721,False
+SUNDARMFIN,Sundaram Finance Limited,Financial Services,REDUCE,36.75901201602136,False
+SKFINDIA,SKF India Limited,Industrials,REDUCE,36.71895861148198,False
+STARPAPER,Star Paper Mills Limited,Basic Materials,REDUCE,36.66555407209613,False
+VINATIORGA,Vinati Organics Limited,Basic Materials,REDUCE,36.66555407209613,False
+ETHOSLTD,Ethos Limited,Consumer Cyclical,REDUCE,36.648865153538054,False
+HEXT,Hexaware Technologies Limited,Technology,REDUCE,36.62883845126836,False
+PROTEAN,Protean eGov Technologies Limited,Technology,REDUCE,36.62883845126836,False
+CEATLTD,CEAT Limited,Consumer Cyclical,REDUCE,36.625500667556736,False
+ONWARDTEC,Onward Technologies Limited,Technology,REDUCE,36.59879839786382,False
+VRLLOG,VRL Logistics Limited,Industrials,REDUCE,36.56875834445928,False
+EIMCOELECO,Eimco Elecon (India) Limited,Industrials,REDUCE,36.53204272363151,False
+MIRZAINT,Mirza International Limited,Consumer Cyclical,REDUCE,36.47863818424566,False
+ACCELYA,Accelya Solutions India Limited,Technology,REDUCE,36.451935914552735,False
+FIVESTAR,Five-Star Business Finance Limited,Financial Services,REDUCE,36.401869158878505,False
+MEDICO,Medico Remedies Limited,Healthcare,REDUCE,36.39853137516689,False
+SANATHAN,SANATHAN TEXTILES LIMITED,Consumer Cyclical,REDUCE,36.388518024032045,False
+EXPLEOSOL,Expleo Solutions Limited,Technology,REDUCE,36.37516688918558,False
+AARTISURF,Aarti Surfactants Limited,Basic Materials,REDUCE,36.36849132176235,False
+MAHSCOOTER,Maharashtra Scooters Ltd.,Financial Services,REDUCE,36.34846461949266,False
+SHANKARA,Shankara Building Products Limited,Consumer Cyclical,REDUCE,36.265020026702274,False
+GOPAL,Gopal Snacks Limited,Consumer Defensive,REDUCE,36.24499332443258,False
+DVL,Dhunseri Ventures Limited,Financial Services,REDUCE,36.22496662216288,False
+ATL,Allcargo Terminals Limited,Industrials,REDUCE,36.22496662216288,False
+DYCL,Dynamic Cables Limited,Industrials,REDUCE,36.21829105473966,False
+ACC,ACC Limited,Basic Materials,REDUCE,36.21495327102804,False
+RAMCOCEM,The Ramco Cements Limited,Basic Materials,REDUCE,36.208277703604814,False
+JUSTDIAL,Just Dial Limited,Communication Services,REDUCE,36.111481975967955,False
+NSIL,Nalwa Sons Investments Limited,Financial Services,REDUCE,36.098130841121495,False
+GLOBUSSPR,Globus Spirits Limited,Consumer Defensive,REDUCE,36.08811748998665,False
+PLATIND,Platinum Industries Limited,Basic Materials,REDUCE,36.08811748998665,False
+ASALCBR,Associated Alcohols & Breweries Limited,Consumer Defensive,REDUCE,36.054739652870495,False
+RUCHIRA,Ruchira Papers Limited,Basic Materials,REDUCE,35.95460614152203,False
+DDEVPLSTIK,Ddev Plastiks Industries Limited,Basic Materials,REDUCE,35.91455273698264,False
+PGEL,PG Electroplast Limited,Technology,REDUCE,35.851134846461946,False
+HPL,HPL Electric & Power Limited,Industrials,REDUCE,35.79105473965287,False
+MTNL,Mahanagar Telephone Nigam Limited,Communication Services,REDUCE,35.78771695594126,False
+TIMETECHNO,Time Technoplast Limited,Consumer Cyclical,REDUCE,35.77436582109479,False
+JTEKTINDIA,JTEKT India Limited,Consumer Cyclical,REDUCE,35.764352469959945,False
+MANYAVAR,Vedant Fashions Limited,Consumer Cyclical,REDUCE,35.72763684913218,False
+AMBUJACEM,Ambuja Cements Limited,Basic Materials,REDUCE,35.68758344459279,False
+PNCINFRA,PNC Infratech Limited,Industrials,REDUCE,35.634178905206944,False
+PRABHA,Prabha Energy Limited,Energy,REDUCE,35.62416555407209,False
+WHIRLPOOL,Whirlpool of India Limited,Consumer Cyclical,REDUCE,35.62082777036048,False
+RGL,Renaissance Global Limited,Consumer Cyclical,REDUCE,35.604138851802404,False
+SCHAND,S Chand And Company Limited,Communication Services,REDUCE,35.60080106809079,False
+INFY,Infosys Limited,Technology,REDUCE,35.48397863818425,False
+COHANCE,COHANCE LIFESCIENCES LTD,Healthcare,REDUCE,35.467289719626166,False
+DYNPRO,Dynemic Products Limited,Basic Materials,REDUCE,35.430574098798395,False
+EMAMILTD,Emami Limited,Consumer Defensive,REDUCE,35.39052069425901,False
+GRPLTD,GRP Limited,Consumer Cyclical,REDUCE,35.34045393858478,False
+GRINFRA,G R Infraprojects Limited,Industrials,REDUCE,35.313751668891854,False
+EMUDHRA,eMudhra Limited,Technology,REDUCE,35.29706275033377,False
+ORISSAMINE,The Orissa Minerals Development Company Limited,Basic Materials,REDUCE,35.2803738317757,False
+PARKHOTELS,PARKHOTELS,Consumer Cyclical,REDUCE,35.27703604806409,False
+MOLDTECH,Mold-Tek Technologies Limited,Industrials,REDUCE,35.250333778371164,False
+OPTIEMUS,Optiemus Infracom Limited,Technology,REDUCE,35.24365821094793,False
+RALLIS,Rallis India Limited,Basic Materials,REDUCE,35.19692923898532,False
+HEIDELBERG,HeidelbergCement India Limited,Basic Materials,REDUCE,35.16688918558077,False
+INDRAMEDCO,Indraprastha Medical Corporation Limited,Healthcare,REDUCE,35.11014686248331,False
+SONATSOFTW,Sonata Software Limited,Technology,REDUCE,35.09679572763685,False
+GOCOLORS,Go Fashion (India) Limited,Consumer Cyclical,REDUCE,35.086782376502,False
+PUNJABCHEM,Punjab Chemicals and Crop Protection Limited,Basic Materials,REDUCE,35.026702269692926,False
+TCS,Tata Consultancy Services Limited,Technology,REDUCE,34.946595460614155,False
+SANOFI,Sanofi India Limited,Healthcare,REDUCE,34.90654205607476,False
+TEXRAIL,Texmaco Rail & Engineering Limited,Industrials,REDUCE,34.82643524699599,False
+ROUTE,Route Mobile Limited,Communication Services,REDUCE,34.79305740987984,False
+INTELLECT,Intellect Design Arena Limited,Technology,REDUCE,34.676234979973295,False
+PDMJEPAPER,Pudumjee Paper Products Limited,Basic Materials,REDUCE,34.67289719626168,False
+TAJGVK,TAJGVK Hotels & Resorts Limited,Consumer Cyclical,REDUCE,34.632843791722294,False
+DBCORP,D. B. Corp Limited,Communication Services,REDUCE,34.41255006675568,False
+RPOWER,Reliance Power Limited,Utilities,REDUCE,34.402536715620826,False
+GMMPFAUDLR,GMM Pfaudler Limited,Industrials,REDUCE,34.36248331108145,False
+CONTROLPR,Control Print Limited,Industrials,REDUCE,34.352469959946596,False
+VESUVIUS,Vesuvius India Limited,Industrials,REDUCE,34.349132176234974,False
+ITCHOTELS,ITC HOTELS LIMITED,Consumer Cyclical,REDUCE,34.31241655540721,False
+MAXIND,Max India Limited,Healthcare,REDUCE,34.28237650200268,False
+RVNL,Rail Vikas Nigam Limited,Industrials,REDUCE,34.20894526034713,False
+KNRCON,KNR Constructions Limited,Industrials,REDUCE,34.192256341789054,False
+EPIGRAL,Epigral Limited,Basic Materials,REDUCE,34.192256341789054,False
+MEDIASSIST,MEDI ASSIST HEALTH SER L,Healthcare,REDUCE,34.19225634178905,False
+JUNIPER,Juniper Hotels Limited,Consumer Cyclical,REDUCE,34.185580774365825,False
+SWIGGY,SWIGGY LIMITED,Consumer Cyclical,REDUCE,34.12883845126836,False
+RELTD,Ravindra Energy Limited,Technology,REDUCE,34.01535380507343,False
+GALAXYSURF,Galaxy Surfactants Limited,Basic Materials,REDUCE,33.981975967957275,False
+IMAGICAA,Imagicaaworld Entertainment Limited,Communication Services,REDUCE,33.938584779706275,False
+ICRA,ICRA Limited,Financial Services,REDUCE,33.925233644859816,False
+BIRLAMONEY,Aditya Birla Money Limited,Financial Services,REDUCE,33.871829105473964,False
+DODLA,Dodla Dairy Limited,Consumer Defensive,REDUCE,33.80507343124166,False
+CHALET,Chalet Hotels Limited,Consumer Cyclical,REDUCE,33.63818424566088,False
+ICICIPRULI,ICICI Prudential Life Insurance Company Limited,Financial Services,REDUCE,33.63150867823765,False
+TRANSWORLD,Transworld Shipping Lines Limited,Industrials,REDUCE,33.62149532710281,False
+BATAINDIA,Bata India Limited,Consumer Cyclical,REDUCE,33.61481975967958,False
+GENESYS,Genesys International Corporation Limited,Technology,REDUCE,33.588117489986644,False
+TECHNOE,Techno Electric & Engineering Company Limited,Industrials,REDUCE,33.50467289719626,False
+UBL,United Breweries Limited,Consumer Defensive,REDUCE,33.4913217623498,False
+UFLEX,Uflex Limited,Consumer Cyclical,REDUCE,33.42456608811749,False
+VENTIVE,VENTIVE HOSPITALITY LTD,Consumer Cyclical,REDUCE,33.39452603471295,False
+GLAXO,GlaxoSmithKline Pharmaceuticals Limited,Healthcare,REDUCE,33.37783711615487,False
+BECTORFOOD,Mrs. Bectors Food Specialities Limited,Consumer Defensive,REDUCE,33.32443257676903,False
+BLS,BLS International Services Limited,Industrials,REDUCE,33.257676902536716,False
+EIDPARRY,E.I.D.- Parry (India) Limited,Basic Materials,REDUCE,33.164218958611485,False
+HDFCLIFE,HDFC Life Insurance Company Limited,Financial Services,REDUCE,33.12082777036048,False
+RAYMONDLSL,Raymond Lifestyle Limited,Consumer Cyclical,REDUCE,33.097463284379174,False
+HAPPSTMNDS,Happiest Minds Technologies Limited,Technology,REDUCE,33.047396528704944,False
+OMINFRAL,Om Infra Limited,Industrials,REDUCE,33.04405874499332,False
+DCW,DCW Limited,Basic Materials,REDUCE,33.00734312416555,False
+BRIGADE,Brigade Enterprises Limited,Real Estate,REDUCE,32.953938584779706,False
+HGINFRA,H.G. Infra Engineering Limited,Industrials,REDUCE,32.94392523364486,False
+PILANIINVS,Pilani Investment and Industries Corporation Limited,Financial Services,REDUCE,32.92389853137517,False
+HUBTOWN,Hubtown Limited,Real Estate,REDUCE,32.91388518024032,False
+KFINTECH,KFin Technologies Limited,Technology,REDUCE,32.90720961281709,False
+TVTODAY,T.V. Today Network Limited,Communication Services,REDUCE,32.88384512683578,False
+GGBL,"GGBL.NS,0P0001TAFZ,726600",,REDUCE,32.87049399198932,False
+ESCORTS,Escorts Kubota Limited,Industrials,REDUCE,32.76702269692924,False
+HERITGFOOD,Heritage Foods Limited,Consumer Defensive,REDUCE,32.66688918558077,False
+ALICON,Alicon Castalloy Limited,Industrials,REDUCE,32.633511348464616,False
+CANTABIL,Cantabil Retail India Limited,Consumer Cyclical,REDUCE,32.53671562082777,False
+CAMLINFINE,Camlin Fine Sciences Limited,Basic Materials,REDUCE,32.48664886515354,False
+DALBHARAT,Dalmia Bharat Limited,Basic Materials,REDUCE,32.48664886515353,False
+TCI,Transport Corporation of India Limited,Industrials,REDUCE,32.35647530040053,False
+SNOWMAN,Snowman Logistics Limited,Industrials,REDUCE,32.34312416555407,False
+JMFINANCIL,JM Financial Limited,Financial Services,REDUCE,32.31975967957276,False
+MAMATA,MAMATA MACHINERY LIMITED,Industrials,REDUCE,32.26635514018692,False
+ORIENTCEM,Orient Cement Limited,Basic Materials,REDUCE,32.25634178905207,False
+GREENPANEL,Greenpanel Industries Limited,Basic Materials,REDUCE,32.1762349799733,False
+RAMAPHO,Rama Phosphates Limited,Basic Materials,REDUCE,32.01602136181576,False
+LEMONTREE,Lemon Tree Hotels Limited,Consumer Cyclical,REDUCE,32.00934579439252,False
+GULFOILLUB,Gulf Oil Lubricants India Limited,Basic Materials,REDUCE,31.929238985313756,False
+PVSL,Popular Vehicles and Services Limited,Consumer Cyclical,REDUCE,31.922563417890522,False
+JKLAKSHMI,JK Lakshmi Cement Limited,Basic Materials,REDUCE,31.902536715620826,False
+ZUARIIND,Zuari Industries Limited,Industrials,REDUCE,31.89919893190921,False
+SUDARSCHEM,Sudarshan Chemical Industries Limited,Basic Materials,REDUCE,31.85580774365821,False
+BDL,Bharat Dynamics Limited,Industrials,REDUCE,31.795727636849136,False
+DBREALTY,Valor Estate Limited,Real Estate,REDUCE,31.705607476635514,False
+HCLTECH,HCL Technologies Limited,Technology,REDUCE,31.695594125500666,False
+MASTEK,Mastek Limited,Technology,REDUCE,31.64886515353805,False
+EIHOTEL,EIH Limited,Consumer Cyclical,REDUCE,31.628838451268358,False
+EIHAHOTELS,EIH Associated Hotels Limited,Consumer Cyclical,REDUCE,31.55874499332443,False
+CELLO,Cello World Limited,Consumer Cyclical,REDUCE,31.555407209612817,False
+YATRA,Yatra Online Limited,Consumer Cyclical,REDUCE,31.52536715620828,False
+KALYANKJIL,Kalyan Jewellers India Limited,Consumer Cyclical,REDUCE,31.52202937249666,False
+INOXWIND,Inox Wind Limited,Industrials,REDUCE,31.518691588785046,False
+EMBDL,Embassy Developments Limited,Real Estate,REDUCE,31.491989319092124,False
+PGHH,Procter & Gamble Hygiene and Health Care Limited,Consumer Defensive,REDUCE,31.431909212283045,False
+IDBI,IDBI Bank Limited,Financial Services,REDUCE,31.15487316421896,False
+KALAMANDIR,Sai Silks (Kalamandir) Limited,Consumer Cyclical,REDUCE,31.14485981308411,False
+VIPCLOTHNG,VIP Clothing Limited,Consumer Cyclical,REDUCE,31.12817089452603,False
+KCPSUGIND,K.C.P. Sugar and Industries Corporation Limited,Consumer Defensive,REDUCE,31.124833110814418,False
+ARIHANTSUP,Arihant Superstructures Limited,Real Estate,REDUCE,31.104806408544725,False
+XCHANGING,Xchanging Solutions Limited,Technology,REDUCE,31.098130841121495,False
+WESTLIFE,Westlife Foodworld Limited,Consumer Cyclical,REDUCE,30.994659546061413,False
+LTM,LTM Limited,Technology,REDUCE,30.98464619492657,False
+SOLEX,SOLEX ENERGY LIMITED,Technology,REDUCE,30.907877169559413,False
+SBICARD,SBI Cards and Payment Services Limited,Financial Services,REDUCE,30.88785046728972,False
+TRANSRAILL,TRANSRAIL LIGHTING LTD,Industrials,REDUCE,30.85113484646195,False
+NETWORK18,Network18 Media & Investments Limited,Communication Services,REDUCE,30.7543391188251,False
+KIRIINDUS,Kiri Industries Limited,Basic Materials,REDUCE,30.74766355140187,False
+HPAL,HP Adhesives Limited,Basic Materials,REDUCE,30.714285714285715,False
+RUSTOMJEE,Keystone Realtors Limited,Real Estate,REDUCE,30.68090787716956,False
+BAJAJELEC,Bajaj Electricals Limited,Consumer Cyclical,REDUCE,30.654205607476634,False
+CAPACITE,Capacit'e Infraprojects Limited,Industrials,REDUCE,30.620827770360485,False
+SAKSOFT,Saksoft Limited,Technology,REDUCE,30.564085447263018,False
+KRSNAA,Krsnaa Diagnostics Limited,Healthcare,REDUCE,30.514018691588788,False
+LIBERTSHOE,Liberty Shoes Ltd.,Consumer Cyclical,REDUCE,30.493991989319092,False
+TCPLPACK,TCPL Packaging Limited,Consumer Cyclical,REDUCE,30.477303070761018,False
+NURECA,Nureca Limited,Healthcare,REDUCE,30.423898531375173,False
+VIDHIING,Vidhi Specialty Food Ingredients Limited,Basic Materials,REDUCE,30.420560747663554,False
+ARIHANTCAP,Arihant Capital Markets Limited,Financial Services,REDUCE,30.387182910547395,False
+JKIL,J. Kumar Infraprojects Limited,Industrials,REDUCE,30.330440587449935,False
+JYOTHYLAB,Jyothy Labs Limited,Consumer Defensive,REDUCE,30.31041388518024,False
+TARC,TARC Limited,Real Estate,REDUCE,30.29038718291055,False
+SPENCERS,Spencer's Retail Limited,Consumer Cyclical,REDUCE,30.240320427236313,False
+JUBLFOOD,Jubilant FoodWorks Limited,Consumer Cyclical,REDUCE,30.17690253671562,False
+HERANBA,Heranba Industries Limited,Basic Materials,REDUCE,30.09012016021362,False
+ABREL,Aditya Birla Real Estate Limited,Real Estate,REDUCE,30.03004005340454,False
+CSLFINANCE,CSL Finance Limited,Financial Services,REDUCE,30.026702269692926,False
+DEVYANI,Devyani International Limited,Consumer Cyclical,REDUCE,30.020026702269696,False
+SWANCORP,Swan Corp Limited,Industrials,REDUCE,30.020026702269696,False
+LATENTVIEW,Latent View Analytics Limited,Industrials,REDUCE,29.889853137516692,False
+HIKAL,Hikal Limited,Healthcare,REDUCE,29.886515353805073,False
+DAMCAPITAL,DAM CAPITAL ADVISORS LTD,Financial Services,REDUCE,29.869826435246996,False
+NEWGEN,Newgen Software Technologies Limited,Technology,REDUCE,29.83978638184246,False
+UTIAMC,UTI Asset Management Company Limited,Financial Services,REDUCE,29.776368491321765,False
+EPACK,EPACK Durable Limited,Consumer Cyclical,REDUCE,29.66622162883845,False
+KUANTUM,Kuantum Papers Limited,Basic Materials,REDUCE,29.63618157543391,False
+LINC,Linc Limited,Industrials,REDUCE,29.59946595460614,False
+KEC,KEC International Limited,Industrials,REDUCE,29.439252336448597,False
+TRANSTEEL,"TRANSTEEL.NS,0P0001RSSZ,92000",,REDUCE,29.425901201602137,False
+FIRSTCRY,BRAINBEES SOLUTIONS LTD,Consumer Cyclical,REDUCE,29.41255006675567,False
+WCIL,WESTERN CARRIERS (IND) L,Industrials,REDUCE,29.402536715620826,False
+SULA,Sula Vineyards Limited,Consumer Defensive,REDUCE,29.402536715620826,False
+AARTIPHARM,Aarti Pharmalabs Limited,Healthcare,REDUCE,29.35580774365821,False
+DCAL,Dishman Carbogen Amcis Limited,Healthcare,REDUCE,29.322429906542055,False
+YUKEN,Yuken India Limited,Industrials,REDUCE,29.312416555407207,False
+MANAKCOAT,Manaksia Coated Metals & Industries Limited,Industrials,REDUCE,29.289052069425903,False
+BPL,BPL Limited,Technology,REDUCE,29.2890520694259,False
+GHCL,GHCL Limited,Basic Materials,REDUCE,29.28237650200267,False
+RKSWAMY,R K SWAMY LIMITED,Communication Services,REDUCE,29.252336448598133,False
+ARKADE,ARKADE DEVELOPERS LIMITED,Real Estate,REDUCE,29.248998664886514,False
+MHRIL,Mahindra Holidays & Resorts India Limited,Consumer Cyclical,REDUCE,29.228971962616825,False
+ORIENTTECH,ORIENT TECHNOLOGIES LTD,Technology,REDUCE,29.17556742323098,False
+SIGNATURE,Signatureglobal (India) Limited,Real Estate,REDUCE,29.168891855807743,False
+SUDARCOLOR,Sudarshan Colorants India Limited,Basic Materials,REDUCE,29.09212283044059,False
+PENIND,Pennar Industries Limited,Industrials,REDUCE,29.025367156208283,False
+PAKKA,Pakka Limited,Basic Materials,REDUCE,28.94192256341789,False
+DENTA,DENTA WATER N INFRA SOL L,Industrials,REDUCE,28.868491321762352,False
+TRIGYN,Trigyn Technologies Limited,Technology,REDUCE,28.77503337783712,False
+CUB,City Union Bank Limited,Financial Services,REDUCE,28.775033377837115,False
+ZENSARTECH,Zensar Technologies Limited,Technology,REDUCE,28.641522029372496,False
+SYMPHONY,Symphony Limited,Consumer Cyclical,REDUCE,28.62483311081442,False
+CHOLAHLDNG,Cholamandalam Financial Holdings Limited,Financial Services,REDUCE,28.61148197596796,False
+CHEMPLASTS,Chemplast Sanmar Limited,Basic Materials,REDUCE,28.541388518024032,False
+NUCLEUS,Nucleus Software Exports Limited,Technology,REDUCE,28.32109479305741,False
+FSL,Firstsource Solutions Limited,Technology,REDUCE,28.25767690253672,False
+EUREKAFORB,Eureka Forbes Limited,Consumer Cyclical,REDUCE,27.9739652870494,False
+ASHOKA,Ashoka Buildcon Limited,Industrials,REDUCE,27.92723631508678,False
+SUMMITSEC,Summit Securities Limited,Financial Services,REDUCE,27.913885180240317,False
+HMAAGRO,HMA Agro Industries Limited,Consumer Defensive,REDUCE,27.910547396528706,False
+BALAJITELE,Balaji Telefilms Limited,Communication Services,REDUCE,27.910547396528703,False
+RADIANTCMS,Radiant Cash Management Services Limited,Industrials,REDUCE,27.757009345794394,False
+BIRLANU,BirlaNu Limited,Industrials,REDUCE,27.743658210947928,False
+VILAS,"VILAS.NS,0P0001T1AQ,307000",,REDUCE,27.740320427236313,False
+MCLOUD,Magellanic Cloud Limited,Technology,REDUCE,27.71695594125501,False
+ADSL,Allied Digital Services Limited,Technology,REDUCE,27.656875834445927,False
+BHARATRAS,Bharat Rasayan Limited,Basic Materials,REDUCE,27.63351134846462,False
+INTERARCH,Interarch Building Solutions Limited,Industrials,REDUCE,27.57343124165554,False
+EMSLIMITED,EMS Limited,Industrials,REDUCE,27.56675567423231,False
+ROHLTD,Royal Orchid Hotels Limited,Consumer Cyclical,REDUCE,27.496662216288385,False
+SAFARI,Safari Industries (India) Limited,Consumer Cyclical,REDUCE,27.409879839786385,False
+SBGLP,Suratwwala Business Group Limited,Real Estate,REDUCE,27.276368491321765,False
+QUICKHEAL,Quick Heal Technologies Limited,Technology,REDUCE,27.246328437917224,False
+UNIECOM,UNICOMMERCE ESOLUTIONS L,Technology,REDUCE,27.222963951935917,False
+MVGJL,Manoj Vaibhav Gems 'N' Jewellers Limited,Consumer Cyclical,REDUCE,27.18958611481976,False
+DECCANCE,Deccan Cements Limited,Basic Materials,REDUCE,27.149532710280372,False
+REPRO,Repro India Limited,Industrials,REDUCE,27.09279038718291,False
+INDOFARM,INDO FARM EQUIPMENT LTD,Industrials,REDUCE,26.86248331108144,False
+MUTHOOTCAP,Muthoot Capital Services Limited,Financial Services,REDUCE,26.835781041388515,False
+JYOTICNC,Jyoti CNC Automation Limited,Industrials,REDUCE,26.815754339118826,False
+BALUFORGE,Balu Forge Industries Limited,Industrials,REDUCE,26.595460614152202,False
+BIGBLOC,Bigbloc Construction Limited,Industrials,REDUCE,26.461949265687586,False
+STERTOOLS,Sterling Tools Limited,Industrials,REDUCE,26.39185580774366,False
+MARATHON,Marathon Nextgen Realty Limited,Real Estate,REDUCE,26.38851802403204,False
+TRACXN,Tracxn Technologies Limited,Technology,REDUCE,26.33845126835781,False
+VEDL,Vedanta Limited,Basic Materials,REDUCE,26.338451268357808,False
+CHEMFAB,Chemfab Alkalis Limited,Basic Materials,REDUCE,26.301735647530037,False
+SHALPAINTS,Shalimar Paints Limited,Basic Materials,REDUCE,26.291722296395193,False
+GRMOVER,GRM Overseas Limited,Consumer Defensive,REDUCE,26.25834445927904,False
+SAGCEM,Sagar Cements Limited,Basic Materials,REDUCE,26.191588785046733,False
+SATIA,Satia Industries Limited,Basic Materials,REDUCE,25.93124165554072,False
+AGARIND,Agarwal Industrial Corporation Limited,Basic Materials,REDUCE,25.851134846461946,False
+TRF,TRF Limited,Industrials,REDUCE,25.740987983978638,False
+INDIANHUME,The Indian Hume Pipe Company Limited,Industrials,REDUCE,25.737650200267023,False
+HIMATSEIDE,Himatsingka Seide Limited,Consumer Cyclical,REDUCE,25.727636849132175,False
+KAYNES,Kaynes Technology India Limited,Technology,REDUCE,25.59412550066756,False
+CGRAPHICS,"CGRAPHICS.NS,0P0001SN5H,145600",,REDUCE,25.463951935914555,False
+BAJAJHCARE,Bajaj HealthCare Limited,Healthcare,REDUCE,25.39385847797063,False
+AWFIS,AWFIS SPACE SOLUTIONS LTD,Industrials,REDUCE,25.380507343124165,False
+BOROLTD,Borosil Limited,Consumer Cyclical,REDUCE,25.33377837116155,False
+BAJAJINDEF,INDEF MANUFACTURING LTD,Industrials,SELL,24.846461949265688,False
+ESTER,Ester Industries Limited,Basic Materials,SELL,24.779706275033377,False
+MASTERTR,Master Trust Limited,Financial Services,SELL,24.77636849132176,False
+MOL,Meghmani Organics Limited,Basic Materials,SELL,24.679572763684916,False
+SIGACHI,Sigachi Industries Limited,Healthcare,SELL,24.646194926568757,False
+ECLERX,eClerx Services Limited,Technology,SELL,24.626168224299064,False
+TOLINS,TOLINS TYRES LIMITED,Consumer Cyclical,SELL,24.54272363150868,False
+SAPPHIRE,Sapphire Foods India Limited,Consumer Cyclical,SELL,24.355807743658215,False
+SURAJEST,SURAJ ESTATE DEVELOPERS L,Real Estate,SELL,24.31909212283044,False
+SHK,S H Kelkar and Company Limited,Basic Materials,SELL,24.062082777036046,False
+SYSTANGO,"SYSTANGO.NS,0P0001QKGD,22800",,SELL,23.931909212283045,False
+AURIONPRO,Aurionpro Solutions Limited,Technology,SELL,23.871829105473964,False
+CENTRUM,Centrum Capital Limited,Financial Services,SELL,23.84512683578104,False
+VASCONEQ,Vascon Engineers Limited,Industrials,SELL,23.708277703604807,False
+JISLJALEQS,Jain Irrigation Systems Limited,Industrials,SELL,23.611481975967955,False
+VERTOZ,Vertoz Limited,Technology,SELL,23.54806408544726,False
+AJMERA,Ajmera Realty & Infra India Limited,Real Estate,SELL,23.454606141522028,False
+FOODSIN,Foods and Inns Limited,Consumer Defensive,SELL,23.43457943925234,False
+CEWATER,CONCORD ENVIRO SYSTEMS L,Utilities,SELL,23.234312416555408,False
+KITEX,Kitex Garments Limited,Consumer Cyclical,SELL,23.14419225634179,False
+SUNTECK,Sunteck Realty Limited,Real Estate,SELL,23.1241655540721,False
+MAPMYINDIA,C. E. Info Systems Limited,Technology,SELL,23.074098798397866,False
+RADHIKAJWE,Radhika Jeweltech Limited,Consumer Cyclical,SELL,23.030707610146862,False
+JSWHL,JSW Holdings Limited,Industrials,SELL,22.967289719626166,False
+GSLSU,Global Surfaces Limited,Basic Materials,SELL,22.9305740987984,False
+SAURASHCEM,Saurashtra Cement Limited,Basic Materials,SELL,22.897196261682243,False
+SCODATUBES,Scoda Tubes Limited,Basic Materials,SELL,22.850467289719624,False
+EVERESTIND,Everest Industries Limited,Industrials,SELL,22.65687583444593,False
+TIRUMALCHM,Thirumalai Chemicals Limited,Basic Materials,SELL,22.61682242990654,False
+DOLLAR,Dollar Industries Limited,Consumer Cyclical,SELL,22.570093457943926,False
+DBEIL,DEEPAK BUILDERS & ENG I L,Industrials,SELL,22.546728971962615,False
+ORIANA,"ORIANA.NS,0P0001RF21,151050",,SELL,22.52336448598131,False
+NIITMTS,NIIT Learning Systems Limited,Consumer Defensive,SELL,22.386515353805073,False
+KHAICHEM,Khaitan Chemicals and Fertilizers Limited,Basic Materials,SELL,22.039385847797064,False
+ESFL,"ESFL.NS,0P0001R76T,10200",,SELL,21.562082777036046,False
+RSYSTEMS,R Systems International Limited,Technology,SELL,21.31174899866489,False
+KAMATHOTEL,Kamat Hotels (India) Limited,Consumer Cyclical,SELL,21.265020026702267,False
+ZAGGLE,Zaggle Prepaid Ocean Services Limited,Technology,SELL,21.248331108144193,False
+SDBL,Som Distilleries & Breweries Limited,Consumer Defensive,SELL,20.7543391188251,False
+ECOSMOBLTY,ECOS (INDIA) MOB & HOSP L,Industrials,SELL,20.69425901201602,False
+RBMINFRA,"RBMINFRA.NS,0P0001Q9NO,69800",,SELL,20.654205607476634,False
+SAHANA,"SAHANA.NS,0P0001R3DD,19500",,SELL,20.510680907877166,False
+UGROCAP,UGRO Capital Limited,Financial Services,SELL,20.106809078771697,False
+STANLEY,STANLEY LIFESTYLES LTD,Consumer Cyclical,SELL,20.066755674232308,False
+RAJOOENG,Rajoo Engineers Limited,Industrials,SELL,19.95327102803738,False
+APS,"APS.NS,0P0001S7LV,53000",,SELL,19.90654205607477,False
+FINOPB,Fino Payments Bank Limited,Financial Services,SELL,19.756341789052065,False
+GRAUWEIL,Grauer & Weil (India) Limited,Basic Materials,SELL,19.566088117489986,False
+NOVAAGRI,Nova Agritech Limited,Basic Materials,SELL,19.49933244325768,False
+ANNAPURNA,"ANNAPURNA.NS,0P0001PQ2X,67000",,SELL,19.45260347129506,False
+MEGATHERM,"MEGATHERM.NS,0P0001SBAB,43600",,SELL,19.37917222963952,False
+ELIN,Elin Electronics Limited,Industrials,SELL,19.37249666221629,False
+TAC,"TAC.NS,0P0001SMEB,32400",,SELL,19.152202937249665,False
+DREAMFOLKS,Dreamfolks Services Limited,Industrials,SELL,18.915220293724968,False
+RAJESHEXPO,Rajesh Exports Limited,Consumer Cyclical,SELL,18.841789052069426,False
+DPABHUSHAN,D. P. Abhushan Limited,Consumer Cyclical,SELL,18.76502002670227,False
+SARTELE,"SARTELE.NS,0P0001RT0P,168000",,SELL,18.5781041388518,False
+BASILIC,"BASILIC.NS,0P0001RJM3,48300",,SELL,18.207610146862486,False
+OSWALGREEN,Oswal Greentech Limited,Financial Services,SELL,18.117489986648863,False
+VPRPL,Vishnu Prakash R Punglia Limited,Industrials,SELL,17.046061415220294,False
+DENTALKART,"DENTALKART.NS,0P0001R1DI,44500",,SELL,17.012683578104138,False
+RPPINFRA,R.P.P. Infra Projects Limited,Industrials,SELL,16.969292389853138,False
+WEL,Wonder Electricals Limited,Consumer Cyclical,SELL,15.176902536715621,False
+CIFL,Capital India Finance Limited,Financial Services,SELL,14.632843791722298,False
+GOODYEAR,Goodyear India Limited,Consumer Cyclical,SELL,12.022696929238986,False
