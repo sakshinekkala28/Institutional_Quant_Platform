@@ -928,8 +928,6 @@ candidate_portfolio = (
     .copy()
 )
 
-MAX_SECTOR_HOLDINGS = 10
-
 # =========================================================
 # SCORE DIAGNOSTICS
 # =========================================================
@@ -1063,6 +1061,70 @@ def enforce_sector_caps(df):
 
         df.loc[
             remaining,
+            "Weight"
+        ] += redistribution
+
+    return df
+def enforce_position_caps(df):
+
+    max_iterations = 100
+
+    for _ in range(max_iterations):
+
+        max_weight = (
+            df["Weight"].max()
+        )
+
+        if max_weight <= MAX_WEIGHT:
+            break
+
+        capped_mask = (
+            df["Weight"]
+            > MAX_WEIGHT
+        )
+
+        excess = (
+
+            df.loc[
+                capped_mask,
+                "Weight"
+            ]
+
+            - MAX_WEIGHT
+
+        ).sum()
+
+        df.loc[
+            capped_mask,
+            "Weight"
+        ] = MAX_WEIGHT
+
+        remaining_mask = (
+            ~capped_mask
+        )
+
+        redistribution = (
+
+            excess
+
+            *
+
+            df.loc[
+                remaining_mask,
+                "Weight"
+            ]
+
+            /
+
+            df.loc[
+                remaining_mask,
+                "Weight"
+            ].sum()
+
+        )
+
+        df.loc[
+            remaining_mask,
             "Weight"
         ] += redistribution
 
@@ -1500,37 +1562,9 @@ print(
 # ==========================================
 
 candidate_portfolio = (
-    enforce_sector_caps(
+    enforce_position_caps(
         candidate_portfolio
     )
-)
-
-candidate_portfolio["Weight"] = (
-    candidate_portfolio["Weight"]
-    .clip(
-        upper=MAX_WEIGHT
-    )
-)
-
-candidate_portfolio["Weight"] /= (
-    candidate_portfolio["Weight"].sum()
-)
-
-candidate_portfolio["Weight"] = (
-    candidate_portfolio["Weight"]
-    .clip(
-        upper=MAX_WEIGHT
-    )
-)
-
-candidate_portfolio["Weight"] /= (
-    candidate_portfolio["Weight"].sum()
-)
-
-sector_summary = (
-    candidate_portfolio
-    .groupby("Sector")["Weight"]
-    .sum()
 )
 
 # =========================================================

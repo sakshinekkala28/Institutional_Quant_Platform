@@ -4,10 +4,10 @@ Expected_Risk,0.35807902922174045
 Expected_Liquidity,1.4493664395958794
 Expected_Capacity,50.99999999999999
 Portfolio_Turnover,0.0
-Effective_Positions,41.056891110094604
-Effective_Sectors,6.779540700619089
-Diversification_Score,82.11378222018921
-Concentration_Score,17.886217779810792
-Optimizer_Score,72.3459179417441
+Effective_Positions,41.057277247731705
+Effective_Sectors,6.779551176228653
+Diversification_Score,82.11455449546341
+Concentration_Score,17.88544550453659
+Optimizer_Score,72.3463040793812
 Run_Date,2026-06-13
 Engine_Version,2.0.0
