@@ -4,20 +4,18 @@ PERFORMANCE ATTRIBUTION ENGINE
 =========================================================
 
 Purpose:
-Institutional Performance Attribution
+Institutional Portfolio Performance Attribution
 
 Inputs:
-data/portfolios/optimized_portfolio.csv
-data/factors/factor_master.csv
-data/raw/prices/*.parquet
+data/backtests/equity_curve.csv
+data/portfolios/live_portfolio.csv
+data/factors/factor_snapshot_master.csv
 
 Outputs:
 data/performance/performance_attribution.csv
-data/performance/sector_attribution.csv
-data/performance/position_attribution.csv
 data/performance/factor_attribution.csv
-
-data/logs/attribution_report.csv
+data/performance/sector_attribution.csv
+data/performance/performance_dashboard.csv
 
 =========================================================
 """
@@ -34,7 +32,7 @@ import pandas as pd
 
 ENGINE_VERSION = "1.0.0"
 
-RETURN_LOOKBACK_DAYS = 21
+TRADING_DAYS = 252
 
 # =========================================================
 # PATHS
@@ -42,451 +40,642 @@ RETURN_LOOKBACK_DAYS = 21
 
 ROOT = Path(__file__).resolve().parents[2]
 
+EQUITY_FILE = (
+    ROOT
+    / "data"
+    / "backtests"
+    / "equity_curve.csv"
+)
+
 PORTFOLIO_FILE = (
     ROOT
     / "data"
     / "portfolios"
-    / "optimized_portfolio.csv"
+    / "live_portfolio.csv"
 )
 
 FACTOR_FILE = (
     ROOT
     / "data"
     / "factors"
-    / "factor_master.csv"
+    / "factor_snapshot_master.csv"
 )
 
-PRICE_DIR = (
-    ROOT
-    / "data"
-    / "raw"
-    / "prices"
-)
-
-PERFORMANCE_FILE = (
+OUTPUT_DIR = (
     ROOT
     / "data"
     / "performance"
-    / "performance_attribution.csv"
-)
-
-SECTOR_FILE = (
-    ROOT
-    / "data"
-    / "performance"
-    / "sector_attribution.csv"
-)
-
-POSITION_FILE = (
-    ROOT
-    / "data"
-    / "performance"
-    / "position_attribution.csv"
-)
-
-FACTOR_ATTR_FILE = (
-    ROOT
-    / "data"
-    / "performance"
-    / "factor_attribution.csv"
 )
 
 REPORT_FILE = (
     ROOT
     / "data"
     / "logs"
-    / "attribution_report.csv"
+    / "performance_attribution_report.csv"
+)
+
+OUTPUT_DIR.mkdir(
+    parents=True,
+    exist_ok=True,
 )
 
 # =========================================================
 # LOAD
 # =========================================================
 
-print("\n📥 Loading Portfolio...")
+print(
+    "\n📥 Loading Data..."
+)
+
+equity = pd.read_csv(
+    EQUITY_FILE
+)
 
 portfolio = pd.read_csv(
     PORTFOLIO_FILE
 )
-
-if portfolio.empty:
-
-    raise ValueError(
-        "Portfolio is empty."
-    )
 
 factors = pd.read_csv(
     FACTOR_FILE
 )
 
 # =========================================================
-# PRICE RETURNS
+# VALIDATION
 # =========================================================
 
-print(
-    "\n📊 Calculating Position Returns..."
-)
-
-returns_data = []
-
-for symbol in portfolio["Symbol"]:
-
-    try:
-
-        file = (
-            PRICE_DIR
-            / f"{symbol}.parquet"
-        )
-
-        if not file.exists():
-            continue
-
-        df = pd.read_parquet(
-            file
-        )
-
-        if len(df) < RETURN_LOOKBACK_DAYS:
-            continue
-
-        close = pd.to_numeric(
-            df["Close"],
-            errors="coerce"
-        )
-
-        latest_price = (
-            close.iloc[-1]
-        )
-
-        old_price = (
-            close.iloc[
-                -RETURN_LOOKBACK_DAYS
-            ]
-        )
-
-        period_return = (
-
-            latest_price
-            /
-            old_price
-
-            - 1
-        )
-
-        returns_data.append(
-            {
-                "Symbol": symbol,
-                "Period_Return":
-                period_return,
-            }
-        )
-
-    except Exception:
-        continue
-
-returns_df = pd.DataFrame(
-    returns_data
-)
-
-# =========================================================
-# MERGE
-# =========================================================
-
-portfolio = portfolio.merge(
-    returns_df,
-    on="Symbol",
-    how="left",
-)
-
-portfolio["Period_Return"] = (
-    portfolio["Period_Return"]
-    .fillna(0)
-)
-
-# =========================================================
-# CONTRIBUTION
-# =========================================================
-
-portfolio["Contribution"] = (
-
-    portfolio["Optimized_Weight"]
-
-    * portfolio["Period_Return"]
-
-)
-
-portfolio["Contribution_Pct"] = (
-
-    portfolio["Contribution"]
-
-    * 100
-)
-
-# =========================================================
-# PORTFOLIO RETURN
-# =========================================================
-
-portfolio_return = (
-
-    portfolio["Contribution"]
-
-    .sum()
-)
-
-# =========================================================
-# POSITION ATTRIBUTION
-# =========================================================
-
-position_attr = portfolio[
-
-    [
-
-        "Symbol",
-
-        "Sector",
-
-        "Optimized_Weight",
-
-        "Period_Return",
-
-        "Contribution",
-
-        "Contribution_Pct",
-    ]
+required_equity = [
+    "Portfolio_Return",
 ]
 
-position_attr = (
-    position_attr
-    .sort_values(
-        "Contribution",
-        ascending=False,
-    )
-)
+for col in required_equity:
 
-# =========================================================
-# SECTOR ATTRIBUTION
-# =========================================================
+    if col not in equity.columns:
 
-sector_attr = (
-
-    portfolio
-
-    .groupby(
-        "Sector",
-        dropna=False
-    )
-
-    .agg(
-
-        Weight=(
-            "Optimized_Weight",
-            "sum"
-        ),
-
-        Contribution=(
-            "Contribution",
-            "sum"
+        raise ValueError(
+            f"Missing Column: {col}"
         )
-    )
 
-    .reset_index()
+required_portfolio = [
 
+    "Symbol",
+    "Weight",
+]
+
+for col in required_portfolio:
+
+    if col not in portfolio.columns:
+
+        raise ValueError(
+            f"Missing Column: {col}"
+        )
+
+# =========================================================
+# CLEAN
+# =========================================================
+equity["Portfolio_Return"] = pd.to_numeric(
+    equity["Portfolio_Return"],
+    errors="coerce"
 )
 
-sector_attr[
-    "Contribution_Pct"
-] = (
+if "Benchmark_Return" in equity.columns:
 
-    sector_attr[
-        "Contribution"
+    equity["Benchmark_Return"] = pd.to_numeric(
+        equity["Benchmark_Return"],
+        errors="coerce"
+    )
+
+if "Active_Return" in equity.columns:
+
+    equity["Active_Return"] = pd.to_numeric(
+        equity["Active_Return"],
+        errors="coerce"
+    )
+
+equity = equity.dropna(
+    subset=["Portfolio_Return"]
+)
+
+# =========================================================
+# PERFORMANCE STATISTICS
+# =========================================================
+
+portfolio_returns = equity[
+    "Portfolio_Return"
+]
+
+if "Benchmark_Return" in equity.columns:
+
+    benchmark_returns = equity[
+        "Benchmark_Return"
     ]
 
-    * 100
+    benchmark_total_return = (
+
+        (1 + benchmark_returns)
+        .prod()
+        - 1
+    )
+
+else:
+
+    benchmark_returns = None
+
+    benchmark_total_return = np.nan
+
+if "Active_Return" in equity.columns:
+
+    active_returns = equity[
+        "Active_Return"
+    ]
+
+else:
+
+    active_returns = None
+
+portfolio_total_return = (
+
+    (1 + portfolio_returns)
+
+    .prod()
+
+    - 1
 )
 
-sector_attr = (
-    sector_attr
-    .sort_values(
-        "Contribution",
-        ascending=False,
+if pd.notna(
+    benchmark_total_return
+):
+
+    excess_return = (
+        portfolio_total_return
+        - benchmark_total_return
+    )
+
+else:
+
+    excess_return = 0.0
+annual_return = (
+
+    (1 + portfolio_returns.mean())
+
+    ** TRADING_DAYS
+
+    - 1
+)
+
+annual_volatility = (
+
+    portfolio_returns.std()
+
+    * np.sqrt(
+        TRADING_DAYS
     )
 )
+
+if active_returns is not None:
+
+    tracking_error = (
+        active_returns.std()
+        * np.sqrt(TRADING_DAYS)
+    )
+
+    information_ratio = (
+        active_returns.mean()
+        * TRADING_DAYS
+    ) / max(
+        tracking_error,
+        1e-9
+    )
+
+    hit_ratio = (
+        (active_returns > 0)
+        .mean()
+    )
+
+else:
+
+    tracking_error = np.nan
+    information_ratio = np.nan
+    hit_ratio = np.nan
+
+# =========================================================
+# SHARPE
+# =========================================================
+
+sharpe_ratio = (
+
+    annual_return
+
+    / max(
+        annual_volatility,
+        1e-9
+    )
+)
+
+# =========================================================
+# DRAWDOWN
+# =========================================================
+
+if "Drawdown" in equity.columns:
+
+    max_drawdown = (
+        equity["Drawdown"]
+        .min()
+    )
+
+else:
+
+    max_drawdown = np.nan
+
+# =========================================================
+# PERFORMANCE ATTRIBUTION
+# =========================================================
+
+performance_attribution = pd.DataFrame({
+
+    "Metric": [
+
+        "Portfolio_Return",
+        "Benchmark_Return",
+        "Excess_Return",
+
+        "Annual_Return",
+        "Annual_Volatility",
+
+        "Sharpe_Ratio",
+
+        "Tracking_Error",
+
+        "Information_Ratio",
+
+        "Hit_Ratio",
+
+        "Max_Drawdown",
+    ],
+
+    "Value": [
+
+        portfolio_total_return,
+
+        benchmark_total_return,
+
+        excess_return,
+
+        annual_return,
+
+        annual_volatility,
+
+        sharpe_ratio,
+
+        tracking_error,
+
+        information_ratio,
+
+        hit_ratio,
+
+        max_drawdown,
+    ]
+})
 
 # =========================================================
 # FACTOR ATTRIBUTION
 # =========================================================
 
-factor_columns = [
+print(
+    "\n📊 Factor Attribution..."
+)
 
-    "Momentum_12M",
-    "Momentum_6M",
+factors["Snapshot_Date"] = pd.to_datetime(
+    factors["Snapshot_Date"]
+)
 
-    "Volatility_20D",
+latest_date = (
+    factors["Snapshot_Date"]
+    .max()
+)
 
-    "Dollar_Volume",
-
+factors = factors[
+    factors["Snapshot_Date"]
+    == latest_date
 ]
 
-available_factors = [
+merged = portfolio.merge(
 
-    c
+    factors,
 
-    for c in factor_columns
+    on="Symbol",
 
-    if c in factors.columns
-]
+    how="inner"
+)
 
-factor_attr = []
+factor_groups = {
 
-if available_factors:
+    "Momentum": [
 
-    merged = portfolio.merge(
+        "Momentum_1M",
+        "Momentum_3M",
+        "Momentum_6M",
+        "Momentum_12M",
+    ],
 
-        factors[
-            ["Symbol"]
-            +
-            available_factors
-        ],
+    "Volatility": [
 
-        on="Symbol",
+        "Volatility_20D",
+        "Volatility_60D",
+        "ATR_14",
+        "Max_Drawdown_252D",
+    ],
 
-        how="left",
+    "Trend": [
 
-        suffixes=("", "_factor")
-    
-    )
+        "Distance_SMA50",
+        "Distance_SMA200",
+        "Distance_52W_High",
+    ],
 
-    for factor in available_factors:
+    "Liquidity": [
 
-        exposure = (
+        "ADV_20D",
+        "Dollar_Volume",
+    ],
 
-            merged[
-                factor
-            ]
+    "Size": [
+
+        "Market_Cap",
+    ]
+}
+
+factor_records = []
+
+for group, cols in factor_groups.items():
+
+    available = [
+
+        c
+
+        for c in cols
+
+        if c in merged.columns
+    ]
+
+    if not available:
+        continue
+
+    exposure = 0
+
+    for factor in available:
+
+        values = pd.to_numeric(
+
+            merged[factor],
+
+            errors="coerce"
+        )
+
+        values = values.fillna(
+            values.median()
+        )
+
+        zscore = (
+
+            values
+            - values.mean()
+
+        ) / max(
+            values.std(),
+            1e-9,
+        )
+
+        exposure += (
+
+            zscore
 
             * merged[
-                "Optimized_Weight"
+                "Weight"
             ]
 
         ).sum()
 
-        factor_attr.append(
+    factor_records.append({
 
-            {
+        "Factor_Group":
+        group,
 
-                "Factor":
-                factor,
+        "Exposure":
+        exposure,
 
-                "Portfolio_Exposure":
-                exposure,
+        "Contribution":
+        exposure * excess_return,
+    })
 
-                "Weighted_Mean":
-                merged[factor].mean(),
-
-                "Weighted_Exposure":
-                (
-                    merged[factor]
-                    *
-                    merged["Optimized_Weight"]
-                ).sum(),
-            }
-        )
-
-factor_attr = pd.DataFrame(
-    factor_attr
+factor_attribution = pd.DataFrame(
+    factor_records
 )
 
+if not factor_attribution.empty:
+
+    total = max(
+
+        factor_attribution[
+            "Contribution"
+        ].abs().sum(),
+
+        1e-9,
+    )
+
+    factor_attribution[
+        "Contribution_%"
+    ] = (
+
+        factor_attribution[
+            "Contribution"
+        ]
+
+        .abs()
+
+        / total
+
+        * 100
+    )
+
 # =========================================================
-# TOP CONTRIBUTORS
+# SECTOR ATTRIBUTION
 # =========================================================
 
-top5 = (
-    position_attr
-    .head(5)
+print(
+    "🏭 Sector Attribution..."
 )
 
-bottom5 = (
-    position_attr
-    .tail(5)
-)
+if "Sector" not in merged.columns:
 
-# =========================================================
-# PERFORMANCE SUMMARY
-# =========================================================
+    sector_attribution = pd.DataFrame({
 
-summary = pd.DataFrame(
+        "Sector": ["UNKNOWN"],
 
-    {
-
-        "Metric": [
-
-            "Portfolio_Return",
-
-            "Top_Contribution",
-
-            "Worst_Contribution",
-
-            "Average_Position_Return",
-
-            "Run_Date",
-
-            "Engine_Version",
+        "Portfolio_Weight": [
+            merged["Weight"].sum()
         ],
 
-        "Value": [
+        "Sector_Score": [0],
 
-            portfolio_return,
+        "Contribution": [0],
+    })
 
-            position_attr[
-                "Contribution"
-            ].max(),
+else:
 
-            position_attr[
-                "Contribution"
-            ].min(),
+    if "Alpha_Adjusted" in merged.columns:
 
-            portfolio[
-                "Period_Return"
-            ].mean(),
+        sector_attribution = (
 
-            datetime.now()
-            .strftime(
-                "%Y-%m-%d"
-            ),
+            merged
 
-            ENGINE_VERSION,
+            .groupby("Sector")
+
+            .agg(
+
+                Portfolio_Weight=(
+                    "Weight",
+                    "sum"
+                ),
+
+                Sector_Score=(
+                    "Alpha_Adjusted",
+                    "mean"
+                ),
+            )
+
+            .reset_index()
+        )
+
+    else:
+
+        sector_attribution = (
+
+            merged
+
+            .groupby("Sector")
+
+            .agg(
+
+                Portfolio_Weight=(
+                    "Weight",
+                    "sum"
+                ),
+
+                Sector_Score=(
+                    "Weight",
+                    "count"
+                ),
+            )
+
+            .reset_index()
+        )
+
+    sector_attribution[
+        "Contribution"
+    ] = (
+
+        sector_attribution[
+            "Portfolio_Weight"
         ]
-    }
-)
+
+        * sector_attribution[
+            "Sector_Score"
+        ]
+    )
+# =========================================================
+# DASHBOARD
+# =========================================================
+
+dashboard = pd.DataFrame({
+
+    "Metric": [
+
+        "Portfolio_Return",
+
+        "Benchmark_Return",
+
+        "Excess_Return",
+
+        "Sharpe_Ratio",
+
+        "Information_Ratio",
+
+        "Hit_Ratio",
+
+        "Max_Drawdown",
+
+        "Factors",
+
+        "Sectors",
+
+        "Engine_Version",
+    ],
+
+    "Value": [
+
+        portfolio_total_return,
+
+        benchmark_total_return,
+
+        excess_return,
+
+        sharpe_ratio,
+
+        information_ratio,
+
+        hit_ratio,
+
+        max_drawdown,
+
+        len(
+            factor_attribution
+        ),
+
+        len(
+            sector_attribution
+        ),
+
+        ENGINE_VERSION,
+    ]
+})
 
 # =========================================================
 # SAVE
 # =========================================================
 
-PERFORMANCE_FILE.parent.mkdir(
-    parents=True,
-    exist_ok=True,
-)
+performance_attribution.to_csv(
 
-summary.to_csv(
-    PERFORMANCE_FILE,
+    OUTPUT_DIR
+    / "performance_attribution.csv",
+
     index=False,
 )
 
-sector_attr.to_csv(
-    SECTOR_FILE,
+factor_attribution.to_csv(
+
+    OUTPUT_DIR
+    / "factor_attribution.csv",
+
     index=False,
 )
 
-position_attr.to_csv(
-    POSITION_FILE,
+sector_attribution.to_csv(
+
+    OUTPUT_DIR
+    / "sector_attribution.csv",
+
     index=False,
 )
 
-factor_attr.to_csv(
-    FACTOR_ATTR_FILE,
+dashboard.to_csv(
+
+    OUTPUT_DIR
+    / "performance_dashboard.csv",
+
     index=False,
 )
 
-summary.to_csv(
+dashboard.to_csv(
     REPORT_FILE,
     index=False,
 )
@@ -495,37 +684,54 @@ summary.to_csv(
 # REPORT
 # =========================================================
 
-print("\n" + "=" * 70)
+print(
+    "\n"
+    + "=" * 70
+)
 
 print(
     "🏁 PERFORMANCE ATTRIBUTION COMPLETE"
 )
 
-print("=" * 70)
+print(
+    "=" * 70
+)
 
 print(
     f"Portfolio Return : "
-    f"{portfolio_return:.2%}"
+    f"{portfolio_total_return:.2%}"
 )
 
 print(
-    f"Positions         : "
-    f"{len(position_attr):,}"
+    f"Benchmark Return : "
+    f"{benchmark_total_return:.2%}"
 )
 
 print(
-    f"Top Contributor   : "
-    f"{top5.iloc[0]['Symbol']}"
+    f"excess_return            : "
+    f"{excess_return:.2%}"
 )
 
 print(
-    f"Worst Contributor : "
-    f"{bottom5.iloc[-1]['Symbol']}"
+    f"Information Ratio: "
+    f"{information_ratio:.2f}"
+)
+
+print(
+    f"Hit Ratio        : "
+    f"{hit_ratio:.2%}"
+)
+
+print(
+    f"Max Drawdown     : "
+    f"{max_drawdown:.2%}"
 )
 
 print(
     f"\nOutput Directory:\n"
-    f"{PERFORMANCE_FILE.parent}"
+    f"{OUTPUT_DIR}"
 )
 
-print("=" * 70)
+print(
+    "=" * 70
+)

@@ -1,7 +1,11 @@
 Metric,Value
-Portfolio_Return,0.04537298753070648
-Top_Contribution,0.016400795749141727
-Worst_Contribution,-0.004471038488543868
-Average_Position_Return,0.0425779014127136
-Run_Date,2026-06-12
-Engine_Version,1.0.0
+Portfolio_Return,3.9389685104229013
+Benchmark_Return,0.6251325051030736
+Excess_Return,3.3138360053198275
+Annual_Return,0.4057185811761219
+Annual_Volatility,0.17546328536766426
+Sharpe_Ratio,2.312270514746049
+Tracking_Error,0.0805971670103117
+Information_Ratio,2.803211682162591
+Hit_Ratio,0.5848142164781907
+Max_Drawdown,-0.1840627231991666

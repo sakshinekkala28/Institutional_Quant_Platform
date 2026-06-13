@@ -1,0 +1,9 @@
+Metric,Value
+Enterprise_Risk_Score,70.35044358003007
+Enterprise_Grade,MODERATE
+Risk_Balance_Score,83.44663134499136
+Healthy_Pillars,3
+Best_Pillar,Historical_Risk
+Worst_Pillar,Market_Risk
+Run_Date,2026-06-13
+Engine_Version,1.0.0

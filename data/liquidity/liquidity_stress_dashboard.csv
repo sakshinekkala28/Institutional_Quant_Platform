@@ -1,0 +1,9 @@
+Metric,Value
+Portfolio_NAV,10000000.0
+Portfolio_Capacity,11682052200.695332
+Capacity_Utilization,0.0008560139800954481
+Average_Days_To_Exit,0.0005399732025685596
+Maximum_Days_To_Exit,0.0016614358361081096
+Forced_Sale_Cost,28.09491638728412
+Crisis_Days_To_Exit,0.010799464051371187
+Crisis_Sale_Cost,561.8983277456819
