@@ -1,0 +1,17 @@
+Metric,Value
+Worst_Crisis,RUSSIA_UKRAINE
+Worst_Crisis_Return,0.03178943111239796
+Worst_Crisis_Loss,317894.3111239797
+Best_Crisis,RATE_SHOCK_2022
+Best_Crisis_Return,0.13714953615180722
+Best_Crisis_Gain,1371495.3615180724
+Historical_VaR_95,0.037057436364368423
+Historical_CVaR_95,0.03178943111239796
+Risk_Score,3.178943111239796
+Resilience_Score,96.82105688876021
+Recovery_Score,10.536010503940926
+Survival_Score,100.0
+Crisis_Dispersion,0.07450084473989323
+Risk_Level,LOW
+Run_Date,2026-06-13
+Engine_Version,1.0.0

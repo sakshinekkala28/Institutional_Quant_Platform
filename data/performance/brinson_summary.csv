@@ -1,0 +1,13 @@
+Metric,Value
+Portfolio_Return,0.6717187981693311
+Benchmark_Return,0.042451815975908386
+Active_Return,0.6292669821934227
+Allocation_Total,0.06475852997233486
+Selection_Total,0.5608959393418241
+Interaction_Total,0.003612512879263716
+Total_Attribution,0.6292669821934227
+Residual,0.0
+Top_Positive_Sector,Consumer Defensive
+Top_Negative_Sector,Communication Services
+Run_Date,2026-06-13
+Engine_Version,1.0.0

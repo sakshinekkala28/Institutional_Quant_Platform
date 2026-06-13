@@ -87,7 +87,7 @@ TCOST_FILE = (
 OUTPUT_DIR = (
     ROOT
     / "data"
-    / "portfolio"
+    / "portfolios"
 )
 
 REPORT_FILE = (

@@ -1,21 +1,21 @@
 """
 =========================================================
-MONTE CARLO ENGINE
+FACTOR RISK MODEL
 =========================================================
 
 Purpose:
-Institutional Forward-Looking Risk Simulation
+Institutional Multi-Factor Risk Analytics
 
-Method:
-Historical Bootstrap Monte Carlo
-
-Input:
-data/backtests/walk_forward_equity_curve.csv
+Inputs:
+data/portfolios/live_portfolio.csv
+data/factors/factor_master.csv
 
 Outputs:
-data/monte_carlo/monte_carlo_paths.csv
-data/monte_carlo/monte_carlo_summary.csv
-data/monte_carlo/risk_distribution.csv
+data/risk/factor_exposures.csv
+data/risk/factor_sector_exposure.csv
+data/risk/factor_concentration.csv
+data/risk/factor_risk_summary.csv
+data/risk/factor_dashboard.csv
 
 =========================================================
 """
@@ -32,17 +32,31 @@ import pandas as pd
 
 ENGINE_VERSION = "1.0.0"
 
-SIMULATIONS = 10000
+MIN_SECURITIES = 20
 
-FORECAST_YEARS = 5
+FACTOR_COLUMNS = [
 
-MONTHS = FORECAST_YEARS * 12
+    "Momentum_1M",
+    "Momentum_3M",
+    "Momentum_6M",
+    "Momentum_12M",
 
-INITIAL_CAPITAL = 1_000_000
+    "Volatility_20D",
+    "Volatility_60D",
 
-SEED = 42
+    "ATR_14",
 
-np.random.seed(SEED)
+    "Max_Drawdown_252D",
+
+    "Distance_SMA50",
+    "Distance_SMA200",
+    "Distance_52W_High",
+
+    "ADV_20D",
+    "Dollar_Volume",
+
+    "Log_Market_Cap",
+]
 
 # =========================================================
 # PATHS
@@ -50,24 +64,31 @@ np.random.seed(SEED)
 
 ROOT = Path(__file__).resolve().parents[2]
 
-INPUT_FILE = (
+PORTFOLIO_FILE = (
     ROOT
     / "data"
-    / "backtests"
-    / "walk_forward_equity_curve.csv"
+    / "portfolios"
+    / "live_portfolio.csv"
+)
+
+FACTOR_FILE = (
+    ROOT
+    / "data"
+    / "factors"
+    / "factor_master.csv"
 )
 
 OUTPUT_DIR = (
     ROOT
     / "data"
-    / "monte_carlo"
+    / "risk"
 )
 
 REPORT_FILE = (
     ROOT
     / "data"
     / "logs"
-    / "monte_carlo_report.csv"
+    / "factor_risk_report.csv"
 )
 
 OUTPUT_DIR.mkdir(
@@ -76,262 +97,1109 @@ OUTPUT_DIR.mkdir(
 )
 
 # =========================================================
-# LOAD
+# LOAD DATA
 # =========================================================
 
 print(
-    "\n📥 Loading Walk Forward Results..."
+    "\n📥 Loading Inputs..."
 )
 
-equity = pd.read_csv(
-    INPUT_FILE
+portfolio = pd.read_csv(
+    PORTFOLIO_FILE
 )
 
-required_cols = [
-    "Date",
-    "Portfolio_Value",
-]
+factor_master = pd.read_csv(
+    FACTOR_FILE
+)
 
-missing = [
-    c
-    for c in required_cols
-    if c not in equity.columns
-]
+# =========================================================
+# VALIDATION
+# =========================================================
 
-if missing:
+if portfolio.empty:
 
     raise ValueError(
-        f"Missing Columns: {missing}"
+        "Portfolio file empty"
     )
 
-# =========================================================
-# RETURNS
-# =========================================================
-
-returns = (
-
-    equity[
-        "Portfolio_Value"
-    ]
-
-    .pct_change()
-
-    .dropna()
-
-    .values
-)
-
-if len(returns) < 24:
+if factor_master.empty:
 
     raise ValueError(
-        "Insufficient return history"
+        "Factor master file empty"
     )
 
-# =========================================================
-# MONTE CARLO
-# =========================================================
+required_portfolio = [
 
-print(
-    "\n🎲 Running Monte Carlo..."
-)
+    "Symbol",
+    "Weight",
+    "Sector",
+]
 
-terminal_values = []
+required_factor = [
 
-max_drawdowns = []
+    "Symbol",
 
-paths = np.zeros(
-    (
-        MONTHS + 1,
-        SIMULATIONS
-    )
-)
+    "Sector",
 
-for sim in range(
-    SIMULATIONS
-):
+    "Log_Market_Cap",
 
-    sampled_returns = np.random.choice(
+    "Momentum_1M",
+    "Momentum_3M",
+    "Momentum_6M",
+    "Momentum_12M",
 
-        returns,
+    "Volatility_20D",
+    "Volatility_60D",
 
-        size=MONTHS,
+    "ATR_14",
 
-        replace=True,
-    )
+    "Max_Drawdown_252D",
 
-    portfolio = np.empty(
-        MONTHS + 1
-    )
+    "Distance_SMA50",
+    "Distance_SMA200",
+    "Distance_52W_High",
 
-    portfolio[0] = (
-        INITIAL_CAPITAL
-    )
+    "ADV_20D",
+    "Dollar_Volume",
+]
 
-    for t in range(
-        MONTHS
-    ):
+for col in required_portfolio:
 
-        portfolio[
-            t + 1
-        ] = (
+    if col not in portfolio.columns:
 
-            portfolio[t]
-
-            * (
-
-                1
-                + sampled_returns[t]
-
-            )
+        raise ValueError(
+            f"Missing Portfolio Column: {col}"
         )
 
-    paths[:, sim] = portfolio
+for col in required_factor:
 
-    terminal_values.append(
-        portfolio[-1]
-    )
+    if col not in factor_master.columns:
 
-    running_max = np.maximum.accumulate(
-        portfolio
-    )
+        raise ValueError(
+            f"Missing Factor Column: {col}"
+        )
 
-    drawdown = (
-        portfolio
-        / running_max
-    ) - 1
+if len(portfolio) < MIN_SECURITIES:
 
-    max_drawdowns.append(
-        drawdown.min()
+    raise ValueError(
+        f"Portfolio contains "
+        f"{len(portfolio)} securities. "
+        f"Minimum required: "
+        f"{MIN_SECURITIES}"
     )
 
 # =========================================================
-# PATH OUTPUT
+# CLEAN PORTFOLIO
 # =========================================================
 
-paths_df = pd.DataFrame(
-    paths
+portfolio["Weight"] = pd.to_numeric(
+
+    portfolio["Weight"],
+
+    errors="coerce"
 )
 
-paths_df.to_csv(
+portfolio = portfolio.dropna(
+    subset=["Weight"]
+)
+
+portfolio["Weight"] = (
+
+    portfolio["Weight"]
+
+    /
+
+    portfolio["Weight"].sum()
+)
+
+# =========================================================
+# CLEAN FACTOR DATA
+# =========================================================
+
+for col in FACTOR_COLUMNS:
+
+    factor_master[col] = pd.to_numeric(
+
+        factor_master[col],
+
+        errors="coerce"
+    )
+
+factor_master = factor_master.replace(
+
+    [
+        np.inf,
+        -np.inf,
+    ],
+
+    np.nan
+)
+
+# =========================================================
+# MERGE PORTFOLIO + FACTORS
+# =========================================================
+
+portfolio_factor = portfolio.merge(
+
+    factor_master,
+
+    on="Symbol",
+
+    how="left",
+
+    suffixes=(
+        "",
+        "_factor"
+    )
+)
+
+# =========================================================
+# COVERAGE CHECK
+# =========================================================
+
+coverage = (
+
+    portfolio_factor[
+        "Log_Market_Cap"
+    ]
+
+    .notna()
+
+    .mean()
+)
+
+if coverage < 0.90:
+
+    raise ValueError(
+
+        "Factor coverage too low: "
+
+        f"{coverage:.2%}"
+    )
+
+print(
+    f"Factor Coverage : "
+    f"{coverage:.2%}"
+)
+
+# =========================================================
+# DIAGNOSTICS
+# =========================================================
+
+print(
+    f"Portfolio Holdings : "
+    f"{len(portfolio)}"
+)
+
+print(
+    f"Factor Universe    : "
+    f"{len(factor_master)}"
+)
+
+print(
+    f"Merged Holdings    : "
+    f"{len(portfolio_factor)}"
+)
+
+# =========================================================
+# PART 2 STARTS HERE
+# =========================================================
+#
+# Next:
+#
+# Momentum Factor
+# Low Vol Factor
+# Size Factor
+# Liquidity Factor
+# Trend Factor
+#
+# Factor Standardization
+#
+# =========================================================
+
+# =========================================================
+# FACTOR CONSTRUCTION
+# =========================================================
+
+print(
+    "\n📊 Building Factor Model..."
+)
+
+# =========================================================
+# WINSORIZATION FUNCTION
+# =========================================================
+
+def winsorize_series(
+    series,
+    lower=0.01,
+    upper=0.99,
+):
+
+    if series.notna().sum() == 0:
+
+        return series
+
+    low = series.quantile(
+        lower
+    )
+
+    high = series.quantile(
+        upper
+    )
+
+    return series.clip(
+        lower=low,
+        upper=high
+    )
+
+# =========================================================
+# Z-SCORE FUNCTION
+# =========================================================
+
+def zscore(
+    series
+):
+
+    std = series.std()
+
+    if (
+        pd.isna(std)
+        or std == 0
+    ):
+
+        return pd.Series(
+            0,
+            index=series.index
+        )
+
+    return (
+
+        series
+        -
+        series.mean()
+
+    ) / std
+
+# =========================================================
+# WINSORIZE RAW FACTORS
+# =========================================================
+
+for col in FACTOR_COLUMNS:
+
+    portfolio_factor[col] = (
+        winsorize_series(
+            portfolio_factor[col]
+        )
+    )
+
+# =========================================================
+# MOMENTUM FACTOR
+# =========================================================
+
+portfolio_factor[
+    "Momentum_Factor"
+] = (
+
+    portfolio_factor[
+        "Momentum_1M"
+    ]
+
+    +
+
+    portfolio_factor[
+        "Momentum_3M"
+    ]
+
+    +
+
+    portfolio_factor[
+        "Momentum_6M"
+    ]
+
+    +
+
+    portfolio_factor[
+        "Momentum_12M"
+    ]
+
+) / 4
+
+# =========================================================
+# LOW VOL FACTOR
+# =========================================================
+
+portfolio_factor[
+    "LowVol_Factor"
+] = -(
+
+    portfolio_factor[
+        "Volatility_20D"
+    ]
+
+    +
+
+    portfolio_factor[
+        "Volatility_60D"
+    ]
+
+    +
+
+    portfolio_factor[
+        "ATR_14"
+    ]
+
+    +
+
+    portfolio_factor[
+        "Max_Drawdown_252D"
+    ].abs()
+
+) / 4
+
+# =========================================================
+# SIZE FACTOR
+# =========================================================
+
+portfolio_factor[
+    "Size_Factor"
+] = -(
+
+    portfolio_factor[
+        "Log_Market_Cap"
+    ]
+)
+
+# =========================================================
+# LIQUIDITY FACTOR
+# =========================================================
+
+portfolio_factor[
+    "Liquidity_Factor"
+] = (
+
+    np.log1p(
+
+        portfolio_factor[
+            "ADV_20D"
+        ]
+
+    )
+
+    +
+
+    np.log1p(
+
+        portfolio_factor[
+            "Dollar_Volume"
+        ]
+
+    )
+
+) / 2
+
+# =========================================================
+# TREND FACTOR
+# =========================================================
+
+portfolio_factor[
+    "Trend_Factor"
+] = (
+
+    portfolio_factor[
+        "Distance_SMA50"
+    ]
+
+    +
+
+    portfolio_factor[
+        "Distance_SMA200"
+    ]
+
+    +
+
+    portfolio_factor[
+        "Distance_52W_High"
+    ]
+
+) / 3
+
+# =========================================================
+# STANDARDIZE FACTORS
+# =========================================================
+
+factor_names = [
+
+    "Momentum_Factor",
+
+    "LowVol_Factor",
+
+    "Size_Factor",
+
+    "Liquidity_Factor",
+
+    "Trend_Factor",
+]
+
+for factor in factor_names:
+
+    portfolio_factor[
+        factor
+    ] = zscore(
+
+        portfolio_factor[
+            factor
+        ]
+    )
+
+# =========================================================
+# FACTOR MATRIX
+# =========================================================
+
+factor_matrix = portfolio_factor[[
+
+    "Symbol",
+
+    "Sector",
+
+    "Weight",
+
+    "Momentum_Factor",
+
+    "LowVol_Factor",
+
+    "Size_Factor",
+
+    "Liquidity_Factor",
+
+    "Trend_Factor",
+]].copy()
+
+# =========================================================
+# FACTOR CORRELATION
+# =========================================================
+
+factor_correlation = (
+
+    factor_matrix[
+
+        [
+
+            "Momentum_Factor",
+
+            "LowVol_Factor",
+
+            "Size_Factor",
+
+            "Liquidity_Factor",
+
+            "Trend_Factor",
+        ]
+
+    ]
+
+    .corr()
+)
+
+factor_correlation.to_csv(
 
     OUTPUT_DIR
-    / "monte_carlo_paths.csv",
-
-    index=False,
+    / "factor_correlation.csv"
 )
 
 # =========================================================
-# STATISTICS
+# DIAGNOSTICS
 # =========================================================
 
-terminal_values = np.array(
-    terminal_values
+print(
+    "\nFactors Built:"
 )
 
-max_drawdowns = np.array(
-    max_drawdowns
+for factor in factor_names:
+
+    print(
+        f"✓ {factor}"
+    )
+
+print(
+    "\nCorrelation Matrix Saved"
 )
 
-cagrs = (
+# =========================================================
+# PART 3 STARTS HERE
+# =========================================================
+#
+# Next:
+#
+# Portfolio Factor Exposure
+# Sector Factor Exposure
+# Factor Contribution
+# Factor Crowding
+#
+# =========================================================
+# =========================================================
+# PORTFOLIO FACTOR EXPOSURES
+# =========================================================
+
+print(
+    "\n📈 Calculating Factor Exposures..."
+)
+
+factor_columns = [
+
+    "Momentum_Factor",
+
+    "LowVol_Factor",
+
+    "Size_Factor",
+
+    "Liquidity_Factor",
+
+    "Trend_Factor",
+]
+
+exposures = []
+
+for factor in factor_columns:
+
+    exposure = (
+
+        portfolio_factor[
+            "Weight"
+        ]
+
+        *
+
+        portfolio_factor[
+            factor
+        ]
+
+    ).sum()
+
+    exposures.append({
+
+        "Factor":
+        factor.replace(
+            "_Factor",
+            ""
+        ),
+
+        "Exposure":
+        exposure,
+    })
+
+factor_exposures = pd.DataFrame(
+    exposures
+)
+
+# =========================================================
+# ABS EXPOSURES
+# =========================================================
+
+factor_exposures[
+    "Abs_Exposure"
+] = (
+
+    factor_exposures[
+        "Exposure"
+    ].abs()
+)
+
+total_abs_exposure = max(
+
+    factor_exposures[
+        "Abs_Exposure"
+    ].sum(),
+
+    1e-9,
+)
+
+factor_exposures[
+    "Contribution_Pct"
+] = (
+
+    factor_exposures[
+        "Abs_Exposure"
+    ]
+
+    /
+
+    total_abs_exposure
+
+    * 100
+)
+
+# =========================================================
+# RANK FACTORS
+# =========================================================
+
+factor_exposures = (
+
+    factor_exposures
+
+    .sort_values(
+
+        "Abs_Exposure",
+
+        ascending=False,
+    )
+
+    .reset_index(
+        drop=True
+    )
+)
+
+factor_exposures[
+    "Factor_Rank"
+] = (
+    factor_exposures.index + 1
+)
+
+# =========================================================
+# DOMINANT FACTOR
+# =========================================================
+
+dominant_factor = (
+
+    factor_exposures
+
+    .iloc[0]
+
+    ["Factor"]
+)
+
+dominant_exposure = (
+
+    factor_exposures
+
+    .iloc[0]
+
+    ["Exposure"]
+)
+
+# =========================================================
+# SECTOR FACTOR EXPOSURE
+# =========================================================
+
+print(
+    "\n🏭 Building Sector Exposures..."
+)
+
+sector_exposure = (
+
+    portfolio_factor
+
+    .groupby(
+        "Sector"
+    )
+
+    .apply(
+
+        lambda x: pd.Series({
+
+            "Portfolio_Weight":
+
+                x[
+                    "Weight"
+                ].sum(),
+
+            "Momentum_Exposure":
+
+                (
+                    x["Weight"]
+
+                    *
+
+                    x[
+                        "Momentum_Factor"
+                    ]
+                ).sum(),
+
+            "LowVol_Exposure":
+
+                (
+                    x["Weight"]
+
+                    *
+
+                    x[
+                        "LowVol_Factor"
+                    ]
+                ).sum(),
+
+            "Size_Exposure":
+
+                (
+                    x["Weight"]
+
+                    *
+
+                    x[
+                        "Size_Factor"
+                    ]
+                ).sum(),
+
+            "Liquidity_Exposure":
+
+                (
+                    x["Weight"]
+
+                    *
+
+                    x[
+                        "Liquidity_Factor"
+                    ]
+                ).sum(),
+
+            "Trend_Exposure":
+
+                (
+                    x["Weight"]
+
+                    *
+
+                    x[
+                        "Trend_Factor"
+                    ]
+                ).sum(),
+        })
+
+    )
+
+    .reset_index()
+)
+
+# =========================================================
+# SECTOR CROWDING SCORE
+# =========================================================
+
+sector_exposure[
+    "Crowding_Score"
+] = (
+
+    sector_exposure[
+
+        [
+
+            "Momentum_Exposure",
+
+            "LowVol_Exposure",
+
+            "Size_Exposure",
+
+            "Liquidity_Exposure",
+
+            "Trend_Exposure",
+        ]
+
+    ]
+
+    .abs()
+
+    .sum(axis=1)
+)
+
+sector_exposure = (
+
+    sector_exposure
+
+    .sort_values(
+
+        "Crowding_Score",
+
+        ascending=False,
+    )
+
+    .reset_index(
+        drop=True
+    )
+)
+
+sector_exposure[
+    "Crowding_Rank"
+] = (
+    sector_exposure.index + 1
+)
+
+# =========================================================
+# MOST CROWDED SECTOR
+# =========================================================
+
+most_crowded_sector = (
+
+    sector_exposure
+
+    .iloc[0]
+
+    ["Sector"]
+)
+
+# =========================================================
+# FACTOR CONTRIBUTION TABLE
+# =========================================================
+
+factor_contributions = factor_exposures[[
+
+    "Factor",
+
+    "Exposure",
+
+    "Abs_Exposure",
+
+    "Contribution_Pct",
+
+    "Factor_Rank",
+]].copy()
+
+# =========================================================
+# FACTOR DASHBOARD
+# =========================================================
+
+factor_dashboard = factor_exposures[[
+
+    "Factor_Rank",
+
+    "Factor",
+
+    "Exposure",
+
+    "Contribution_Pct",
+]].copy()
+
+# =========================================================
+# TOP FACTORS
+# =========================================================
+
+top_factor = (
+    factor_exposures.iloc[0]
+)
+
+bottom_factor = (
+    factor_exposures.iloc[-1]
+)
+
+# =========================================================
+# DIAGNOSTICS
+# =========================================================
+
+print(
+    f"\nDominant Factor : "
+    f"{dominant_factor}"
+)
+
+print(
+    f"Exposure        : "
+    f"{dominant_exposure:.4f}"
+)
+
+print(
+    f"\nMost Crowded Sector : "
+    f"{most_crowded_sector}"
+)
+
+print(
+    f"Top Factor          : "
+    f"{top_factor['Factor']}"
+)
+
+print(
+    f"Bottom Factor       : "
+    f"{bottom_factor['Factor']}"
+)
+
+# =========================================================
+# PART 4 STARTS HERE
+# =========================================================
+#
+# Next:
+#
+# HHI
+# Effective Factors
+# Diversification Score
+# Factor Risk Score
+# Executive Summary
+# Save Outputs
+#
+# =========================================================
+
+# =========================================================
+# FACTOR CONCENTRATION
+# =========================================================
+
+print(
+    "\n⚠ Calculating Concentration Risk..."
+)
+
+factor_concentration = (
+    factor_exposures.copy()
+)
+
+factor_concentration[
+    "Exposure_Pct"
+] = (
+
+    factor_concentration[
+        "Abs_Exposure"
+    ]
+
+    /
+
+    max(
+        factor_concentration[
+            "Abs_Exposure"
+        ].sum(),
+        1e-9
+    )
+)
+
+# =========================================================
+# HHI
+# =========================================================
+
+factor_hhi = (
+
+    factor_concentration[
+        "Exposure_Pct"
+    ]
+
+    ** 2
+
+).sum()
+
+# =========================================================
+# EFFECTIVE FACTORS
+# =========================================================
+
+effective_factors = (
+
+    1
+
+    /
+
+    max(
+        factor_hhi,
+        1e-9
+    )
+)
+
+# =========================================================
+# DIVERSIFICATION SCORE
+# =========================================================
+
+max_factors = len(
+    factor_columns
+)
+
+diversification_score = (
+
+    effective_factors
+
+    /
+
+    max_factors
+
+    * 100
+)
+
+diversification_score = min(
+    diversification_score,
+    100
+)
+
+# =========================================================
+# FACTOR RISK SCORE
+# =========================================================
+
+factor_risk_score = (
+
+    factor_exposures[
+        "Abs_Exposure"
+    ]
+
+    .mean()
+
+    * 100
+)
+
+factor_risk_score = min(
+    factor_risk_score,
+    100
+)
+
+# =========================================================
+# CONCENTRATION CLASSIFICATION
+# =========================================================
+
+if factor_hhi < 0.15:
+
+    concentration_level = (
+        "LOW"
+    )
+
+elif factor_hhi < 0.25:
+
+    concentration_level = (
+        "MODERATE"
+    )
+
+else:
+
+    concentration_level = (
+        "HIGH"
+    )
+
+# =========================================================
+# FACTOR BALANCE SCORE
+# =========================================================
+
+factor_std = (
+
+    factor_exposures[
+        "Contribution_Pct"
+    ]
+
+    .std()
+)
+
+balance_score = (
+
+    100
+
+    /
 
     (
-        terminal_values
-        / INITIAL_CAPITAL
-    )
-
-    ** (
-
         1
-        / FORECAST_YEARS
-
+        +
+        factor_std
     )
-
-    - 1
 )
 
 # =========================================================
-# VAR
-# =========================================================
-
-portfolio_returns = (
-
-    terminal_values
-
-    / INITIAL_CAPITAL
-
-    - 1
-)
-
-var95 = np.percentile(
-
-    portfolio_returns,
-
-    5,
-)
-
-var99 = np.percentile(
-
-    portfolio_returns,
-
-    1,
-)
-
-# =========================================================
-# PROBABILITIES
-# =========================================================
-
-prob_loss = (
-
-    terminal_values
-    < INITIAL_CAPITAL
-
-).mean()
-
-prob_dd20 = (
-
-    max_drawdowns
-    <= -0.20
-
-).mean()
-
-prob_dd40 = (
-
-    max_drawdowns
-    <= -0.40
-
-).mean()
-
-# =========================================================
-# SUMMARY
+# EXECUTIVE SUMMARY
 # =========================================================
 
 summary = pd.DataFrame({
 
     "Metric": [
 
-        "Median_CAGR",
+        "Dominant_Factor",
 
-        "CAGR_5th",
+        "Dominant_Exposure",
 
-        "CAGR_95th",
+        "Most_Crowded_Sector",
 
-        "Median_Terminal_Value",
+        "Factor_HHI",
 
-        "Worst_5pct_Terminal",
+        "Effective_Factors",
 
-        "Best_95pct_Terminal",
+        "Diversification_Score",
 
-        "Probability_Loss",
+        "Factor_Risk_Score",
 
-        "Probability_DD20",
+        "Balance_Score",
 
-        "Probability_DD40",
+        "Concentration_Level",
 
-        "VaR_95",
-
-        "VaR_99",
-
-        "Median_Max_Drawdown",
+        "Total_Securities",
 
         "Run_Date",
 
@@ -340,46 +1208,26 @@ summary = pd.DataFrame({
 
     "Value": [
 
-        np.median(
-            cagrs
-        ),
+        dominant_factor,
 
-        np.percentile(
-            cagrs,
-            5,
-        ),
+        dominant_exposure,
 
-        np.percentile(
-            cagrs,
-            95,
-        ),
+        most_crowded_sector,
 
-        np.median(
-            terminal_values
-        ),
+        factor_hhi,
 
-        np.percentile(
-            terminal_values,
-            5,
-        ),
+        effective_factors,
 
-        np.percentile(
-            terminal_values,
-            95,
-        ),
+        diversification_score,
 
-        prob_loss,
+        factor_risk_score,
 
-        prob_dd20,
+        balance_score,
 
-        prob_dd40,
+        concentration_level,
 
-        var95,
-
-        var99,
-
-        np.median(
-            max_drawdowns
+        len(
+            portfolio
         ),
 
         datetime.now()
@@ -392,37 +1240,82 @@ summary = pd.DataFrame({
 })
 
 # =========================================================
-# RISK DISTRIBUTION
+# CONCENTRATION REPORT
 # =========================================================
 
-distribution = pd.DataFrame({
+concentration_report = pd.DataFrame({
 
-    "Terminal_Value":
-    terminal_values,
+    "Metric": [
 
-    "CAGR":
-    cagrs,
+        "Factor_HHI",
 
-    "Max_Drawdown":
-    max_drawdowns,
+        "Effective_Factors",
+
+        "Diversification_Score",
+
+        "Concentration_Level",
+    ],
+
+    "Value": [
+
+        factor_hhi,
+
+        effective_factors,
+
+        diversification_score,
+
+        concentration_level,
+    ]
 })
 
 # =========================================================
-# SAVE
+# SAVE OUTPUTS
 # =========================================================
 
-summary.to_csv(
+factor_exposures.to_csv(
 
     OUTPUT_DIR
-    / "monte_carlo_summary.csv",
+    / "factor_exposures.csv",
 
     index=False,
 )
 
-distribution.to_csv(
+sector_exposure.to_csv(
 
     OUTPUT_DIR
-    / "risk_distribution.csv",
+    / "factor_sector_exposure.csv",
+
+    index=False,
+)
+
+factor_contributions.to_csv(
+
+    OUTPUT_DIR
+    / "factor_contributions.csv",
+
+    index=False,
+)
+
+factor_concentration.to_csv(
+
+    OUTPUT_DIR
+    / "factor_concentration.csv",
+
+    index=False,
+)
+
+factor_dashboard.to_csv(
+
+    OUTPUT_DIR
+    / "factor_dashboard.csv",
+
+    index=False,
+)
+
+summary.to_csv(
+
+    OUTPUT_DIR
+    / "factor_risk_summary.csv",
 
     index=False,
 )
@@ -435,65 +1328,65 @@ summary.to_csv(
 )
 
 # =========================================================
-# REPORT
+# FINAL REPORT
 # =========================================================
 
-print("\n" + "=" * 70)
-
 print(
-    "🏁 MONTE CARLO COMPLETE"
-)
-
-print("=" * 70)
-
-print(
-    f"Simulations          : "
-    f"{SIMULATIONS:,}"
+    "\n"
+    + "=" * 70
 )
 
 print(
-    f"Forecast Horizon     : "
-    f"{FORECAST_YEARS} Years"
+    "🏁 FACTOR RISK MODEL COMPLETE"
 )
 
 print(
-    f"Median CAGR          : "
-    f"{np.median(cagrs):.2%}"
+    "=" * 70
 )
 
 print(
-    f"5th Percentile CAGR  : "
-    f"{np.percentile(cagrs,5):.2%}"
+    f"Dominant Factor      : "
+    f"{dominant_factor}"
 )
 
 print(
-    f"95th Percentile CAGR : "
-    f"{np.percentile(cagrs,95):.2%}"
+    f"Dominant Exposure    : "
+    f"{dominant_exposure:.4f}"
 )
 
 print(
-    f"Probability Loss     : "
-    f"{prob_loss:.2%}"
+    f"Most Crowded Sector  : "
+    f"{most_crowded_sector}"
 )
 
 print(
-    f"Probability DD >20%  : "
-    f"{prob_dd20:.2%}"
+    f"Factor HHI           : "
+    f"{factor_hhi:.4f}"
 )
 
 print(
-    f"Probability DD >40%  : "
-    f"{prob_dd40:.2%}"
+    f"Effective Factors    : "
+    f"{effective_factors:.2f}"
 )
 
 print(
-    f"VaR 95               : "
-    f"{var95:.2%}"
+    f"Diversification      : "
+    f"{diversification_score:.2f}"
 )
 
 print(
-    f"VaR 99               : "
-    f"{var99:.2%}"
+    f"Risk Score           : "
+    f"{factor_risk_score:.2f}"
+)
+
+print(
+    f"Balance Score        : "
+    f"{balance_score:.2f}"
+)
+
+print(
+    f"Concentration Level  : "
+    f"{concentration_level}"
 )
 
 print(
@@ -501,4 +1394,6 @@ print(
     f"{OUTPUT_DIR}"
 )
 
-print("=" * 70)
+print(
+    "=" * 70
+)

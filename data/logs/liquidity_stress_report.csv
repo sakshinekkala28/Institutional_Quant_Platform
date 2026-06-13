@@ -1,0 +1,17 @@
+Metric,Value
+Portfolio_NAV,10000000
+Portfolio_Capacity,11682052200.695332
+Capacity_Utilization,0.0008560139800954481
+Portfolio_Liquidity_Score,49.99999999999997
+Liquidity_Risk_Score,0.005618983277456818
+Liquidity_VaR_95,477.6135785838295
+Liquidity_CVaR_95,561.8983277456819
+Average_Days_To_Exit,0.0005399732025685596
+Maximum_Days_To_Exit,0.0016614358361081096
+Forced_Sale_Cost,28.09491638728412
+High_Crowding_Positions,0
+Liquidity_Rating,EXCELLENT
+Risk_Score,0.005618983277456818
+Resilience_Score,99.99438101672254
+Run_Date,2026-06-13
+Engine_Version,1.0.0

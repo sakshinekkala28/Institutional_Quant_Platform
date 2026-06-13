@@ -1,0 +1,11 @@
+Metric,Value
+Portfolio_Return,3.9389685104229013
+Benchmark_Return,0.6251325051030736
+Excess_Return,3.3138360053198275
+Sharpe_Ratio,2.312270514746049
+Information_Ratio,2.803211682162591
+Hit_Ratio,0.5848142164781907
+Max_Drawdown,-0.1840627231991666
+Factors,4
+Sectors,1
+Engine_Version,1.0.0

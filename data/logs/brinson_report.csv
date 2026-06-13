@@ -1,0 +1,12 @@
+Metric,Value
+Top_Positive_Sector,Consumer Defensive
+Top_Positive_Effect,0.1393365724246155
+Top_Negative_Sector,Communication Services
+Top_Negative_Effect,0.0028176103227291836
+Winning_Sectors,11
+Losing_Sectors,0
+Positive_Effect,0.6292669821934227
+Negative_Effect,0.0
+Attribution_Residual,0.0
+Run_Date,2026-06-13
+Engine_Version,1.0.0
