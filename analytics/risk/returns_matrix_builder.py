@@ -3,27 +3,26 @@
 RETURNS MATRIX BUILDER
 =========================================================
 
-Purpose:
-Institutional Return Matrix Construction Engine
+Institutional Quant Platform
 
-Features:
-- Daily Return Matrix
-- Log Return Matrix
-- Monthly Returns
-- Return Statistics
-- Winsorization
-- Coverage Analytics
-- Data Quality Controls
+Purpose
+-------
+Build institutional-grade return matrices
+for risk modeling, covariance estimation,
+factor models, portfolio optimization,
+stress testing and risk attribution.
 
-Inputs:
-data/raw/benchmark_prices.csv
+Input
+-----
+data/raw/security_price_history.parquet
 
-Outputs:
-data/risk/returns_matrix.csv
-data/risk/log_returns_matrix.csv
-data/risk/security_return_statistics.csv
-data/risk/returns_coverage_report.csv
-data/risk/returns_dashboard.csv
+Outputs
+-------
+returns_matrix.parquet
+log_returns_matrix.parquet
+monthly_returns.parquet
+coverage_report.csv
+returns_audit.csv
 
 =========================================================
 """
@@ -31,23 +30,35 @@ data/risk/returns_dashboard.csv
 from pathlib import Path
 from datetime import datetime
 
+import warnings
 import numpy as np
 import pandas as pd
+
+warnings.filterwarnings("ignore")
 
 # =========================================================
 # CONFIGURATION
 # =========================================================
 
-ENGINE_VERSION = "1.0.0"
+ENGINE_NAME = "RETURNS_MATRIX_BUILDER"
 
-MIN_HISTORY_DAYS = 126
-
-MAX_MISSING_PCT = 0.20
-
-WINSORIZE_LOWER = 0.01
-WINSORIZE_UPPER = 0.99
+ENGINE_VERSION = "2.0.0"
 
 TRADING_DAYS = 252
+
+MIN_HISTORY_DAYS = 252
+
+MAX_MISSING_PCT = 0.10
+
+RETURN_WINSOR_LOWER = 0.001
+
+RETURN_WINSOR_UPPER = 0.999
+
+ENABLE_WINSORIZATION = True
+
+ENABLE_LOG_RETURNS = True
+
+ENABLE_MONTHLY_RETURNS = True
 
 # =========================================================
 # PATHS
@@ -55,11 +66,11 @@ TRADING_DAYS = 252
 
 ROOT = Path(__file__).resolve().parents[2]
 
-PRICE_FILE = (
+INPUT_FILE = (
     ROOT
     / "data"
     / "raw"
-    / "benchmark_prices.csv"
+    / "security_price_history.parquet"
 )
 
 OUTPUT_DIR = (
@@ -68,16 +79,34 @@ OUTPUT_DIR = (
     / "risk"
 )
 
-REPORT_FILE = (
-    ROOT
-    / "data"
-    / "logs"
-    / "returns_matrix_report.csv"
-)
-
 OUTPUT_DIR.mkdir(
     parents=True,
     exist_ok=True
+)
+
+RETURNS_MATRIX_FILE = (
+    OUTPUT_DIR
+    / "returns_matrix.parquet"
+)
+
+LOG_RETURNS_MATRIX_FILE = (
+    OUTPUT_DIR
+    / "log_returns_matrix.parquet"
+)
+
+MONTHLY_RETURNS_FILE = (
+    OUTPUT_DIR
+    / "monthly_returns.parquet"
+)
+
+COVERAGE_FILE = (
+    OUTPUT_DIR
+    / "coverage_report.csv"
+)
+
+AUDIT_FILE = (
+    OUTPUT_DIR
+    / "returns_audit.csv"
 )
 
 # =========================================================
@@ -85,17 +114,17 @@ OUTPUT_DIR.mkdir(
 # =========================================================
 
 print(
-    "\n📥 Loading Price History..."
+    "\n📥 Loading Security Price History..."
 )
 
-if not PRICE_FILE.exists():
+if not INPUT_FILE.exists():
 
     raise FileNotFoundError(
-        f"Missing file: {PRICE_FILE}"
+        f"Missing file: {INPUT_FILE}"
     )
 
-prices = pd.read_csv(
-    PRICE_FILE
+prices = pd.read_parquet(
+    INPUT_FILE
 )
 
 # =========================================================
@@ -106,9 +135,9 @@ required_columns = [
 
     "Date",
 
-    "Symbol",
+    "Close",
 
-    "Close"
+    "Symbol"
 ]
 
 missing_columns = [
@@ -123,16 +152,12 @@ missing_columns = [
 if missing_columns:
 
     raise ValueError(
-
-        "Missing columns: "
-
-        + ", ".join(
-            missing_columns
-        )
+        f"Missing columns: "
+        f"{missing_columns}"
     )
 
 # =========================================================
-# DATE PROCESSING
+# DATA TYPE VALIDATION
 # =========================================================
 
 prices["Date"] = pd.to_datetime(
@@ -140,29 +165,27 @@ prices["Date"] = pd.to_datetime(
     errors="coerce"
 )
 
-prices = prices.dropna(
-    subset=["Date"]
-)
-
-# =========================================================
-# PRICE CLEANING
-# =========================================================
-
 prices["Close"] = pd.to_numeric(
     prices["Close"],
     errors="coerce"
 )
 
-prices = prices.dropna(
-    subset=["Close"]
+prices["Symbol"] = (
+    prices["Symbol"]
+    .astype(str)
+    .str.strip()
 )
 
-prices = prices[
-    prices["Close"] > 0
-]
+prices = prices.dropna(
+    subset=[
+        "Date",
+        "Close",
+        "Symbol"
+    ]
+)
 
 # =========================================================
-# DUPLICATE CHECK
+# REMOVE DUPLICATES
 # =========================================================
 
 duplicate_count = (
@@ -182,7 +205,7 @@ duplicate_count = (
 if duplicate_count > 0:
 
     print(
-        f"⚠ Removing "
+        f"Removing "
         f"{duplicate_count:,} duplicates"
     )
 
@@ -190,23 +213,17 @@ if duplicate_count > 0:
 
         prices
 
-        .sort_values(
-            "Date"
-        )
-
         .drop_duplicates(
-
             subset=[
                 "Date",
                 "Symbol"
             ],
-
             keep="last"
         )
     )
 
 # =========================================================
-# SORTING
+# SORT DATA
 # =========================================================
 
 prices = (
@@ -214,7 +231,6 @@ prices = (
     prices
 
     .sort_values(
-
         [
             "Symbol",
             "Date"
@@ -230,6 +246,10 @@ prices = (
 # COVERAGE ANALYSIS
 # =========================================================
 
+print(
+    "🔍 Building Coverage Statistics..."
+)
+
 coverage = (
 
     prices
@@ -241,23 +261,22 @@ coverage = (
     .agg({
 
         "Date": [
-
+            "count",
             "min",
-
-            "max",
-
-            "count"
+            "max"
         ]
+
     })
+
 )
 
 coverage.columns = [
 
-    "Start_Date",
+    "Observations",
 
-    "End_Date",
+    "First_Date",
 
-    "Observations"
+    "Last_Date"
 ]
 
 coverage = (
@@ -273,11 +292,26 @@ coverage[
         "Observations"
     ]
 
-    / TRADING_DAYS
+    /
+
+    TRADING_DAYS
+)
+
+coverage[
+    "Eligible"
+] = (
+
+    coverage[
+        "Observations"
+    ]
+
+    >=
+
+    MIN_HISTORY_DAYS
 )
 
 # =========================================================
-# ELIGIBILITY FILTER
+# ELIGIBLE UNIVERSE
 # =========================================================
 
 eligible_symbols = set(
@@ -285,12 +319,8 @@ eligible_symbols = set(
     coverage.loc[
 
         coverage[
-            "Observations"
-        ]
-
-        >=
-
-        MIN_HISTORY_DAYS,
+            "Eligible"
+        ],
 
         "Symbol"
     ]
@@ -307,18 +337,20 @@ prices = prices[
     )
 ]
 
+coverage = coverage[
+
+    coverage[
+        "Eligible"
+    ]
+]
+
 # =========================================================
 # UNIVERSE SUMMARY
 # =========================================================
 
 print(
     f"Total Securities : "
-    f"{coverage['Symbol'].nunique():,}"
-)
-
-print(
-    f"Eligible Symbols : "
-    f"{len(eligible_symbols):,}"
+    f"{coverage.shape[0]:,}"
 )
 
 print(
@@ -326,161 +358,193 @@ print(
     f"{len(prices):,}"
 )
 
-# =========================================================
-# QUALITY REPORT
-# =========================================================
-
-coverage_report = coverage.copy()
-
-coverage_report[
-    "Eligible"
-] = (
-
-    coverage_report[
-        "Symbol"
-    ]
-
-    .isin(
-        eligible_symbols
-    )
+print(
+    f"Average History  : "
+    f"{coverage['Observations'].mean():,.0f}"
 )
 
 print(
-    "\n✓ Data Validation Complete"
+    f"Min History      : "
+    f"{coverage['Observations'].min():,.0f}"
 )
 
 # =========================================================
-# PART 2 STARTS HERE
-# =========================================================
-#
-# Next:
-#
-# Daily Returns
-# Log Returns
-# Monthly Returns
-# Return Matrix Construction
-#
+# RETURN SOURCE
 # =========================================================
 
-# =========================================================
-# DAILY RETURN CALCULATION
-# =========================================================
+if "Daily_Return" in prices.columns:
 
-print(
-    "\n📈 Building Daily Returns..."
-)
-
-prices["Daily_Return"] = (
-
-    prices
-
-    .groupby(
-        "Symbol"
-    )["Close"]
-
-    .pct_change()
-)
-
-prices["Log_Return"] = (
-
-    prices
-
-    .groupby(
-        "Symbol"
-    )["Close"]
-
-    .transform(
-        lambda x:
-        np.log(
-            x / x.shift(1)
-        )
+    print(
+        "✓ Using Existing Daily_Return"
     )
-)
+
+else:
+
+    print(
+        "📈 Calculating Daily Returns..."
+    )
+
+    prices[
+        "Daily_Return"
+    ] = (
+
+        prices
+
+        .groupby(
+            "Symbol"
+        )["Close"]
+
+        .pct_change()
+    )
 
 # =========================================================
 # REMOVE FIRST OBSERVATION
 # =========================================================
 
-returns_df = prices.dropna(
+prices = prices.dropna(
     subset=[
-        "Daily_Return",
+        "Daily_Return"
+    ]
+)
+
+# =========================================================
+# PART 2 STARTS HERE
+# =========================================================
+
+#
+# Next:
+#
+# Returns Matrix Construction
+# Log Return Matrix
+# Monthly Returns
+# Winsorization
+# Outlier Controls
+#
+# =========================================================
+
+# =========================================================
+# RETURN MATRIX CONSTRUCTION
+# =========================================================
+
+print(
+    "\n🏗 Building Return Matrices..."
+)
+
+# =========================================================
+# RETURN DISTRIBUTION ANALYSIS
+# =========================================================
+
+raw_return_count = len(
+    prices
+)
+
+raw_return_mean = (
+    prices[
+        "Daily_Return"
+    ]
+    .mean()
+)
+
+raw_return_std = (
+    prices[
+        "Daily_Return"
+    ]
+    .std()
+)
+
+# =========================================================
+# WINSORIZATION
+# =========================================================
+
+if ENABLE_WINSORIZATION:
+
+    print(
+        "🛡 Applying Return Winsorization..."
+    )
+
+    lower_bound = (
+
+        prices[
+            "Daily_Return"
+        ]
+
+        .quantile(
+            RETURN_WINSOR_LOWER
+        )
+    )
+
+    upper_bound = (
+
+        prices[
+            "Daily_Return"
+        ]
+
+        .quantile(
+            RETURN_WINSOR_UPPER
+        )
+    )
+
+    prices[
+        "Daily_Return"
+    ] = (
+
+        prices[
+            "Daily_Return"
+        ]
+
+        .clip(
+            lower=lower_bound,
+            upper=upper_bound
+        )
+    )
+
+else:
+
+    lower_bound = np.nan
+    upper_bound = np.nan
+
+# =========================================================
+# LOG RETURNS
+# =========================================================
+
+if ENABLE_LOG_RETURNS:
+
+    print(
+        "📈 Building Log Returns..."
+    )
+
+    prices[
         "Log_Return"
-    ]
-).copy()
+    ] = np.log(
+        1 +
+        prices[
+            "Daily_Return"
+        ]
+    )
+
+else:
+
+    prices[
+        "Log_Return"
+    ] = np.nan
 
 # =========================================================
-# OUTLIER CONTROL
+# RETURN MATRIX
 # =========================================================
 
 print(
-    "🛡 Applying Return Outlier Controls..."
-)
-
-lower_bound = (
-
-    returns_df[
-        "Daily_Return"
-    ]
-
-    .quantile(
-        WINSORIZE_LOWER
-    )
-)
-
-upper_bound = (
-
-    returns_df[
-        "Daily_Return"
-    ]
-
-    .quantile(
-        WINSORIZE_UPPER
-    )
-)
-
-returns_df[
-    "Daily_Return"
-] = (
-
-    returns_df[
-        "Daily_Return"
-    ]
-
-    .clip(
-        lower=lower_bound,
-        upper=upper_bound
-    )
-)
-
-# =========================================================
-# REBUILD LOG RETURNS AFTER CLIPPING
-# =========================================================
-
-returns_df[
-    "Log_Return"
-] = np.log(
-    1 +
-    returns_df[
-        "Daily_Return"
-    ]
-)
-
-# =========================================================
-# DAILY RETURN MATRIX
-# =========================================================
-
-print(
-    "🏗 Building Return Matrix..."
+    "📊 Building Daily Return Matrix..."
 )
 
 returns_matrix = (
 
-    returns_df
+    prices
 
-    .pivot(
+    .pivot_table(
         index="Date",
         columns="Symbol",
-        values="Daily_Return"
+        values="Daily_Return",
+        aggfunc="last"
     )
 
     .sort_index()
@@ -490,39 +554,102 @@ returns_matrix = (
 # LOG RETURN MATRIX
 # =========================================================
 
-log_returns_matrix = (
+if ENABLE_LOG_RETURNS:
 
-    returns_df
-
-    .pivot(
-        index="Date",
-        columns="Symbol",
-        values="Log_Return"
+    print(
+        "📊 Building Log Return Matrix..."
     )
 
-    .sort_index()
-)
+    log_returns_matrix = (
+
+        prices
+
+        .pivot(
+            index="Date",
+            columns="Symbol",
+            values="Log_Return",
+        )
+
+        .sort_index()
+    )
+
+else:
+
+    log_returns_matrix = pd.DataFrame(
+        index=returns_matrix.index
+    )
 
 # =========================================================
 # MISSING DATA ANALYSIS
 # =========================================================
 
-missing_pct = (
+print(
+    "🔍 Evaluating Matrix Coverage..."
+)
+
+missing_stats = pd.DataFrame({
+
+    "Symbol":
+    returns_matrix.columns
+
+})
+
+missing_stats[
+    "Missing_Pct"
+] = (
 
     returns_matrix
 
     .isna()
 
     .mean()
+
+    .values
 )
 
 valid_symbols = set(
 
-    missing_pct[
-        missing_pct
+    missing_stats.loc[
+
+        missing_stats[
+            "Missing_Pct"
+        ]
+
         <=
+
+        MAX_MISSING_PCT,
+
+        "Symbol"
+    ]
+)
+
+coverage_rejections = (
+
+    missing_stats[
+
+        missing_stats[
+            "Missing_Pct"
+        ]
+
+        >
+
         MAX_MISSING_PCT
-    ].index
+    ]
+
+    .sort_values(
+        "Missing_Pct",
+        ascending=False
+    )
+)
+
+print(
+    f"Coverage Filter Removed: "
+    f"{len(coverage_rejections):,}"
+)
+
+coverage_rejections.to_csv(
+    OUTPUT_DIR / "coverage_rejections.csv",
+    index=False
 )
 
 returns_matrix = (
@@ -534,39 +661,43 @@ returns_matrix = (
     ]
 )
 
-log_returns_matrix = (
+if ENABLE_LOG_RETURNS:
 
-    log_returns_matrix[
-        sorted(
-            valid_symbols
+    log_returns_matrix = (
+
+        log_returns_matrix[
+            sorted(
+                valid_symbols
+            )
+        ]
+    )
+
+# =========================================================
+# LIMITED FORWARD FILL
+# =========================================================
+
+returns_matrix = (
+
+    returns_matrix
+
+    .ffill(
+        limit=3
+    )
+)
+
+if ENABLE_LOG_RETURNS:
+
+    log_returns_matrix = (
+
+        log_returns_matrix
+
+        .ffill(
+            limit=3
         )
-    ]
-)
-
-# =========================================================
-# FORWARD FILL SMALL GAPS
-# =========================================================
-
-returns_matrix = (
-
-    returns_matrix
-
-    .ffill(
-        limit=3
     )
-)
-
-log_returns_matrix = (
-
-    log_returns_matrix
-
-    .ffill(
-        limit=3
-    )
-)
 
 # =========================================================
-# DROP ROWS WITH EXCESSIVE MISSING DATA
+# REMOVE EMPTY ROWS
 # =========================================================
 
 returns_matrix = (
@@ -578,96 +709,127 @@ returns_matrix = (
     )
 )
 
-log_returns_matrix = (
+if ENABLE_LOG_RETURNS:
 
-    log_returns_matrix
+    log_returns_matrix = (
 
-    .dropna(
-        how="all"
+        log_returns_matrix
+
+        .dropna(
+            how="all"
+        )
     )
-)
 
 # =========================================================
 # MONTHLY RETURNS
 # =========================================================
 
-print(
-    "📅 Building Monthly Returns..."
-)
+if ENABLE_MONTHLY_RETURNS:
 
-monthly_returns = (
-
-    returns_matrix
-
-    .resample(
-        "M"
+    print(
+        "📅 Building Monthly Returns..."
     )
 
-    .apply(
-        lambda x:
-        (1 + x).prod() - 1
+    monthly_returns = (
+
+        returns_matrix
+
+        .resample(
+            "ME"
+        )
+
+        .apply(
+
+            lambda x:
+
+            (
+                1 + x
+            )
+
+            .prod()
+
+            - 1
+        )
     )
-)
+
+else:
+
+    monthly_returns = pd.DataFrame()
 
 # =========================================================
-# SECURITY RETURN STATISTICS
+# MATRIX STATISTICS
 # =========================================================
 
 print(
-    "📊 Building Security Statistics..."
+    "📈 Building Return Statistics..."
 )
 
-security_stats = pd.DataFrame({
+security_statistics = pd.DataFrame({
 
     "Symbol":
     returns_matrix.columns
 
 })
 
-security_stats[
-    "Mean_Daily_Return"
+security_statistics[
+    "Mean_Return"
 ] = (
 
-    returns_matrix.mean()
+    returns_matrix
+
+    .mean()
+
     .values
 )
 
-security_stats[
+security_statistics[
     "Annualized_Return"
 ] = (
 
-    returns_matrix.mean()
+    returns_matrix
+
+    .mean()
+
     * TRADING_DAYS
+
 ).values
 
-security_stats[
-    "Daily_Volatility"
+security_statistics[
+    "Volatility"
 ] = (
 
-    returns_matrix.std()
-).values
+    returns_matrix
 
-security_stats[
+    .std()
+
+    .values
+)
+
+security_statistics[
     "Annualized_Volatility"
 ] = (
 
-    returns_matrix.std()
+    returns_matrix
+
+    .std()
+
     * np.sqrt(
         TRADING_DAYS
     )
+
 ).values
 
-security_stats[
-    "Sharpe_Ratio"
+security_statistics[
+    "Sharpe"
 ] = (
 
-    security_stats[
+    security_statistics[
         "Annualized_Return"
     ]
 
     /
 
-    security_stats[
+    security_statistics[
         "Annualized_Volatility"
     ]
 
@@ -677,118 +839,102 @@ security_stats[
     )
 )
 
-# =========================================================
-# CUMULATIVE RETURNS
-# =========================================================
-
-cumulative_returns = (
-
-    (1 + returns_matrix)
-
-    .cumprod()
-)
-
-# =========================================================
-# MAX DRAWDOWN
-# =========================================================
-
-max_drawdowns = []
-
-for symbol in returns_matrix.columns:
-
-    equity_curve = (
-        cumulative_returns[
-            symbol
-        ]
-    )
-
-    rolling_peak = (
-        equity_curve
-        .cummax()
-    )
-
-    drawdown = (
-
-        equity_curve
-
-        /
-
-        rolling_peak
-
-        - 1
-    )
-
-    max_drawdowns.append(
-        drawdown.min()
-    )
-
-security_stats[
-    "Max_Drawdown"
-] = max_drawdowns
-
-# =========================================================
-# RETURN COVERAGE METRICS
-# =========================================================
-
-security_stats[
+security_statistics[
     "Observations"
 ] = (
 
     returns_matrix
+
     .count()
-    .values
-)
 
-security_stats[
-    "Missing_Pct"
-] = (
-
-    returns_matrix
-    .isna()
-    .mean()
     .values
 )
 
 # =========================================================
-# QUALITY FILTER FLAG
+# MATRIX DIMENSIONS
 # =========================================================
 
-security_stats[
-    "Pass_Quality_Check"
-] = (
+matrix_rows = (
+    returns_matrix.shape[0]
+)
 
-    security_stats[
-        "Missing_Pct"
+matrix_columns = (
+    returns_matrix.shape[1]
+)
+
+print(
+    f"Trading Days     : "
+    f"{matrix_rows:,}"
+)
+
+print(
+    f"Securities       : "
+    f"{matrix_columns:,}"
+)
+
+print(
+    f"Return Records   : "
+    f"{matrix_rows * matrix_columns:,}"
+)
+
+print(
+    f"Average Vol      : "
+    f"{security_statistics['Annualized_Volatility'].mean():.2%}"
+)
+
+print(
+    "\nAnnualized Return Distribution:"
+)
+
+print(
+
+    security_statistics[
+        "Annualized_Return"
     ]
 
-    <=
-
-    MAX_MISSING_PCT
+    .describe()
 )
 
 # =========================================================
-# SUMMARY
+# RETURN QUALITY METRICS
 # =========================================================
 
-print(
-    f"Return Matrix Shape : "
-    f"{returns_matrix.shape}"
-)
+return_quality = pd.DataFrame({
 
-print(
-    f"Monthly Matrix Shape: "
-    f"{monthly_returns.shape}"
-)
+    "Metric": [
 
-print(
-    f"Valid Securities    : "
-    f"{len(valid_symbols):,}"
-)
+        "Raw_Return_Count",
 
-print(
-    f"Average Volatility  : "
-    f"{security_stats['Annualized_Volatility'].mean():.2%}"
-)
+        "Return_Mean",
+
+        "Return_Std",
+
+        "Winsor_Lower",
+
+        "Winsor_Upper",
+
+        "Trading_Days",
+
+        "Securities"
+    ],
+
+    "Value": [
+
+        raw_return_count,
+
+        raw_return_mean,
+
+        raw_return_std,
+
+        lower_bound,
+
+        upper_bound,
+
+        matrix_rows,
+
+        matrix_columns
+    ]
+})
 
 # =========================================================
 # PART 3 STARTS HERE
@@ -797,10 +943,10 @@ print(
 # Next:
 #
 # Coverage Analytics
-# Data Quality Dashboard
-# Return Diagnostics
-# Cross-Sectional Statistics
-# Risk Readiness Checks
+# Missing Data Diagnostics
+# Distribution Analysis
+# Market Statistics
+# Quality Scoring
 #
 # =========================================================
 
@@ -812,516 +958,543 @@ print(
     "\n🔍 Building Coverage Analytics..."
 )
 
-coverage_metrics = pd.DataFrame({
+coverage_analysis = pd.DataFrame({
 
     "Symbol":
     returns_matrix.columns
 
 })
 
-coverage_metrics[
+coverage_analysis[
     "Observations"
 ] = (
+
     returns_matrix
+
     .count()
+
     .values
 )
 
-coverage_metrics[
-    "Missing_Observations"
+coverage_analysis[
+    "Missing_Count"
 ] = (
+
     returns_matrix
+
     .isna()
+
     .sum()
+
     .values
 )
 
-coverage_metrics[
-    "Coverage_Ratio"
-] = (
-
-    coverage_metrics[
-        "Observations"
-    ]
-
-    /
-
-    len(
-        returns_matrix
-    )
-)
-
-coverage_metrics[
+coverage_analysis[
     "Missing_Pct"
 ] = (
 
-    coverage_metrics[
-        "Missing_Observations"
+    returns_matrix
+
+    .isna()
+
+    .mean()
+
+    .values
+)
+
+coverage_analysis[
+    "Coverage_Pct"
+] = (
+
+    1
+    -
+    coverage_analysis[
+        "Missing_Pct"
+    ]
+
+) * 100
+
+coverage_analysis[
+    "Eligible"
+] = (
+
+    coverage_analysis[
+        "Coverage_Pct"
+    ]
+
+    >=
+
+    (
+        100
+        *
+        (
+            1
+            -
+            MAX_MISSING_PCT
+        )
+    )
+)
+
+# =========================================================
+# DATE COVERAGE ANALYSIS
+# =========================================================
+
+date_coverage = pd.DataFrame({
+
+    "Coverage":
+
+    returns_matrix
+
+    .notna()
+
+    .sum(
+        axis=1
+    )
+
+}, index=returns_matrix.index)
+
+date_coverage[
+    "Coverage_Pct"
+] = (
+
+    date_coverage[
+        "Coverage"
     ]
 
     /
 
     len(
-        returns_matrix
+        returns_matrix.columns
     )
-)
 
-coverage_metrics[
-    "Coverage_Status"
-] = np.where(
-
-    coverage_metrics[
-        "Missing_Pct"
-    ]
-
-    <=
-    MAX_MISSING_PCT,
-
-    "PASS",
-
-    "FAIL"
-)
+) * 100
 
 # =========================================================
-# RETURN DISTRIBUTION ANALYSIS
+# MARKET RETURN SERIES
 # =========================================================
 
 print(
-    "📊 Building Return Diagnostics..."
+    "📈 Building Market Statistics..."
 )
 
-distribution_stats = pd.DataFrame({
+market_return = (
 
-    "Symbol":
-    returns_matrix.columns
+    returns_matrix
 
-})
+    .clip(
+        lower=-0.20,
+        upper=0.20
+    )
 
-distribution_stats[
-    "Mean"
-] = (
-    returns_matrix.mean().values
+    .mean(
+        axis=1,
+        skipna=True
+    )
 )
 
-distribution_stats[
-    "Median"
-] = (
-    returns_matrix.median().values
-)
+market_statistics = {
 
-distribution_stats[
-    "Std_Dev"
-] = (
-    returns_matrix.std().values
-)
+    "Average_Daily_Return":
 
-distribution_stats[
-    "Skewness"
-] = (
-    returns_matrix.skew().values
-)
+    market_return.mean(),
 
-distribution_stats[
-    "Kurtosis"
-] = (
-    returns_matrix.kurt().values
-)
+    "Annualized_Return":
 
-distribution_stats[
-    "Min_Return"
-] = (
-    returns_matrix.min().values
-)
+    market_return.mean()
 
-distribution_stats[
-    "Max_Return"
-] = (
-    returns_matrix.max().values
-)
+    * TRADING_DAYS,
 
-distribution_stats[
-    "Positive_Days"
-] = (
-    (returns_matrix > 0)
-    .sum()
-    .values
-)
+    "Daily_Volatility":
 
-distribution_stats[
-    "Negative_Days"
-] = (
-    (returns_matrix < 0)
-    .sum()
-    .values
-)
+    market_return.std(),
 
-distribution_stats[
-    "Hit_Ratio"
-] = (
+    "Annualized_Volatility":
 
-    distribution_stats[
-        "Positive_Days"
-    ]
+    market_return.std()
 
-    /
+    * np.sqrt(
+        TRADING_DAYS
+    ),
+
+    "Best_Day":
+
+    market_return.max(),
+
+    "Worst_Day":
+
+    market_return.min(),
+
+    "Positive_Days":
 
     (
+        market_return > 0
+    ).sum(),
 
-        distribution_stats[
-            "Positive_Days"
-        ]
-
-        +
-
-        distribution_stats[
-            "Negative_Days"
-        ]
-
-    )
-)
-
-# =========================================================
-# CROSS SECTIONAL ANALYTICS
-# =========================================================
-
-print(
-    "🌐 Building Cross Sectional Analytics..."
-)
-
-cross_sectional_stats = pd.DataFrame({
-
-    "Date":
-    returns_matrix.index
-
-})
-
-cross_sectional_stats[
-    "Mean_Return"
-] = (
-    returns_matrix.mean(axis=1).values
-)
-
-cross_sectional_stats[
-    "Median_Return"
-] = (
-    returns_matrix.median(axis=1).values
-)
-
-cross_sectional_stats[
-    "Cross_Sectional_Vol"
-] = (
-    returns_matrix.std(axis=1).values
-)
-
-cross_sectional_stats[
-    "Positive_Securities"
-] = (
-    (returns_matrix > 0)
-    .sum(axis=1)
-    .values
-)
-
-cross_sectional_stats[
-    "Negative_Securities"
-] = (
-    (returns_matrix < 0)
-    .sum(axis=1)
-    .values
-)
-
-cross_sectional_stats[
-    "Breadth"
-] = (
-
-    cross_sectional_stats[
-        "Positive_Securities"
-    ]
-
-    /
+    "Negative_Days":
 
     (
-
-        cross_sectional_stats[
-            "Positive_Securities"
-        ]
-
-        +
-
-        cross_sectional_stats[
-            "Negative_Securities"
-        ]
-
-    )
-)
+        market_return < 0
+    ).sum()
+}
 
 # =========================================================
-# COVARIANCE READINESS
+# DISTRIBUTION ANALYSIS
 # =========================================================
 
 print(
-    "⚠ Validating Covariance Readiness..."
+    "📊 Building Distribution Analytics..."
 )
 
-covariance_ready = []
-
-for symbol in returns_matrix.columns:
-
-    series = (
-        returns_matrix[
-            symbol
-        ]
-    )
-
-    valid_obs = (
-        series
-        .dropna()
-        .shape[0]
-    )
-
-    covariance_ready.append(
-
-        valid_obs
-
-        >=
-
-        MIN_HISTORY_DAYS
-
-    )
-
-covariance_check = pd.DataFrame({
-
-    "Symbol":
-    returns_matrix.columns,
-
-    "Covariance_Ready":
-    covariance_ready
-
-})
-
-# =========================================================
-# FACTOR MODEL READINESS
-# =========================================================
-
-factor_readiness = pd.DataFrame({
+distribution_analysis = pd.DataFrame({
 
     "Metric": [
 
-        "Total_Securities",
+        "Mean",
 
-        "Covariance_Ready",
+        "Median",
 
-        "Coverage_Pass",
+        "Std",
 
-        "Average_Observations",
+        "Min",
 
-        "Average_Missing_Pct"
+        "Max",
+
+        "1%",
+
+        "5%",
+
+        "95%",
+
+        "99%"
     ],
 
     "Value": [
 
-        len(
-            returns_matrix.columns
+        market_return.mean(),
+
+        market_return.median(),
+
+        market_return.std(),
+
+        market_return.min(),
+
+        market_return.max(),
+
+        market_return.quantile(
+            0.01
         ),
 
-        covariance_check[
-            "Covariance_Ready"
-        ].sum(),
+        market_return.quantile(
+            0.05
+        ),
 
-        coverage_metrics[
-            "Coverage_Status"
-        ]
-        .eq("PASS")
-        .sum(),
+        market_return.quantile(
+            0.95
+        ),
 
-        coverage_metrics[
-            "Observations"
-        ]
-        .mean(),
-
-        coverage_metrics[
-            "Missing_Pct"
-        ]
-        .mean()
+        market_return.quantile(
+            0.99
+        )
     ]
 })
 
 # =========================================================
-# MARKET LEVEL STATISTICS
+# SKEWNESS & KURTOSIS
+# =========================================================
+
+market_skew = (
+    market_return.skew()
+)
+
+market_kurtosis = (
+    market_return.kurtosis()
+)
+
+distribution_analysis.loc[
+    len(
+        distribution_analysis
+    )
+] = [
+
+    "Skewness",
+
+    market_skew
+]
+
+distribution_analysis.loc[
+    len(
+        distribution_analysis
+    )
+] = [
+
+    "Kurtosis",
+
+    market_kurtosis
+]
+
+# =========================================================
+# RISK METRICS
 # =========================================================
 
 print(
-    "🏛 Building Market Statistics..."
+    "⚠ Building Risk Metrics..."
 )
 
-market_return_series = (
-    returns_matrix.mean(axis=1)
+var_95 = (
+    market_return.quantile(
+        0.05
+    )
 )
 
-market_statistics = pd.DataFrame({
+cvar_95 = (
+
+    market_return[
+        market_return
+        <=
+        var_95
+    ]
+
+    .mean()
+)
+
+risk_metrics = pd.DataFrame({
 
     "Metric": [
 
-        "Annualized_Return",
+        "VaR_95",
 
-        "Annualized_Volatility",
+        "CVaR_95",
 
-        "Sharpe_Ratio",
-
-        "Best_Day",
+        "Max_Drawdown",
 
         "Worst_Day",
 
-        "Average_Daily_Return"
+        "Best_Day"
     ],
 
     "Value": [
 
-        market_return_series.mean()
-        * TRADING_DAYS,
+        var_95,
 
-        market_return_series.std()
-        * np.sqrt(TRADING_DAYS),
+        cvar_95,
 
         (
+            (
+                (
+                    1
+                    +
+                    market_return
+                )
+                .cumprod()
+            )
+            /
+            (
+                (
+                    1
+                    +
+                    market_return
+                )
+                .cumprod()
+                .cummax()
+            )
+            -
+            1
+        ).min(),
 
-            market_return_series.mean()
-            * TRADING_DAYS
+        market_return.min(),
 
-        )
+        market_return.max()
+    ]
+})
+
+# =========================================================
+# SECURITY QUALITY SCORING
+# =========================================================
+
+print(
+    "🏛 Building Security Quality Scores..."
+)
+
+quality_scores = coverage_analysis.copy()
+
+quality_scores[
+    "Quality_Score"
+] = (
+
+    quality_scores[
+        "Coverage_Pct"
+    ]
+
+    * 0.60
+
+)
+
+quality_scores[
+    "Quality_Score"
+] += (
+
+    np.minimum(
+
+        quality_scores[
+            "Observations"
+        ]
 
         /
 
         (
-
-            market_return_series.std()
-            * np.sqrt(TRADING_DAYS)
-
+            5
+            *
+            TRADING_DAYS
         ),
 
-        market_return_series.max(),
+        1
+    )
 
-        market_return_series.min(),
+    * 40
+)
 
-        market_return_series.mean()
+quality_scores[
+    "Quality_Score"
+] = (
 
+    quality_scores[
+        "Quality_Score"
     ]
-})
+
+    .clip(
+        lower=0,
+        upper=100
+    )
+)
 
 # =========================================================
-# DATA QUALITY SCORE
+# TOP / BOTTOM SECURITIES
 # =========================================================
 
-coverage_score = (
+top_quality = (
 
-    coverage_metrics[
-        "Coverage_Ratio"
+    quality_scores
+
+    .sort_values(
+        "Quality_Score",
+        ascending=False
+    )
+
+    .head(25)
+)
+
+bottom_quality = (
+
+    quality_scores
+
+    .sort_values(
+        "Quality_Score",
+        ascending=True
+    )
+
+    .head(25)
+)
+
+# =========================================================
+# MATRIX HEALTH SCORE
+# =========================================================
+
+matrix_health_score = (
+
+    quality_scores[
+        "Quality_Score"
     ]
 
     .mean()
-
-    * 100
 )
 
-covariance_score = (
+# =========================================================
+# DIAGNOSTIC SUMMARY
+# =========================================================
 
-    covariance_check[
-        "Covariance_Ready"
-    ]
-
-    .mean()
-
-    * 100
+print(
+    f"Average Coverage : "
+    f"{coverage_analysis['Coverage_Pct'].mean():.2f}%"
 )
 
-quality_score = np.mean([
+print(
+    f"Matrix Health    : "
+    f"{matrix_health_score:.2f}"
+)
 
-    coverage_score,
+print(
+    f"Market Return    : "
+    f"{market_statistics['Annualized_Return']:.2%}"
+)
 
-    covariance_score
+print(
+    f"Market Vol       : "
+    f"{market_statistics['Annualized_Volatility']:.2%}"
+)
 
-])
+print(
+    f"VaR 95%          : "
+    f"{var_95:.2%}"
+)
 
 # =========================================================
-# RETURNS DASHBOARD
+# AUDIT DATASET
 # =========================================================
 
-returns_dashboard = pd.DataFrame({
+audit_summary = pd.DataFrame({
 
     "Metric": [
 
-        "Universe_Size",
+        "Engine_Version",
+
+        "Run_Time",
+
+        "Trading_Days",
 
         "Eligible_Securities",
 
-        "Coverage_Score",
+        "Average_Coverage",
 
-        "Covariance_Score",
+        "Matrix_Health",
 
-        "Data_Quality_Score",
+        "Market_Return",
 
-        "Avg_Annual_Return",
+        "Market_Volatility",
 
-        "Avg_Annual_Volatility",
+        "VaR_95",
 
-        "Avg_Sharpe"
+        "CVaR_95"
     ],
 
     "Value": [
 
-        coverage["Symbol"].nunique(),
+        ENGINE_VERSION,
 
-        len(
-            returns_matrix.columns
-        ),
+        datetime.now(),
 
-        coverage_score,
+        matrix_rows,
 
-        covariance_score,
+        matrix_columns,
 
-        quality_score,
+        coverage_analysis[
+            "Coverage_Pct"
+        ].mean(),
 
-        security_stats[
+        matrix_health_score,
+
+        market_statistics[
             "Annualized_Return"
-        ].mean(),
+        ],
 
-        security_stats[
+        market_statistics[
             "Annualized_Volatility"
-        ].mean(),
+        ],
 
-        security_stats[
-            "Sharpe_Ratio"
-        ].mean()
+        var_95,
+
+        cvar_95
     ]
 })
-
-# =========================================================
-# SUMMARY
-# =========================================================
-
-print(
-    f"Coverage Score    : "
-    f"{coverage_score:.2f}"
-)
-
-print(
-    f"Covariance Score  : "
-    f"{covariance_score:.2f}"
-)
-
-print(
-    f"Quality Score     : "
-    f"{quality_score:.2f}"
-)
-
-print(
-    f"Avg Sharpe Ratio  : "
-    f"{security_stats['Sharpe_Ratio'].mean():.2f}"
-)
-
-print(
-    f"Covariance Ready  : "
-    f"{covariance_check['Covariance_Ready'].sum():,}"
-)
 
 # =========================================================
 # PART 4 STARTS HERE
@@ -1329,11 +1502,11 @@ print(
 #
 # Next:
 #
-# Output Files
-# CSV Persistence
-# Dashboard Exports
+# Parquet Exports
+# CSV Reports
+# Validation Layer
 # Audit Reports
-# Final Production Reporting
+# Production Completion
 #
 # =========================================================
 
@@ -1345,49 +1518,19 @@ print(
     "\n💾 Saving Outputs..."
 )
 
-RETURNS_MATRIX_FILE = (
+QUALITY_FILE = (
     OUTPUT_DIR
-    / "returns_matrix.csv"
+    / "quality_scores.csv"
 )
 
-LOG_RETURNS_MATRIX_FILE = (
+TOP_QUALITY_FILE = (
     OUTPUT_DIR
-    / "log_returns_matrix.csv"
+    / "top_quality_securities.csv"
 )
 
-MONTHLY_RETURNS_FILE = (
+BOTTOM_QUALITY_FILE = (
     OUTPUT_DIR
-    / "monthly_returns_matrix.csv"
-)
-
-SECURITY_STATS_FILE = (
-    OUTPUT_DIR
-    / "security_return_statistics.csv"
-)
-
-COVERAGE_FILE = (
-    OUTPUT_DIR
-    / "returns_coverage_report.csv"
-)
-
-DISTRIBUTION_FILE = (
-    OUTPUT_DIR
-    / "return_distribution_statistics.csv"
-)
-
-CROSS_SECTIONAL_FILE = (
-    OUTPUT_DIR
-    / "cross_sectional_statistics.csv"
-)
-
-COVARIANCE_READY_FILE = (
-    OUTPUT_DIR
-    / "covariance_readiness.csv"
-)
-
-FACTOR_READINESS_FILE = (
-    OUTPUT_DIR
-    / "factor_model_readiness.csv"
+    / "bottom_quality_securities.csv"
 )
 
 MARKET_STATS_FILE = (
@@ -1395,174 +1538,14 @@ MARKET_STATS_FILE = (
     / "market_statistics.csv"
 )
 
-DASHBOARD_FILE = (
+RISK_METRICS_FILE = (
     OUTPUT_DIR
-    / "returns_dashboard.csv"
+    / "risk_metrics.csv"
 )
 
-# =========================================================
-# SAVE DATASETS
-# =========================================================
-
-returns_matrix.to_csv(
-    RETURNS_MATRIX_FILE
-)
-
-log_returns_matrix.to_csv(
-    LOG_RETURNS_MATRIX_FILE
-)
-
-monthly_returns.to_csv(
-    MONTHLY_RETURNS_FILE
-)
-
-security_stats.to_csv(
-    SECURITY_STATS_FILE,
-    index=False
-)
-
-coverage_metrics.to_csv(
-    COVERAGE_FILE,
-    index=False
-)
-
-distribution_stats.to_csv(
-    DISTRIBUTION_FILE,
-    index=False
-)
-
-cross_sectional_stats.to_csv(
-    CROSS_SECTIONAL_FILE,
-    index=False
-)
-
-covariance_check.to_csv(
-    COVARIANCE_READY_FILE,
-    index=False
-)
-
-factor_readiness.to_csv(
-    FACTOR_READINESS_FILE,
-    index=False
-)
-
-market_statistics.to_csv(
-    MARKET_STATS_FILE,
-    index=False
-)
-
-returns_dashboard.to_csv(
-    DASHBOARD_FILE,
-    index=False
-)
-
-# =========================================================
-# BUILD AUDIT REPORT
-# =========================================================
-
-print(
-    "🧾 Building Audit Report..."
-)
-
-audit_report = pd.DataFrame({
-
-    "Metric": [
-
-        "Engine_Version",
-
-        "Run_Timestamp",
-
-        "Total_Securities",
-
-        "Eligible_Securities",
-
-        "Return_Matrix_Rows",
-
-        "Return_Matrix_Columns",
-
-        "Monthly_Return_Rows",
-
-        "Coverage_Score",
-
-        "Covariance_Score",
-
-        "Data_Quality_Score",
-
-        "Average_Annual_Return",
-
-        "Average_Annual_Volatility",
-
-        "Average_Sharpe",
-
-        "Average_Max_Drawdown"
-    ],
-
-    "Value": [
-
-        ENGINE_VERSION,
-
-        datetime.now(),
-
-        coverage["Symbol"].nunique(),
-
-        len(
-            returns_matrix.columns
-        ),
-
-        returns_matrix.shape[0],
-
-        returns_matrix.shape[1],
-
-        monthly_returns.shape[0],
-
-        round(
-            coverage_score,
-            2
-        ),
-
-        round(
-            covariance_score,
-            2
-        ),
-
-        round(
-            quality_score,
-            2
-        ),
-
-        round(
-            security_stats[
-                "Annualized_Return"
-            ].mean(),
-            6
-        ),
-
-        round(
-            security_stats[
-                "Annualized_Volatility"
-            ].mean(),
-            6
-        ),
-
-        round(
-            security_stats[
-                "Sharpe_Ratio"
-            ].mean(),
-            4
-        ),
-
-        round(
-            security_stats[
-                "Max_Drawdown"
-            ].mean(),
-            4
-        )
-    ]
-})
-
-audit_report.to_csv(
-    REPORT_FILE,
-    index=False
+DISTRIBUTION_FILE = (
+    OUTPUT_DIR
+    / "distribution_analysis.csv"
 )
 
 # =========================================================
@@ -1579,111 +1562,238 @@ if returns_matrix.empty:
         "Returns matrix is empty."
     )
 
-if log_returns_matrix.empty:
+if matrix_columns < 100:
 
     raise ValueError(
-        "Log returns matrix is empty."
+        "Too few securities."
     )
 
-if security_stats.empty:
+if matrix_rows < 252:
 
     raise ValueError(
-        "Security statistics are empty."
+        "Insufficient trading history."
     )
 
-if len(
-    returns_matrix.columns
-) == 0:
+if returns_matrix.isna().all().all():
 
     raise ValueError(
-        "No valid securities found."
-    )
-
-if coverage_score < 50:
-
-    print(
-        "⚠ Low Coverage Score."
-    )
-
-if covariance_score < 50:
-
-    print(
-        "⚠ Low Covariance Readiness."
+        "Returns matrix contains only NaN values."
     )
 
 # =========================================================
-# FINAL RANKINGS
-# =========================================================
-
-top_returners = (
-
-    security_stats
-
-    .sort_values(
-        "Annualized_Return",
-        ascending=False
-    )
-
-    .head(10)
-)
-
-top_sharpe = (
-
-    security_stats
-
-    .sort_values(
-        "Sharpe_Ratio",
-        ascending=False
-    )
-
-    .head(10)
-)
-
-worst_drawdowns = (
-
-    security_stats
-
-    .sort_values(
-        "Max_Drawdown"
-    )
-
-    .head(10)
-)
-
-# =========================================================
-# SAVE RANKINGS
-# =========================================================
-
-top_returners.to_csv(
-
-    OUTPUT_DIR
-    / "top_returners.csv",
-
-    index=False
-)
-
-top_sharpe.to_csv(
-
-    OUTPUT_DIR
-    / "top_sharpe_securities.csv",
-
-    index=False
-)
-
-worst_drawdowns.to_csv(
-
-    OUTPUT_DIR
-    / "worst_drawdowns.csv",
-
-    index=False
-)
-
-# =========================================================
-# PRODUCTION SUMMARY
+# CORRELATION HEALTH CHECK
 # =========================================================
 
 print(
-    "\n===================================================="
+    "🔗 Building Correlation Diagnostics..."
+)
+
+sample_cols = list(
+    returns_matrix.columns[:200]
+)
+
+correlation_sample = (
+
+    returns_matrix[
+        sample_cols
+    ]
+
+    .corr()
+)
+
+corr_values = (
+
+    correlation_sample
+
+    .values
+)
+
+corr_values = corr_values[
+    ~np.eye(
+        corr_values.shape[0],
+        dtype=bool
+    )
+]
+
+average_correlation = np.nanmean(
+    corr_values
+)
+
+median_correlation = np.nanmedian(
+    corr_values
+)
+
+# =========================================================
+# DATASET METADATA
+# =========================================================
+
+metadata = pd.DataFrame({
+
+    "Metric": [
+
+        "Engine_Name",
+
+        "Engine_Version",
+
+        "Build_Time",
+
+        "Trading_Days",
+
+        "Securities",
+
+        "Average_Coverage",
+
+        "Average_Correlation",
+
+        "Median_Correlation",
+
+        "Matrix_Health",
+
+        "Average_Volatility"
+    ],
+
+    "Value": [
+
+        ENGINE_NAME,
+
+        ENGINE_VERSION,
+
+        datetime.now(),
+
+        matrix_rows,
+
+        matrix_columns,
+
+        coverage_analysis[
+            "Coverage_Pct"
+        ].mean(),
+
+        average_correlation,
+
+        median_correlation,
+
+        matrix_health_score,
+
+        security_statistics[
+            "Annualized_Volatility"
+        ].mean()
+    ]
+})
+
+# =========================================================
+# MEMORY OPTIMIZATION
+# =========================================================
+
+returns_matrix = returns_matrix.astype(
+    np.float32
+)
+
+if ENABLE_LOG_RETURNS:
+
+    log_returns_matrix = (
+        log_returns_matrix
+        .astype(np.float32)
+    )
+
+# =========================================================
+# EXPORT MATRICES
+# =========================================================
+
+print(
+    "📊 Saving Return Matrices..."
+)
+
+returns_matrix.to_parquet(
+    RETURNS_MATRIX_FILE,
+    index=True
+)
+
+if ENABLE_LOG_RETURNS:
+
+    log_returns_matrix.to_parquet(
+        LOG_RETURNS_MATRIX_FILE,
+        index=True
+    )
+
+if ENABLE_MONTHLY_RETURNS:
+
+    monthly_returns.to_parquet(
+        MONTHLY_RETURNS_FILE,
+        index=True
+    )
+
+# =========================================================
+# EXPORT REPORTS
+# =========================================================
+
+coverage_analysis.to_csv(
+    COVERAGE_FILE,
+    index=False
+)
+
+audit_summary.to_csv(
+    AUDIT_FILE,
+    index=False
+)
+
+quality_scores.to_csv(
+    QUALITY_FILE,
+    index=False
+)
+
+top_quality.to_csv(
+    TOP_QUALITY_FILE,
+    index=False
+)
+
+bottom_quality.to_csv(
+    BOTTOM_QUALITY_FILE,
+    index=False
+)
+
+pd.DataFrame(
+    [market_statistics]
+).to_csv(
+    MARKET_STATS_FILE,
+    index=False
+)
+
+risk_metrics.to_csv(
+    RISK_METRICS_FILE,
+    index=False
+)
+
+distribution_analysis.to_csv(
+    DISTRIBUTION_FILE,
+    index=False
+)
+
+metadata.to_csv(
+    OUTPUT_DIR
+    / "returns_metadata.csv",
+    index=False
+)
+
+security_statistics.to_csv(
+    OUTPUT_DIR
+    / "security_statistics.csv",
+    index=False
+)
+
+security_statistics[
+    "Annualized_Return"
+].describe().to_csv(
+
+    OUTPUT_DIR
+    / "return_distribution.csv"
+)
+
+# =========================================================
+# FINAL SUMMARY
+# =========================================================
+
+print(
+    "\n=========================================================="
 )
 
 print(
@@ -1691,57 +1801,76 @@ print(
 )
 
 print(
-    "===================================================="
+    "=========================================================="
 )
 
 print(
-    f"Eligible Securities : "
-    f"{len(returns_matrix.columns):,}"
+    f"Trading Days         : "
+    f"{matrix_rows:,}"
 )
 
 print(
-    f"Trading Days        : "
-    f"{len(returns_matrix):,}"
+    f"Securities           : "
+    f"{matrix_columns:,}"
 )
 
 print(
-    f"Coverage Score      : "
-    f"{coverage_score:.2f}"
+    f"Return Matrix Shape  : "
+    f"{returns_matrix.shape}"
+)
+
+if ENABLE_LOG_RETURNS:
+
+    print(
+        f"Log Matrix Shape     : "
+        f"{log_returns_matrix.shape}"
+    )
+
+if ENABLE_MONTHLY_RETURNS:
+
+    print(
+        f"Monthly Matrix Shape : "
+        f"{monthly_returns.shape}"
+    )
+
+print(
+    f"Average Coverage     : "
+    f"{coverage_analysis['Coverage_Pct'].mean():.2f}%"
 )
 
 print(
-    f"Covariance Score    : "
-    f"{covariance_score:.2f}"
+    f"Matrix Health Score  : "
+    f"{matrix_health_score:.2f}"
 )
 
 print(
-    f"Quality Score       : "
-    f"{quality_score:.2f}"
+    f"Market Return        : "
+    f"{market_statistics['Annualized_Return']:.2%}"
 )
 
 print(
-    f"Avg Annual Return   : "
-    f"{security_stats['Annualized_Return'].mean():.2%}"
+    f"Market Volatility    : "
+    f"{market_statistics['Annualized_Volatility']:.2%}"
 )
 
 print(
-    f"Avg Annual Vol      : "
-    f"{security_stats['Annualized_Volatility'].mean():.2%}"
+    f"VaR (95%)            : "
+    f"{var_95:.2%}"
 )
 
 print(
-    f"Avg Sharpe          : "
-    f"{security_stats['Sharpe_Ratio'].mean():.2f}"
+    f"CVaR (95%)           : "
+    f"{cvar_95:.2%}"
 )
 
 print(
-    f"Best Security       : "
-    f"{top_returners.iloc[0]['Symbol']}"
+    f"Average Correlation  : "
+    f"{average_correlation:.4f}"
 )
 
 print(
-    f"Best Return         : "
-    f"{top_returners.iloc[0]['Annualized_Return']:.2%}"
+    f"Median Correlation   : "
+    f"{median_correlation:.4f}"
 )
 
 print(
@@ -1753,7 +1882,7 @@ print(
 )
 
 print(
-    "===================================================="
+    "=========================================================="
 )
 
 # =========================================================
