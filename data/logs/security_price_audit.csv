@@ -1,0 +1,16 @@
+Metric,Value
+Engine_Version,1.0.0
+Run_Timestamp,2026-06-15 12:54:05.197047
+Universe_Size,2699
+Downloaded_Securities,2432
+Eligible_Securities,2432
+Failed_Securities,0
+Total_Records,3208265
+Price_Errors,0
+OHLC_Errors,372
+Volume_Errors,0
+Extreme_Returns,133
+Average_Quality_Score,99.34
+Coverage_Score,86.83
+Database_Start_Date,2020-01-01 00:00:00
+Database_End_Date,2026-06-15 00:00:00
