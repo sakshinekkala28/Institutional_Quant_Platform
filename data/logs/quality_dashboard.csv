@@ -1,9 +1,9 @@
 Metric,Value
-Total_Securities,2432.0
-Eligible_Securities,2432.0
-Total_Records,3208265.0
+Total_Securities,2434.0
+Eligible_Securities,2434.0
+Total_Records,3211198.0
 Price_Errors,0.0
 OHLC_Errors,372.0
 Volume_Errors,0.0
 Extreme_Returns,133.0
-Average_Quality_Score,99.34004934210526
+Average_Quality_Score,99.34059161873459

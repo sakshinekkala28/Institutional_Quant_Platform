@@ -1,11 +1,11 @@
 Metric,Value
 Engine_Name,RETURNS_MATRIX_BUILDER
 Engine_Version,2.0.0
-Build_Time,2026-06-15 13:26:20.808693
-Trading_Days,1598
-Securities,1609
-Average_Coverage,99.93446593823384
-Average_Correlation,0.15964716395359482
-Median_Correlation,0.1610431796873183
-Matrix_Health,99.96067956294031
-Average_Volatility,0.4723875891099909
+Build_Time,2026-06-16 10:50:53.556806
+Trading_Days,1599
+Securities,2262
+Average_Coverage,86.88647690394473
+Average_Correlation,0.1494625462291631
+Median_Correlation,0.14641751807696982
+Matrix_Health,88.52687302011232
+Average_Volatility,0.4778041858215947

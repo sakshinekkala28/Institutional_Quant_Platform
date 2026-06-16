@@ -1,0 +1,11 @@
+Metric,Value
+Engine_Name,COVARIANCE_MATRIX_ENGINE
+Engine_Version,2.0.0
+Build_Time,2026-06-16 11:43:35.087583
+Trading_Days,1599
+Securities,2262
+Average_Correlation,0.16214949378537186
+Median_Correlation,0.1609669123182425
+Portfolio_Volatility,0.1609922030464513
+Effective_Risk_Bets,1894.4782792134715
+Shrinkage_Intensity,0.029590729624032974
