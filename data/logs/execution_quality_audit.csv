@@ -1,0 +1,17 @@
+Metric,Value
+Orders,50
+Trades,50
+Missing_Prices,0
+Run_Date,2026-06-16
+Engine_Version,1.0.0
+Implementation_Shortfall,0.0
+Average_Slippage,0.0
+Median_Slippage,0.0
+Execution_Cost,58113.33008533478
+Slippage_Breaches,0
+Execution_Quality_Score,99.95
+Gross_Execution_Value,116226660.17066956
+Portfolio_Turnover,1.1622666017066956
+Execution_Grade,A
+Execution_Ready,True
+Extreme_Impact_Trades,0

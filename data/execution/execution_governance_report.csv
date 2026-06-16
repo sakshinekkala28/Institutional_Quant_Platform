@@ -1,0 +1,10 @@
+Metric,Value
+Execution_Quality_Score,99.95
+Execution_Grade,A
+Execution_Ready,True
+Slippage_Breaches,0
+Extreme_Impact_Trades,0
+Implementation_Shortfall,0.0
+Execution_Cost,58113.33008533478
+Run_Date,2026-06-16
+Engine_Version,1.0.0
