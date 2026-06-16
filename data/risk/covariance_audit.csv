@@ -1,0 +1,15 @@
+Metric,Value
+Engine,COVARIANCE_MATRIX_ENGINE
+Version,2.0.0
+Run_Time,2026-06-16 11:42:48.624202
+Trading_Days,1599
+Securities,2262
+Density,0.8688647690394472
+Missing_Cells,474308
+Min_Eigenvalue,
+Condition_Number,
+Shrinkage_Intensity,0.029590729624032974
+Min_Repaired_Eigenvalue,0.0058558788150548935
+Portfolio_Volatility,0.1609922030464513
+Effective_Risk_Bets,1894.4782792134715
+Final_Min_Eigenvalue,0.005855863448232412

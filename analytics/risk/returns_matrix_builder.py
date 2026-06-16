@@ -594,6 +594,25 @@ missing_stats = pd.DataFrame({
 
 })
 
+coverage_stats = (
+    returns_matrix
+    .notna()
+    .sum()
+    .rename("Observations")
+    .reset_index()
+)
+
+coverage_stats.columns = [
+    "Symbol",
+    "Observations"
+]
+
+missing_stats = missing_stats.merge(
+    coverage_stats,
+    on="Symbol",
+    how="left"
+)
+
 missing_stats[
     "Missing_Pct"
 ] = (
@@ -607,21 +626,20 @@ missing_stats[
     .values
 )
 
-valid_symbols = set(
+MIN_RISK_HISTORY_DAYS = 504
 
-    missing_stats.loc[
-
-        missing_stats[
-            "Missing_Pct"
-        ]
-
-        <=
-
-        MAX_MISSING_PCT,
-
-        "Symbol"
-    ]
-)
+valid_symbols = missing_stats.loc[
+    (
+        missing_stats["Missing_Pct"]
+        <= MAX_MISSING_PCT
+    )
+    |
+    (
+        missing_stats["Observations"]
+        >= MIN_RISK_HISTORY_DAYS
+    ),
+    "Symbol"
+]
 
 coverage_rejections = (
 
