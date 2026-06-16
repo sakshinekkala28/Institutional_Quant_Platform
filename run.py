@@ -1,8 +1,15 @@
 import pandas as pd
 
-fc = pd.read_parquet(
-    "data/risk/factor_covariance.parquet"
+blotter = pd.read_csv(
+    "data/execution/trade_blotter.csv"
 )
 
-print(fc.shape)
-print(fc.columns.tolist())
+prices = pd.read_parquet(
+    "data/raw/security_price_history.parquet"
+)
+
+print("\nTrade Blotter Sample")
+print(blotter["Symbol"].head(10).tolist())
+
+print("\nPrice File Sample")
+print(prices["Symbol"].head(10).tolist())
