@@ -1,0 +1,10 @@
+Metric,Value
+Gross_Turnover,1.9999999999999996
+Buy_Turnover,1.0
+Sell_Turnover,0.9999999999999998
+Cash_Before,2.220446049250313e-16
+Cash_After,0
+Cash_Change,-2.220446049250313e-16
+Largest_Trade,0.043787990913469264
+Trade_Quality_Score,70.0
+Turnover_Flag,HIGH

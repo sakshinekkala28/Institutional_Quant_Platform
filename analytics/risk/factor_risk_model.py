@@ -61,7 +61,7 @@ ENGINE_VERSION = "1.0.0"
 
 TRADING_DAYS = 252
 
-MAX_FACTOR_COUNT = 10
+MAX_FACTOR_COUNT = None
 
 MIN_PORTFOLIO_HOLDINGS = 5
 
@@ -255,10 +255,9 @@ if len(factor_columns) == 0:
         "No PCA factors found."
     )
 
-factor_columns = factor_columns[
-    :MAX_FACTOR_COUNT
-]
-
+if MAX_FACTOR_COUNT is not None:
+    factor_columns = factor_columns[:MAX_FACTOR_COUNT]
+    
 print(
     f"Factors Loaded : "
     f"{len(factor_columns)}"
