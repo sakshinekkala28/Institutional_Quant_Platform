@@ -1,0 +1,6 @@
+Scenario,Portfolio_Impact_Pct
+Market_Crash_10,-10.0
+Market_Crash_20,-20.0
+Market_Crash_30,-30.0
+Vol_Shock_25,-25.462586356565815
+Vol_Shock_50,-30.555103627878978

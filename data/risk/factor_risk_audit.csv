@@ -1,16 +1,16 @@
 Metric,Value
 Engine,FACTOR_RISK_MODEL
 Version,1.0.0
-Run_Time,2026-06-16 11:46:44.301047
+Run_Time,2026-06-16 12:26:13.141498
 Assets,47
-Factors,10
-Factor_Risk_Share,0.9581457356876699
-Specific_Risk_Share,0.04185426431233014
-Effective_Factors,3.8907111790547986
-Factor_HHI,0.25702241929017666
+Factors,20
+Factor_Risk_Share,0.9732022382220473
+Specific_Risk_Share,0.026797761777952754
+Effective_Factors,8.263775172604472
+Factor_HHI,0.12101006853564152
 Portfolio_Volatility,0.18217369922339785
-Factor_Risk_Pct,95.81457356876699
-Specific_Risk_Pct,4.185426431233014
+Factor_Risk_Pct,97.32022382220474
+Specific_Risk_Pct,2.679776177795275
 Effective_Risk_Positions,40.23742311885512
 Dominant_Factor,PC_1
-Min_Factor_Eigenvalue,3.61285450036659
+Min_Factor_Eigenvalue,2.503671479929287
