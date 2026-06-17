@@ -31,6 +31,8 @@ ENGINE_VERSION = "1.0.0"
 
 MAX_ADV_PARTICIPATION = 0.10
 
+PORTFOLIO_NAV = 100_000_000
+
 TARGET_EXIT_DAYS = 3
 
 TARGET_POSITION_SIZE = 0.05
@@ -326,6 +328,73 @@ strategy_capacity = (
     .min()
 )
 
+constraint = (
+
+    portfolio
+
+    .sort_values(
+        "Effective_Capacity"
+    )
+
+    .iloc[0]
+)
+
+constraint_symbol = constraint["Symbol"]
+
+constraint_capacity = (
+    constraint["Effective_Capacity"]
+)
+
+constraints = (
+
+    portfolio
+
+    .nsmallest(
+        20,
+        "Effective_Capacity"
+    )
+)
+
+top5_capacity_share = (
+
+    portfolio
+
+    .nlargest(
+        5,
+        "Effective_Capacity"
+    )
+
+    [
+        "Effective_Capacity"
+    ]
+
+    .sum()
+
+    /
+
+    portfolio[
+        "Effective_Capacity"
+    ].sum()
+)
+
+portfolio["Liquidity_Breach"] = (
+
+    portfolio[
+        "Days_To_Exit"
+    ]
+
+    > TARGET_EXIT_DAYS
+)
+
+breaches = (
+
+    portfolio[
+        "Liquidity_Breach"
+    ]
+
+    .sum()
+)
+
 weighted_capacity = (
 
     portfolio[
@@ -353,6 +422,134 @@ avg_score = (
     .mean()
 )
 
+capacity_utilization = (
+
+    PORTFOLIO_NAV
+
+    /
+
+    max(
+        strategy_capacity,
+        1
+    )
+)
+
+if capacity_utilization < 0.25:
+
+    capacity_grade = "A"
+
+elif capacity_utilization < 0.50:
+
+    capacity_grade = "B"
+
+elif capacity_utilization < 0.75:
+
+    capacity_grade = "C"
+
+else:
+
+    capacity_grade = "D"
+
+
+institutional_positions = (
+
+    portfolio[
+        "Capacity_Class"
+    ]
+
+    == "INSTITUTIONAL"
+
+).sum()
+
+institutional_share = (
+
+    institutional_positions
+
+    /
+
+    len(portfolio)
+)
+
+scalable_positions = (
+
+    portfolio[
+        "Capacity_Class"
+    ]
+
+    == "SCALABLE"
+
+).sum()
+
+limited_positions = (
+
+    portfolio[
+        "Capacity_Class"
+    ]
+
+    == "LIMITED"
+
+).sum()
+
+constrained_positions = (
+
+    portfolio[
+        "Capacity_Class"
+    ]
+
+    == "CONSTRAINED"
+
+).sum()
+
+capacity_distribution = (
+
+    portfolio[
+        "Capacity_Class"
+    ]
+
+    .value_counts(
+        normalize=True
+    )
+
+    * 100
+)
+
+institutional_scalable_share = (
+
+    institutional_positions
+
+    + scalable_positions
+
+) / len(portfolio)
+
+if institutional_scalable_share >= 0.70:
+
+    capacity_risk = "LOW"
+
+elif institutional_scalable_share >= 0.50:
+
+    capacity_risk = "MODERATE"
+
+else:
+
+    capacity_risk = "HIGH"
+
+capacity_health = (
+
+      min(
+          avg_score,
+          100
+      ) * 0.4
+
+    + (1 - min(
+          capacity_utilization,
+          1
+      )) * 30
+
+    + (1 - top5_capacity_share) * 30
+)
+
+
+
 # =========================================================
 # SUMMARY
 # =========================================================
@@ -369,7 +566,23 @@ summary = pd.DataFrame({
 
         "Average_Capacity_Score",
 
+        "Capacity_Utilization",
+
+        "Capacity_Grade",
+
+        "Capacity_Health",
+
+        "Largest_Constraint",
+
+        "Constraint_Capacity",
+
+        "Top5_Capacity_Share",
+
+        "Liquidity_Breaches",
+
         "Total_Positions",
+
+        "Institutional_Positions",
 
         "Run_Date",
 
@@ -386,7 +599,23 @@ summary = pd.DataFrame({
 
         avg_score,
 
+        capacity_utilization,
+
+        capacity_grade,
+
+        capacity_health,
+
+        constraint_symbol,
+
+        constraint_capacity,
+
+        top5_capacity_share,
+
+        breaches,
+
         len(portfolio),
+
+        institutional_positions,
 
         datetime.now()
         .strftime(
@@ -424,6 +653,12 @@ summary.to_csv(
     index=False,
 )
 
+constraints.to_csv(
+    OUTPUT_DIR
+    / "capacity_constraints.csv",
+    index=False
+)
+
 # =========================================================
 # REPORT
 # =========================================================
@@ -437,9 +672,52 @@ print(
 print("=" * 70)
 
 print(
+    f"Portfolio Positions    : "
+    f"{len(portfolio):,}"
+)
+
+print()
+
+print(
     f"Strategy Capacity      : "
     f"₹{strategy_capacity:,.0f}"
 )
+
+print(
+    f"Capacity Utilization   : "
+    f"{capacity_utilization:.2%}"
+)
+
+print(
+    f"Capacity Grade         : "
+    f"{capacity_grade}"
+)
+
+print()
+
+print(
+    f"Average Capacity Score : "
+    f"{avg_score:.2f}"
+)
+
+print(
+    f"Capacity Health        : "
+    f"{capacity_health:.2f}"
+)
+
+print()
+
+print(
+    f"Largest Constraint     : "
+    f"{constraint_symbol}"
+)
+
+print(
+    f"Constraint Capacity    : "
+    f"₹{constraint_capacity:,.0f}"
+)
+
+print()
 
 print(
     f"Median Capacity        : "
@@ -452,13 +730,54 @@ print(
 )
 
 print(
-    f"Average Capacity Score : "
-    f"{avg_score:.2f}"
+    f"Top 5 Capacity Share   : "
+    f"{top5_capacity_share:.2%}"
 )
 
 print(
-    f"Portfolio Positions    : "
-    f"{len(portfolio):,}"
+    f"Institutional Positions : "
+    f"{institutional_positions}"
+)
+
+print(
+    f"Institutional Share     : "
+    f"{institutional_share:.2%}"
+)
+
+print(
+    f"Scalable Positions      : "
+    f"{scalable_positions}"
+)
+
+print(
+    f"Limited Positions       : "
+    f"{limited_positions}"
+)
+
+print(
+    f"Constrained Positions   : "
+    f"{constrained_positions}"
+)
+
+print("\nCapacity Distribution")
+
+print(
+    capacity_distribution
+)
+
+print(
+    f"Institutional+Scalable : "
+    f"{institutional_scalable_share:.2%}"
+)
+
+print(
+    f"Capacity Risk          : "
+    f"{capacity_risk}"
+)
+
+print(
+    f"Liquidity Breaches     : "
+    f"{breaches:,}"
 )
 
 print(

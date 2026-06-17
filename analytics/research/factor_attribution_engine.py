@@ -66,6 +66,11 @@ REPORT_FILE = (
     / "factor_attribution_report.csv"
 )
 
+HISTORY_FILE = (
+    OUTPUT_DIR
+    / "factor_history.csv"
+)
+
 OUTPUT_DIR.mkdir(
     parents=True,
     exist_ok=True,
@@ -520,27 +525,6 @@ quality_score = max(
     )
 )
 
-health_score = (
-
-    coverage * 40
-
-    +
-
-    min(
-        factor_div_score,
-        10
-    ) * 4
-
-    +
-
-    (1 - hhi) * 20
-)
-
-health_score = min(
-    health_score,
-    100
-)
-
 breadth_score = (
 
     len(positive_factors)
@@ -552,6 +536,18 @@ breadth_score = (
         1
     )
 )
+
+if breadth_score >= 0.70:
+    breadth_grade = "Excellent"
+
+elif breadth_score >= 0.50:
+    breadth_grade = "Healthy"
+
+elif breadth_score >= 0.30:
+    breadth_grade = "Narrow"
+
+else:
+    breadth_grade = "Highly Concentrated"
 
 crowding_score = (
 
@@ -573,6 +569,32 @@ elif crowding_score > 5:
 
 else:
     crowding = "Low"
+
+
+health_score = (
+
+    coverage * 30
+
+    +
+
+    min(
+        factor_div_score,
+        10
+    ) * 3
+
+    +
+
+    (1 - hhi) * 20
+
+    +
+
+    breadth_score * 20
+)
+
+health_score = min(
+    health_score,
+    100
+)
 
 # =========================================================
 # FACTOR TYPE
@@ -648,6 +670,22 @@ top_group = (
     .iloc[0]
 )
 
+if top_group["Factor_Group"] == "Momentum":
+
+    regime = "Trending Market"
+
+elif top_group["Factor_Group"] == "Risk":
+
+    regime = "Defensive Market"
+
+elif top_group["Factor_Group"] == "Liquidity":
+
+    regime = "Institutional Accumulation"
+
+else:
+
+    regime = "Mixed Market"
+
 warnings = []
 
 if top_factor_share > 40:
@@ -668,6 +706,13 @@ if factor_div_score < 5:
         "Low factor diversification"
     )
 
+if warnings:
+
+    for warning in warnings:
+
+        print(
+            f"⚠ {warning}"
+        )
 
 if factor_div_score >= 8:
 
@@ -685,13 +730,45 @@ else:
 
     diversification = "Concentrated"
 
-if warnings:
 
-    for warning in warnings:
+factor_risk_score = (
 
-        print(
-            f"⚠ {warning}"
-        )
+    hhi * 40
+
+    +
+
+    (1 - breadth_score) * 30
+
+    +
+
+    (top_factor_share / 100) * 30
+)
+
+if factor_risk_score < 20:
+    risk_rating = "Low"
+
+elif factor_risk_score < 40:
+    risk_rating = "Moderate"
+
+else:
+    risk_rating = "High"
+
+top_positive = (
+    positive_factors
+    .sort_values(
+        "Contribution",
+        ascending=False
+    )
+    .iloc[0]
+)
+
+top_negative = (
+    negative_factors
+    .sort_values(
+        "Contribution"
+    )
+    .iloc[0]
+)
 
 dashboard = pd.DataFrame({
 
@@ -724,21 +801,6 @@ dashboard = pd.DataFrame({
     ]
 })
 
-if top_group["Factor_Group"] == "Momentum":
-
-    regime = "Trending Market"
-
-elif top_group["Factor_Group"] == "Risk":
-
-    regime = "Defensive Market"
-
-elif top_group["Factor_Group"] == "Liquidity":
-
-    regime = "Institutional Accumulation"
-
-else:
-
-    regime = "Mixed Market"
 
 # =========================================================
 # SAVE
@@ -858,6 +920,74 @@ report.to_csv(
     index=False,
 )
 
+history_row = pd.DataFrame({
+
+    "Run_Date": [
+        datetime.now().strftime(
+            "%Y-%m-%d"
+        )
+    ],
+
+    "Top_Factor": [
+        best["Factor"]
+    ],
+
+    "Top_Group": [
+        top_group["Factor_Group"]
+    ],
+
+    "Top_Factor_Share": [
+        top_factor_share
+    ],
+
+    "Top_Group_Share": [
+        top_group["Contribution_%"]
+    ],
+
+    "Effective_Factors": [
+        factor_div_score
+    ],
+
+    "Factor_HHI": [
+        hhi
+    ],
+
+    "Breadth_Score": [
+        breadth_score
+    ],
+
+    "Health_Score": [
+        health_score
+    ],
+
+    "Warnings": [
+        len(warnings)
+    ]
+})
+
+if HISTORY_FILE.exists():
+
+    history = pd.read_csv(
+        HISTORY_FILE
+    )
+
+    history = pd.concat(
+        [
+            history,
+            history_row
+        ],
+        ignore_index=True
+    )
+
+else:
+
+    history = history_row.copy()
+
+history.to_csv(
+    HISTORY_FILE,
+    index=False
+)
+
 required_outputs = [
 
     OUTPUT_DIR
@@ -882,6 +1012,8 @@ required_outputs = [
     / "factor_dashboard.csv",
 
     REPORT_FILE,
+
+    HISTORY_FILE,
 ]
 
 for file in required_outputs:
@@ -892,9 +1024,127 @@ for file in required_outputs:
             file
         )
 
+# =========================================================
+# REPORT
+# =========================================================
+
+print("\n" + "=" * 70)
+
+print(
+    "🏁 FACTOR ATTRIBUTION ENGINE COMPLETE"
+)
+
+print("=" * 70)
+
+# ---------------------------------------------------------
+# EXECUTIVE SUMMARY
+# ---------------------------------------------------------
+
+print(
+    f"Factors Analyzed : "
+    f"{len(rankings)}"
+)
+
 print(
     f"Coverage         : "
     f"{coverage:.2%}"
+)
+
+print(
+    f"Health Score     : "
+    f"{health_score:.2f}"
+)
+
+print(
+    f"Quality Score    : "
+    f"{quality_score:.2f}"
+)
+
+# ---------------------------------------------------------
+# DIVERSIFICATION & RISK
+# ---------------------------------------------------------
+
+print(
+    f"Effective Factors: "
+    f"{factor_div_score:.2f}"
+)
+
+print(
+    f"Factor HHI       : "
+    f"{hhi:.3f}"
+)
+
+print(
+    f"Diversification  : "
+    f"{diversification}"
+)
+
+print(
+    f"Crowding Score   : "
+    f"{crowding_score:.2f}"
+)
+
+print(
+    f"Crowding Risk    : "
+    f"{crowding}"
+)
+
+# ---------------------------------------------------------
+# BREADTH
+# ---------------------------------------------------------
+
+print(
+    f"Breadth Score    : "
+    f"{breadth_score:.2%}"
+)
+
+print(
+    f"Breadth Grade    : "
+    f"{breadth_grade}"
+)
+
+print(
+    f"Positive Factors : "
+    f"{len(positive_factors)}"
+)
+
+print(
+    f"Positive Share   : "
+    f"{positive_share:.2f}%"
+)
+
+print(
+    f"Negative Factors : "
+    f"{len(negative_factors)}"
+)
+
+print(
+    f"Negative Share   : "
+    f"{negative_share:.2f}%"
+)
+
+# ---------------------------------------------------------
+# FACTOR LEADERSHIP
+# ---------------------------------------------------------
+
+print(
+    f"Top Factor       : "
+    f"{best['Factor']}"
+)
+
+print(
+    f"Contribution     : "
+    f"{best['Contribution_%']:.2f}%"
+)
+
+print(
+    f"Top Positive     : "
+    f"{top_positive['Factor']}"
+)
+
+print(
+    f"Top Negative     : "
+    f"{top_negative['Factor']}"
 )
 
 print(
@@ -912,20 +1162,9 @@ print(
     f"{top5_share:.2f}%"
 )
 
-print(
-    f"Quality Score    : "
-    f"{quality_score:.2f}"
-)
-
-print(
-    f"Health Score     : "
-    f"{health_score:.2f}"
-)
-
-print(
-    f"Breadth Score    : "
-    f"{breadth_score:.2%}"
-)
+# ---------------------------------------------------------
+# FACTOR REGIME
+# ---------------------------------------------------------
 
 print(
     f"Top Group        : "
@@ -942,77 +1181,22 @@ print(
     f"{regime}"
 )
 
-print(
-    f"Diversification  : "
-    f"{diversification}"
-)
+# ---------------------------------------------------------
+# GOVERNANCE
+# ---------------------------------------------------------
 
 print(
     f"Warnings         : "
     f"{len(warnings)}"
 )
 
-print(
-    f"Positive Share   : "
-    f"{positive_share:.2f}%"
-)
+if warnings:
 
-print(
-    f"Negative Share   : "
-    f"{negative_share:.2f}%"
-)
+    for warning in warnings:
 
-# =========================================================
-# REPORT
-# =========================================================
-
-print("\n" + "=" * 70)
-
-print(
-    "🏁 FACTOR ATTRIBUTION ENGINE COMPLETE"
-)
-
-print("=" * 70)
-
-print(
-    f"Factors Analyzed : "
-    f"{len(rankings)}"
-)
-
-print(
-    f"Top Factor       : "
-    f"{best['Factor']}"
-)
-
-print(
-    f"Contribution     : "
-    f"{best['Contribution_%']:.2f}%"
-)
-
-print(
-    f"Effective Factors : "
-    f"{factor_div_score:.2f}"
-)
-
-print(
-    f"Factor HHI        : "
-    f"{hhi:.3f}"
-)
-
-print(
-    f"Positive Factors  : "
-    f"{len(positive_factors)}"
-)
-
-print(
-    f"Negative Factors  : "
-    f"{len(negative_factors)}"
-)
-
-print(
-    f"Top Factor Share  : "
-    f"{top_factor_share:.2f}%"
-)
+        print(
+            f"⚠ {warning}"
+        )
 
 print(
     f"\nOutput Directory:\n"
