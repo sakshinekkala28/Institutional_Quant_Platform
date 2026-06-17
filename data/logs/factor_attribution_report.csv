@@ -1,6 +1,12 @@
 Metric,Value
-Factors_Analyzed,12
-Top_Factor,Dollar_Volume
-Top_Contribution_%,22.8872217443571
-Run_Date,2026-06-13
+Coverage,1.0
+Top_Group,Risk
+Top_Group_Share,33.69386560332248
+Effective_Factors,8.32714036723174
+Factor_HHI,0.12008924503484
+Positive_Factors,3
+Negative_Factors,9
+Diversification,Excellent
+Warnings,0
+Run_Date,2026-06-17
 Engine_Version,1.0.0

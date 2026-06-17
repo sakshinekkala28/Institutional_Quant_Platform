@@ -79,6 +79,21 @@ OUTPUT_DIR.mkdir(
     exist_ok=True,
 )
 
+required_files = [
+
+    EQUITY_FILE,
+    PORTFOLIO_FILE,
+    FACTOR_FILE,
+]
+
+for file in required_files:
+
+    if not file.exists():
+
+        raise FileNotFoundError(
+            file
+        )
+    
 # =========================================================
 # LOAD
 # =========================================================
@@ -94,6 +109,28 @@ equity = pd.read_csv(
 portfolio = pd.read_csv(
     PORTFOLIO_FILE
 )
+
+if "Weight" not in portfolio.columns:
+
+    raise ValueError(
+        "Weight column missing."
+    )
+
+weight_sum = portfolio["Weight"].sum()
+
+if abs(weight_sum - 1.0) > 0.01:
+
+    print(
+        f"⚠ Normalizing weights "
+        f"(sum={weight_sum:.4f})"
+    )
+
+    portfolio["Weight"] = (
+
+        portfolio["Weight"]
+
+        / weight_sum
+    )
 
 factors = pd.read_csv(
     FACTOR_FILE
@@ -165,20 +202,47 @@ portfolio_returns = equity[
 
 if "Benchmark_Return" in equity.columns:
 
-    benchmark_returns = equity[
-        "Benchmark_Return"
-    ]
+    benchmark_returns = (
+
+        equity[
+            "Benchmark_Return"
+        ]
+        .dropna()
+    )
+
+    benchmark_coverage = (
+
+        len(benchmark_returns)
+
+        /
+
+        len(equity)
+    )
+
+    print(
+        f"Benchmark Coverage : "
+        f"{benchmark_coverage:.2%}"
+    )
+
+    if benchmark_coverage < 0.95:
+
+        print(
+            "⚠ Benchmark coverage below 95%"
+        )
 
     benchmark_total_return = (
 
         (1 + benchmark_returns)
         .prod()
+
         - 1
     )
 
 else:
 
     benchmark_returns = None
+
+    benchmark_coverage = 0
 
     benchmark_total_return = np.nan
 
@@ -270,6 +334,82 @@ sharpe_ratio = (
         1e-9
     )
 )
+
+# =========================================================
+# ALPHA / BETA
+# =========================================================
+
+if benchmark_returns is not None:
+
+    aligned = pd.concat(
+
+        [
+
+            portfolio_returns,
+
+            benchmark_returns,
+
+        ],
+
+        axis=1,
+
+    ).dropna()
+
+    aligned.columns = [
+
+        "Portfolio",
+        "Benchmark",
+    ]
+
+    covariance = np.cov(
+
+        aligned["Portfolio"],
+        aligned["Benchmark"]
+    )
+
+    beta = (
+
+        covariance[0, 1]
+
+        /
+
+        max(
+            covariance[1, 1],
+            1e-9
+        )
+    )
+
+    alpha = (
+
+        aligned["Portfolio"].mean()
+
+        -
+
+        beta
+
+        * aligned[
+            "Benchmark"
+        ].mean()
+    ) * TRADING_DAYS
+
+    correlation = np.corrcoef(
+
+        aligned["Portfolio"],
+        aligned["Benchmark"]
+    )[0, 1]
+
+    r_squared = (
+
+        correlation ** 2
+    )
+
+else:
+
+    alpha = np.nan
+
+    beta = np.nan
+
+    r_squared = np.nan
 
 # =========================================================
 # DRAWDOWN
@@ -582,6 +722,87 @@ else:
             "Sector_Score"
         ]
     )
+
+# =========================================================
+# ATTRIBUTION AUDIT
+# =========================================================
+
+audit_metrics = {
+
+    "Portfolio_Return":
+    portfolio_total_return,
+
+    "Benchmark_Return":
+    benchmark_total_return,
+
+    "Excess_Return":
+    excess_return,
+
+    "Annual_Return":
+    annual_return,
+
+    "Annual_Volatility":
+    annual_volatility,
+
+    "Sharpe_Ratio":
+    sharpe_ratio,
+
+    "Tracking_Error":
+    tracking_error,
+
+    "Information_Ratio":
+    information_ratio,
+
+    "Hit_Ratio":
+    hit_ratio,
+
+    "Max_Drawdown":
+    max_drawdown,
+
+    "Alpha":
+    alpha,
+
+    "Beta":
+    beta,
+
+    "R_Squared":
+    r_squared,
+
+    "Run_Date":
+    datetime.now().strftime(
+        "%Y-%m-%d"
+    ),
+
+    "Engine_Version":
+    ENGINE_VERSION,
+}
+
+AUDIT_FILE = (
+
+    OUTPUT_DIR
+    / "performance_audit.csv"
+)
+
+audit_report = pd.DataFrame({
+
+    "Metric":
+    list(
+        audit_metrics.keys()
+    ),
+
+    "Value":
+    list(
+        audit_metrics.values()
+    )
+})
+
+audit_report.to_csv(
+
+    AUDIT_FILE,
+
+    index=False
+)
+
 # =========================================================
 # DASHBOARD
 # =========================================================
@@ -603,6 +824,12 @@ dashboard = pd.DataFrame({
         "Hit_Ratio",
 
         "Max_Drawdown",
+
+        "Alpha",
+
+        "Beta",
+
+        "R_Squared",
 
         "Factors",
 
@@ -626,6 +853,12 @@ dashboard = pd.DataFrame({
         hit_ratio,
 
         max_drawdown,
+
+        alpha,
+
+        beta,
+
+        r_squared,
 
         len(
             factor_attribution
@@ -681,6 +914,47 @@ dashboard.to_csv(
 )
 
 # =========================================================
+# OUTPUT VALIDATION
+# =========================================================
+
+print(
+    "✔ Running Output Validation..."
+)
+
+required_outputs = [
+
+    OUTPUT_DIR / "performance_attribution.csv",
+
+    OUTPUT_DIR / "factor_attribution.csv",
+
+    OUTPUT_DIR / "sector_attribution.csv",
+
+    OUTPUT_DIR / "performance_dashboard.csv",
+
+    AUDIT_FILE,
+]
+
+for file in required_outputs:
+
+    if not file.exists():
+
+        raise FileNotFoundError(
+            file
+        )
+
+
+benchmark_display = (
+
+    f"{benchmark_total_return:.2%}"
+
+    if pd.notna(
+        benchmark_total_return
+    )
+
+    else "N/A"
+)
+
+# =========================================================
 # REPORT
 # =========================================================
 
@@ -698,6 +972,21 @@ print(
 )
 
 print(
+    f"Alpha               : "
+    f"{alpha:.2%}"
+)
+
+print(
+    f"Beta                : "
+    f"{beta:.2f}"
+)
+
+print(
+    f"R-Squared           : "
+    f"{r_squared:.2%}"
+)
+
+print(
     f"Portfolio Return : "
     f"{portfolio_total_return:.2%}"
 )
@@ -710,6 +999,11 @@ print(
 print(
     f"excess_return            : "
     f"{excess_return:.2%}"
+)
+
+print(
+    f"Sharpe Ratio     : "
+    f"{sharpe_ratio:.2f}"
 )
 
 print(

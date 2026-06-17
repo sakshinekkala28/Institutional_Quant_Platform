@@ -6,8 +6,11 @@ Allocation_Total,0.06475852997233486
 Selection_Total,0.5608959393418241
 Interaction_Total,0.003612512879263716
 Total_Attribution,0.6292669821934227
+Quality_Score,100.0
+Coverage_Portfolio,1.0
+Coverage_Benchmark,1.0
 Residual,0.0
 Top_Positive_Sector,Consumer Defensive
 Top_Negative_Sector,Communication Services
-Run_Date,2026-06-13
+Run_Date,2026-06-17
 Engine_Version,1.0.0

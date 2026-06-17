@@ -85,6 +85,13 @@ OUTPUT_DIR.mkdir(
     exist_ok=True,
 )
 
+for file in [
+    PORTFOLIO_FILE,
+    BENCHMARK_FILE,
+]:
+    if not file.exists():
+        raise FileNotFoundError(file)
+    
 # =========================================================
 # LOAD DATA
 # =========================================================
@@ -363,6 +370,16 @@ benchmark_coverage = (
     .notna()
 
     .mean()
+)
+
+print(
+    f"Portfolio Coverage : "
+    f"{portfolio_coverage:.2%}"
+)
+
+print(
+    f"Benchmark Coverage : "
+    f"{benchmark_coverage:.2%}"
 )
 
 if (
@@ -1057,6 +1074,51 @@ total_attribution = (
     interaction_total
 )
 
+allocation_share = (
+
+    allocation_total
+
+    / max(
+        abs(active_return),
+        1e-9
+    )
+)
+
+selection_share = (
+
+    selection_total
+
+    / max(
+        abs(active_return),
+        1e-9
+    )
+)
+
+interaction_share = (
+
+    interaction_total
+
+    / max(
+        abs(active_return),
+        1e-9
+    )
+)
+
+print(
+    f"Allocation Share : "
+    f"{allocation_share:.2%}"
+)
+
+print(
+    f"Selection Share  : "
+    f"{selection_share:.2%}"
+)
+
+print(
+    f"Interaction Share: "
+    f"{interaction_share:.2%}"
+)
+
 residual = (
 
     active_return
@@ -1064,6 +1126,20 @@ residual = (
     -
 
     total_attribution
+)
+
+quality_score = max(
+
+    0,
+
+    100
+    -
+    abs(residual) * 10000
+)
+
+print(
+    f"Quality Score   : "
+    f"{quality_score:.2f}"
 )
 
 # =========================================================
@@ -1178,6 +1254,12 @@ summary = pd.DataFrame({
 
         "Active_Return",
 
+        "Allocation_Share",
+
+        "Selection_Share",
+        
+        "Interaction_Share",
+
         "Allocation_Total",
 
         "Selection_Total",
@@ -1185,6 +1267,12 @@ summary = pd.DataFrame({
         "Interaction_Total",
 
         "Total_Attribution",
+
+        "Quality_Score",
+
+        "Coverage_Portfolio",
+
+        "Coverage_Benchmark",
 
         "Residual",
 
@@ -1212,6 +1300,12 @@ summary = pd.DataFrame({
         interaction_total,
 
         total_attribution,
+
+        quality_score,
+
+        portfolio_coverage,
+
+        benchmark_coverage,
 
         residual,
 
@@ -1650,6 +1744,30 @@ if abs(
         f"residual: {residual:.2%}"
     )
 
+print(
+    "\n✔ Running Output Validation..."
+)
+
+required_outputs = [
+
+    OUTPUT_DIR / "brinson_sector_attribution.csv",
+    OUTPUT_DIR / "allocation_effect.csv",
+    OUTPUT_DIR / "selection_effect.csv",
+    OUTPUT_DIR / "interaction_effect.csv",
+    OUTPUT_DIR / "brinson_dashboard.csv",
+    OUTPUT_DIR / "brinson_summary.csv",
+    OUTPUT_DIR / "brinson_reconciliation.csv",
+    REPORT_FILE,
+]
+
+for file in required_outputs:
+
+    if not file.exists():
+
+        raise FileNotFoundError(
+            file
+        )
+    
 # =========================================================
 # FINAL REPORT
 # =========================================================
