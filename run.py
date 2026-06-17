@@ -1,9 +1,9 @@
 import pandas as pd
 
-brinson = pd.read_csv(
-    "data/performance/brinson_sector_attribution.csv"
+security_master = pd.read_csv(
+    "data/raw/security_master.csv"
 )
 
 print(
-    brinson["Total_Effect"].describe()
+    security_master["Sector"].isna().mean() * 100
 )
