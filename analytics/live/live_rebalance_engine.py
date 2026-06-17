@@ -73,6 +73,12 @@ MAX_SECTOR_DRIFT = 0.05
 
 MIN_CAPACITY_SCORE = 40
 
+# =========================================================
+# LIQUIDITY CONSTRAINTS
+# =========================================================
+
+MAX_ADV_USAGE = 0.10
+
 # Transaction Cost Controls
 
 MAX_COST_BPS = 100
@@ -81,6 +87,20 @@ MIN_HOLD_DAYS = 20
 MAX_NEW_POSITIONS = 10
 MAX_EXIT_POSITIONS = 10
 DEBUG_MODE = False
+
+MAX_MCAP_DRIFT = 0.10
+MAX_LIQUIDITY_DRIFT = 0.15
+
+# =========================================================
+# PORTFOLIO RISK MODEL
+# =========================================================
+
+DEFAULT_VOLATILITY = 0.25
+
+MAX_POSITION_RISK = 0.10
+
+MAX_HHI = 0.03
+
 
 # =========================================================
 # PATHS
@@ -153,6 +173,13 @@ REPORT_FILE.parent.mkdir(
     exist_ok=True,
 )
 
+security_master = pd.read_csv(
+    ROOT / "data/raw/security_master.csv"
+)
+
+if "ADV" in security_master.columns and "ADV_20D" not in security_master.columns:
+    security_master["ADV_20D"] = security_master["ADV"]
+
 # =========================================================
 # SAFE LOAD
 # =========================================================
@@ -223,6 +250,7 @@ def validate_required_columns(
 
             f"{missing}"
         )
+
 
 # =========================================================
 # LOAD INPUTS
@@ -495,14 +523,124 @@ print(
     "Market_Cap" in signals.columns
 )
 
+print("\nSecurity Master Columns:")
+print(security_master.columns.tolist())
+
+signals = signals.drop(
+    columns=["Sector"],
+    errors="ignore"
+)
+
+signals = signals.merge(
+    security_master[
+        [
+            "Symbol",
+            "Market_Cap",
+            "ADV_20D",
+            "Sector"
+        ]
+    ],
+    on="Symbol",
+    how="left"
+)
+
+print("\nMerged Columns:")
+print(signals.columns.tolist())
+
+print("\nDATA COVERAGE CHECK")
+print(
+    "Sector Coverage Raw:",
+    signals["Sector"].notna().sum(),
+    "/",
+    len(signals)
+)
+
+print(
+    "Market Cap Coverage Raw:",
+    signals["Market_Cap"].notna().sum(),
+    "/",
+    len(signals)
+)
+
+print(
+    "ADV Coverage Raw:",
+    signals["ADV_20D"].notna().sum(),
+    "/",
+    len(signals)
+)
+
+# =========================================================
+# DATA QUALITY - MARKET CAP COVERAGE
+# =========================================================
+
 if "Market_Cap" in signals.columns:
 
-    print(
-        "Valid Market Cap Records:",
-        signals["Market_Cap"]
+    market_cap_coverage = (
+        portfolio["Market_Cap"]
         .notna()
-        .sum()
+        .mean()
+        * 100
     )
+
+else:
+
+    market_cap_coverage = 0.0
+
+
+# =========================================================
+# DATA QUALITY - SECTOR COVERAGE
+# =========================================================
+
+if "Sector" in signals.columns:
+
+    sector_coverage = (
+        signals["Sector"]
+        .fillna("")
+        .ne("")
+        .mean()
+        * 100
+    )
+
+else:
+
+    sector_coverage = 0.0
+
+# =========================================================
+# MISSING DATA REPORT
+# =========================================================
+
+required_fields = [
+    "Sector",
+    "Market_Cap",
+    "ADV_20D"
+]
+
+missing_report = []
+
+for col in required_fields:
+
+    if col in signals.columns:
+
+        missing_count = (
+            signals[col]
+            .isna()
+            .sum()
+        )
+
+    else:
+
+        missing_count = len(signals)
+
+    missing_report.append(
+        {
+            "Field": col,
+            "Missing_Count": missing_count
+        }
+    )
+
+missing_report = pd.DataFrame(
+    missing_report
+)
 
 # =========================================================
 # REGIME OVERLAY
@@ -1058,6 +1196,12 @@ target = pd.concat([
     new_candidates
 ])
 
+target["Target_Weight"] = (
+    target["Target_Weight"]
+    /
+    target["Target_Weight"].sum()
+)
+
 # =========================================================
 # ACTION ENGINE
 # =========================================================
@@ -1117,6 +1261,23 @@ print(
     "🎯 Calculating Trade Priority..."
 )
 
+# =========================================================
+# DATA QUALITY - ADV COVERAGE
+# =========================================================
+
+if "ADV_20D" in portfolio.columns:
+
+    adv_coverage = (
+        portfolio["ADV_20D"]
+        .notna()
+        .mean()
+        * 100
+    )
+
+else:
+
+    adv_coverage = 0.0
+
 target[
     "Priority_Score"
 ] = (
@@ -1165,6 +1326,24 @@ trade_list = (
 )
 
 # =========================================================
+# ADV DATA ATTACHMENT
+# =========================================================
+
+if "ADV_20D" in portfolio.columns:
+
+    trade_list = trade_list.merge(
+        portfolio[
+            ["Symbol", "ADV_20D"]
+        ],
+        on="Symbol",
+        how="left"
+    )
+
+else:
+
+    trade_list["ADV_20D"] = np.nan
+
+# =========================================================
 # EXECUTION RANKING
 # =========================================================
 
@@ -1196,6 +1375,52 @@ trade_list[
     trade_list.index
     + 1
 )
+
+if "ADV_20D" in trade_list.columns:
+
+    trade_list["ADV_Limit"] = (
+        trade_list["ADV_20D"]
+        * MAX_ADV_USAGE
+    )
+
+    trade_list["Liquidity_Usage"] = np.where(
+        trade_list["ADV_Limit"] > 0,
+        trade_list["Trade_Size_%"]
+        /
+        trade_list["ADV_Limit"],
+        np.nan
+    )
+
+else:
+
+    trade_list["ADV_Limit"] = np.nan
+    trade_list["Liquidity_Usage"] = np.nan
+
+trade_list["Liquidity_Flag"] = np.where(
+    trade_list["Liquidity_Usage"] > 1,
+    "VIOLATION",
+    np.where(
+        trade_list["Liquidity_Usage"].isna(),
+        "NO_ADV_DATA",
+        "OK"
+    )
+)
+
+avg_liquidity_usage = (
+    trade_list["Liquidity_Usage"]
+    .fillna(0)
+    .mean()
+)
+
+liquidity_execution_capacity = max(
+    0,
+    100 - avg_liquidity_usage * 100
+)
+
+liquidity_breaches = (
+    trade_list["Liquidity_Flag"]
+    == "VIOLATION"
+).sum()
 
 # =========================================================
 # REBALANCE ORDERS
@@ -1398,68 +1623,164 @@ print(
 )
 
 # =========================================================
+# V2.8 ALPHA DECAY & SIGNAL PERSISTENCE
+# =========================================================
+
+average_signal_age = np.nan
+portfolio_persistence = np.nan
+alpha_decay_score = np.nan
+average_alpha_decay = np.nan
+signal_stability = np.nan
+
+required_v28 = [
+    "Signal_Age_Days",
+    "Previous_Signal_Score"
+]
+
+if all(
+    col in target.columns
+    for col in required_v28
+):
+
+    target["Current_Signal_Score"] = (
+        target["Signal_Score"]
+    )
+
+    target["Alpha_Decay"] = (
+        target["Previous_Signal_Score"]
+        -
+        target["Current_Signal_Score"]
+    )
+
+    target["Persistence_Score"] = np.select(
+        [
+            target["Signal_Age_Days"] >= 90,
+            target["Signal_Age_Days"] >= 60,
+            target["Signal_Age_Days"] >= 30,
+            target["Signal_Age_Days"] >= 15
+        ],
+        [
+            100,
+            80,
+            60,
+            40
+        ],
+        default=20
+    )
+
+    average_signal_age = (
+        target["Signal_Age_Days"]
+        .mean()
+    )
+
+    portfolio_persistence = (
+        target["Persistence_Score"]
+        .mean()
+    )
+
+    average_alpha_decay = (
+        target["Alpha_Decay"]
+        .mean()
+    )
+
+    alpha_decay_score = max(
+        0,
+        100 - (
+            average_alpha_decay * 5
+        )
+    )
+
+else:
+
+    print(
+        "⚠ Alpha Decay Layer Skipped"
+    )
+    
+# Default values
+
+persistence_score = np.nan
+decay_grade = "N/A"
+
+if all(
+    col in target.columns
+    for col in required_v28
+):
+
+    target.loc[
+        target["Alpha_Decay"] > 10,
+        "Target_Weight"
+    ] *= 0.80
+
+    target.loc[
+        target["Signal_Age_Days"] > 60,
+        "Target_Weight"
+    ] *= 1.10
+
+    if average_alpha_decay <= 0:
+        decay_grade = "IMPROVING"
+
+    elif average_alpha_decay <= 5:
+        decay_grade = "STABLE"
+
+    elif average_alpha_decay <= 10:
+        decay_grade = "WARNING"
+
+    else:
+        decay_grade = "CRITICAL"
+
+    persistence_score = (
+        portfolio_persistence
+    )
+
+# =========================================================
 # PORTFOLIO TRANSITION MATRIX
 # =========================================================
 
-market_cap_drift = 0.0
+# Metadata Attachments
+
+metadata_cols = [
+    c
+    for c in [
+        "Market_Cap",
+        "ADV_20D",
+        "Volatility_252D"
+    ]
+    if c in portfolio.columns
+]
+
+if metadata_cols:
+
+    target = target.merge(
+        portfolio[
+            ["Symbol"] + metadata_cols
+        ],
+        on="Symbol",
+        how="left"
+    )
+
+
+market_cap_drift = np.nan
 
 if (
-    "Market_Cap" in signals.columns
+    "Market_Cap" in target.columns
     and
-    signals["Market_Cap"].notna().sum() > 0
+    target["Market_Cap"].notna().sum() > 0
 ):
 
     current_mcap = (
-
-        portfolio
-        .merge(
-            signals[
-                [
-                    "Symbol",
-                    "Market_Cap"
-                ]
-            ],
-            on="Symbol",
-            how="left"
-        )
-
-        .eval(
-            "Weight * Market_Cap"
-        )
-
-        .sum()
-    )
+        portfolio["Weight"]
+        * portfolio["Market_Cap"]
+    ).sum()
 
     target_mcap = (
-
-        target
-        .merge(
-            signals[
-                [
-                    "Symbol",
-                    "Market_Cap"
-                ]
-            ],
-            on="Symbol",
-            how="left"
-        )
-
-        .eval(
-            "Target_Weight * Market_Cap"
-        )
-
-        .sum()
-    )
+        target["Target_Weight"]
+        * target["Market_Cap"]
+    ).sum()
 
     market_cap_drift = (
-
         target_mcap
-
-        / max(
-            current_mcap,
-            1e-9
-        )
-
+        /
+        max(current_mcap, 1e-9)
         - 1
     )
 
@@ -1469,6 +1790,142 @@ target["Target_Weight"] = (
     target["Target_Weight"]
     /
     target["Target_Weight"].sum()
+)
+
+# =========================================================
+# SECTOR NEUTRALIZATION
+# =========================================================
+
+print("\n🏛 Applying Sector Neutralization...")
+
+MAX_SECTOR_DRIFT = 0.05
+
+if (
+    "Sector" in portfolio.columns
+    and
+    "Sector" in target.columns
+):
+
+    current_sector = (
+        portfolio
+        .groupby("Sector")["Weight"]
+        .sum()
+    )
+
+    target_sector = (
+        target
+        .groupby("Sector")["Target_Weight"]
+        .sum()
+    )
+
+    sector_compare = pd.concat(
+        [
+            current_sector.rename("Current"),
+            target_sector.rename("Target")
+        ],
+        axis=1
+    ).fillna(0)
+
+    sector_compare["Upper"] = (
+        sector_compare["Current"]
+        + MAX_SECTOR_DRIFT
+    )
+
+    sector_compare["Lower"] = (
+        sector_compare["Current"]
+        - MAX_SECTOR_DRIFT
+    )
+
+    sector_compare["Target"] = (
+        sector_compare["Target"]
+        .clip(
+            lower=sector_compare["Lower"],
+            upper=sector_compare["Upper"]
+        )
+    )
+
+    adjusted_target = []
+
+    for sector in sector_compare.index:
+
+        sector_weight = (
+            sector_compare.loc[
+                sector,
+                "Target"
+            ]
+        )
+
+        sector_stocks = (
+            target[
+                target["Sector"]
+                == sector
+            ]
+            .copy()
+        )
+
+        if len(sector_stocks) == 0:
+            continue
+
+        sector_stocks["Target_Weight"] = (
+            sector_stocks["Target_Weight"]
+            /
+            sector_stocks["Target_Weight"].sum()
+            *
+            sector_weight
+        )
+
+        adjusted_target.append(
+            sector_stocks
+        )
+
+    target = pd.concat(
+        adjusted_target,
+        ignore_index=True
+    )
+
+    target["Target_Weight"] = (
+        target["Target_Weight"]
+        /
+        target["Target_Weight"].sum()
+    )
+
+
+# ==========================================
+# RECALCULATE FINAL DRIFTS
+# ==========================================
+
+current_mcap = (
+    portfolio["Weight"]
+    * portfolio["Market_Cap"]
+).sum()
+
+target_mcap = (
+    target["Target_Weight"]
+    * target["Market_Cap"]
+).sum()
+
+market_cap_drift = (
+    target_mcap
+    /
+    max(current_mcap, 1e-9)
+    - 1
+)
+
+current_adv = (
+    portfolio["Weight"]
+    * portfolio["ADV_20D"]
+).sum()
+
+target_adv = (
+    target["Target_Weight"]
+    * target["ADV_20D"]
+).sum()
+
+liquidity_drift = (
+    target_adv
+    /
+    max(current_adv, 1e-9)
+    - 1
 )
 
 transition = pd.DataFrame({
@@ -1624,6 +2081,7 @@ transition["Holding_Status"] = np.select(
 
     default="OTHER"
 )
+
 
 # =========================================================
 # RECONCILED TURNOVER
@@ -1807,6 +2265,16 @@ turnover_reconciled = (
 largest_sector_drift = 0.0
 largest_sector_name = "N/A"
 
+print(
+    "\nPortfolio Columns:",
+    portfolio.columns.tolist()
+)
+
+print(
+    "\nTarget Columns:",
+    target.columns.tolist()
+)
+
 if (
     "Sector" in portfolio.columns
     and
@@ -1840,18 +2308,6 @@ if (
         .fillna(0)
     )
 
-    largest_sector_drift = (
-        sector_drift["Drift"]
-        .abs()
-        .max()
-    )
-
-    largest_sector_name = (
-        sector_drift["Drift"]
-        .abs()
-        .idxmax()
-    )
-
     sector_drift.columns = [
         "Current_Weight",
         "Target_Weight"
@@ -1864,6 +2320,38 @@ if (
         -
 
         sector_drift["Current_Weight"]
+    )
+
+    sector_drift = (
+        sector_drift
+        .sort_values(
+            "Drift",
+            ascending=False
+        )
+    )
+
+    print("\nSector Drift Analysis")
+
+    print(
+        sector_drift[
+            [
+                "Current_Weight",
+                "Target_Weight",
+                "Drift"
+            ]
+        ]
+    )
+
+    largest_sector_drift = (
+        sector_drift["Drift"]
+        .abs()
+        .max()
+    )
+
+    largest_sector_name = (
+        sector_drift["Drift"]
+        .abs()
+        .idxmax()
     )
 
     sector_drift.to_csv(
@@ -1882,6 +2370,41 @@ if (
         .abs()
         .idxmax()
     )
+
+# =========================================================
+# UNIVERSE HEALTH SCORE
+# =========================================================
+
+universe_health_score = round(
+
+    (
+        adv_coverage
+        + market_cap_coverage
+        + sector_coverage
+    ) / 3,
+
+    2
+)
+
+# =========================================================
+# UNIVERSE QUALITY GRADE
+# =========================================================
+
+if universe_health_score >= 95:
+
+    universe_quality = "A"
+
+elif universe_health_score >= 85:
+
+    universe_quality = "B"
+
+elif universe_health_score >= 70:
+
+    universe_quality = "C"
+
+else:
+
+    universe_quality = "D"
 
 # =========================================================
 # TRADE STATISTICS
@@ -1958,6 +2481,11 @@ portfolio_stability = max(
     portfolio_stability
 )
 
+signal_stability = (
+    retained_positions
+    /
+    target_holdings
+) * 100
 
 breadth_score = (
 
@@ -1980,7 +2508,7 @@ liquidity_pressure = (
     max_position_weight
 )
 
-execution_capacity = (
+portfolio_execution_capacity = (
 
     capacity_score
 
@@ -1997,6 +2525,7 @@ crowding_score = (
 
     replacement_rate
 )
+
 
 # =========================================================
 # EXECUTION READINESS SCORE
@@ -2043,17 +2572,20 @@ rebalance_efficiency = (
     + (1 - portfolio_turnover) * 0.20
 )
 
-if rebalance_efficiency >= 0.35:
+if rebalance_efficiency >= 2:
     efficiency_grade = "A"
 
-elif rebalance_efficiency >= 0.25:
+elif rebalance_efficiency >= 1:
     efficiency_grade = "B"
 
-elif rebalance_efficiency >= 0.15:
+elif rebalance_efficiency >= 0.5:
     efficiency_grade = "C"
 
-else:
+elif rebalance_efficiency >= 0.25:
     efficiency_grade = "D"
+
+else:
+    efficiency_grade = "F"
 
 # =========================================================
 # REBALANCE HEALTH SCORE
@@ -2136,65 +2668,40 @@ else:
         "REVIEW_REQUIRED"
     )
 
-risk_flags = []
+risk_flags = set()
 
 if active_share < 0.40:
-    risk_flags.append("LOW_ACTIVE_SHARE")
+    risk_flags.add("LOW_ACTIVE_SHARE")
 
 if replacement_rate > 0.40:
-    risk_flags.append("HIGH_CHURN")
+    risk_flags.add("HIGH_CHURN")
 
 elif replacement_rate > 0.25:
-    risk_flags.append("MODERATE_CHURN")
+    risk_flags.add("MODERATE_CHURN")
 
-critical_flags = {
-    "HIGH_TURNOVER",
-    "CONCENTRATION_RISK",
-    "SECTOR_DRIFT"
-}
-
-critical_count = len(
-    set(risk_flags) & critical_flags
-)
-
-if critical_count == 0 and len(risk_flags) == 0:
-    governance_status = "PASS"
-
-elif critical_count == 0:
-    governance_status = "WATCH"
-
-elif critical_count == 1:
-    governance_status = "ESCALATE"
-
-else:
-    governance_status = "FAIL"
 
 if portfolio_turnover > 0.40:
-    risk_flags.append("HIGH_TURNOVER")
+    risk_flags.add("HIGH_TURNOVER")
 
 if top10_weight > 0.35:
-    risk_flags.append("CONCENTRATION_RISK")
+    risk_flags.add("CONCENTRATION_RISK")
 
-if sector_drift["Drift"].abs().max() > 0.05:
-    risk_flags.append(
-        "SECTOR_DRIFT"
+
+sector_drift_score = max(
+    0,
+    100 - (
+        largest_sector_drift * 1000
+    )
+)
+
+
+if liquidity_breaches > 0:
+    risk_flags.add(
+        "LIQUIDITY_BREACH"
     )
 
 if portfolio_stability < 0.50:
-    risk_flags.append("LOW_STABILITY")
-
-
-if len(risk_flags) == 0:
-
-    governance_status = "PASS"
-
-elif len(risk_flags) <= 2:
-
-    governance_status = "WATCH"
-
-else:
-
-    governance_status = "FAIL"
+    risk_flags.add("LOW_STABILITY")
 
 
 regime_alignment = 100
@@ -2212,64 +2719,267 @@ if replacement_rate > 0.50:
 if portfolio_turnover > 0.40:
 
     regime_alignment -= 10
+
+critical_flags = {
+    "SECTOR_DRIFT",
+    "SINGLE_STOCK_RISK",
+    "HIGH_TURNOVER"
+}
+
+critical_count = len(
+    risk_flags & critical_flags
+)
+
+if critical_count == 0:
+    governance_status = "WATCH"
+
+elif critical_count == 1:
+    governance_status = "ESCALATE"
+
+else:
+    governance_status = "FAIL"
     
+# =========================================================
+# LIQUIDITY DRIFT
+# =========================================================
+
 liquidity_drift = np.nan
 
-if "ADV_20D" in signals.columns:
+if "ADV_20D" in portfolio.columns:
 
     current_adv = (
+        portfolio["Weight"]
+        * portfolio["ADV_20D"]
+    ).sum()
 
-        portfolio
-        .merge(
-            signals[
-                [
-                    "Symbol",
-                    "ADV_20D"
-                ]
-            ],
-            on="Symbol",
-            how="left"
-        )
+    target_adv = (
+        target["Target_Weight"]
+        * target["ADV_20D"]
+    ).sum()
 
-        .eval(
-            "Weight * ADV_20D"
-        )
+    liquidity_drift = (
+        target_adv
+        /
+        max(current_adv, 1e-9)
+        - 1
+    )
+    
+# =====================================================
+# MARKET CAP DRIFT ENFORCEMENT
+# =====================================================
 
-        .sum()
+for _ in range(20):
+
+    if market_cap_drift >= -MAX_MCAP_DRIFT:
+        break
+
+    small_cap_names = (
+        target
+        .sort_values("Market_Cap")
+        .head(5)
+        .index
+    )
+
+    target.loc[
+        small_cap_names,
+        "Target_Weight"
+    ] *= 0.80
+
+    target["Target_Weight"] /= (
+        target["Target_Weight"].sum()
+    )
+
+    target_mcap = (
+        target["Target_Weight"]
+        * target["Market_Cap"]
+    ).sum()
+
+    market_cap_drift = (
+        target_mcap
+        /
+        max(current_mcap, 1e-9)
+        - 1
+    )
+
+current_mcap = (
+    portfolio["Weight"] *
+    portfolio["Market_Cap"]
+).sum()
+
+target_mcap = (
+    target["Target_Weight"] *
+    target["Market_Cap"]
+).sum()
+
+market_cap_drift = (
+    target_mcap /
+    current_mcap
+) - 1
+
+current_adv = (
+    portfolio["Weight"] *
+    portfolio["ADV_20D"]
+).sum()
+
+target_adv = (
+    target["Target_Weight"] *
+    target["ADV_20D"]
+).sum()
+
+liquidity_drift = (
+    target_adv /
+    current_adv
+) - 1
+
+for _ in range(20):
+
+    if liquidity_drift >= -MAX_LIQUIDITY_DRIFT:
+        break
+
+    illiquid_names = (
+        target
+        .sort_values("ADV_20D")
+        .head(5)
+        .index
+    )
+
+    target.loc[
+        illiquid_names,
+        "Target_Weight"
+    ] *= 0.85
+
+    target["Target_Weight"] /= (
+        target["Target_Weight"].sum()
     )
 
     target_adv = (
-
-        target
-        .merge(
-            signals[
-                [
-                    "Symbol",
-                    "ADV_20D"
-                ]
-            ],
-            on="Symbol",
-            how="left"
-        )
-
-        .eval(
-            "Target_Weight * ADV_20D"
-        )
-
-        .sum()
-    )
+        target["Target_Weight"]
+        * target["ADV_20D"]
+    ).sum()
 
     liquidity_drift = (
-
         target_adv
-
-        / max(
-            current_adv,
-            1e-9
-        )
-
+        /
+        max(current_adv, 1e-9)
         - 1
+    )   
+
+if abs(market_cap_drift) > MAX_MCAP_DRIFT:
+    risk_flags.add("MARKET_CAP_DRIFT")
+
+# ==========================================
+# POST-NORMALIZATION SECTOR DRIFT CHECK
+# ==========================================
+
+print("\n🛡 Applying Sector Drift Enforcement...")
+
+sector_check = (
+    target.groupby("Sector")["Target_Weight"]
+    .sum()
+    .reset_index()
+)
+
+current_sector = (
+    portfolio.groupby("Sector")["Weight"]
+    .sum()
+    .reset_index()
+)
+
+sector_check = sector_check.merge(
+    current_sector,
+    on="Sector",
+    how="outer",
+    suffixes=("_Target", "_Current")
+).fillna(0)
+
+sector_check["Drift"] = (
+    sector_check["Target_Weight"]
+    - sector_check["Weight"]
+)
+
+MAX_SECTOR_DRIFT = 0.05
+
+for _, row in sector_check.iterrows():
+
+    drift = row["Drift"]
+
+    if abs(drift) <= MAX_SECTOR_DRIFT:
+        continue
+
+    sector = row["Sector"]
+
+    mask = (
+        target["Sector"] == sector
     )
+
+    target_weight = row["Weight"]
+
+    desired_weight = np.clip(
+        row["Target_Weight"],
+        target_weight - MAX_SECTOR_DRIFT,
+        target_weight + MAX_SECTOR_DRIFT
+    )
+
+    adjustment = (
+        desired_weight
+        /
+        row["Target_Weight"]
+    )
+
+    target.loc[
+        mask,
+        "Target_Weight"
+    ] *= adjustment
+
+# Final Renormalization
+target["Target_Weight"] = (
+    target["Target_Weight"]
+    / target["Target_Weight"].sum()
+)
+
+current_sector = (
+    portfolio.groupby("Sector")["Weight"]
+    .sum()
+)
+
+target_sector = (
+    target.groupby("Sector")["Target_Weight"]
+    .sum()
+)
+
+sector_drift_final = (
+    pd.concat(
+        [current_sector, target_sector],
+        axis=1
+    )
+    .fillna(0)
+)
+
+sector_drift_final.columns = [
+    "Current",
+    "Target"
+]
+
+sector_drift_final["Drift"] = (
+    sector_drift_final["Target"]
+    -
+    sector_drift_final["Current"]
+)
+
+largest_sector_drift = (
+    sector_drift_final["Drift"]
+    .abs()
+    .max()
+)
+
+largest_sector_name = (
+    sector_drift_final["Drift"]
+    .abs()
+    .idxmax()
+)
+
+if largest_sector_drift > MAX_SECTOR_DRIFT:
+    risk_flags.add("SECTOR_DRIFT")
 
 approval_score = 100
 
@@ -2299,6 +3009,18 @@ approval_score = max(
     )
 )
 
+if not pd.isna(portfolio_persistence):
+
+    approval_score += (
+        portfolio_persistence * 0.10
+    )
+
+if not pd.isna(alpha_decay_score):
+
+    approval_score += (
+        alpha_decay_score * 0.10
+    )
+
 if approval_score >= 90:
     approval_status = "APPROVED"
 
@@ -2310,6 +3032,11 @@ elif approval_score >= 60:
 
 else:
     approval_status = "REJECTED"
+
+
+if abs(liquidity_drift) > MAX_LIQUIDITY_DRIFT:
+    risk_flags.add("LIQUIDITY_DRIFT")
+
 
 new_position_turnover = (
     transition.loc[
@@ -2333,6 +3060,92 @@ existing_position_turnover = (
     .abs()
     .sum()
 ) / 2
+
+# =========================================================
+# V2.8 PORTFOLIO RISK MODEL
+# =========================================================
+
+portfolio_risk = target.copy()
+
+if "Volatility_252D" not in portfolio_risk.columns:
+
+    portfolio_risk["Volatility_252D"] = DEFAULT_VOLATILITY
+
+portfolio_risk["Volatility_252D"] = (
+    portfolio_risk["Volatility_252D"]
+    .fillna(DEFAULT_VOLATILITY)
+)
+
+portfolio_risk["Risk_Contribution"] = (
+    portfolio_risk["Target_Weight"]
+    *
+    portfolio_risk["Volatility_252D"]
+)
+
+total_risk = max(
+    portfolio_risk["Risk_Contribution"].sum(),
+    1e-9
+)
+
+portfolio_risk["Risk_Contribution_Pct"] = (
+    portfolio_risk["Risk_Contribution"]
+    /
+    total_risk
+)
+
+portfolio_volatility = (
+    portfolio_risk["Risk_Contribution"]
+    .sum()
+)
+
+expected_return = (
+    target["Signal_Score"].mean()
+    / 100
+)
+
+information_ratio = (
+    expected_return
+    /
+    max(portfolio_volatility, 1e-9)
+)
+
+risk_efficiency = (
+    expected_return
+    /
+    max(portfolio_volatility, 1e-9)
+)
+
+sector_risk = (
+    portfolio_risk
+    .groupby("Sector")["Risk_Contribution"]
+    .sum()
+)
+
+concentration_status = (
+    "PASS"
+    if portfolio_hhi < MAX_HHI
+    else "FAIL"
+)
+
+top_risk_names = (
+    portfolio_risk
+    .sort_values(
+        "Risk_Contribution_Pct",
+        ascending=False
+    )
+    .head(10)
+)
+
+if (
+    portfolio_risk[
+        "Risk_Contribution_Pct"
+    ].max()
+    >
+    MAX_POSITION_RISK
+):
+    risk_flags.add(
+        "SINGLE_STOCK_RISK"
+    )
 
 # =========================================================
 # TRADE SUMMARY
@@ -2458,19 +3271,45 @@ dashboard = pd.DataFrame({
 
         "Governance_Status",
 
+        "Liquidity_Breaches",
+
+        "Average_Liquidity_Usage",
+
+        "Liquidity_Execution_Capacity",
+
+        "Sector_Drift_Score",
+
         "Rebalance_Health_Score",
 
         "Breadth_Score",
 
         "Liquidity_Pressure",
 
-        "Execution_Capacity",
+        "Portfolio_Execution_Capacity",
 
         "Crowding_Score",
 
         "Regime_Alignment",
 
         "Risk_Flag_Count",
+
+        "ADV_Coverage",
+
+        "MarketCap_Coverage",
+
+        "Sector_Coverage",
+
+        "Universe_Health_Score",
+
+        "Universe_Quality_Grade",
+
+        "Average_Signal_Age",
+
+        "Average_Alpha_Decay",
+        
+        "Persistence_Score",
+
+        "Signal_Stability",
 
         "Engine_Version",
     ],
@@ -2508,12 +3347,12 @@ dashboard = pd.DataFrame({
         ),
 
         round(
-            existing_position_turnover,
+            exit_turnover,
             6
         ),
 
         round(
-            exit_turnover,
+            existing_position_turnover,
             6
         ),
 
@@ -2633,19 +3472,53 @@ dashboard = pd.DataFrame({
 
         governance_status,
 
+        liquidity_breaches,
+
+        avg_liquidity_usage,
+
+        liquidity_execution_capacity,
+
+        sector_drift_score,
+
         rebalance_health_score,
 
         breadth_score,
 
         liquidity_pressure,
 
-        execution_capacity,
+        portfolio_execution_capacity,
 
         crowding_score,
 
         regime_alignment,
 
         len(risk_flags),
+
+        round(adv_coverage,2),
+
+        round(market_cap_coverage,2),
+
+        round(sector_coverage,2),
+
+        universe_health_score,
+
+        universe_quality,
+
+        round(average_signal_age,2)
+        if not pd.isna(average_signal_age)
+        else "N/A",
+
+        round(average_alpha_decay,2)
+        if not pd.isna(average_alpha_decay)
+        else "N/A",
+
+        round(persistence_score,2)
+        if not pd.isna(persistence_score)
+        else "N/A",
+
+        round(signal_stability,2)
+        if not pd.isna(signal_stability)
+        else "N/A",
 
         ENGINE_VERSION,
     ]
@@ -2715,7 +3588,7 @@ summary = pd.DataFrame({
 
         "Liquidity_Pressure",
 
-        "Execution_Capacity",
+        "Portfolio_Execution_Capacity",
 
         "Crowding_Score",
 
@@ -2831,7 +3704,7 @@ summary = pd.DataFrame({
 
         liquidity_pressure,
 
-        execution_capacity,
+        portfolio_execution_capacity,
 
         crowding_score,
 
@@ -3149,6 +4022,12 @@ portfolio_evolution.to_csv(
     index=False
 )
 
+missing_report.to_csv(
+    OUTPUT_DIR /
+    "missing_data_report.csv",
+    index=False
+)
+
 # =========================================================
 # TOP TRADES
 # =========================================================
@@ -3290,13 +4169,28 @@ print(
 )
 
 print(
+    f"Liquidity Breaches : "
+    f"{liquidity_breaches}"
+)
+
+print(
+    f"Liquidity Capacity : "
+    f"{liquidity_execution_capacity:.2f}"
+)
+
+print(
+    "\nTarget Market Cap Coverage:",
+    target["Market_Cap"].notna().mean()
+)
+
+print(
     f"Risk Flags         : "
     f"{len(risk_flags)}"
 )
 
 print(
     f"Risk Flag Detail   : "
-    f"{risk_flags}"
+    f"{list(risk_flags)}"
 )
 
 print(
@@ -3311,7 +4205,7 @@ print(
 
 print(
     f"Execution Capacity : "
-    f"{execution_capacity:.2f}"
+    f"{portfolio_execution_capacity:.2f}"
 )
 
 print(
@@ -3355,6 +4249,37 @@ print(
 )
 
 print(
+    f"Sector Drift Score : "
+    f"{sector_drift_score:.0f}"
+)
+
+
+print(
+    f"ADV Coverage       : "
+    f"{adv_coverage:.2f}%"
+)
+
+print(
+    f"MarketCap Coverage : "
+    f"{market_cap_coverage:.2f}%"
+)
+
+print(
+    f"Sector Coverage    : "
+    f"{sector_coverage:.2f}%"
+)
+
+print(
+    f"Universe Health    : "
+    f"{universe_health_score:.2f}"
+)
+
+print(
+    f"Universe Grade     : "
+    f"{universe_quality}"
+)
+
+print(
     f"Scaling Factor       : "
     f"{turnover_scaling_factor:.4f}"
 )
@@ -3379,6 +4304,49 @@ print(
     f"{execution_status}"
 )
 
+print(
+    "\nPORTFOLIO RISK ANALYTICS"
+)
+
+print(
+    f"Portfolio Volatility : "
+    f"{portfolio_volatility:.2%}"
+)
+
+print(
+    f"Expected Return      : "
+    f"{expected_return:.2%}"
+)
+
+print(
+    f"Information Ratio    : "
+    f"{information_ratio:.2f}"
+)
+
+print(
+    f"Risk Efficiency      : "
+    f"{risk_efficiency:.2f}"
+)
+
+print(
+    f"Concentration Status : "
+    f"{concentration_status}"
+)
+
+print(
+    "\nTop Risk Contributors:"
+)
+
+print(
+    top_risk_names[
+        [
+            "Symbol",
+            "Risk_Contribution_Pct"
+        ]
+    ]
+    .head(10)
+    .to_string(index=False)
+)
 
 print(
     f"Market Cap Drift   : "
@@ -3438,6 +4406,10 @@ print(
 
 print(
     f"  {DASHBOARD_FILE.name}"
+)
+
+print(
+    "  missing_data_report.csv"
 )
 
 print(

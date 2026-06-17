@@ -1,5 +1,5 @@
 Metric,Value
-Run_Date,2026-06-17
+Run_Date,2026-06-18
 Current_Regime,SIDEWAYS_LOW_VOL
 Capacity_Score,50.6
 Average_Cost_BPS,20.94
@@ -12,7 +12,7 @@ Portfolio_HHI,0.020573
 Effective_Holdings,48.61
 Active_Share,0.40506
 Portfolio_Stability,0.66
-Rebalance_Efficiency,0.2239
+Rebalance_Efficiency,0.5935
 Efficiency_Grade,C
 New_Holdings_Pct,0.34
 Exited_Holdings_Pct,0.34
@@ -27,8 +27,8 @@ Governance_Status,WATCH
 Rebalance_Health_Score,66.42095309803918
 Breadth_Score,0.9721367325439703
 Liquidity_Pressure,0.005460470852669919
-Execution_Capacity,50.323700174854906
+Portfolio_Execution_Capacity,50.323700174854906
 Crowding_Score,0.047012168016652346
 Regime_Alignment,100
-Risk_Flag_Count,1
+Risk_Flag_Count,3
 Engine_Version,2.2.0

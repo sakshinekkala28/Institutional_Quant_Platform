@@ -1,9 +1,9 @@
 Metric,Value
 Portfolio_HHI,0.020573237622306787
 Effective_Holdings,48.60683662719851
-Active_Share,0.40505967539613513
+Active_Share,0.4050596753961351
 Portfolio_Stability,0.66
-Rebalance_Efficiency,0.22386726823465083
+Rebalance_Efficiency,0.5935018252656082
 Execution_Complexity,100.0
 Top_Trade_Share,0.23506084008326172
 Churn_Ratio,0.68
