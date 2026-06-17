@@ -3,6 +3,14 @@ Strategy_Capacity,1534247548.9393666
 Median_Position_Capacity,8255632221.916168
 Average_Days_To_Exit,0.9164598141051341
 Average_Capacity_Score,50.6
+Capacity_Utilization,0.0651785300678046
+Capacity_Grade,A
+Capacity_Health,69.09002724308704
+Largest_Constraint,AETHER
+Constraint_Capacity,1534247548.9393666
+Top5_Capacity_Share,0.30648722849596105
+Liquidity_Breaches,0
 Total_Positions,50
-Run_Date,2026-06-13
+Institutional_Positions,4
+Run_Date,2026-06-17
 Engine_Version,1.0.0
