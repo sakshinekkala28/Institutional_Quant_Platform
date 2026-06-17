@@ -71,6 +71,19 @@ OUTPUT_DIR.mkdir(
     exist_ok=True,
 )
 
+for file in [
+
+    FACTOR_FILE,
+    PORTFOLIO_FILE,
+
+]:
+
+    if not file.exists():
+
+        raise FileNotFoundError(
+            file
+        )
+    
 # =========================================================
 # LOAD
 # =========================================================
@@ -152,6 +165,40 @@ if len(merged) < MIN_SECURITIES:
         "Insufficient merged securities"
     )
 
+coverage = (
+
+    len(merged)
+
+    /
+
+    max(
+        len(portfolio),
+        1
+    )
+)
+
+if "Expected_Return" in merged.columns:
+
+    realized_return = (
+        merged[
+            "Expected_Return"
+        ]
+    )
+
+elif "Alpha_Adjusted" in merged.columns:
+
+    realized_return = (
+        merged[
+            "Alpha_Adjusted"
+        ]
+    )
+
+else:
+
+    raise ValueError(
+        "No return field available."
+    )
+
 # =========================================================
 # FACTORS
 # =========================================================
@@ -228,18 +275,6 @@ if "Last_Close" not in merged.columns:
 # (replace with actual realized returns
 # if available later)
 
-portfolio_return_proxy = (
-
-    merged["Alpha_Adjusted"]
-
-    if "Alpha_Adjusted"
-    in merged.columns
-
-    else np.ones(
-        len(merged)
-    )
-)
-
 # =========================================================
 # EXPOSURES
 # =========================================================
@@ -281,11 +316,14 @@ for factor in factor_columns:
 
     ).sum()
 
+    factor_return = np.corrcoef(
+        zscore,
+        realized_return
+    )[0, 1]
+
     contribution = (
-
         exposure
-
-        * portfolio_return_proxy.mean()
+        * factor_return
     )
 
     exposure_records.append({
@@ -378,6 +416,164 @@ rankings["Rank"] = (
     rankings.index + 1
 )
 
+rankings["Exposure_Rank"] = (
+    rankings["Exposure"]
+    .rank(
+        ascending=False,
+        pct=True
+    )
+    * 100
+)
+
+positive_factors = (
+    rankings[
+        rankings["Contribution"] > 0
+    ]
+)
+
+negative_factors = (
+    rankings[
+        rankings["Contribution"] < 0
+    ]
+)
+
+positive_share = (
+    positive_factors["Contribution_%"]
+    .sum()
+)
+
+negative_share = (
+    negative_factors["Contribution_%"]
+    .sum()
+)
+
+top_factor_share = (
+
+    rankings.head(1)[
+        "Contribution_%"
+    ]
+
+    .sum()
+)
+
+top3_share = (
+
+    rankings.head(3)[
+        "Contribution_%"
+    ]
+
+    .sum()
+)
+
+top5_share = (
+
+    rankings.head(5)[
+        "Contribution_%"
+    ]
+
+    .sum()
+)
+
+hhi = (
+
+    (
+        rankings[
+            "Contribution_%"
+        ]
+        / 100
+    ) ** 2
+
+).sum()
+
+factor_div_score = (
+
+    1
+
+    /
+
+    (
+        (
+            rankings[
+                "Contribution_%"
+            ]
+            / 100
+        ) ** 2
+    ).sum()
+)
+
+quality_score = max(
+
+    0,
+
+    100
+
+    -
+
+    abs(
+
+        rankings[
+            "Contribution_%"
+        ].sum()
+
+        - 100
+
+    )
+)
+
+health_score = (
+
+    coverage * 40
+
+    +
+
+    min(
+        factor_div_score,
+        10
+    ) * 4
+
+    +
+
+    (1 - hhi) * 20
+)
+
+health_score = min(
+    health_score,
+    100
+)
+
+breadth_score = (
+
+    len(positive_factors)
+
+    /
+
+    max(
+        len(rankings),
+        1
+    )
+)
+
+crowding_score = (
+
+    top3_share
+
+    /
+
+    max(
+        factor_div_score,
+        1
+    )
+)
+
+if crowding_score > 10:
+    crowding = "High"
+
+elif crowding_score > 5:
+    crowding = "Moderate"
+
+else:
+    crowding = "Low"
+
 # =========================================================
 # FACTOR TYPE
 # =========================================================
@@ -413,6 +609,136 @@ rankings[
 ].apply(
     classify_factor
 )
+
+group_summary = (
+
+    rankings
+
+    .groupby(
+        "Factor_Group"
+    )
+
+    [
+        "Contribution_%"
+    ]
+
+    .sum()
+
+    .reset_index()
+)
+
+group_summary["Rank"] = (
+    group_summary[
+        "Contribution_%"
+    ]
+    .rank(
+        ascending=False
+    )
+)
+
+top_group = (
+
+    group_summary
+
+    .sort_values(
+        "Contribution_%",
+        ascending=False
+    )
+
+    .iloc[0]
+)
+
+warnings = []
+
+if top_factor_share > 40:
+
+    warnings.append(
+        "Factor concentration risk"
+    )
+
+if coverage < 0.95:
+
+    warnings.append(
+        "Low factor coverage"
+    )
+
+if factor_div_score < 5:
+
+    warnings.append(
+        "Low factor diversification"
+    )
+
+
+if factor_div_score >= 8:
+
+    diversification = "Excellent"
+
+elif factor_div_score >= 6:
+
+    diversification = "Good"
+
+elif factor_div_score >= 4:
+
+    diversification = "Moderate"
+
+else:
+
+    diversification = "Concentrated"
+
+if warnings:
+
+    for warning in warnings:
+
+        print(
+            f"⚠ {warning}"
+        )
+
+dashboard = pd.DataFrame({
+
+    "Metric": [
+
+        "Coverage",
+        "Factors_Analyzed",
+        "Top_Factor_Share",
+        "Top3_Share",
+        "Top5_Share",
+        "Effective_Factors",
+        "Factor_HHI",
+        "Positive_Factors",
+        "Negative_Factors",
+        "Quality_Score",
+    ],
+
+    "Value": [
+
+        coverage,
+        len(rankings),
+        top_factor_share,
+        top3_share,
+        top5_share,
+        factor_div_score,
+        hhi,
+        len(positive_factors),
+        len(negative_factors),
+        quality_score,
+    ]
+})
+
+if top_group["Factor_Group"] == "Momentum":
+
+    regime = "Trending Market"
+
+elif top_group["Factor_Group"] == "Risk":
+
+    regime = "Defensive Market"
+
+elif top_group["Factor_Group"] == "Liquidity":
+
+    regime = "Institutional Accumulation"
+
+else:
+
+    regime = "Mixed Market"
 
 # =========================================================
 # SAVE
@@ -450,6 +776,39 @@ rankings.to_csv(
     index=False,
 )
 
+group_summary.to_csv(
+
+    OUTPUT_DIR
+    / "factor_group_summary.csv",
+
+    index=False,
+)
+
+warnings_df = pd.DataFrame({
+
+    "Warning": warnings
+
+    if warnings
+
+    else ["None"]
+})
+
+warnings_df.to_csv(
+
+    OUTPUT_DIR
+    / "factor_warnings.csv",
+
+    index=False,
+)
+
+dashboard.to_csv(
+
+    OUTPUT_DIR
+    / "factor_dashboard.csv",
+
+    index=False,
+)
+
 # =========================================================
 # REPORT
 # =========================================================
@@ -460,39 +819,147 @@ report = pd.DataFrame({
 
     "Metric": [
 
-        "Factors_Analyzed",
-
-        "Top_Factor",
-
-        "Top_Contribution_%",
-
+        "Coverage",
+        "Top_Group",
+        "Top_Group_Share",
+        "Effective_Factors",
+        "Factor_HHI",
+        "Positive_Factors",
+        "Negative_Factors",
+        "Diversification",
+        "Warnings",
         "Run_Date",
-
         "Engine_Version",
+
     ],
 
     "Value": [
 
-        len(rankings),
-
-        best["Factor"],
-
-        best[
-            "Contribution_%"
-        ],
-
+        coverage,
+        top_group["Factor_Group"],
+        top_group["Contribution_%"],
+        factor_div_score,
+        hhi,
+        len(positive_factors),
+        len(negative_factors),
+        diversification,
+        len(warnings),
         datetime.now()
         .strftime(
             "%Y-%m-%d"
         ),
-
         ENGINE_VERSION,
+
     ]
 })
 
 report.to_csv(
     REPORT_FILE,
     index=False,
+)
+
+required_outputs = [
+
+    OUTPUT_DIR
+    / "factor_exposures.csv",
+
+    OUTPUT_DIR
+    / "factor_contributions.csv",
+
+    OUTPUT_DIR
+    / "factor_attribution_summary.csv",
+
+    OUTPUT_DIR
+    / "factor_attribution_rankings.csv",
+
+    OUTPUT_DIR
+    / "factor_warnings.csv",
+
+    OUTPUT_DIR
+    / "factor_group_summary.csv",
+
+    OUTPUT_DIR
+    / "factor_dashboard.csv",
+
+    REPORT_FILE,
+]
+
+for file in required_outputs:
+
+    if not file.exists():
+
+        raise FileNotFoundError(
+            file
+        )
+
+print(
+    f"Coverage         : "
+    f"{coverage:.2%}"
+)
+
+print(
+    f"Top Factor Share : "
+    f"{top_factor_share:.2f}%"
+)
+
+print(
+    f"Top 3 Share      : "
+    f"{top3_share:.2f}%"
+)
+
+print(
+    f"Top 5 Share      : "
+    f"{top5_share:.2f}%"
+)
+
+print(
+    f"Quality Score    : "
+    f"{quality_score:.2f}"
+)
+
+print(
+    f"Health Score     : "
+    f"{health_score:.2f}"
+)
+
+print(
+    f"Breadth Score    : "
+    f"{breadth_score:.2%}"
+)
+
+print(
+    f"Top Group        : "
+    f"{top_group['Factor_Group']}"
+)
+
+print(
+    f"Group Share      : "
+    f"{top_group['Contribution_%']:.2f}%"
+)
+
+print(
+    f"Factor Regime    : "
+    f"{regime}"
+)
+
+print(
+    f"Diversification  : "
+    f"{diversification}"
+)
+
+print(
+    f"Warnings         : "
+    f"{len(warnings)}"
+)
+
+print(
+    f"Positive Share   : "
+    f"{positive_share:.2f}%"
+)
+
+print(
+    f"Negative Share   : "
+    f"{negative_share:.2f}%"
 )
 
 # =========================================================
@@ -520,6 +987,31 @@ print(
 print(
     f"Contribution     : "
     f"{best['Contribution_%']:.2f}%"
+)
+
+print(
+    f"Effective Factors : "
+    f"{factor_div_score:.2f}"
+)
+
+print(
+    f"Factor HHI        : "
+    f"{hhi:.3f}"
+)
+
+print(
+    f"Positive Factors  : "
+    f"{len(positive_factors)}"
+)
+
+print(
+    f"Negative Factors  : "
+    f"{len(negative_factors)}"
+)
+
+print(
+    f"Top Factor Share  : "
+    f"{top_factor_share:.2f}%"
 )
 
 print(

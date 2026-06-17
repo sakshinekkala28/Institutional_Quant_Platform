@@ -70,6 +70,19 @@ OUTPUT_DIR.mkdir(
     exist_ok=True,
 )
 
+for file in [
+
+    PORTFOLIO_FILE,
+    BENCHMARK_FILE,
+
+]:
+
+    if not file.exists():
+
+        raise FileNotFoundError(
+            file
+        )
+    
 # =========================================================
 # LOAD
 # =========================================================
@@ -213,6 +226,40 @@ benchmark = benchmark.dropna(
     subset=[
         "Security_Return"
     ]
+)
+
+portfolio_coverage = (
+
+    len(portfolio)
+
+    /
+
+    max(
+        len(pd.read_csv(PORTFOLIO_FILE)),
+        1
+    )
+)
+
+benchmark_coverage = (
+
+    len(benchmark)
+
+    /
+
+    max(
+        len(pd.read_csv(BENCHMARK_FILE)),
+        1
+    )
+)
+
+print(
+    f"Portfolio Coverage : "
+    f"{portfolio_coverage:.2%}"
+)
+
+print(
+    f"Benchmark Coverage : "
+    f"{benchmark_coverage:.2%}"
 )
 
 security = (
@@ -361,6 +408,103 @@ active_return = (
     benchmark_return
 )
 
+winners = (
+
+    security[
+        "Active_Contribution"
+    ] > 0
+).sum()
+
+losers = (
+
+    security[
+        "Active_Contribution"
+    ] <= 0
+).sum()
+
+hit_ratio = (
+
+    winners
+
+    /
+
+    max(
+        winners + losers,
+        1
+    )
+)
+
+top5_share = (
+
+    top_contributors
+    .head(5)
+
+    [
+        "Active_Contribution"
+    ]
+
+    .sum()
+
+    /
+
+    max(
+        active_return,
+        1e-9
+    )
+)
+
+reconciled_active_return = (
+
+    security[
+        "Active_Contribution"
+    ]
+    .sum()
+)
+
+residual = (
+
+    active_return
+
+    -
+
+    reconciled_active_return
+)
+
+quality_score = max(
+
+    0,
+
+    100
+
+    -
+
+    abs(
+        residual
+    )
+
+    * 10000
+)
+
+top_detractor = (
+
+    security
+    .sort_values(
+        "Active_Contribution"
+    )
+    .iloc[0]
+)
+
+for col in [
+
+    "Company_Name",
+    "Sector",
+
+]:
+
+    if col not in security.columns:
+
+        security[col] = "Unknown"
+
 dashboard = security[[
 
     "Rank",
@@ -396,6 +540,12 @@ summary = pd.DataFrame({
 
         "Active_Return",
 
+        "Hit_Ratio",
+
+        "Top5_Share",
+
+        "Quality_Score",
+
         "Securities",
 
         "Run_Date",
@@ -411,6 +561,12 @@ summary = pd.DataFrame({
 
         active_return,
 
+        hit_ratio,
+
+        top5_share,
+
+        quality_score,
+
         len(security),
 
         datetime.now()
@@ -421,6 +577,7 @@ summary = pd.DataFrame({
         ENGINE_VERSION,
     ]
 })
+
 
 security.to_csv(
 
@@ -469,6 +626,34 @@ summary.to_csv(
     index=False,
 )
 
+required_outputs = [
+
+    OUTPUT_DIR
+    / "security_attribution.csv",
+
+    OUTPUT_DIR
+    / "top_contributors.csv",
+
+    OUTPUT_DIR
+    / "bottom_contributors.csv",
+
+    OUTPUT_DIR
+    / "security_dashboard.csv",
+
+    OUTPUT_DIR
+    / "security_alpha.csv",
+
+    REPORT_FILE,
+]
+
+for file in required_outputs:
+
+    if not file.exists():
+
+        raise FileNotFoundError(
+            file
+        )
+
 print("\n" + "=" * 70)
 
 print(
@@ -493,13 +678,40 @@ print(
 )
 
 print(
-    f"\nTop Contributor  : "
-    f"{top_contributors.iloc[0]['Symbol']}"
+    f"Hit Ratio         : "
+    f"{hit_ratio:.2%}"
+)
+
+print(
+    f"Top 5 Share       : "
+    f"{top5_share:.2%}"
+)
+
+print(
+    f"Quality Score     : "
+    f"{quality_score:.2f}"
+)
+
+if len(top_contributors) > 0:
+
+    print(
+        f"\nTop Contributor  : "
+        f"{top_contributors.iloc[0]['Symbol']}"
+    )
+
+    print(
+        f"Contribution     : "
+        f"{top_contributors.iloc[0]['Active_Contribution']:.2%}"
+    )
+
+print(
+    f"\nTop Detractor    : "
+    f"{top_detractor['Symbol']}"
 )
 
 print(
     f"Contribution     : "
-    f"{top_contributors.iloc[0]['Active_Contribution']:.2%}"
+    f"{top_detractor['Active_Contribution']:.2%}"
 )
 
 print(
