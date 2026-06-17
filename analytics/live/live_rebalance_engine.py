@@ -67,6 +67,8 @@ MIN_ACTIVE_SHARE = 0.20
 
 MAX_SECTOR_RISK = 0.30
 
+MAX_SECTOR_DRIFT = 0.05
+
 # Capacity Controls
 
 MIN_CAPACITY_SCORE = 40
@@ -74,6 +76,11 @@ MIN_CAPACITY_SCORE = 40
 # Transaction Cost Controls
 
 MAX_COST_BPS = 100
+
+MIN_HOLD_DAYS = 20
+MAX_NEW_POSITIONS = 10
+MAX_EXIT_POSITIONS = 10
+DEBUG_MODE = False
 
 # =========================================================
 # PATHS
@@ -1034,6 +1041,23 @@ target.loc[
 
 ] = 0.0
 
+new_candidates = target[
+    target["Current_Weight"] == 0
+]
+
+existing_positions = target[
+    target["Current_Weight"] > 0
+]
+
+new_candidates = new_candidates.head(
+    MAX_NEW_POSITIONS
+)
+
+target = pd.concat([
+    existing_positions,
+    new_candidates
+])
+
 # =========================================================
 # ACTION ENGINE
 # =========================================================
@@ -1250,6 +1274,7 @@ net_flow = (
     - gross_sell
 )
 
+
 # =========================================================
 # TURNOVER GOVERNANCE
 # =========================================================
@@ -1360,6 +1385,16 @@ net_buy_bias = (
         buy_turnover + sell_turnover,
         1e-9
     )
+)
+
+estimated_trade_cost = (
+    portfolio_turnover
+    * avg_cost_bps
+)
+
+print(
+    f"Estimated Cost (bps): "
+    f"{estimated_trade_cost:.2f}"
 )
 
 # =========================================================
@@ -1548,41 +1583,6 @@ transition["Weight_Change"] = (
     transition["Current_Weight"]
 )
 
-print("\nDEBUG")
-
-print(
-    "Current Sum:",
-    transition["Current_Weight"].sum()
-)
-
-print(
-    "Target Sum:",
-    transition["Target_Weight"].sum()
-)
-
-print(
-    "NEW:",
-    (
-        transition["Holding_Status"]
-        == "NEW"
-    ).sum()
-)
-
-print(
-    "EXIT:",
-    (
-        transition["Holding_Status"]
-        == "EXIT"
-    ).sum()
-)
-
-print(
-    "RETAIN:",
-    (
-        transition["Holding_Status"]
-        == "RETAIN"
-    ).sum()
-)
 
 # =========================================================
 # APPLY TURNOVER SCALING TO TRANSITION
@@ -1804,6 +1804,9 @@ turnover_reconciled = (
     < 0.01
 )
 
+largest_sector_drift = 0.0
+largest_sector_name = "N/A"
+
 if (
     "Sector" in portfolio.columns
     and
@@ -1837,6 +1840,18 @@ if (
         .fillna(0)
     )
 
+    largest_sector_drift = (
+        sector_drift["Drift"]
+        .abs()
+        .max()
+    )
+
+    largest_sector_name = (
+        sector_drift["Drift"]
+        .abs()
+        .idxmax()
+    )
+
     sector_drift.columns = [
         "Current_Weight",
         "Target_Weight"
@@ -1854,6 +1869,18 @@ if (
     sector_drift.to_csv(
         OUTPUT_DIR
         / "sector_drift.csv"
+    )
+
+    largest_sector_drift = (
+        sector_drift["Drift"]
+        .abs()
+        .max()
+    )
+
+    largest_sector_name = (
+        sector_drift["Drift"]
+        .abs()
+        .idxmax()
     )
 
 # =========================================================
@@ -1931,6 +1958,46 @@ portfolio_stability = max(
     portfolio_stability
 )
 
+
+breadth_score = (
+
+    effective_holdings
+
+    /
+
+    max(
+        target_holdings,
+        1
+    )
+)
+
+liquidity_pressure = (
+
+    portfolio_turnover
+
+    *
+
+    max_position_weight
+)
+
+execution_capacity = (
+
+    capacity_score
+
+    *
+
+    (1 - liquidity_pressure)
+)
+
+crowding_score = (
+
+    top10_weight
+
+    *
+
+    replacement_rate
+)
+
 # =========================================================
 # EXECUTION READINESS SCORE
 # =========================================================
@@ -1971,9 +2038,9 @@ execution_score = max(
 )
 
 rebalance_efficiency = (
-    active_share
-    * portfolio_stability
-    * (1 - portfolio_turnover)
+      active_share * 0.40
+    + portfolio_stability * 0.40
+    + (1 - portfolio_turnover) * 0.20
 )
 
 if rebalance_efficiency >= 0.35:
@@ -1993,14 +2060,11 @@ else:
 # =========================================================
 
 rebalance_health_score = (
-
-      active_share * 25
-
+      active_share * 30
     + portfolio_stability * 30
-
-    + (1 - portfolio_turnover) * 25
-
-    + (1 - replacement_rate) * 20
+    + (1 - portfolio_turnover) * 20
+    + (1 - replacement_rate) * 10
+    + breadth_score * 10
 )
 
 rebalance_health_score = min(
@@ -2077,14 +2141,44 @@ risk_flags = []
 if active_share < 0.40:
     risk_flags.append("LOW_ACTIVE_SHARE")
 
-if churn_ratio > 0.50:
+if replacement_rate > 0.40:
     risk_flags.append("HIGH_CHURN")
+
+elif replacement_rate > 0.25:
+    risk_flags.append("MODERATE_CHURN")
+
+critical_flags = {
+    "HIGH_TURNOVER",
+    "CONCENTRATION_RISK",
+    "SECTOR_DRIFT"
+}
+
+critical_count = len(
+    set(risk_flags) & critical_flags
+)
+
+if critical_count == 0 and len(risk_flags) == 0:
+    governance_status = "PASS"
+
+elif critical_count == 0:
+    governance_status = "WATCH"
+
+elif critical_count == 1:
+    governance_status = "ESCALATE"
+
+else:
+    governance_status = "FAIL"
 
 if portfolio_turnover > 0.40:
     risk_flags.append("HIGH_TURNOVER")
 
 if top10_weight > 0.35:
     risk_flags.append("CONCENTRATION_RISK")
+
+if sector_drift["Drift"].abs().max() > 0.05:
+    risk_flags.append(
+        "SECTOR_DRIFT"
+    )
 
 if portfolio_stability < 0.50:
     risk_flags.append("LOW_STABILITY")
@@ -2101,46 +2195,6 @@ elif len(risk_flags) <= 2:
 else:
 
     governance_status = "FAIL"
-
-
-breadth_score = (
-
-    effective_holdings
-
-    /
-
-    max(
-        target_holdings,
-        1
-    )
-)
-
-liquidity_pressure = (
-
-    portfolio_turnover
-
-    *
-
-    max_position_weight
-)
-
-execution_capacity = (
-
-    capacity_score
-
-    *
-
-    (1 - liquidity_pressure)
-)
-
-crowding_score = (
-
-    top10_weight
-
-    *
-
-    replacement_rate
-)
 
 
 regime_alignment = 100
@@ -2245,23 +2299,17 @@ approval_score = max(
     )
 )
 
-if approval_score >= 80:
+if approval_score >= 90:
+    approval_status = "APPROVED"
 
-    approval_status = (
-        "APPROVED"
-    )
+elif approval_score >= 75:
+    approval_status = "CONDITIONAL_APPROVAL"
 
 elif approval_score >= 60:
-
-    approval_status = (
-        "WATCHLIST"
-    )
+    approval_status = "WATCHLIST"
 
 else:
-
-    approval_status = (
-        "REJECTED"
-    )
+    approval_status = "REJECTED"
 
 new_position_turnover = (
     transition.loc[
@@ -2815,6 +2863,43 @@ trade_list[
     "Run_Timestamp"
 ] = run_timestamp
 
+if DEBUG_MODE:
+
+    print("\nDEBUG")
+
+    print(
+        "Current Sum:",
+        transition["Current_Weight"].sum()
+    )
+
+    print(
+        "Target Sum:",
+        transition["Target_Weight"].sum()
+    )
+
+    print(
+        "NEW:",
+        (
+            transition["Holding_Status"]
+            == "NEW"
+        ).sum()
+    )
+
+    print(
+        "EXIT:",
+        (
+            transition["Holding_Status"]
+            == "EXIT"
+        ).sum()
+    )
+
+    print(
+        "RETAIN:",
+        (
+            transition["Holding_Status"]
+            == "RETAIN"
+        ).sum()
+    )
 
 # =========================================================
 # OUTPUT FILES
@@ -2843,6 +2928,30 @@ SUMMARY_FILE = (
 DASHBOARD_FILE = (
     OUTPUT_DIR
     / "rebalance_dashboard.csv"
+)
+
+history_file = (
+    OUTPUT_DIR
+    / "rebalance_history.csv"
+)
+
+dashboard_row = pd.DataFrame({
+    "Date":[datetime.now()],
+    "Turnover":[portfolio_turnover],
+    "Active_Share":[active_share],
+    "Health":[rebalance_health_score],
+    "Approval":[approval_score]
+})
+
+if history_file.exists():
+    old = pd.read_csv(history_file)
+    dashboard_row = pd.concat(
+        [old, dashboard_row]
+    )
+
+dashboard_row.to_csv(
+    history_file,
+    index=False
 )
 
 # =========================================================
@@ -3233,6 +3342,16 @@ print(
 print(
     f"Turnover Flag        : "
     f"{turnover_flag}"
+)
+
+print(
+    f"Largest Sector Drift : "
+    f"{largest_sector_name}"
+)
+
+print(
+    f"Sector Drift Amount  : "
+    f"{largest_sector_drift:.2%}"
 )
 
 print(
