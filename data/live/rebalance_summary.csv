@@ -2,6 +2,6 @@ Metric,Value
 Approval_Status,APPROVED
 Approval_Score,100
 Risk_Flag_Count,0
-Portfolio_Beta,1.0
-Portfolio_Volatility,0.15817657058792947
-Expected_Return,0.09960275383335188
+Portfolio_Beta,1.0000000000000002
+Portfolio_Volatility,0.17563042188251116
+Expected_Return,0.1070149298336703
