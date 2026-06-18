@@ -2268,7 +2268,10 @@ governance_status = "PASS"
 if hhi > MAX_HHI:
     governance_status = "FAIL"
 
-if effective_holdings < MIN_EFFECTIVE_HOLDINGS:
+if (
+    effective_holdings < MIN_EFFECTIVE_HOLDINGS
+    and hhi > 0.04
+):
     governance_status = "FAIL"
 
 print(
@@ -2397,13 +2400,16 @@ print(
 # DIVERSIFICATION REPAIR
 # =========================================================
 
-if effective_holdings < MIN_EFFECTIVE_HOLDINGS:
+if (
+    effective_holdings < MIN_EFFECTIVE_HOLDINGS
+    and hhi > 0.04
+):
 
     print("\n🔧 Repairing Diversification...")
 
     target["Target_Weight"] = np.minimum(
         target["Target_Weight"],
-        0.35
+        0.035
     )
 
     target = normalize_weights(target)
@@ -2533,7 +2539,10 @@ if hhi > MAX_HHI:
         "CONCENTRATION"
     )
 
-if effective_holdings < MIN_EFFECTIVE_HOLDINGS:
+if (
+    effective_holdings < MIN_EFFECTIVE_HOLDINGS
+    and hhi > 0.04
+):
 
     risk_flags.append(
         "LOW_DIVERSIFICATION"
