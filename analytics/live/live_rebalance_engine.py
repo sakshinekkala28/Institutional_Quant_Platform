@@ -44,6 +44,8 @@ MAX_PORTFOLIO_TURNOVER = 0.35
 
 MAX_SECTOR_DRIFT = 0.10
 
+MAX_TRACKING_ERROR = 0.08
+
 MAX_MARKET_CAP_DRIFT = 0.07
 
 MAX_LIQUIDITY_DRIFT = 0.08
@@ -54,6 +56,7 @@ MIN_EFFECTIVE_HOLDINGS = 30
 
 MAX_POSITION_RISK = 0.15
 
+MAX_WEIGHT = 0.03
 MAX_SECTOR_WEIGHT = 0.20
 RETENTION_MULTIPLIER = 20
 
@@ -86,6 +89,14 @@ MAX_NEW_POSITIONS = 10
 MAX_EXIT_POSITIONS = 10
 
 TOP_TRADE_BUCKET = 10
+
+# =====================================
+# BLACK LITTERMAN
+# =====================================
+
+BL_ALPHA_WEIGHT = 0.40
+
+BL_MARKET_WEIGHT = 0.60
 
 # =========================================================
 # PATHS
@@ -286,6 +297,52 @@ regime = safe_load_csv(
     REGIME_FILE
 )
 
+print("\n📈 Applying Regime Overlay...")
+
+regime_name = "UNKNOWN"
+
+if len(regime) > 0:
+
+    regime_name = (
+
+        regime.iloc[-1]
+
+        .get(
+            "Regime",
+            "UNKNOWN"
+        )
+
+    )
+
+print(
+
+    "Current Regime:",
+
+    regime_name
+
+)
+
+# =====================================
+# STEP 19 - REGIME RISK BUDGET
+# =====================================
+
+if "BULL" in regime_name:
+
+    REGIME_RISK_MULTIPLIER = 1.15
+
+elif "BEAR" in regime_name:
+
+    REGIME_RISK_MULTIPLIER = 0.75
+
+else:
+
+    REGIME_RISK_MULTIPLIER = 1.00
+
+print(
+    "Regime Risk Multiplier:",
+    REGIME_RISK_MULTIPLIER
+)
+
 risk_budget = safe_load_csv(
     RISK_FILE
 )
@@ -322,6 +379,27 @@ portfolio = portfolio.merge(
     ],
     on="Symbol",
     how="left"
+)
+
+factor_master = pd.read_csv(
+    ROOT
+    / "data"
+    / "factors"
+    / "factor_master.csv"
+)
+
+print(
+    "✓ Loaded: factor_master.csv"
+)
+
+MAX_POSITION_WEIGHT = (
+    0.04
+    * REGIME_RISK_MULTIPLIER
+)
+
+MAX_POSITION_RISK = (
+    0.15
+    * REGIME_RISK_MULTIPLIER
 )
 
 # ----------------------------------
@@ -636,11 +714,333 @@ print(
 
 )
 
+
+target = target.merge(
+
+    factor_master,
+
+    on="Symbol",
+
+    how="left"
+
+)
+
+# =====================================
+# STANDARDIZE FACTOR MERGE COLUMNS
+# =====================================
+
+if "ADV_20D_x" in target.columns:
+
+    target["ADV_20D"] = (
+        target["ADV_20D_x"]
+        .fillna(target["ADV_20D_y"])
+    )
+
+if "Market_Cap_x" in target.columns:
+
+    target["Market_Cap"] = (
+        target["Market_Cap_x"]
+        .fillna(target["Market_Cap_y"])
+    )
+
+if "Sector_x" in target.columns:
+
+    target["Sector"] = (
+        target["Sector_x"]
+        .fillna(target["Sector_y"])
+    )
+
+target = target.drop(
+    columns=[
+        c
+        for c in [
+            "ADV_20D_x",
+            "ADV_20D_y",
+            "Market_Cap_x",
+            "Market_Cap_y",
+            "Sector_x",
+            "Sector_y"
+        ]
+        if c in target.columns
+    ]
+)
+
 # =========================================================
 # PART 6 - SCORE ENGINE
 # =========================================================
 
 print("\n📊 Calculating Scores...")
+
+# =====================================================
+# SIGNAL FRESHNESS
+# =====================================================
+
+if "Signal_Date" in target.columns:
+
+    target["Signal_Date"] = pd.to_datetime(
+        target["Signal_Date"],
+        errors="coerce"
+    )
+
+    signal_age = (
+        pd.Timestamp.today()
+        -
+        target["Signal_Date"]
+    ).dt.days
+
+    target["Freshness_Factor"] = np.exp(
+        -signal_age / 90
+    )
+
+else:
+
+    target["Freshness_Factor"] = 1.0
+
+
+# =====================================================
+# MOMENTUM FACTOR
+# =====================================================
+
+momentum_cols = [
+
+    "Momentum_1M",
+
+    "Momentum_3M",
+
+    "Momentum_6M",
+
+    "Momentum_12M"
+
+]
+
+available_momentum = [
+
+    c
+
+    for c in momentum_cols
+
+    if c in target.columns
+
+]
+
+if available_momentum:
+
+    target["Momentum_Factor"] = (
+
+        target[available_momentum]
+
+        .rank(pct=True)
+
+        .mean(axis=1)
+
+    )
+
+else:
+
+    target["Momentum_Factor"] = 0.5
+
+
+print("\nFACTOR MASTER CHECK")
+
+print(
+
+    target[
+        [
+            "Symbol",
+            "Momentum_1M",
+            "Momentum_3M",
+            "Momentum_6M"
+        ]
+    ]
+
+    .head()
+
+)
+
+print("\nTOP MOMENTUM STOCKS")
+
+print(
+    target[
+        ["Symbol", "Momentum_Factor"]
+    ]
+    .sort_values(
+        "Momentum_Factor",
+        ascending=False
+    )
+    .head(10)
+)
+
+# =====================================================
+# QUALITY FACTOR
+# =====================================================
+
+quality_cols = [
+    "ROE",
+    "ROCE",
+    "FCF_Margin"
+]
+
+available_quality = [
+    c for c in quality_cols
+    if c in target.columns
+]
+
+if available_quality:
+
+    target["Quality_Factor"] = (
+        target[available_quality]
+        .rank(pct=True)
+        .mean(axis=1)
+    )
+
+    if "Debt_To_Equity" in target.columns:
+
+        target["Quality_Factor"] += (
+            1 -
+            target["Debt_To_Equity"]
+            .rank(pct=True)
+        )
+
+    target["Quality_Factor"] = (
+        target["Quality_Factor"]
+        .rank(pct=True)
+    )
+
+else:
+
+    target["Quality_Factor"] = 0.5
+
+print("\nTOP QUALITY STOCKS")
+
+print(
+    target[
+        ["Symbol", "Quality_Factor"]
+    ]
+    .sort_values(
+        "Quality_Factor",
+        ascending=False
+    )
+    .head(10)
+)
+
+# =====================================================
+# VALUE FACTOR
+# =====================================================
+
+if "PE" in target.columns:
+
+    target["Value_Factor"] = (
+
+        1
+
+        /
+
+        target["PE"]
+
+        .replace(0, np.nan)
+
+    )
+
+    target["Value_Factor"] = (
+
+        target["Value_Factor"]
+
+        .rank(pct=True)
+
+    )
+
+else:
+
+    target["Value_Factor"] = 0.5
+
+
+# =====================================================
+# GROWTH FACTOR
+# =====================================================
+
+growth_cols = [
+
+    "Revenue_Growth",
+
+    "EPS_Growth",
+
+    "Profit_Growth"
+
+]
+
+available_growth = [
+
+    c
+
+    for c in growth_cols
+
+    if c in target.columns
+
+]
+
+if available_growth:
+
+    target["Growth_Factor"] = (
+
+        target[available_growth]
+
+        .rank(pct=True)
+
+        .mean(axis=1)
+
+    )
+
+else:
+
+    target["Growth_Factor"] = 0.5
+
+print("\nTOP GROWTH STOCKS")
+
+print(
+
+    target[
+        ["Symbol", "Growth_Factor"]
+    ]
+
+    .sort_values(
+        "Growth_Factor",
+        ascending=False
+    )
+
+    .head(10)
+
+)
+
+print("\nAVAILABLE FACTOR COLUMNS")
+
+print("\nFACTOR MASTER COLUMNS")
+
+print(
+    sorted(
+        factor_master.columns.tolist()
+    )
+)
+
+print(
+    sorted(
+        target.columns.tolist()
+    )
+)
+
+# =====================================================
+# FACTOR NORMALIZATION
+# =====================================================
+
+target["Signal_Factor"] = (
+    target["Signal_Score"]
+    .rank(pct=True)
+)
+
+target["Volatility_Factor"] = (
+    1 -
+    target["Volatility_252D"]
+    .rank(pct=True)
+)
 
 # ---------------------------------------------------------
 # RISK ADJUSTED SCORE
@@ -655,16 +1055,132 @@ target["Liquidity_Score"] = (
     adv_rank.clip(lower=0.10)
 )
 
-target["Risk_Adjusted_Score"] = (
-    target["Signal_Score"]
-    *
-    target["Liquidity_Score"]
-    *
-    (target["Market_Cap"].rank(pct=True) ** 0.25)
-    /
-    target["Volatility_252D"]
+# =====================================================
+# INSTITUTIONAL COMPOSITE ALPHA
+# =====================================================
+
+
+# =====================================
+# REGIME FACTOR ROTATION
+# =====================================
+
+if "BULL" in regime_name:
+
+    SIGNAL_W = 0.25
+    MOMENTUM_W = 0.35
+    QUALITY_W = 0.15
+    VOL_W = 0.15
+    FRESH_W = 0.10
+
+elif "BEAR" in regime_name:
+
+    SIGNAL_W = 0.20
+    MOMENTUM_W = 0.15
+    QUALITY_W = 0.35
+    VOL_W = 0.20
+    FRESH_W = 0.10
+
+else:   # SIDEWAYS
+
+    SIGNAL_W = 0.30
+    MOMENTUM_W = 0.25
+    QUALITY_W = 0.20
+    VOL_W = 0.15
+    FRESH_W = 0.10
+
+target["Composite_Alpha"] = (
+
+      0.20 * target["Signal_Factor"]
+
+    + 0.25 * target["Momentum_Factor"]
+
+    + 0.20 * target["Quality_Factor"]
+
+    + 0.15 * target["Value_Factor"]
+
+    + 0.15 * target["Growth_Factor"]
+
+    + 0.05 * target["Volatility_Factor"]
+
 )
 
+# =====================================================
+# SECTOR ALPHA ROTATION
+# =====================================================
+
+sector_alpha = (
+
+    target
+    .groupby("Sector")
+    ["Composite_Alpha"]
+    .mean()
+)
+
+sector_alpha = (
+
+    sector_alpha
+    .rank(pct=True)
+)
+
+target["Sector_Alpha"] = (
+    target["Sector"]
+    .map(sector_alpha)
+)
+
+print("\nTOP SECTOR ALPHA")
+
+print(
+    sector_alpha
+    .sort_values(
+        ascending=False
+    )
+)
+
+sector_alpha = (
+    target
+    .groupby("Sector")
+    ["Composite_Alpha"]
+    .mean()
+)
+
+sector_vol = (
+    target
+    .groupby("Sector")
+    ["Volatility_252D"]
+    .mean()
+)
+
+sector_risk_parity = (
+    sector_alpha
+    /
+    sector_vol
+)
+
+sector_risk_parity = (
+    sector_risk_parity
+    /
+    sector_risk_parity.sum()
+)
+
+print("\nSECTOR RISK PARITY")
+print(
+    sector_risk_parity
+    .sort_values(
+        ascending=False
+    )
+)
+
+target["Risk_Adjusted_Score"] = (
+
+      target["Composite_Alpha"]
+
+    * target["Liquidity_Score"]
+
+    * (target["Market_Cap"].rank(pct=True) ** 0.25)
+
+    * (0.80 + 0.40 * target["Sector_Alpha"])
+
+)
 
 target["Risk_Adjusted_Score"] = (
 
@@ -679,14 +1195,79 @@ target["Risk_Adjusted_Score"] = (
 
 )
 
+print("\nTOP COMPOSITE ALPHA")
+
+print("\nFACTOR CORRELATION")
+
+factor_cols = [
+
+    "Momentum_Factor",
+
+    "Quality_Factor",
+
+    "Value_Factor",
+
+    "Growth_Factor"
+
+]
+
+print(
+
+    target[
+        factor_cols
+    ]
+
+    .corr()
+
+)
+
+print("\nSECTOR DISTRIBUTION")
+
+print(
+
+    target
+    .groupby("Sector")
+    ["Composite_Alpha"]
+    .mean()
+    .sort_values(
+        ascending=False
+    )
+
+)
+
+print(
+    target[
+        ["Symbol","Composite_Alpha"]
+    ]
+    .sort_values(
+        "Composite_Alpha",
+        ascending=False
+    )
+    .head(15)
+)
+
 # ---------------------------------------------------------
 # SELECTION SCORE
 # ---------------------------------------------------------
 
+# Sector diversification bonus
+
+sector_count = (
+    target["Sector"]
+    .map(target["Sector"].value_counts())
+)
+
+target["Sector_Diversification_Bonus"] = (
+    1 / np.sqrt(sector_count)
+)
+
 target["Selection_Score"] = (
     target["Risk_Adjusted_Score"]
+    *
+    target["Sector_Diversification_Bonus"]
     +
-    target["Current_Weight"] * RETENTION_MULTIPLIER
+    target["Current_Weight"]
+    * RETENTION_MULTIPLIER
 )
 
 # ---------------------------------------------------------
@@ -724,11 +1305,77 @@ target["Rank"] = (
 # TOP CANDIDATES
 # ---------------------------------------------------------
 
-target = target.head(
+# ==========================================
+# SECTOR NEUTRAL SELECTION
+# ==========================================
 
-    TARGET_HOLDINGS
+sector_counts = (
+    target["Sector"]
+    .value_counts(normalize=True)
+)
 
-).copy()
+selected = []
+
+for sector in sector_counts.index:
+
+    sector_target = max(
+        2,
+        int(
+            TARGET_HOLDINGS
+            *
+            sector_counts[sector]
+        )
+    )
+
+    sector_df = (
+        target[
+            target["Sector"] == sector
+        ]
+        .sort_values(
+            "Selection_Score",
+            ascending=False
+        )
+        .head(sector_target)
+    )
+
+    selected.append(sector_df)
+
+target = pd.concat(selected)
+
+if len(target) < TARGET_HOLDINGS:
+
+    remaining = signals[
+        ~signals["Symbol"].isin(target["Symbol"])
+    ]
+
+    remaining = remaining.merge(
+        security_master,
+        on="Symbol",
+        how="left"
+    )
+
+    remaining = remaining.sort_values(
+        "Signal_Score",
+        ascending=False
+    )
+
+    needed = TARGET_HOLDINGS - len(target)
+
+    target = pd.concat([
+        target,
+        remaining.head(needed)
+    ])
+
+target = (
+    target
+    .sort_values(
+        "Selection_Score",
+        ascending=False
+    )
+    .head(TARGET_HOLDINGS)
+    .copy()
+)
+
 
 print(
 
@@ -744,14 +1391,71 @@ print(
 
 print("\n⚖ Assigning Weights...")
 
-# ---------------------------------------------------------
-# RAW SCORE WEIGHTS
-# ---------------------------------------------------------
+# ==========================================
+# VOLATILITY ADJUSTED ALPHA
+# ==========================================
 
 target["Risk_Adjusted_Score"] = (
+
     target["Selection_Score"]
+
     /
-    target["Volatility_252D"]
+
+    np.sqrt(
+        target["Volatility_252D"]
+    )
+
+)
+
+# =====================================================
+# LIQUIDITY SCALER
+# =====================================================
+
+target["Liquidity_Capacity"] = (
+
+    target["ADV_20D"]
+
+    /
+
+    target["ADV_20D"].median()
+
+)
+
+target["Liquidity_Capacity"] = (
+
+    target["Liquidity_Capacity"]
+
+    .clip(
+        lower=0.50,
+        upper=2.00
+    )
+
+)
+
+target["Risk_Adjusted_Score"] *= (
+
+    target["Liquidity_Capacity"] ** 0.25
+
+)
+
+print("\nTOP WEIGHT CANDIDATES")
+
+print(
+    target[
+        [
+            "Symbol",
+            "ADV_20D",
+            "Liquidity_Capacity",
+            "Selection_Score",
+            "Volatility_252D",
+            "Risk_Adjusted_Score"
+        ]
+    ]
+    .sort_values(
+        "Risk_Adjusted_Score",
+        ascending=False
+    )
+    .head(15)
 )
 
 target["Risk_Adjusted_Score"] = (
@@ -759,13 +1463,28 @@ target["Risk_Adjusted_Score"] = (
     .clip(lower=0)
 )
 
-target["Target_Weight"] = (
+target["Risk_Parity_Score"] = (
     target["Risk_Adjusted_Score"]
     /
-    target["Risk_Adjusted_Score"].sum()
+    target["Volatility_252D"]
 )
 
-MAX_WEIGHT = 0.03
+target["Sector_Risk_Parity"] = (
+    target["Sector"]
+    .map(sector_risk_parity)
+)
+
+target["Risk_Parity_Score"] = (
+    target["Risk_Parity_Score"]
+    *
+    target["Sector_Risk_Parity"]
+)
+
+target["Target_Weight"] = (
+    target["Risk_Parity_Score"]
+    /
+    target["Risk_Parity_Score"].sum()
+)
 
 target["Target_Weight"] = np.minimum(
     target["Target_Weight"],
@@ -858,37 +1577,9 @@ print(
 
 )
 
-# =========================================================
-# PART 8 - REGIME OVERLAY
-# =========================================================
-
-print("\n📈 Applying Regime Overlay...")
-
-regime_name = "UNKNOWN"
-
-if len(regime) > 0:
-
-    regime_name = (
-
-        regime.iloc[-1]
-
-        .get(
-            "Regime",
-            "UNKNOWN"
-        )
-
-    )
-
-print(
-
-    "Current Regime:",
-
-    regime_name
-
-)
 
 # ---------------------------------------------------------
-# BEAR MARKET
+# PART 8 - BEAR MARKET
 # ---------------------------------------------------------
 
 if "BEAR" in regime_name:
@@ -1398,6 +2089,47 @@ for _ in range(10):
     if not drift_found:
         break
 
+
+# =====================================================
+# SECTOR DRIFT REPAIR
+# =====================================================
+
+if "Sector" in target.columns:
+
+    sector_weights = (
+        target.groupby("Sector")["Target_Weight"]
+        .sum()
+    )
+
+    max_sector_weight = 0.20
+
+    for sector in sector_weights.index:
+
+        if sector_weights[sector] > max_sector_weight:
+
+            reduction_factor = (
+                max_sector_weight
+                /
+                sector_weights[sector]
+            )
+
+            target.loc[
+                target["Sector"] == sector,
+                "Target_Weight"
+            ] *= reduction_factor
+
+    target = normalize_weights(target)
+
+    print(
+        "Max Sector Weight:",
+        round(
+            target.groupby("Sector")[
+                "Target_Weight"
+            ].sum().max(),
+            4
+        )
+    )
+
 # =========================================================
 # PART 14 - MARKET CAP CONSTRAINT
 # =========================================================
@@ -1523,7 +2255,7 @@ target["Liquidity_Adjustment"] = (
 
 target["Liquidity_Adjustment"] = (
     target["Liquidity_Adjustment"]
-    .clip(0.7, 1.3)
+    .clip(0.90, 1.10)
 )
 
 target["Target_Weight"] *= (
@@ -1546,6 +2278,63 @@ print(
     "%"
 )
 
+# =====================================================
+# LIQUIDITY DRIFT REPAIR
+# =====================================================
+
+for _ in range(20):
+
+    _, liquidity_drift = calculate_drifts(
+        portfolio,
+        target
+    )
+
+    if abs(liquidity_drift) <= MAX_LIQUIDITY_DRIFT:
+        break
+
+    liquid = (
+        target
+        .nlargest(10, "ADV_20D")
+        .index
+    )
+
+    illiquid = (
+        target
+        .nsmallest(10, "ADV_20D")
+        .index
+    )
+
+    if liquidity_drift > 0:
+
+        target.loc[
+            liquid,
+            "Target_Weight"
+        ] *= 0.95
+
+        target.loc[
+            illiquid,
+            "Target_Weight"
+        ] *= 1.05
+
+    else:
+
+        target.loc[
+            liquid,
+            "Target_Weight"
+        ] *= 1.05
+
+        target.loc[
+            illiquid,
+            "Target_Weight"
+        ] *= 0.95
+
+    target = normalize_weights(target)
+
+print(
+    "Repaired Liquidity Drift:",
+    round(liquidity_drift * 100, 2),
+    "%"
+)
 
 print("\nDEBUG TARGET PORTFOLIO")
 
@@ -1923,6 +2712,27 @@ try:
         COV_FILE
     )
 
+    # =====================================
+    # COVARIANCE SHRINKAGE
+    # =====================================
+
+    diag = np.diag(
+        np.diag(cov_matrix.values)
+    )
+
+    cov_matrix = pd.DataFrame(
+
+        0.90 * cov_matrix.values
+
+        +
+
+        0.10 * diag,
+
+        index=cov_matrix.index,
+        columns=cov_matrix.columns
+
+    )
+
     print(
         "✓ Covariance Loaded"
     )
@@ -1932,34 +2742,149 @@ except:
     print(
         "⚠ Covariance Missing"
     )
+# =====================================
+# STEP 17 - PSD COVARIANCE REPAIR
+# =====================================
+
+eigvals, eigvecs = np.linalg.eigh(
+    cov_matrix.values
+)
+
+eigvals = np.maximum(
+    eigvals,
+    1e-6
+)
+
+cov_matrix = pd.DataFrame(
+
+    eigvecs
+
+    @
+
+    np.diag(eigvals)
+
+    @
+
+    eigvecs.T,
+
+    index=cov_matrix.index,
+    columns=cov_matrix.columns
+
+)
+
+print(
+    "PSD Min Eigenvalue:",
+    np.min(
+        np.linalg.eigvals(
+            cov_matrix.values
+        )
+    )
+)
 
 # =========================================================
 # PART 19 - PORTFOLIO VOLATILITY
 # =========================================================
 
-portfolio_volatility = np.nan
+portfolio_volatility = 0.0
 
 if cov_matrix is not None:
 
-    available = [
+    available = []
+    missing_cov = []
 
+    for s in target["Yahoo_Symbol"]:
+
+        if s in cov_matrix.index:
+
+            available.append(s)
+
+        else:
+
+            missing_cov.append(s)
+
+    # =====================================
+    # SYNTHETIC COVARIANCE REPAIR
+    # =====================================
+
+    for s in missing_cov:
+
+        if len(cov_matrix.index) > 0:
+
+            proxy = (
+                target
+                .set_index("Yahoo_Symbol")
+                .loc[s, "Volatility_252D"]
+            )
+
+            nearest = (
+
+                target
+                .loc[
+                    target["Yahoo_Symbol"].isin(
+                        cov_matrix.index
+                    )
+                ]
+
+                .assign(
+                    VolGap=lambda x:
+                    abs(
+                        x["Volatility_252D"]
+                        - proxy
+                    )
+                )
+
+                .sort_values(
+                    "VolGap"
+                )
+
+                .iloc[0]
+
+                ["Yahoo_Symbol"]
+
+            )
+
+            cov_matrix.loc[s] = (
+                cov_matrix.loc[nearest]
+            )
+
+            cov_matrix[s] = (
+                cov_matrix[nearest]
+            )
+
+            available.append(s)
+
+    missing_cov = [
         s
-
         for s in target["Yahoo_Symbol"]
-
-        if s in cov_matrix.index
-
+        if s not in available
     ]
+
+    print(
+        "\nMissing Covariance Stocks:",
+        len(missing_cov)
+    )
+
+    if len(missing_cov) > 0:
+
+        print(
+            pd.Series(missing_cov).head(20)
+        )
 
     coverage = (
 
-        len(available)
+        len(set(available))
 
         /
 
         len(target)
 
     )
+
+    if coverage < 0.98:
+
+        print(
+            "\nWARNING: Covariance Coverage Below Institutional Threshold"
+        )
 
     print(
 
@@ -2020,18 +2945,317 @@ if cov_matrix is not None:
 
         )
 
-        portfolio_volatility = (
+        print("\nCOVARIANCE DEBUG")
 
-            np.sqrt(
-                variance
-            )
+        diag_vol = np.sqrt(
+            np.diag(cov_sub)
         )
 
-if pd.isna(portfolio_volatility):
+        print(
+            "Average Diagonal Vol:",
+            diag_vol.mean()
+        )
 
-    portfolio_volatility = (
+        print(
+            "Max Diagonal Vol:",
+            diag_vol.max()
+        )
 
-        np.sqrt(
+        print(
+            "Min Diagonal Vol:",
+            diag_vol.min()
+        )
+
+        portfolio_volatility = np.sqrt(variance)
+
+# =====================================
+# MARKET CAP EQUILIBRIUM WEIGHTS
+# =====================================
+
+market_weights = (
+
+    target["Market_Cap"]
+
+    /
+
+    target["Market_Cap"].sum()
+
+)
+
+target["Market_Weight"] = market_weights
+
+print("\n⚙ Running Mean-Variance Optimizer...")
+
+# =====================================================
+# MEAN VARIANCE OPTIMIZER
+# =====================================================
+
+if cov_matrix is not None and len(available) >= 20:
+
+    # =====================================
+    # BLACK-LITTERMAN EQUILIBRIUM RETURNS
+    # =====================================
+
+    RISK_AVERSION = 2.5
+
+    market_weights = (
+
+        target
+        .set_index("Yahoo_Symbol")
+        .loc[available, "Market_Weight"]
+        .values
+
+    )
+
+    pi = (
+
+        RISK_AVERSION
+
+        *
+
+        cov_sub
+
+        @
+
+        market_weights
+
+    )
+
+    alpha_vector = (
+
+        target
+        .set_index("Yahoo_Symbol")
+        .loc[available, "Composite_Alpha"]
+        .values
+
+    )
+
+    expected_returns = (
+
+        0.70 * pi
+
+        +
+
+        0.30 * alpha_vector
+
+    )
+
+    # =====================================
+    # BL CONFIDENCE SCALING
+    # =====================================
+
+    BL_CONFIDENCE = 0.35
+
+    expected_returns = (
+
+        pi
+
+        +
+
+        BL_CONFIDENCE
+
+        *
+
+        (
+
+            expected_returns
+
+            -
+
+            pi
+
+        )
+
+    )
+
+    inv_cov = np.linalg.pinv(cov_sub)
+
+    mv_weights = inv_cov @ expected_returns
+
+    mv_weights = np.maximum(
+        mv_weights,
+        0
+    )
+
+    print("\nBLACK-LITTERMAN PI RETURNS")
+
+    print(
+        pd.Series(
+            pi,
+            index=available
+        )
+        .sort_values(
+            ascending=False
+        )
+        .head(15)
+    )
+
+    if mv_weights.sum() > 0:
+
+        mv_weights = (
+            mv_weights
+            /
+            mv_weights.sum()
+        )
+
+        mv_series = pd.Series(
+            mv_weights,
+            index=available
+        )
+
+        target["MV_Weight"] = (
+            target["Yahoo_Symbol"]
+            .map(mv_series)
+            .fillna(0)
+        )
+
+        target["Market_Weight"] = (
+            target["Market_Weight"]
+            .fillna(0)
+        )
+
+        target["MV_Weight"] = (
+            target["MV_Weight"]
+            .fillna(0)
+        )
+
+        target["Target_Weight"] = (
+
+            BL_MARKET_WEIGHT
+            * target["Market_Weight"]
+
+            +
+
+            BL_ALPHA_WEIGHT
+            * target["MV_Weight"]
+
+        )
+
+        target["Target_Weight"] = (
+            target["Target_Weight"]
+            .fillna(0)
+        )
+
+        target = target[
+            target["Target_Weight"] > 0
+        ].copy()
+
+        # =====================================
+        # MINIMUM POSITION FLOOR
+        # =====================================
+
+        MIN_POSITION = 0.0025
+
+        target["Target_Weight"] = np.maximum(
+            target["Target_Weight"],
+            MIN_POSITION
+        )
+
+        target = normalize_weights(
+            target
+        )
+
+        print(
+            "NaN Target Weights:",
+            target["Target_Weight"]
+            .isna()
+            .sum()
+        )
+
+        print(
+            "NaN MV Weights:",
+            target["MV_Weight"]
+            .isna()
+            .sum()
+        )
+
+        print(
+            "NaN Market Weights:",
+            target["Market_Weight"]
+            .isna()
+            .sum()
+        )
+
+        print("\nBLACK-LITTERMAN TOP WEIGHTS")
+
+        print(
+            target[
+                ["Symbol",
+                 "Market_Weight",
+                 "MV_Weight",
+                 "Target_Weight"]
+            ]
+            .sort_values(
+                "Target_Weight",
+                ascending=False
+            )
+            .head(15)
+        )
+
+        print(
+            "✓ Mean-Variance Optimization Applied"
+        )
+
+# =====================================================
+# TRACKING ERROR CONSTRAINT
+# =====================================================
+
+print("\n🎯 Applying Tracking Error Constraint...")
+
+benchmark_weights = (
+    portfolio
+    .set_index("Symbol")["Weight"]
+)
+
+target["Benchmark_Weight"] = (
+    target["Symbol"]
+    .map(benchmark_weights)
+    .fillna(0)
+)
+
+weight_diff = (
+    target["Target_Weight"]
+    -
+    target["Benchmark_Weight"]
+)
+
+tracking_error = np.sqrt(
+    np.sum(weight_diff ** 2)
+)
+
+print(
+    "Pre-Constraint Tracking Error:",
+    round(tracking_error * 100, 2),
+    "%"
+)
+
+if tracking_error > MAX_TRACKING_ERROR:
+
+    blend = (
+        MAX_TRACKING_ERROR
+        /
+        tracking_error
+    )
+
+    while tracking_error > MAX_TRACKING_ERROR:
+
+        target["Target_Weight"] = (
+
+            blend
+            * target["Target_Weight"]
+
+            +
+
+            (1 - blend)
+            * target["Benchmark_Weight"]
+
+        )
+
+        target = normalize_weights(
+            target
+        )
+
+        tracking_error = np.sqrt(
 
             np.sum(
 
@@ -2039,9 +3263,9 @@ if pd.isna(portfolio_volatility):
 
                     target["Target_Weight"]
 
-                    *
+                    -
 
-                    target["Volatility_252D"]
+                    target["Benchmark_Weight"]
 
                 ) ** 2
 
@@ -2049,57 +3273,398 @@ if pd.isna(portfolio_volatility):
 
         )
 
+        blend *= 0.95
+
+tracking_error = np.sqrt(
+    np.sum(
+        (
+            target["Target_Weight"]
+            -
+            target["Benchmark_Weight"]
+        ) ** 2
     )
+)
 
 print(
-
-    "Portfolio Volatility:",
-
-    round(
-        portfolio_volatility * 100,
-        2
-    ),
-
+    "Post-Constraint Tracking Error:",
+    round(tracking_error * 100, 2),
     "%"
-
 )
+
+# =====================================================
+# FINAL INSTITUTIONAL CONSTRAINT PASS
+# =====================================================
+
+print("\n🏦 Final Constraint Pass...")
+
+for _ in range(20):
+
+    excess = (
+        target["Target_Weight"]
+        > MAX_POSITION_WEIGHT
+    )
+
+    if not excess.any():
+        break
+
+    overflow = (
+        target.loc[
+            excess,
+            "Target_Weight"
+        ]
+        -
+        MAX_POSITION_WEIGHT
+    ).sum()
+
+    target.loc[
+        excess,
+        "Target_Weight"
+    ] = MAX_POSITION_WEIGHT
+
+    remaining = ~excess
+
+    target.loc[
+        remaining,
+        "Target_Weight"
+    ] += (
+        overflow
+        *
+        target.loc[
+            remaining,
+            "Target_Weight"
+        ]
+        /
+        target.loc[
+            remaining,
+            "Target_Weight"
+        ].sum()
+    )
+
+target = normalize_weights(target)
+
+print(
+    "Final Max Weight:",
+    round(
+        target["Target_Weight"].max(),
+        4
+    )
+)
+
 
 # =========================================================
 # PART 20 - RISK CONTRIBUTIONS
 # =========================================================
 
+available = [
+    s
+    for s in target["Yahoo_Symbol"]
+    if s in cov_matrix.index
+]
+
+cov_sub = (
+    cov_matrix
+    .loc[available, available]
+    .values
+)
+
+weights = (
+    target
+    .set_index("Yahoo_Symbol")
+    .loc[available, "Target_Weight"]
+    .values
+)
+
+weights = np.nan_to_num(
+    weights,
+    nan=0.0
+)
+
+weights = np.maximum(
+    weights,
+    0
+)
+
+if weights.sum() > 0:
+
+    weights = (
+        weights
+        /
+        weights.sum()
+    )
+
+print("\nWEIGHT DEBUG")
+
+print(
+    "Weight Sum:",
+    weights.sum()
+)
+
+print(
+    "NaN Weights:",
+    np.isnan(weights).sum()
+)
+
+print(
+    "Min Weight:",
+    weights.min()
+)
+
+print(
+    "Max Weight:",
+    weights.max()
+)
+
+portfolio_var = (
+    weights.T
+    @ cov_sub
+    @ weights
+)
+
+
 print("\n🛡 Calculating Risk Contributions...")
 
-target["Risk_Contribution"] = (
-    (
+# =====================================
+# TRUE COVARIANCE RISK CONTRIBUTION
+# =====================================
+
+if cov_matrix is not None and len(available) >= 20:
+
+    weights = (
+
+        target
+        .set_index("Yahoo_Symbol")
+        .loc[available, "Target_Weight"]
+        .values
+
+    )
+
+    print("\nRISK WEIGHT DEBUG")
+
+    target["Target_Weight"] = (
         target["Target_Weight"]
-        *
-        target["Volatility_252D"]
-    ) ** 2
-)
+        .fillna(0)
+    )
 
-target["Risk_Contribution_Pct"] = (
-    target["Risk_Contribution"]
-    /
-    target["Risk_Contribution"].sum()
-)
+    target = target[
+        target["Target_Weight"] > 0
+    ].copy()
+    
+    valid_available = [
 
-total_risk = (
+        s
 
-    target["Risk_Contribution"]
+        for s in available
 
-    .sum()
-)
+        if s in target["Yahoo_Symbol"].values
 
-target["Risk_Contribution_Pct"] = (
+    ]
 
-    target["Risk_Contribution"]
+    risk_weights_df = (
 
-    /
+        target
+        .set_index("Yahoo_Symbol")
+        .loc[
+            valid_available,
+            ["Symbol", "Target_Weight"]
+        ]
 
-    total_risk
+    )
 
-)
+    nan_count = (
+        risk_weights_df["Target_Weight"]
+        .isna()
+        .sum()
+    )
+
+    print(
+        "Risk Weight NaNs:",
+        nan_count
+    )
+
+    weights = np.nan_to_num(
+        weights,
+        nan=0.0
+    )
+
+    weights = np.maximum(
+        weights,
+        0
+    )
+
+    weights = (
+        weights
+        /
+        weights.sum()
+    )
+
+    cov_sub = (
+
+        cov_matrix
+        .loc[available, available]
+        .values
+
+    )
+
+    portfolio_var = (
+        weights.T
+        @ cov_sub
+        @ weights
+    )
+
+    portfolio_vol = np.sqrt(
+        portfolio_var
+    )
+
+    portfolio_volatility = portfolio_vol
+
+    print(
+        "FINAL VOL DEBUG:",
+        portfolio_volatility
+    )
+
+    print("\nRISK DEBUG")
+
+    print(
+        "Portfolio Variance:",
+        portfolio_var
+    )
+
+    print(
+        "Portfolio Vol:",
+        portfolio_vol
+    )
+
+    print(
+        "NaNs In Covariance:",
+        np.isnan(cov_sub).sum()
+    )
+
+    print(
+        "NaNs In Weights:",
+        np.isnan(weights).sum()
+    )
+
+    eigvals = np.linalg.eigh(
+        cov_sub
+    )[0]
+
+    print(
+        "Min Eigenvalue:",
+        float(
+            eigvals.min()
+        )
+    )
+    
+    marginal_risk = (
+        cov_sub @ weights
+    ) / portfolio_vol
+
+    component_risk = (
+        weights * marginal_risk
+    )
+
+    total_risk = component_risk.sum()
+
+    if total_risk <= 0:
+
+        risk_pct = np.repeat(
+            1 / len(component_risk),
+            len(component_risk)
+        )
+
+    else:
+
+        risk_pct = component_risk / total_risk
+
+    rc_df = pd.DataFrame({
+
+        "Yahoo_Symbol": available,
+        "Risk_Contribution_Pct": risk_pct
+
+    })
+
+    target = target.merge(
+        rc_df,
+        on="Yahoo_Symbol",
+        how="left"
+    )
+    # =====================================
+    # STEP 15 - COVARIANCE RISK VALIDATION
+    # =====================================
+
+    print(
+        "\n🔍 RISK MODEL VALIDATION"
+    )
+
+    coverage_symbols = set(
+        target["Yahoo_Symbol"]
+    )
+
+    coverage = (
+
+        len(
+            coverage_symbols.intersection(
+                set(cov_matrix.index)
+            )
+        )
+
+        /
+
+        len(coverage_symbols)
+
+    )
+
+    print(
+        "Covariance Coverage:",
+        round(
+            coverage * 100,
+            2
+        ),
+        "%"
+    )
+
+    print(
+        "Weight Sum:",
+        round(
+            weights.sum(),
+            6
+        )
+    )
+
+    print(
+        "Portfolio Volatility:",
+        round(
+            portfolio_vol * 100,
+            2
+        ),
+        "%"
+    )
+
+    print(
+        "Max Risk Contribution:",
+        round(
+            target["Risk_Contribution_Pct"]
+            .max()
+             * 100,
+             2
+        ),
+        "%"
+    )
+
+else:
+
+    target["Risk_Contribution_Pct"] = (
+        (
+            target["Target_Weight"]
+            *
+            target["Volatility_252D"]
+        ) ** 2
+    )
+
+    target["Risk_Contribution_Pct"] /= (
+        target["Risk_Contribution_Pct"].sum()
+    )
+
 
 top_risk = (
 
@@ -2128,6 +3693,24 @@ print(
 
 )
 
+# =====================================================
+# RISK CONTRIBUTION REBALANCER
+# =====================================================
+
+# Recalculate final risk contribution
+
+max_risk_contribution = (
+    target["Risk_Contribution_Pct"]
+    .max()
+)
+
+print(
+    "Max Risk Contribution:",
+    round(
+        max_risk_contribution,
+        4
+    )
+)
 # =========================================================
 # PART 21 - PORTFOLIO BETA
 # =========================================================
@@ -2207,6 +3790,17 @@ expected_return = (
     target["Expected_Alpha"]
 ).sum()
 
+expected_return = (
+    expected_return
+    *
+    REGIME_RISK_MULTIPLIER
+)
+
+print(
+    "IR VOL INPUT:",
+    portfolio_volatility
+)
+
 if portfolio_volatility > 0:
 
     information_ratio = (
@@ -2244,6 +3838,261 @@ print(
         information_ratio,
         2
     )
+
+)
+
+# =====================================
+# STEP 16 - ACTIVE SHARE ANALYTICS
+# =====================================
+
+benchmark_weights = (
+
+    target["Benchmark_Weight"]
+
+    .fillna(0)
+
+)
+
+active_share = (
+
+    0.5
+
+    *
+
+    np.abs(
+
+        target["Target_Weight"]
+
+        -
+
+        benchmark_weights
+
+    ).sum()
+
+)
+
+active_weight = (
+
+    np.abs(
+
+        target["Target_Weight"]
+
+        -
+
+        benchmark_weights
+
+    ).sum()
+
+)
+
+conviction_score = (
+
+    active_share
+
+    *
+
+    information_ratio
+
+)
+
+print(
+    "\n📈 ACTIVE SHARE ANALYTICS"
+)
+
+print(
+    "Active Share:",
+    round(
+        active_share * 100,
+        2
+    ),
+    "%"
+)
+
+print(
+    "Active Weight:",
+    round(
+        active_weight * 100,
+        2
+    ),
+    "%"
+)
+
+print(
+    "Conviction Score:",
+    round(
+        conviction_score,
+        2
+    )
+)
+
+# =====================================
+# STEP 13 - FACTOR EXPOSURE ANALYTICS
+# =====================================
+
+print("\n📊 FACTOR EXPOSURES")
+
+factor_summary = pd.DataFrame({
+
+    "Factor": [
+
+        "Momentum",
+        "Quality",
+        "Low Vol"
+
+    ],
+
+    "Exposure": [
+
+        (
+
+            target["Momentum_Factor"]
+
+            *
+
+            target["Target_Weight"]
+
+        ).sum(),
+
+        (
+
+            target["Quality_Factor"]
+
+            *
+
+            target["Target_Weight"]
+
+        ).sum(),
+
+        (
+
+            (
+
+                1
+
+                -
+
+                target["Volatility_252D"]
+
+            )
+
+            *
+
+            target["Target_Weight"]
+
+        ).sum()
+
+    ]
+
+})
+
+print(
+    factor_summary
+)
+
+
+# =====================================
+# STEP 18 - FACTOR RISK ATTRIBUTION
+# =====================================
+
+print(
+    "\n🛡 FACTOR RISK ATTRIBUTION"
+)
+
+factor_risk = pd.DataFrame({
+
+    "Factor": [
+
+        "Momentum",
+        "Quality",
+        "Low Vol"
+
+    ],
+
+    "Exposure": [
+
+        (
+            target["Momentum_Factor"]
+            *
+            target["Target_Weight"]
+        ).sum(),
+
+        (
+            target["Quality_Factor"]
+            *
+            target["Target_Weight"]
+        ).sum(),
+
+        (
+            (
+                1
+                -
+                target["Volatility_252D"]
+            )
+            *
+            target["Target_Weight"]
+        ).sum()
+
+    ]
+
+})
+
+factor_risk["Risk_Contribution"] = (
+
+    factor_risk["Exposure"]
+
+    /
+
+    factor_risk["Exposure"].sum()
+
+)
+
+print(
+    factor_risk
+)
+
+
+# =====================================
+# STEP 14 - SECTOR ALPHA ATTRIBUTION
+# =====================================
+
+print(
+    "\n🏛 SECTOR ALPHA ATTRIBUTION"
+)
+
+sector_alpha = (
+
+    target
+
+    .groupby(
+        "Sector"
+    )
+
+    .apply(
+
+        lambda x:
+
+        (
+
+            x["Composite_Alpha"]
+
+            *
+
+            x["Target_Weight"]
+
+        ).sum()
+
+    )
+
+    .sort_values(
+        ascending=False
+    )
+
+)
+
+print(
+
+    sector_alpha
+    .head(10)
 
 )
 
@@ -2565,18 +4414,12 @@ print(
     MAX_POSITION_RISK
 )
 
-if (
+current_max_risk = (
+    target["Risk_Contribution_Pct"]
+    .max()
+)
 
-    top_risk[
-        "Risk_Contribution_Pct"
-    ].max()
-
-    >
-
-    MAX_POSITION_RISK
-
-):
-
+if current_max_risk > MAX_POSITION_RISK:
     risk_flags.append(
         "SINGLE_STOCK_RISK"
     )
@@ -2717,6 +4560,76 @@ dashboard = pd.DataFrame({
 
 })
 
+
+# =====================================
+# FINAL POSITION CAP PASS
+# =====================================
+
+for _ in range(20):
+
+    excess = (
+        target["Target_Weight"]
+        > MAX_POSITION_WEIGHT
+    )
+
+    if not excess.any():
+        break
+
+    overflow = (
+
+        target.loc[
+            excess,
+            "Target_Weight"
+        ]
+
+        -
+
+        MAX_POSITION_WEIGHT
+
+    ).sum()
+
+    target.loc[
+        excess,
+        "Target_Weight"
+    ] = MAX_POSITION_WEIGHT
+
+    remaining = ~excess
+
+    target.loc[
+        remaining,
+        "Target_Weight"
+    ] += (
+
+        overflow
+
+        *
+
+        target.loc[
+            remaining,
+            "Target_Weight"
+        ]
+
+        /
+
+        target.loc[
+            remaining,
+            "Target_Weight"
+        ].sum()
+
+    )
+
+target = normalize_weights(
+    target
+)
+
+print(
+    "\nFINAL MAX WEIGHT:",
+    round(
+        target["Target_Weight"].max(),
+        4
+    )
+)
+
 # =========================================================
 # PART 27 - SAVE OUTPUTS
 # =========================================================
@@ -2828,6 +4741,11 @@ print(
 
 print(
     f"Information Ratio   : {information_ratio:.2f}"
+)
+
+print(
+    f"Active Share        : "
+    f"{active_share:.2%}"
 )
 
 print(
