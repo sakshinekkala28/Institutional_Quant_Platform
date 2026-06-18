@@ -1,7 +1,7 @@
 Metric,Value
-Approval_Status,CONDITIONAL_APPROVAL
-Approval_Score,90
-Risk_Flag_Count,1
+Approval_Status,APPROVED
+Approval_Score,100
+Risk_Flag_Count,0
 Portfolio_Beta,1.0
 Portfolio_Volatility,0.15817657058792947
 Expected_Return,0.09960275383335188
