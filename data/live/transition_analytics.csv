@@ -1,7 +1,7 @@
 Metric,Value
-New_Positions,10.0
-Exited_Positions,17.0
-Retained_Positions,33.0
-New_Holdings_Pct,0.34
-Exited_Holdings_Pct,0.34
-Churn_Ratio,0.68
+New_Positions,4.0
+Exited_Positions,25.0
+Retained_Positions,25.0
+New_Holdings_Pct,0.5
+Exited_Holdings_Pct,0.5
+Churn_Ratio,1.0

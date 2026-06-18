@@ -1,61 +1,9 @@
 Metric,Value
-Current_Regime,SIDEWAYS_LOW_VOL
-Portfolio_Holdings,50
-Target_Holdings,50
-Buy_Orders,20
-Sell_Orders,11
-Portfolio_Turnover,0.16261
-Buy_Turnover,0.133889
-Sell_Turnover,0.028721
-New Exposure Added,0.238447
-Exposure Exited,0.337635
-Existing Exposure Reallocated,0.085371
-Portfolio_HHI,0.020573
-Effective_Holdings,48.61
-Active_Share,0.40506
-Portfolio_Stability,0.66
-Rebalance_Efficiency,0.5935
-Efficiency_Grade,C
-New_Holdings_Pct,0.34
-Exited_Holdings_Pct,0.34
-Churn_Ratio,0.68
-Top_Trade_Share,0.235061
-Execution_Complexity,100
-Turnover_Reconciled,True
-Top5_Weight,0.130123
-Top10_Weight,0.235061
-Gross_Buy_Weight,0.267778
-Gross_Sell_Weight,0.057442
-Net_Flow,0.210336
-Retention_Ratio,0.66
-Replacement_Rate,0.2
-Turnover_Flag,NORMAL
-Turnover_Scaling_Factor,1.0
-Capacity_Score,50.6
-Average_Cost_BPS,20.94
-Approval_Score,81.0
-Approval_Status,CONDITIONAL_APPROVAL
-Execution_Score,90
-Execution_Status,READY
-Governance_Status,WATCH
-Liquidity_Breaches,0
-Average_Liquidity_Usage,1.8369672274249336e-09
-Liquidity_Execution_Capacity,99.99999981630327
-Sector_Drift_Score,41.26515197853236
-Rebalance_Health_Score,66.42095309803918
-Breadth_Score,0.9721367325439703
-Liquidity_Pressure,0.005460470852669919
-Portfolio_Execution_Capacity,50.323700174854906
-Crowding_Score,0.047012168016652346
-Regime_Alignment,100
-Risk_Flag_Count,3
-ADV_Coverage,100.0
-MarketCap_Coverage,100.0
-Sector_Coverage,97.0
-Universe_Health_Score,99.0
-Universe_Quality_Grade,A
-Average_Signal_Age,N/A
-Average_Alpha_Decay,N/A
-Persistence_Score,N/A
-Signal_Stability,66.0
-Engine_Version,2.2.0
+Portfolio Beta,1.0
+Portfolio Volatility,0.15817657058792947
+Expected Return,0.09960275383335188
+Information Ratio,0.6296934714359815
+Turnover,0.3174170986435605
+HHI,0.03525674001307759
+Effective Holdings,28.363371078241364
+Approval Score,90.0

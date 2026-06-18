@@ -1,9 +1,13 @@
 import pandas as pd
 
-security_master = pd.read_csv(
-    "data/raw/security_master.csv"
+cov = pd.read_parquet(
+    "data/risk/shrinkage_covariance.parquet"
 )
 
-print(
-    security_master["Sector"].isna().mean() * 100
-)
+print(cov.shape)
+
+print(cov.head())
+
+print(cov.index[:10])
+
+print(cov.columns[:10])
