@@ -1,13 +1,27 @@
+from pathlib import Path
 import pandas as pd
 
-cov = pd.read_parquet(
-    "data/risk/shrinkage_covariance.parquet"
+ROOT = Path.cwd()
+
+print("ROOT:", ROOT)
+
+beta_file = (
+    ROOT
+    / "data"
+    / "risk"
+    / "beta_master.csv"
 )
 
-print(cov.shape)
+print("FILE:", beta_file)
+print("EXISTS:", beta_file.exists())
 
-print(cov.head())
+beta_df = pd.read_csv(beta_file)
 
-print(cov.index[:10])
+print(beta_df.head())
 
-print(cov.columns[:10])
+print(beta_df["Beta"].describe())
+
+print(
+    "Unique Betas:",
+    beta_df["Beta"].nunique()
+)
