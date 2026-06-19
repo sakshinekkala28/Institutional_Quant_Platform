@@ -56,7 +56,7 @@ MAX_MARKET_CAP_DRIFT = 0.10
 
 MAX_LIQUIDITY_DRIFT = 0.10
 
-MAX_HHI = 0.05
+MAX_HHI = 0.06
 
 MIN_EFFECTIVE_HOLDINGS = 20
 
@@ -1296,8 +1296,21 @@ target["Composite_Alpha"] = (
 
 )
 
+sector_mean = (
+    target.groupby("Sector")
+    ["Composite_Alpha"]
+    .transform("mean")
+)
+
 target["Composite_Alpha"] = (
-    target["Composite_Alpha"] ** 2
+    target["Composite_Alpha"]
+    -
+    sector_mean
+)
+
+target["Composite_Alpha"] = (
+    target["Composite_Alpha"]
+    .rank(pct=True)
 )
 
 alpha_cutoff = (
@@ -1588,10 +1601,6 @@ target["Rank"] = (
 
 )
 
-# ---------------------------------------------------------
-# TOP CANDIDATES
-# ---------------------------------------------------------
-
 # ==========================================
 # SECTOR NEUTRAL SELECTION
 # ==========================================
@@ -1778,14 +1787,6 @@ target["Position_Cap"] = np.where(
     target["Volatility_252D"].median(),
     0.05,
     0.07
-)
-
-target["Target_Weight"] = np.minimum(
-
-    target["Target_Weight"],
-
-    target["Position_Cap"]
-
 )
 
 target["Target_Weight"] = (
@@ -2411,7 +2412,7 @@ target["Liquidity_Adjustment"] = (
 
 target["Liquidity_Adjustment"] = (
     target["Liquidity_Adjustment"]
-    .clip(0.90, 1.10)
+    .clip(0.95, 1.05)
 )
 
 target["Target_Weight"] *= (
@@ -3086,6 +3087,32 @@ if cov_matrix is not None:
 
         portfolio_volatility = np.sqrt(variance)
 
+
+target["Tail_Risk"] = (
+
+    target["Volatility_252D"]
+
+    *
+
+    (
+        1
+        -
+        target["Quality_Factor"]
+    )
+
+)
+
+target["Target_Weight"] *= (
+
+    1
+    -
+    0.20
+    *
+    target["Tail_Risk"]
+)
+
+target = normalize_weights(target)
+
 # =====================================
 # MARKET CAP EQUILIBRIUM WEIGHTS
 # =====================================
@@ -3109,6 +3136,27 @@ target_sector = (
 )
 
 print("\n⚙ Running Mean-Variance Optimizer...")
+
+
+target["Diversification_Penalty"] = (
+
+    target["Target_Weight"]
+
+    ** 2
+
+)
+
+target["Risk_Parity_Score"] *= (
+
+    1
+    -
+    target["Diversification_Penalty"]
+)
+
+target["Risk_Parity_Score"] = (
+    target["Risk_Parity_Score"]
+    .clip(lower=0)
+)
 
 # =====================================================
 # MEAN VARIANCE OPTIMIZER
@@ -3260,14 +3308,6 @@ if cov_matrix is not None and len(available) >= 20:
             .fillna(0)
         )
 
-        target["Target_Weight"] = np.minimum(
-
-            target["Target_Weight"],
-
-            target["Position_Cap"]
-
-        )
-
         target["Target_Weight"] = np.maximum(
             target["Target_Weight"],
             MIN_POSITION_WEIGHT
@@ -3350,6 +3390,23 @@ weight_diff = (
     target["Target_Weight"]
     -
     target["Benchmark_Weight"]
+)
+
+active_weights = weight_diff.values
+
+cov_te = (
+    cov_matrix
+    .loc[
+        target["Yahoo_Symbol"],
+        target["Yahoo_Symbol"]
+    ]
+    .values
+)
+
+tracking_error = np.sqrt(
+    active_weights.T
+    @ cov_te
+    @ active_weights
 )
 
 tracking_error = np.sqrt(
@@ -3953,9 +4010,23 @@ target = normalize_weights(target)
 # =========================================================
 
 target["Expected_Alpha"] = (
-    target["Signal_Score"]
-    / 100
-) * 0.15
+
+      0.30
+      * target["Signal_Factor"]
+
+    + 0.20
+      * target["Momentum_Factor"]
+
+    + 0.20
+      * target["Quality_Factor"]
+
+    + 0.15
+      * target["Growth_Factor"]
+
+    + 0.15
+      * target["Value_Factor"]
+
+)
 
 expected_return = (
     target["Target_Weight"]
@@ -4591,10 +4662,10 @@ if (
 
     print("\n🔧 Repairing Diversification...")
 
-    target["Target_Weight"] = np.minimum(
-        target["Target_Weight"],
-        0.05
-    )
+    #target["Target_Weight"] = np.minimum(
+        #target["Target_Weight"],
+        #0.05
+    #)
 
     target = normalize_weights(target)
 
