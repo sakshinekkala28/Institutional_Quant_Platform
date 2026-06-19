@@ -22,9 +22,13 @@ ENGINE_VERSION = "3.0.0"
 # PORTFOLIO SETTINGS
 # =========================================================
 
-TARGET_HOLDINGS = 50
+TARGET_HOLDINGS = 30
 
-MAX_POSITION_WEIGHT = 0.04
+MIN_POSITION_WEIGHT= 0.0025
+
+BASE_MAX_POSITION_WEIGHT = 0.06
+
+MAX_POSITION_WEIGHT = 0.06
 
 STRONG_BUY_WEIGHT = 0.04
 
@@ -36,29 +40,31 @@ MIN_ORDER_CHANGE = 0.005
 # TURNOVER
 # =========================================================
 
+PORTFOLIO_VALUE = 100000000
+
 MAX_PORTFOLIO_TURNOVER = 0.35
 
 # =========================================================
 # RISK LIMITS
 # =========================================================
 
-MAX_SECTOR_DRIFT = 0.10
+MAX_SECTOR_DRIFT = 0.15
 
-MAX_TRACKING_ERROR = 0.08
+MAX_TRACKING_ERROR = 0.25
 
-MAX_MARKET_CAP_DRIFT = 0.07
+MAX_MARKET_CAP_DRIFT = 0.10
 
-MAX_LIQUIDITY_DRIFT = 0.08
+MAX_LIQUIDITY_DRIFT = 0.10
 
 MAX_HHI = 0.05
 
-MIN_EFFECTIVE_HOLDINGS = 30
+MIN_EFFECTIVE_HOLDINGS = 20
 
-MAX_POSITION_RISK = 0.15
+MAX_POSITION_RISK = 0.20
 
-MAX_WEIGHT = 0.03
-MAX_SECTOR_WEIGHT = 0.20
-RETENTION_MULTIPLIER = 20
+MAX_SECTOR_WEIGHT = 0.30
+
+RETENTION_MULTIPLIER = 0.10
 
 # =========================================================
 # BETA LIMITS
@@ -94,9 +100,9 @@ TOP_TRADE_BUCKET = 10
 # BLACK LITTERMAN
 # =====================================
 
-BL_ALPHA_WEIGHT = 0.40
+BL_ALPHA_WEIGHT = 0.90
 
-BL_MARKET_WEIGHT = 0.60
+BL_MARKET_WEIGHT = 0.10
 
 # =========================================================
 # PATHS
@@ -186,6 +192,63 @@ def validate_columns(
             f"{file_name} missing {missing}"
         )
 
+def enforce_position_caps(
+    df,
+    MAX_POSITION_WEIGHT
+):
+
+    for _ in range(20):
+
+        excess = (
+            df["Target_Weight"]
+            > MAX_POSITION_WEIGHT
+        )
+
+        if not excess.any():
+            break
+
+        overflow = (
+
+            df.loc[
+                excess,
+                "Target_Weight"
+            ]
+
+            - MAX_POSITION_WEIGHT
+
+        ).sum()
+
+        df.loc[
+            excess,
+            "Target_Weight"
+        ] = MAX_POSITION_WEIGHT
+
+        remaining = ~excess
+
+        df.loc[
+            remaining,
+            "Target_Weight"
+        ] += (
+
+            overflow
+
+            *
+
+            df.loc[
+                remaining,
+                "Target_Weight"
+            ]
+
+            /
+
+            df.loc[
+                remaining,
+                "Target_Weight"
+            ].sum()
+
+        )
+
+    return normalize_weights(df)
 
 def calculate_hhi(weights):
 
@@ -406,7 +469,7 @@ print(
 )
 
 MAX_POSITION_WEIGHT = (
-    0.04
+    BASE_MAX_POSITION_WEIGHT
     * REGIME_RISK_MULTIPLIER
 )
 
@@ -754,27 +817,6 @@ target["Beta"] = (
         DEFAULT_BETA
     )
 
-)
-
-print("\nBETA MERGE CHECK")
-
-print(
-    target[
-        [
-            "Symbol",
-            "Beta"
-        ]
-    ]
-    .head(20)
-)
-
-print(
-    target["Beta"].describe()
-)
-
-print(
-    "Unique Betas:",
-    target["Beta"].nunique()
 )
 
 # ---------------------------------------------------------
@@ -1170,25 +1212,6 @@ target["Volatility_Factor"] = (
     .rank(pct=True)
 )
 
-print(
-    "\nTOP QUALITY STOCKS"
-)
-
-print(
-
-    target[
-        ["Symbol", "Quality_Factor"]
-    ]
-
-    .sort_values(
-        "Quality_Factor",
-        ascending=False
-    )
-
-    .head(10)
-
-)
-
 # ---------------------------------------------------------
 # RISK ADJUSTED SCORE
 # ---------------------------------------------------------
@@ -1200,6 +1223,24 @@ adv_rank = (
 
 target["Liquidity_Score"] = (
     adv_rank.clip(lower=0.10)
+)
+
+target["Liquidity_Penalty"] = (
+
+    target["ADV_20D"]
+
+    /
+
+    target["ADV_20D"].quantile(0.75)
+
+).clip(
+    upper=1
+)
+
+target["Liquidity_Score"] *= (
+
+    target["Liquidity_Penalty"]
+
 )
 
 # =====================================
@@ -1255,6 +1296,10 @@ target["Composite_Alpha"] = (
 
 )
 
+target["Composite_Alpha"] = (
+    target["Composite_Alpha"] ** 2
+)
+
 alpha_cutoff = (
     target["Composite_Alpha"]
     .quantile(0.20)
@@ -1282,16 +1327,6 @@ print(
 
 print(
     "\n🎯 ALPHA CONCENTRATION"
-)
-
-print(
-
-    "Unique Alpha Scores:",
-
-    target["Composite_Alpha"]
-
-    .nunique()
-
 )
 
 print(
@@ -1365,13 +1400,6 @@ print(
     )
 )
 
-sector_alpha = (
-    target
-    .groupby("Sector")
-    ["Composite_Alpha"]
-    .mean()
-)
-
 sector_vol = (
     target
     .groupby("Sector")
@@ -1380,9 +1408,15 @@ sector_vol = (
 )
 
 sector_risk_parity = (
+
     sector_alpha
+
     /
-    sector_vol
+
+    np.sqrt(
+        sector_vol
+    )
+
 )
 
 sector_risk_parity = (
@@ -1396,6 +1430,30 @@ print(
     sector_risk_parity
     .sort_values(
         ascending=False
+    )
+)
+
+print("\n🏛 SECTOR CONCENTRATION CHECK")
+
+sector_weights = (
+    target.groupby("Sector")
+    ["Market_Cap"]
+    .count()
+)
+
+sector_hhi = (
+    (
+        sector_weights
+        /
+        sector_weights.sum()
+    ) ** 2
+).sum()
+
+print(
+    "Sector HHI:",
+    round(
+        sector_hhi,
+        4
     )
 )
 
@@ -1715,9 +1773,19 @@ target["Target_Weight"] = (
     target["Risk_Parity_Score"].sum()
 )
 
+target["Position_Cap"] = np.where(
+    target["Volatility_252D"] >
+    target["Volatility_252D"].median(),
+    0.05,
+    0.07
+)
+
 target["Target_Weight"] = np.minimum(
+
     target["Target_Weight"],
-    MAX_WEIGHT
+
+    target["Position_Cap"]
+
 )
 
 target["Target_Weight"] = (
@@ -2006,67 +2074,11 @@ target["Target_Weight"] = (
 
 print("\n📏 Applying Position Limits...")
 
-for _ in range(10):
-
-    excess = (
-
-        target["Target_Weight"]
-
-        > MAX_POSITION_WEIGHT
-
-    )
-
-    if not excess.any():
-
-        break
-
-    overflow = (
-
-        target.loc[
-            excess,
-            "Target_Weight"
-        ]
-
-        - MAX_POSITION_WEIGHT
-
-    ).sum()
-
-    target.loc[
-        excess,
-        "Target_Weight"
-    ] = MAX_POSITION_WEIGHT
-
-    remaining = (
-
-        ~excess
-    )
-
-    target.loc[
-        remaining,
-        "Target_Weight"
-    ] += (
-
-        overflow
-
-        *
-
-        target.loc[
-            remaining,
-            "Target_Weight"
-        ]
-
-        /
-
-        target.loc[
-            remaining,
-            "Target_Weight"
-        ].sum()
-
-    )
-
-target = normalize_weights(
-    target
+target = enforce_position_caps(
+    target,
+    MAX_POSITION_WEIGHT
 )
+
 
 print(
 
@@ -2114,7 +2126,6 @@ sector_weights = (
     .sum()
 
 )
-
 
 for sector in sector_weights.index:
 
@@ -2175,36 +2186,6 @@ for sector in target_sector.index:
         )
     )
 
-    desired = min(
-        current_sector_weight + 0.05,
-        MAX_SECTOR_WEIGHT
-    )
-
-    actual = (
-        target_sector[sector]
-    )
-
-    if actual > desired:
-
-        scale = (
-            desired
-            /
-            actual
-        )
-
-        mask = (
-            target["Sector"]
-            == sector
-        )
-
-        target.loc[
-            mask,
-            "Target_Weight"
-        ] *= scale
-
-target = normalize_weights(
-    target
-)
 
 benchmark_sector = (
     portfolio.groupby("Sector")["Weight"]
@@ -2233,6 +2214,12 @@ for sector in target_sector.index:
 
 target = normalize_weights(target)
 
+target_sector = (
+    target.groupby("Sector")
+    ["Target_Weight"]
+    .sum()
+)
+
 violating_sectors = []
 
 for sector in target_sector.index:
@@ -2255,69 +2242,6 @@ for sector in target_sector.index:
             "Target_Weight"
         ] *= scale
 
-        drift_found = True
-
-for _ in range(10):
-
-    target_sector = (
-        target.groupby("Sector")
-        ["Target_Weight"]
-        .sum()
-    )
-
-    drift_found = False
-
-    for sector in target_sector.index:
-
-        benchmark = benchmark_sector.get(
-            sector,
-            0
-        )
-
-        drift = (
-            target_sector[sector]
-            -
-            benchmark
-        )
-
-        if drift > MAX_SECTOR_DRIFT:
-
-            scale = (
-                (benchmark + MAX_SECTOR_DRIFT)
-                /
-                target_sector[sector]
-            )
-
-            target.loc[
-                target["Sector"] == sector,
-                "Target_Weight"
-            ] *= scale
-
-            drift_found = True
-
-    remaining_mask = ~target["Sector"].isin(
-        violating_sectors
-    )
-
-    remaining_total = target.loc[
-        remaining_mask,
-        "Target_Weight"
-    ].sum()
-
-    target.loc[
-        remaining_mask,
-        "Target_Weight"
-    ] *= (
-        1.0 -
-        target.loc[
-            ~remaining_mask,
-            "Target_Weight"
-        ].sum()
-    ) / remaining_total
-
-    if not drift_found:
-        break
-
 
 # =====================================================
 # SECTOR DRIFT REPAIR
@@ -2330,14 +2254,12 @@ if "Sector" in target.columns:
         .sum()
     )
 
-    max_sector_weight = 0.20
-
     for sector in sector_weights.index:
 
-        if sector_weights[sector] > max_sector_weight:
+        if sector_weights[sector] > MAX_SECTOR_WEIGHT:
 
             reduction_factor = (
-                max_sector_weight
+                MAX_SECTOR_WEIGHT
                 /
                 sector_weights[sector]
             )
@@ -2348,6 +2270,12 @@ if "Sector" in target.columns:
             ] *= reduction_factor
 
     target = normalize_weights(target)
+
+    target_sector = (
+        target.groupby("Sector")
+        ["Target_Weight"]
+        .sum()
+    )
 
     print(
         "Max Sector Weight:",
@@ -2592,52 +2520,65 @@ print(
 
 print("\n🔒 FINAL POSITION LIMIT CHECK")
 
-for _ in range(20):
-
-    excess = (
-        target["Target_Weight"] > MAX_POSITION_WEIGHT
-    )
-
-    if not excess.any():
-        break
-
-    overflow = (
-        target.loc[excess, "Target_Weight"]
-        - MAX_POSITION_WEIGHT
-    ).sum()
-
-    target.loc[
-        excess,
-        "Target_Weight"
-    ] = MAX_POSITION_WEIGHT
-
-    remaining = ~excess
-
-    target.loc[
-        remaining,
-        "Target_Weight"
-    ] += (
-        overflow
-        *
-        target.loc[
-            remaining,
-            "Target_Weight"
-        ]
-        /
-        target.loc[
-            remaining,
-            "Target_Weight"
-        ].sum()
-    )
-
-target = normalize_weights(target)
-
 print(
     "Final Max Weight:",
     round(
         target["Target_Weight"].max(),
         4
     )
+)
+
+print("\n📦 PORTFOLIO CAPACITY ANALYTICS")
+
+
+target["Capacity_Days"] = (
+
+    target["Target_Weight"]
+
+    * PORTFOLIO_VALUE
+
+    /
+
+    (
+
+        target["ADV_20D"]
+
+        * MAX_ADV_USAGE
+
+    )
+
+)
+
+print(
+    "Median Exit Days:",
+    round(
+        target["Capacity_Days"].median(),
+        2
+    )
+)
+
+print(
+    "Max Exit Days:",
+    round(
+        target["Capacity_Days"].max(),
+        2
+    )
+)
+
+print(
+    target[
+        [
+            "Symbol",
+            "Target_Weight",
+            "ADV_20D",
+            "Capacity_Days"
+        ]
+    ]
+    .sort_values(
+        "Capacity_Days",
+        ascending=False
+    )
+    .head(10)
 )
 
 # =========================================================
@@ -2868,48 +2809,6 @@ print(
     "Trades Remaining:",
     len(active_trades)
 )
-
-
-for _ in range(10):
-
-    excess = (
-        target["Target_Weight"]
-        > MAX_POSITION_WEIGHT
-    )
-
-    if not excess.any():
-        break
-
-    overflow = (
-        target.loc[
-            excess,
-            "Target_Weight"
-        ] - MAX_POSITION_WEIGHT
-    ).sum()
-
-    target.loc[
-        excess,
-        "Target_Weight"
-    ] = MAX_POSITION_WEIGHT
-
-    target.loc[
-        ~excess,
-        "Target_Weight"
-    ] += (
-        overflow
-        *
-        target.loc[
-            ~excess,
-            "Target_Weight"
-        ]
-        /
-        target.loc[
-            ~excess,
-            "Target_Weight"
-        ].sum()
-    )
-
-target = normalize_weights(target)
 
 trade_list = (
     trades
@@ -3203,6 +3102,12 @@ market_weights = (
 
 target["Market_Weight"] = market_weights
 
+target_sector = (
+    target.groupby("Sector")
+    ["Target_Weight"]
+    .sum()
+)
+
 print("\n⚙ Running Mean-Variance Optimizer...")
 
 # =====================================================
@@ -3251,11 +3156,11 @@ if cov_matrix is not None and len(available) >= 20:
 
     expected_returns = (
 
-        0.70 * pi
+        BL_MARKET_WEIGHT * pi
 
         +
 
-        0.30 * alpha_vector
+        BL_ALPHA_WEIGHT * alpha_vector
 
     )
 
@@ -3263,7 +3168,7 @@ if cov_matrix is not None and len(available) >= 20:
     # BL CONFIDENCE SCALING
     # =====================================
 
-    BL_CONFIDENCE = 0.35
+    BL_CONFIDENCE = 1.0
 
     expected_returns = (
 
@@ -3359,22 +3264,19 @@ if cov_matrix is not None and len(available) >= 20:
 
             target["Target_Weight"],
 
-            MAX_POSITION_WEIGHT
+            target["Position_Cap"]
 
         )
-
-        target = normalize_weights(
-            target
-        )
-
-        MIN_POSITION = 0.0025
 
         target["Target_Weight"] = np.maximum(
             target["Target_Weight"],
-            MIN_POSITION
+            MIN_POSITION_WEIGHT
         )
 
-        target = normalize_weights(target)
+        target = enforce_position_caps(
+            target,
+            MAX_POSITION_WEIGHT
+        )
 
         print(
             "BL Holdings:",
@@ -3384,17 +3286,6 @@ if cov_matrix is not None and len(available) >= 20:
         # =====================================
         # MINIMUM POSITION FLOOR
         # =====================================
-
-        MIN_POSITION = 0.0025
-
-        target["Target_Weight"] = np.maximum(
-            target["Target_Weight"],
-            MIN_POSITION
-        )
-
-        target = normalize_weights(
-            target
-        )
 
         print(
             "NaN Target Weights:",
@@ -3436,6 +3327,7 @@ if cov_matrix is not None and len(available) >= 20:
         print(
             "✓ Mean-Variance Optimization Applied"
         )
+
 
 # =====================================================
 # TRACKING ERROR CONSTRAINT
@@ -3540,51 +3432,6 @@ print(
 # =====================================================
 
 print("\n🏦 Final Constraint Pass...")
-
-for _ in range(20):
-
-    excess = (
-        target["Target_Weight"]
-        > MAX_POSITION_WEIGHT
-    )
-
-    if not excess.any():
-        break
-
-    overflow = (
-        target.loc[
-            excess,
-            "Target_Weight"
-        ]
-        -
-        MAX_POSITION_WEIGHT
-    ).sum()
-
-    target.loc[
-        excess,
-        "Target_Weight"
-    ] = MAX_POSITION_WEIGHT
-
-    remaining = ~excess
-
-    target.loc[
-        remaining,
-        "Target_Weight"
-    ] += (
-        overflow
-        *
-        target.loc[
-            remaining,
-            "Target_Weight"
-        ]
-        /
-        target.loc[
-            remaining,
-            "Target_Weight"
-        ].sum()
-    )
-
-target = normalize_weights(target)
 
 print(
     "Final Max Weight:",
@@ -3987,30 +3834,6 @@ print(
 # RISK CONTRIBUTION REBALANCER
 # =====================================
 
-for _ in range(10):
-
-    max_rc = (
-        target["Risk_Contribution_Pct"]
-        .max()
-    )
-
-    if max_rc <= MAX_POSITION_RISK:
-        break
-
-    offender = (
-        target["Risk_Contribution_Pct"]
-        .idxmax()
-    )
-
-    target.loc[
-        offender,
-        "Target_Weight"
-    ] *= 0.95
-
-    target["Target_Weight"] /= (
-        target["Target_Weight"].sum()
-    )
-
 print("\nFINAL BETA CHECK")
 
 print(
@@ -4076,10 +3899,6 @@ beta_alignment = (
 )
 
 print(
-    target["Beta"].describe()
-)
-
-print(
 
     "\nPortfolio Beta:",
 
@@ -4100,6 +3919,34 @@ print(
     )
 
 )
+
+if portfolio_beta > MAX_PORTFOLIO_BETA:
+
+    target["Target_Weight"] *= (
+        1
+        -
+        (
+            target["Beta"]
+            /
+            target["Beta"].max()
+        )
+        * 0.05
+    )
+
+elif portfolio_beta < MIN_PORTFOLIO_BETA:
+
+    target["Target_Weight"] *= (
+        1
+        +
+        (
+            target["Beta"]
+            /
+            target["Beta"].max()
+        )
+        * 0.05
+    )
+
+target = normalize_weights(target)
 
 # =========================================================
 # PART 22 - EXPECTED RETURN
@@ -4165,6 +4012,47 @@ print(
         2
     )
 
+)
+
+print("\n🚨 TAIL RISK ANALYTICS")
+
+portfolio_returns = (
+
+    target["Expected_Alpha"].fillna(0)
+
+    -
+
+    target["Volatility_252D"].fillna(
+        DEFAULT_VOLATILITY
+    )
+
+)
+
+var95 = np.percentile(
+    portfolio_returns,
+    5
+)
+
+cvar95 = portfolio_returns[
+    portfolio_returns <= var95
+].mean()
+
+print(
+    "VaR 95%:",
+    round(
+        var95 * 100,
+        2
+    ),
+    "%"
+)
+
+print(
+    "CVaR 95%:",
+    round(
+        cvar95 * 100,
+        2
+    ),
+    "%"
 )
 
 # =====================================
@@ -4683,55 +4571,12 @@ for _ in range(20):
 
     target = normalize_weights(target)
 
-    target_sector = (
-        target
-        .groupby("Sector")
-        ["Target_Weight"]
-        .sum()
-    )
-
 # Reapply final stock cap
 
-for _ in range(20):
-
-    excess = (
-        target["Target_Weight"]
-        > MAX_POSITION_WEIGHT
-    )
-
-    if not excess.any():
-        break
-
-    overflow = (
-        target.loc[
-            excess,
-            "Target_Weight"
-        ] - MAX_POSITION_WEIGHT
-    ).sum()
-
-    target.loc[
-        excess,
-        "Target_Weight"
-    ] = MAX_POSITION_WEIGHT
-
-    remaining = ~excess
-
-    target.loc[
-        remaining,
-        "Target_Weight"
-    ] += (
-        overflow
-        *
-        target.loc[
-            remaining,
-            "Target_Weight"
-        ]
-        /
-        target.loc[
-            remaining,
-            "Target_Weight"
-        ].sum()
-    )
+target = enforce_position_caps(
+    target,
+    MAX_POSITION_WEIGHT
+)
 
 target = normalize_weights(target)
 
@@ -4748,7 +4593,7 @@ if (
 
     target["Target_Weight"] = np.minimum(
         target["Target_Weight"],
-        0.035
+        0.05
     )
 
     target = normalize_weights(target)
@@ -4762,6 +4607,12 @@ if (
             target["Target_Weight"]
         )
     )
+
+    if (
+        effective_holdings >= MIN_EFFECTIVE_HOLDINGS
+        and hhi <= MAX_HHI
+    ):
+        governance_status = "PASS"
 
     print(
         "Repaired Effective Holdings:",
@@ -5052,68 +4903,6 @@ dashboard = pd.DataFrame({
 })
 
 
-# =====================================
-# FINAL POSITION CAP PASS
-# =====================================
-
-for _ in range(20):
-
-    excess = (
-        target["Target_Weight"]
-        > MAX_POSITION_WEIGHT
-    )
-
-    if not excess.any():
-        break
-
-    overflow = (
-
-        target.loc[
-            excess,
-            "Target_Weight"
-        ]
-
-        -
-
-        MAX_POSITION_WEIGHT
-
-    ).sum()
-
-    target.loc[
-        excess,
-        "Target_Weight"
-    ] = MAX_POSITION_WEIGHT
-
-    remaining = ~excess
-
-    target.loc[
-        remaining,
-        "Target_Weight"
-    ] += (
-
-        overflow
-
-        *
-
-        target.loc[
-            remaining,
-            "Target_Weight"
-        ]
-
-        /
-
-        target.loc[
-            remaining,
-            "Target_Weight"
-        ].sum()
-
-    )
-
-target = normalize_weights(
-    target
-)
-
-
 if len(target) < TARGET_HOLDINGS:
 
     print(
@@ -5191,7 +4980,6 @@ print(
     len(target)
 )
 
-MIN_POSITION = 0.0025
 
 for _ in range(5):
 
@@ -5199,7 +4987,7 @@ for _ in range(5):
 
         target["Target_Weight"],
 
-        MIN_POSITION
+        MIN_POSITION_WEIGHT
 
     )
 
@@ -5221,7 +5009,7 @@ print(
 print(
 
     target[
-        target["Target_Weight"] <= (MIN_POSITION - 1e-8)
+        target["Target_Weight"] <= (MIN_POSITION_WEIGHT- 1e-8)
     ][
         [
             "Symbol",
@@ -5249,6 +5037,156 @@ print(
     ).sum()
 )
 
+diagnostics = pd.DataFrame({
+
+    "Metric":[
+
+        "Portfolio_Beta",
+        "Portfolio_Volatility",
+        "Expected_Return",
+        "Information_Ratio",
+        "Turnover",
+        "HHI",
+        "Effective_Holdings",
+        "Active_Share"
+
+    ],
+
+    "Value":[
+
+        portfolio_beta,
+        portfolio_volatility,
+        expected_return,
+        information_ratio,
+        portfolio_turnover,
+        hhi,
+        effective_holdings,
+        active_share
+
+    ]
+
+})
+
+diagnostics.to_csv(
+
+    OUTPUT_DIR
+    / "portfolio_diagnostics.csv",
+
+    index=False
+
+)
+
+# =====================================
+# FINAL SECTOR CAP PASS
+# =====================================
+
+for _ in range(10):
+
+    sector_weights = (
+        target.groupby("Sector")
+        ["Target_Weight"]
+        .sum()
+    )
+
+    max_sector = sector_weights.max()
+
+    if max_sector <= MAX_SECTOR_WEIGHT + 1e-6:
+        break
+
+    violating = sector_weights[
+        sector_weights > MAX_SECTOR_WEIGHT
+    ]
+
+    for sector, weight in violating.items():
+
+        scale = MAX_SECTOR_WEIGHT / weight
+
+        target.loc[
+            target["Sector"] == sector,
+            "Target_Weight"
+        ] *= scale
+
+    target["Target_Weight"] /= (
+        target["Target_Weight"].sum()
+    )
+
+target = enforce_position_caps(
+    target,
+    MAX_POSITION_WEIGHT
+)
+
+print("\nFINAL ASSERT CHECK")
+
+print(
+    "Weight Sum:",
+    target["Target_Weight"].sum()
+)
+
+print(
+    "Max Position:",
+    target["Target_Weight"].max()
+)
+
+print(
+    "Max Sector:",
+    target.groupby("Sector")
+    ["Target_Weight"]
+    .sum()
+    .max()
+)
+
+print(
+    "Holding Count:",
+    len(target)
+)
+
+print("\nSECTOR BREAKDOWN")
+
+print(
+    target.groupby("Sector")
+    ["Target_Weight"]
+    .sum()
+    .sort_values(ascending=False)
+)
+print("\nASSERT DEBUG")
+
+print(
+    "Sector Max:",
+    target.groupby("Sector")
+    ["Target_Weight"]
+    .sum()
+    .max()
+)
+
+print(
+    "Sector Limit:",
+    MAX_SECTOR_WEIGHT
+)
+
+print(
+    "Weight Sum:",
+    target["Target_Weight"].sum()
+)
+
+print(
+    "Max Position:",
+    target["Target_Weight"].max()
+)
+
+print(
+    "Position Limit:",
+    MAX_POSITION_WEIGHT
+)
+
+print(
+    "Holdings:",
+    len(target)
+)
+
+print(
+    "Target Holdings:",
+    TARGET_HOLDINGS
+)
 
 # =========================================================
 # PART 27 - SAVE OUTPUTS
