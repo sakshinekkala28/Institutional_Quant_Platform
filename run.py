@@ -1,27 +1,18 @@
-from pathlib import Path
 import pandas as pd
 
-ROOT = Path.cwd()
-
-print("ROOT:", ROOT)
-
-beta_file = (
-    ROOT
-    / "data"
-    / "risk"
-    / "beta_master.csv"
+df = pd.read_parquet(
+    "data/risk/factor_expected_returns.parquet"
 )
 
-print("FILE:", beta_file)
-print("EXISTS:", beta_file.exists())
-
-beta_df = pd.read_csv(beta_file)
-
-print(beta_df.head())
-
-print(beta_df["Beta"].describe())
+print(
+    df["Expected_Return"]
+    .describe()
+)
 
 print(
-    "Unique Betas:",
-    beta_df["Beta"].nunique()
+    df.sort_values(
+        "Expected_Return",
+        ascending=False
+    )
+    .head(20)
 )
