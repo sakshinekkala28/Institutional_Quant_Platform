@@ -22,17 +22,17 @@ ENGINE_VERSION = "3.0.0"
 # PORTFOLIO SETTINGS
 # =========================================================
 
-TARGET_HOLDINGS = 30
+TARGET_HOLDINGS = 40
 
 MIN_POSITION_WEIGHT= 0.0025
 
-BASE_MAX_POSITION_WEIGHT = 0.06
+BASE_MAX_POSITION_WEIGHT = 0.05
 
-MAX_POSITION_WEIGHT = 0.06
+MAX_POSITION_WEIGHT = 0.05
 
 STRONG_BUY_WEIGHT = 0.04
 
-BUY_WEIGHT = 0.025
+BUY_WEIGHT = 0.03
 
 MIN_ORDER_CHANGE = 0.005
 
@@ -42,7 +42,7 @@ MIN_ORDER_CHANGE = 0.005
 
 PORTFOLIO_VALUE = 100000000
 
-MAX_PORTFOLIO_TURNOVER = 0.35
+MAX_PORTFOLIO_TURNOVER = 0.40
 
 # =========================================================
 # RISK LIMITS
@@ -50,13 +50,13 @@ MAX_PORTFOLIO_TURNOVER = 0.35
 
 MAX_SECTOR_DRIFT = 0.15
 
-MAX_TRACKING_ERROR = 0.25
+MAX_TRACKING_ERROR = 0.15
 
 MAX_MARKET_CAP_DRIFT = 0.10
 
 MAX_LIQUIDITY_DRIFT = 0.10
 
-MAX_HHI = 0.06
+MAX_HHI = 0.05
 
 MIN_EFFECTIVE_HOLDINGS = 20
 
@@ -1212,6 +1212,65 @@ target["Volatility_Factor"] = (
     .rank(pct=True)
 )
 
+# =====================================================
+# BUILD MISSING FACTORS
+# =====================================================
+
+if "Liquidity_Score" not in target.columns:
+
+    target["Liquidity_Score"] = (
+
+        target["ADV_20D"]
+
+        .rank(pct=True)
+
+    )
+
+if "Volatility_Factor" not in target.columns:
+
+    target["Volatility_Factor"] = (
+
+        1
+
+        -
+
+        target["Volatility_252D"]
+
+        .rank(pct=True)
+
+    )
+    
+# =====================================================
+# FACTOR EXPOSURE FILE
+# =====================================================
+
+factor_exposures = target[[
+    "Symbol",
+    "Beta",
+    "Momentum_Factor",
+    "Quality_Factor",
+    "Value_Factor",
+    "Growth_Factor",
+    "Liquidity_Score",
+    "Volatility_Factor",
+    "Sector"
+]].copy()
+
+factor_exposures.to_csv(
+
+    ROOT
+    / "data"
+    / "risk"
+    / "factor_exposures.csv",
+
+    index=False
+
+)
+
+print(
+    "✓ Saved factor_exposures.csv"
+)
+
 # ---------------------------------------------------------
 # RISK ADJUSTED SCORE
 # ---------------------------------------------------------
@@ -1237,7 +1296,9 @@ target["Liquidity_Penalty"] = (
     upper=1
 )
 
-target["Liquidity_Score"] *= (
+target["Adjusted_Liquidity_Score"] = target["Liquidity_Score"] 
+
+target["Adjusted_Liquidity_Score"] *= (
 
     target["Liquidity_Penalty"]
 
@@ -1296,17 +1357,17 @@ target["Composite_Alpha"] = (
 
 )
 
-sector_mean = (
-    target.groupby("Sector")
-    ["Composite_Alpha"]
-    .transform("mean")
-)
+#sector_mean = (
+    #target.groupby("Sector")
+    #["Composite_Alpha"]
+    #.transform("mean")
+#)
 
-target["Composite_Alpha"] = (
-    target["Composite_Alpha"]
-    -
-    sector_mean
-)
+#target["Composite_Alpha"] = (
+    #target["Composite_Alpha"]
+    #-
+    #sector_mean
+#)
 
 target["Composite_Alpha"] = (
     target["Composite_Alpha"]
@@ -1315,7 +1376,7 @@ target["Composite_Alpha"] = (
 
 alpha_cutoff = (
     target["Composite_Alpha"]
-    .quantile(0.20)
+    .quantile(0.50)
 )
 
 target = target[
@@ -1602,41 +1663,25 @@ target["Rank"] = (
 )
 
 # ==========================================
-# SECTOR NEUTRAL SELECTION
+# PURE ALPHA SELECTION
 # ==========================================
 
-sector_counts = (
-    target["Sector"]
-    .value_counts(normalize=True)
+target = (
+
+    target
+
+    .sort_values(
+        "Selection_Score",
+        ascending=False
+    )
+
+    .head(
+        TARGET_HOLDINGS
+    )
+
+    .copy()
+
 )
-
-selected = []
-
-for sector in sector_counts.index:
-
-    sector_target = max(
-        2,
-        int(
-            TARGET_HOLDINGS
-            *
-            sector_counts[sector]
-        )
-    )
-
-    sector_df = (
-        target[
-            target["Sector"] == sector
-        ]
-        .sort_values(
-            "Selection_Score",
-            ascending=False
-        )
-        .head(sector_target)
-    )
-
-    selected.append(sector_df)
-
-target = pd.concat(selected)
 
 if len(target) < TARGET_HOLDINGS:
 
@@ -2487,6 +2532,11 @@ for _ in range(20):
 
     target = normalize_weights(target)
 
+target = enforce_position_caps(
+    target,
+    MAX_POSITION_WEIGHT
+)
+
 print(
     "Repaired Liquidity Drift:",
     round(liquidity_drift * 100, 2),
@@ -3213,6 +3263,32 @@ if cov_matrix is not None and len(available) >= 20:
     )
 
     # =====================================
+    # SECTOR CONCENTRATION PENALTY
+    # =====================================
+
+    sector_weights = (
+        target.groupby("Sector")
+        ["Market_Weight"]
+        .transform("sum")
+    )
+
+    sector_concentration_penalty = (
+        sector_weights
+        .rank(pct=True)
+    )
+
+    expected_returns = (
+
+        expected_returns
+
+        -
+
+        0.05
+        * sector_concentration_penalty.values
+
+    )
+
+    # =====================================
     # BL CONFIDENCE SCALING
     # =====================================
 
@@ -3242,7 +3318,19 @@ if cov_matrix is not None and len(available) >= 20:
 
     inv_cov = np.linalg.pinv(cov_sub)
 
-    mv_weights = inv_cov @ expected_returns
+    risk_aversion = 5.0
+
+    mv_weights = (
+        inv_cov
+        @
+        expected_returns
+    )
+
+    mv_weights = (
+        mv_weights
+        /
+        risk_aversion
+    )
 
     mv_weights = np.maximum(
         mv_weights,
@@ -3367,8 +3455,6 @@ if cov_matrix is not None and len(available) >= 20:
         print(
             "✓ Mean-Variance Optimization Applied"
         )
-
-
 # =====================================================
 # TRACKING ERROR CONSTRAINT
 # =====================================================
@@ -3409,10 +3495,6 @@ tracking_error = np.sqrt(
     @ active_weights
 )
 
-tracking_error = np.sqrt(
-    np.sum(weight_diff ** 2)
-)
-
 print(
     "Pre-Constraint Tracking Error:",
     round(tracking_error * 100, 2),
@@ -3448,35 +3530,7 @@ if tracking_error > MAX_TRACKING_ERROR:
             target
         )
 
-        tracking_error = np.sqrt(
-
-            np.sum(
-
-                (
-
-                    target["Target_Weight"]
-
-                    -
-
-                    target["Benchmark_Weight"]
-
-                ) ** 2
-
-            )
-
-        )
-
         blend *= 0.95
-
-tracking_error = np.sqrt(
-    np.sum(
-        (
-            target["Target_Weight"]
-            -
-            target["Benchmark_Weight"]
-        ) ** 2
-    )
-)
 
 print(
     "Post-Constraint Tracking Error:",
@@ -4011,20 +4065,15 @@ target = normalize_weights(target)
 
 target["Expected_Alpha"] = (
 
-      0.30
-      * target["Signal_Factor"]
+      0.04 * target["Signal_Factor"]
 
-    + 0.20
-      * target["Momentum_Factor"]
+    + 0.03 * target["Momentum_Factor"]
 
-    + 0.20
-      * target["Quality_Factor"]
+    + 0.02 * target["Quality_Factor"]
 
-    + 0.15
-      * target["Growth_Factor"]
+    + 0.02 * target["Growth_Factor"]
 
-    + 0.15
-      * target["Value_Factor"]
+    + 0.01 * target["Value_Factor"]
 
 )
 
@@ -4629,7 +4678,10 @@ for _ in range(20):
         0
     )
 
-    actual = target_sector[worst_sector]
+    actual = target_sector.get(
+        worst_sector,
+        0
+    )
 
     scale = (
         benchmark + MAX_SECTOR_DRIFT
