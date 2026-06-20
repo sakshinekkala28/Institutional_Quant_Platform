@@ -23,10 +23,10 @@ RISK_AVERSION = 3.0
 
 TURNOVER_PENALTY = 0.01
 
-FACTOR_LIMIT = 1.5
+FACTOR_LIMIT = 0.70
 
 RISK_PREMIUM = 0.06
-TAU = 0.80
+TAU = 0.20
 
 # =====================================================
 # PATHS
@@ -207,6 +207,21 @@ print(
 )
 
 print(
+    "Median Variance:",
+    np.median(np.diag(Sigma))
+)
+
+print(
+    "Max Variance:",
+    np.max(np.diag(Sigma))
+)
+
+print(
+    "Min Variance:",
+    np.min(np.diag(Sigma))
+)
+
+print(
     "Average Daily Vol:",
     np.mean(np.sqrt(np.diag(Sigma)))
 )
@@ -250,7 +265,7 @@ alpha_z = (
 )
 
 alpha_views = (
-    alpha_z.values * 0.03
+    alpha_z.values * 0.15
 )
 
 alpha_confidence = (
@@ -416,7 +431,7 @@ objective = cp.Maximize(
 
     -
 
-    0.10 * concentration_penalty
+    0.25 * concentration_penalty
 
 )
 
@@ -508,25 +523,6 @@ for factor in factor_cols:
         exposure_vector @ w >= -FACTOR_LIMIT
     )
 
-constraints.append(
-
-    universe["Momentum"].fillna(0).values @ w
-
-    <=
-
-    0.80
-
-)
-
-constraints.append(
-
-    universe["Growth"].fillna(0).values @ w
-
-    <=
-
-    0.80
-
-)
 
 # =====================================================
 # SOLVE
@@ -538,11 +534,8 @@ problem = cp.Problem(
 )
 
 problem.solve(
-
     solver=cp.CLARABEL,
-
     verbose=False
-
 )
 
 print(
@@ -555,11 +548,40 @@ print(
     problem.value
 )
 
-if problem.status != "optimal":
-
+if problem.status not in [
+    "optimal",
+    "optimal_inaccurate"
+]:
     raise RuntimeError(
-        "Optimizer failed."
+        f"Optimizer failed: {problem.status}"
     )
+
+print("\nObjective Breakdown")
+
+print(
+    "Expected Return:",
+    expected_return_term.value
+)
+
+print(
+    "Risk Penalty:",
+    RISK_AVERSION * risk_term.value
+)
+
+print(
+    "Turnover Penalty:",
+    TURNOVER_PENALTY * turnover_term.value
+)
+
+print(
+    "Transaction Cost:",
+    0.05 * tc_term.value
+)
+
+print(
+    "Concentration Penalty:",
+    0.25 * concentration_penalty.value
+)
 
 # =====================================================
 # RESULTS
@@ -690,14 +712,10 @@ portfolio["Weight"] = (
 # =====================================================
 
 portfolio_return = (
-
-    portfolio["Expected_Return"]
-
-    *
-
-    portfolio["Weight"]
-
-).sum()
+    universe["Weight"].values
+    @
+    mu
+)
 
 # =====================================================
 # FULL PORTFOLIO VOLATILITY
@@ -739,7 +757,9 @@ portfolio_volatility = np.sqrt(
 
 )
 
-annual_portfolio_volatility = portfolio_volatility
+annual_portfolio_volatility = (
+    portfolio_volatility
+)
 
 portfolio_vector = (
     universe["Weight"]
@@ -783,29 +803,14 @@ print(
     "%"
 )
 
-annual_alpha = (
-
-    portfolio["Expected_Return"]
-
-    *
-
-    portfolio["Weight"]
-
-).sum()
+annual_alpha = portfolio_return
 
 annual_te = tracking_error_value
 
 information_ratio = (
-
     annual_alpha
-
     /
-
-    max(
-        annual_te,
-        1e-6
-    )
-
+    max(annual_te, 1e-6)
 )
 
 print(
@@ -843,6 +848,22 @@ print(
     ),
     "%"
 )
+print(
+    "\nPortfolio Variance:",
+    full_weights.T
+    @ full_cov
+    @ full_weights
+)
+
+print(
+    "Max Covariance:",
+    np.max(full_cov)
+)
+
+print(
+    "Min Covariance:",
+    np.min(full_cov)
+)
 
 print(
     "Holdings:",
@@ -875,7 +896,7 @@ factor_risk = (
 )
 
 print(
-    "\nFactor Risk Attribution"
+    "\nFactor Exposure Attribution"
 )
 
 print(
@@ -918,6 +939,11 @@ print(
 
 )
 
+print(
+    "Max Factor Exposure:",
+    portfolio_factor_exposure.max()
+)
+
 approval_score = 100
 
 if annual_te > 0.10:
@@ -929,7 +955,10 @@ if annual_portfolio_volatility > 0.50:
 elif annual_portfolio_volatility > 0.35:
     approval_score -= 10
 
-if portfolio_factor_exposure.max() > 0.75:
+if final_effective_holdings < 25:
+    approval_score -= 10
+
+if round(portfolio_factor_exposure.max(),3) > 0.75:
     approval_score -= 20
 
 if active_share < 0.75:
