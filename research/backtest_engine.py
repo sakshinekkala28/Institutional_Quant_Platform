@@ -7,7 +7,17 @@ from __future__ import annotations
 
 import numpy as np
 import pandas as pd
-import numpy as np
+
+
+def _to_series(data):
+
+    if isinstance(
+        data,
+        pd.Series
+    ):
+        return data
+
+    return pd.Series(data)
 
 # ==========================================================
 # PORTFOLIO RETURN ENGINE
@@ -21,15 +31,21 @@ class PortfolioReturnEngine:
         returns
     ):
 
-        portfolio_returns = (
+        if not isinstance(
+            returns,
+            pd.Series
+        ):
+            returns = _to_series(returns)
 
-            returns
+        returns = np.asarray(returns)
+        weights = np.asarray(weights)
 
-            @
+        if returns.shape[-1] != len(weights):
+            raise ValueError(
+                "Returns columns must match weight vector length"
+            )
 
-            weights
-
-        )
+        portfolio_returns = returns @ weights
 
         return portfolio_returns
 
@@ -68,35 +84,28 @@ class PerformanceMetrics:
         risk_free_rate=0.06
     ):
 
+        returns = _to_series(returns)
+
         excess = (
-
-            returns
-
-            -
-
-            risk_free_rate / 252
-
+            returns - risk_free_rate / 252
         )
+
+        if excess.std() == 0:
+            return 0.0
 
         return (
-
             np.sqrt(252)
-
-            *
-
-            excess.mean()
-
-            /
-
-            excess.std()
-
+            * excess.mean()
+            / excess.std()
         )
-
+    
     @staticmethod
     def sortino_ratio(
         returns,
         risk_free_rate=0.06
     ):
+
+        returns = _to_series(returns)
 
         downside = (
 
@@ -105,6 +114,9 @@ class PerformanceMetrics:
             ]
 
         )
+
+        if downside.std() == 0:
+            return 0.0
 
         return (
 
@@ -132,6 +144,7 @@ class PerformanceMetrics:
     def cagr(
         returns
     ):
+        returns = _to_series(returns)
 
         cumulative = (
 
@@ -158,7 +171,8 @@ class PerformanceMetrics:
             - 1
 
         )
-    
+
+
 # ==========================================================
 # DRAWDOWN ENGINE
 # ==========================================================
@@ -169,6 +183,7 @@ class DrawdownEngine:
     def max_drawdown(
         returns
     ):
+        returns = _to_series(returns)
 
         cumulative = (
 
@@ -210,6 +225,7 @@ class RollingAnalytics:
         returns,
         window=63
     ):
+        returns = _to_series(returns)
 
         return (
 
@@ -230,6 +246,7 @@ class RollingAnalytics:
         returns,
         window=63
     ):
+        returns = _to_series(returns)
 
         return (
 
