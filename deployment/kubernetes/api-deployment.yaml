@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+
+kind: Deployment
+
+metadata:
+
+  name: quant-api
+
+  namespace: quant-platform
+
+spec:
+
+  replicas: 3
+
+  selector:
+
+    matchLabels:
+
+      app: quant-api
+
+  template:
+
+    metadata:
+
+      labels:
+
+        app: quant-api
+
+    spec:
+
+      containers:
+
+      - name: quant-api
+
+        image: quant-platform:latest
+
+        ports:
+
+        - containerPort: 8000
+
+        resources:
+
+          requests:
+
+            cpu: "500m"
+
+            memory: "512Mi"
+
+          limits:
+
+            cpu: "2"
+
+            memory: "2Gi"
