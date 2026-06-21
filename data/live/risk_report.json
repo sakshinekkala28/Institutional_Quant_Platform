@@ -1,0 +1,6 @@
+{
+    "Portfolio_Beta": 1.1220828484420635,
+    "HHI": 0.030533066727063005,
+    "Effective_Holdings": 32.75137767650602,
+    "Factor_Exposure": "             Factor  Exposure\n0     Signal_Factor  0.711725\n1   Momentum_Factor  0.591785\n2    Quality_Factor  0.586480\n3      Value_Factor  0.693493\n4     Growth_Factor  0.536702\n5  Liquidity_Factor  0.833131\n6     LowVol_Factor  0.622505"
+}

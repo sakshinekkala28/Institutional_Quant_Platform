@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from datetime import datetime
 
 import pandas as pd
+import numpy as np
 
 
 # ==========================================================
@@ -150,24 +151,35 @@ class PerformanceReport:
 
         return {
 
-            "Annual_Return":
+            "CAGR":
 
-            performance[
-                "Performance"
-            ][
-                "Annual_Return"
-            ],
+                performance.get(
+                    "CAGR",
+                    0
+                ),
 
-            "Annual_Volatility":
+            "Sharpe":
 
-            performance[
-                "Performance"
-            ][
-                "Annual_Volatility"
-            ]
+                performance.get(
+                    "Sharpe",
+                    0
+                ),
+
+            "Sortino":
+
+                performance.get(
+                    "Sortino",
+                    0
+                ),
+
+            "Max_Drawdown":
+
+                performance.get(
+                    "Max_Drawdown",
+                    0
+                )
 
         }
-
 
 # ==========================================================
 # EXECUTION REPORT
@@ -184,19 +196,61 @@ class ExecutionReport:
 
             "Trades":
 
-            len(execution_df),
+                len(
+                    execution_df
+                ),
 
-            "Average_Slippage":
+            "Average_Cost_bps":
 
-            execution_df[
-                "Slippage_bps"
-            ].mean(),
+                execution_df[
+                    "Estimated_Cost_bps"
+                ].mean()
 
-            "Average_Impact":
+                if (
+                    "Estimated_Cost_bps"
+                    in execution_df.columns
+                )
+                else 0,
 
-            execution_df[
-                "Market_Impact_bps"
-            ].mean()
+            "Total_Cost":
+
+                execution_df[
+                    "Estimated_Cost"
+                ].sum()
+
+                if (
+                    "Estimated_Cost"
+                    in execution_df.columns
+                )
+                else 0,
+
+            "Buy_Trades":
+
+                (
+                    execution_df[
+                        "Action"
+                    ] == "BUY"
+                ).sum()
+
+                if (
+                    "Action"
+                    in execution_df.columns
+                )
+                else 0,
+
+            "Sell_Trades":
+
+                (
+                    execution_df[
+                        "Action"
+                    ] == "SELL"
+                ).sum()
+
+                if (
+                    "Action"
+                    in execution_df.columns
+                )
+                else 0
 
         }
     
@@ -217,35 +271,41 @@ class CIODashboard:
 
             "Date":
 
-            datetime.now()
+                datetime.now()
 
-            .strftime(
-                "%Y-%m-%d"
-            ),
+                .strftime(
+                    "%Y-%m-%d"
+                ),
 
             "Holdings":
 
-            portfolio_report[
-                "Holdings"
-            ],
+                portfolio_report[
+                    "Holdings"
+                ],
 
             "Portfolio_Beta":
 
-            risk_report[
-                "Portfolio_Beta"
-            ],
+                risk_report[
+                    "Portfolio_Beta"
+                ],
 
-            "Annual_Return":
+            "CAGR":
 
-            performance_report[
-                "Annual_Return"
-            ],
+                performance_report[
+                    "CAGR"
+                ],
 
-            "Annual_Volatility":
+            "Sharpe":
 
-            performance_report[
-                "Annual_Volatility"
-            ]
+                performance_report[
+                    "Sharpe"
+                ],
+
+            "Max_Drawdown":
+
+                performance_report[
+                    "Max_Drawdown"
+                ]
 
         }
 
@@ -364,3 +424,4 @@ class ReportingEngine:
         )
 
         return self.registry.reports
+    
