@@ -58,7 +58,7 @@ UNIVERSE_FILE = (
     ROOT
     / "data"
     / "raw"
-    / "valid_stocks.xlsx"
+    / "security_master.csv"
 )
 
 OUTPUT_FILE = (
@@ -113,7 +113,7 @@ if not UNIVERSE_FILE.exists():
         f"Missing file: {UNIVERSE_FILE}"
     )
 
-universe = pd.read_excel(
+universe = pd.read_csv(
     UNIVERSE_FILE
 )
 
@@ -122,7 +122,7 @@ universe = pd.read_excel(
 # =========================================================
 
 required_columns = [
-    "Stock"
+    "Symbol"
 ]
 
 missing_columns = [
@@ -145,9 +145,9 @@ if missing_columns:
 # CLEAN SYMBOLS
 # =========================================================
 
-universe["Stock"] = (
+universe["Symbol"] = (
 
-    universe["Stock"]
+    universe["Symbol"]
 
     .astype(str)
 
@@ -157,19 +157,19 @@ universe["Stock"] = (
 )
 
 universe = universe.dropna(
-    subset=["Stock"]
+    subset=["Symbol"]
 )
 
 universe = universe[
-    universe["Stock"] != ""
+    universe["Symbol"] != ""
 ]
 
 universe = universe.drop_duplicates(
-    subset=["Stock"]
+    subset=["Symbol"]
 )
 
 symbols = sorted(
-    universe["Stock"].unique()
+    universe["Symbol"].unique()
 )
 
 # =========================================================
