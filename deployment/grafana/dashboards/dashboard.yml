@@ -1,0 +1,15 @@
+apiVersion: 1
+
+providers:
+
+  - name: QuantPlatform
+
+    folder: Quant
+
+    type: file
+
+    disableDeletion: false
+
+    options:
+
+      path: /var/lib/grafana/dashboards

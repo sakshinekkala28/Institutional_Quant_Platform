@@ -1,0 +1,23 @@
+apiVersion: v1
+
+kind: Service
+
+metadata:
+
+  name: quant-api
+
+  namespace: quant-platform
+
+spec:
+
+  selector:
+
+    app: quant-api
+
+  ports:
+
+  - port: 80
+
+    targetPort: 8000
+
+  type: LoadBalancer
