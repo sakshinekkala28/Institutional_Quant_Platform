@@ -36,7 +36,29 @@ class EnvironmentSettings:
 @dataclass(frozen=True)
 class PortfolioSettings:
 
-    TARGET_HOLDINGS: int = 40
+    PORTFOLIO_NAV: float = (
+        100_000_000.0
+    )
+
+    AUM_SCENARIOS: tuple = (
+
+        100_000_000.0,
+
+        500_000_000.0,
+
+        1_000_000_000.0,
+
+        5_000_000_000.0,
+
+        10_000_000_000.0
+
+    )
+
+    BENCHMARK: str = (
+        "NIFTY500"
+    )
+
+    TARGET_HOLDINGS: int = 25
 
     MIN_POSITION_WEIGHT: float = 0.0025
 
@@ -44,8 +66,9 @@ class PortfolioSettings:
 
     MAX_SECTOR_WEIGHT: float = 0.30
 
-    REBALANCE_FREQUENCY: str = "WEEKLY"
+    MAX_SINGLE_STOCK_ADV: float = 0.05
 
+    REBALANCE_FREQUENCY: str = "WEEKLY"
 
 # ==========================================================
 # RISK SETTINGS

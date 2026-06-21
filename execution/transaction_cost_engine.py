@@ -5,6 +5,7 @@
 # ==========================================================
 
 from __future__ import annotations
+from core.settings import (settings)
 
 from dataclasses import dataclass
 from pathlib import Path
@@ -41,8 +42,6 @@ logger = logging.getLogger(__name__)
 
 @dataclass
 class CostConfig:
-
-    PORTFOLIO_NAV: float = 100_000_000.0
 
     # ------------------------------------------
     # COMMISSION
@@ -384,28 +383,45 @@ class CostDataPreparation:
 
         )
 
-        portfolio_nav = (
+        if (
 
-            CostConfig()
-            .PORTFOLIO_NAV
+            "Trade_Value" not in merged.columns
 
-        )
-
-        merged[
-            "Trade_Value"
-        ] = (
+            or
 
             merged[
-                "Trade_Weight"
+                "Trade_Value"
             ]
 
-            .abs()
+            .isna()
 
-            *
+            .all()
 
-            portfolio_nav
+        ):
 
-        )
+            portfolio_nav = (
+
+                settings
+                .portfolio
+                .PORTFOLIO_NAV
+
+            )
+
+            merged[
+                "Trade_Value"
+            ] = (
+
+                merged[
+                    "Trade_Weight"
+                ]
+
+                .abs()
+
+                *
+
+                portfolio_nav
+
+            )
 
         merged[
             "Trade_Value"
@@ -1189,6 +1205,33 @@ class TransactionCostEngine:
             "Symbol":
                 symbol,
 
+            "Trade_Value":
+                trade_value,
+
+            "ADV":
+                adv,
+
+            "Market_Cap":
+                market_cap,
+
+            "Volatility_252D":
+                volatility,
+
+            "Sector":
+                trade_row.get(
+                    "Sector"
+                ),
+
+            "Industry":
+                trade_row.get(
+                    "Industry"
+                ),
+
+            "Market_Cap_Category":
+                trade_row.get(
+                    "Market_Cap_Category"
+                ),
+
             "Commission_Cost_bps":
                 commission_bps,
 
@@ -1214,7 +1257,7 @@ class TransactionCostEngine:
                 execution_quality
 
         }
-
+    
     # ======================================================
     # BATCH EVALUATION
     # ======================================================
