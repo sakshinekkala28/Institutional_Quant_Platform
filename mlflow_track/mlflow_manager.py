@@ -26,15 +26,34 @@ class MLflowManager:
         )
 
     @staticmethod
-    def log_params(params: dict):
+    def log_params(
+        params: dict
+    ):
 
-        mlflow.log_params(params)
+        mlflow.log_params(
+            params
+        )
 
     @staticmethod
-    def log_metrics(metrics: dict):
+    def log_metrics(
+        metrics: dict
+    ):
 
-        mlflow.log_metrics(metrics)
+        mlflow.log_metrics(
+            metrics
+        )
 
+    @staticmethod
+    def log_metric(
+        key,
+        value
+    ):
+
+        mlflow.log_metric(
+            key,
+            value
+        )
+        
     @staticmethod
     def log_dataframe(
         df: pd.DataFrame,
@@ -45,9 +64,14 @@ class MLflowManager:
             f"/tmp/{artifact_name}.csv"
         )
 
-        df.to_csv(path,index=False)
+        df.to_csv(
+            path,
+            index=False
+        )
 
-        mlflow.log_artifact(path)
+        mlflow.log_artifact(
+            path
+        )
 
     @staticmethod
     def register_model(

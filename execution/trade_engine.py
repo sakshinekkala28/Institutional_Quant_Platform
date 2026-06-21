@@ -21,11 +21,46 @@ class TradeGenerator:
         target_portfolio
     ):
 
-        current = current_portfolio[
+        if (
+            "Current_Weight" not in current_portfolio.columns
+        ):
 
-            ["Symbol", "Current_Weight"]
+            if (
+                "Weight"
+                in current_portfolio.columns
+            ):
 
-        ].copy()
+                current_portfolio = (
+                    current_portfolio
+                    .rename(
+                        columns={
+                            "Weight":
+                            "Current_Weight"
+                        }
+                    )
+                )
+
+            else:
+
+                raise ValueError(
+                    "Current portfolio missing "
+                    "Current_Weight column"
+                )
+
+        current = (
+
+            current_portfolio[
+
+                [
+                    "Symbol",
+                    "Current_Weight"
+                ]
+
+            ]
+
+            .copy()
+
+        )
 
         target = target_portfolio[
 

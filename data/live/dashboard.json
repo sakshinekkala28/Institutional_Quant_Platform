@@ -1,0 +1,34 @@
+{
+    "portfolio": {
+        "Holdings": 40,
+        "Weight_Sum": 1.0,
+        "Max_Position": 0.05769360534481282,
+        "Largest_Sector": "Utilities"
+    },
+    "risk": {
+        "Portfolio_Beta": 1.1220828484420635,
+        "HHI": 0.030533066727063005,
+        "Effective_Holdings": 32.75137767650602
+    },
+    "performance": {
+        "CAGR": 0.08886600055280724,
+        "Sharpe": 0.23964841788861818,
+        "Sortino": 0.38254036146140297,
+        "Max_Drawdown": -0.19974177541641402
+    },
+    "dashboard": {
+        "Date": "2026-06-21",
+        "Holdings": 40,
+        "Portfolio_Beta": 1.1220828484420635,
+        "CAGR": 0.08886600055280724,
+        "Sharpe": 0.23964841788861818,
+        "Max_Drawdown": -0.19974177541641402
+    },
+    "execution": {
+        "Trades": 88,
+        "Average_Cost_bps": 5.2178417733348965,
+        "Total_Cost": 0.045917007605347095,
+        "Buy_Trades": "40",
+        "Sell_Trades": "48"
+    }
+}
