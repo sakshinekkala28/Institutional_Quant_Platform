@@ -8,6 +8,41 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+# ==========================================================
+# DATA VALIDATION
+# ==========================================================
+
+class PortfolioDataValidator:
+
+    REQUIRED_COLUMNS = {
+
+        "ADV_20D": 1_000_000,
+
+        "Beta": 1.0,
+
+        "Volatility_252D": 0.25,
+
+        "Market_Cap": 1_000_000_000,
+
+        "Sector": "UNKNOWN"
+
+    }
+
+    @classmethod
+    def ensure_required_columns(
+        cls,
+        df: pd.DataFrame
+    ) -> pd.DataFrame:
+
+        df = df.copy()
+
+        for col, default in cls.REQUIRED_COLUMNS.items():
+
+            if col not in df.columns:
+
+                df[col] = default
+
+        return df
 
 # ==========================================================
 # PORTFOLIO CONSTRUCTOR
@@ -72,6 +107,13 @@ class PortfolioHealthCheck:
             raise ValueError(
                 "Universe Empty"
             )
+        
+        if "Selection_Score" not in universe.columns:
+
+            raise ValueError(
+                "Selection_Score column missing"
+            )
+
 
         if universe[
             "Selection_Score"
@@ -423,6 +465,13 @@ class PortfolioEngine:
 
         PortfolioHealthCheck.validate(
             alpha_universe
+        )
+
+        alpha_universe = (
+            PortfolioDataValidator
+            .ensure_required_columns(
+                alpha_universe
+            )
         )
 
         portfolio = (

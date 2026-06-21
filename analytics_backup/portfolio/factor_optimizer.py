@@ -23,17 +23,10 @@ RISK_AVERSION = 3.0
 
 TURNOVER_PENALTY = 0.01
 
-<<<<<<< HEAD
-FACTOR_LIMIT = 0.70
-
-RISK_PREMIUM = 0.06
-TAU = 0.20
-=======
 FACTOR_LIMIT = 1.5
 
 RISK_PREMIUM = 0.06
 TAU = 0.80
->>>>>>> 9af50ea ("20/06/2026")
 
 # =====================================================
 # PATHS
@@ -214,24 +207,6 @@ print(
 )
 
 print(
-<<<<<<< HEAD
-    "Median Variance:",
-    np.median(np.diag(Sigma))
-)
-
-print(
-    "Max Variance:",
-    np.max(np.diag(Sigma))
-)
-
-print(
-    "Min Variance:",
-    np.min(np.diag(Sigma))
-)
-
-print(
-=======
->>>>>>> 9af50ea ("20/06/2026")
     "Average Daily Vol:",
     np.mean(np.sqrt(np.diag(Sigma)))
 )
@@ -275,11 +250,7 @@ alpha_z = (
 )
 
 alpha_views = (
-<<<<<<< HEAD
-    alpha_z.values * 0.15
-=======
     alpha_z.values * 0.03
->>>>>>> 9af50ea ("20/06/2026")
 )
 
 alpha_confidence = (
@@ -445,11 +416,7 @@ objective = cp.Maximize(
 
     -
 
-<<<<<<< HEAD
-    0.25 * concentration_penalty
-=======
     0.10 * concentration_penalty
->>>>>>> 9af50ea ("20/06/2026")
 
 )
 
@@ -541,8 +508,6 @@ for factor in factor_cols:
         exposure_vector @ w >= -FACTOR_LIMIT
     )
 
-<<<<<<< HEAD
-=======
 constraints.append(
 
     universe["Momentum"].fillna(0).values @ w
@@ -562,7 +527,6 @@ constraints.append(
     0.80
 
 )
->>>>>>> 9af50ea ("20/06/2026")
 
 # =====================================================
 # SOLVE
@@ -574,16 +538,11 @@ problem = cp.Problem(
 )
 
 problem.solve(
-<<<<<<< HEAD
-    solver=cp.CLARABEL,
-    verbose=False
-=======
 
     solver=cp.CLARABEL,
 
     verbose=False
 
->>>>>>> 9af50ea ("20/06/2026")
 )
 
 print(
@@ -596,50 +555,12 @@ print(
     problem.value
 )
 
-<<<<<<< HEAD
-if problem.status not in [
-    "optimal",
-    "optimal_inaccurate"
-]:
-    raise RuntimeError(
-        f"Optimizer failed: {problem.status}"
-    )
-
-print("\nObjective Breakdown")
-
-print(
-    "Expected Return:",
-    expected_return_term.value
-)
-
-print(
-    "Risk Penalty:",
-    RISK_AVERSION * risk_term.value
-)
-
-print(
-    "Turnover Penalty:",
-    TURNOVER_PENALTY * turnover_term.value
-)
-
-print(
-    "Transaction Cost:",
-    0.05 * tc_term.value
-)
-
-print(
-    "Concentration Penalty:",
-    0.25 * concentration_penalty.value
-)
-
-=======
 if problem.status != "optimal":
 
     raise RuntimeError(
         "Optimizer failed."
     )
 
->>>>>>> 9af50ea ("20/06/2026")
 # =====================================================
 # RESULTS
 # =====================================================
@@ -769,12 +690,6 @@ portfolio["Weight"] = (
 # =====================================================
 
 portfolio_return = (
-<<<<<<< HEAD
-    universe["Weight"].values
-    @
-    mu
-)
-=======
 
     portfolio["Expected_Return"]
 
@@ -783,7 +698,6 @@ portfolio_return = (
     portfolio["Weight"]
 
 ).sum()
->>>>>>> 9af50ea ("20/06/2026")
 
 # =====================================================
 # FULL PORTFOLIO VOLATILITY
@@ -825,13 +739,7 @@ portfolio_volatility = np.sqrt(
 
 )
 
-<<<<<<< HEAD
-annual_portfolio_volatility = (
-    portfolio_volatility
-)
-=======
 annual_portfolio_volatility = portfolio_volatility
->>>>>>> 9af50ea ("20/06/2026")
 
 portfolio_vector = (
     universe["Weight"]
@@ -875,9 +783,6 @@ print(
     "%"
 )
 
-<<<<<<< HEAD
-annual_alpha = portfolio_return
-=======
 annual_alpha = (
 
     portfolio["Expected_Return"]
@@ -887,16 +792,10 @@ annual_alpha = (
     portfolio["Weight"]
 
 ).sum()
->>>>>>> 9af50ea ("20/06/2026")
 
 annual_te = tracking_error_value
 
 information_ratio = (
-<<<<<<< HEAD
-    annual_alpha
-    /
-    max(annual_te, 1e-6)
-=======
 
     annual_alpha
 
@@ -907,7 +806,6 @@ information_ratio = (
         1e-6
     )
 
->>>>>>> 9af50ea ("20/06/2026")
 )
 
 print(
@@ -945,25 +843,6 @@ print(
     ),
     "%"
 )
-<<<<<<< HEAD
-print(
-    "\nPortfolio Variance:",
-    full_weights.T
-    @ full_cov
-    @ full_weights
-)
-
-print(
-    "Max Covariance:",
-    np.max(full_cov)
-)
-
-print(
-    "Min Covariance:",
-    np.min(full_cov)
-)
-=======
->>>>>>> 9af50ea ("20/06/2026")
 
 print(
     "Holdings:",
@@ -996,11 +875,7 @@ factor_risk = (
 )
 
 print(
-<<<<<<< HEAD
-    "\nFactor Exposure Attribution"
-=======
     "\nFactor Risk Attribution"
->>>>>>> 9af50ea ("20/06/2026")
 )
 
 print(
@@ -1043,14 +918,6 @@ print(
 
 )
 
-<<<<<<< HEAD
-print(
-    "Max Factor Exposure:",
-    portfolio_factor_exposure.max()
-)
-
-=======
->>>>>>> 9af50ea ("20/06/2026")
 approval_score = 100
 
 if annual_te > 0.10:
@@ -1062,14 +929,7 @@ if annual_portfolio_volatility > 0.50:
 elif annual_portfolio_volatility > 0.35:
     approval_score -= 10
 
-<<<<<<< HEAD
-if final_effective_holdings < 25:
-    approval_score -= 10
-
-if round(portfolio_factor_exposure.max(),3) > 0.75:
-=======
 if portfolio_factor_exposure.max() > 0.75:
->>>>>>> 9af50ea ("20/06/2026")
     approval_score -= 20
 
 if active_share < 0.75:

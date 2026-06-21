@@ -1,0 +1,14 @@
+__pycache__/
+*.pyc
+.venv/
+.env
+
+mlruns/
+logs/
+data/database/
+
+*.db
+*.sqlite
+
+.vscode/
+.idea/
