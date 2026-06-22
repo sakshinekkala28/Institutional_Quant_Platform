@@ -1,0 +1,2 @@
+Category,Severity,Metric,Value,Threshold,Message
+Risk,WARNING,Max_Drawdown,-0.3530950311463793,0.35,Drawdown threshold breached

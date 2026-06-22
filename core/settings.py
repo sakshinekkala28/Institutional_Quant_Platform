@@ -129,6 +129,79 @@ class DatabaseSettings:
     DATABASE_SCHEMA: str = "main"
 
 # ==========================================================
+# SURVEILLANCE SETTINGS
+# ==========================================================
+
+@dataclass(frozen=True)
+
+class SurveillanceSettings:
+
+    MIN_SHARPE: float = 0.75
+
+    MIN_INFORMATION_RATIO: float = 0.50
+
+    MIN_ALPHA: float = 0.00
+
+    MIN_HIT_RATIO: float = 0.50
+
+    MAX_VAR95: float = 0.03
+
+    MAX_CVAR95: float = 0.05
+
+    CRITICAL_DRAWDOWN: float = 0.50
+
+    WARNING_DRAWDOWN: float = 0.35
+
+    MAX_TRACKING_ERROR: float = 0.20
+
+    MIN_REGIME_SCORE: float = 50.0
+
+    MIN_ROLLING_SCORE: float = 50.0
+
+@dataclass(frozen=True)
+class PerformanceSettings:
+
+    TRADING_DAYS: int = 252
+
+    RISK_FREE_RATE: float = 0.06
+
+    ROLLING_WINDOW: int = 63
+
+    MIN_HISTORY_DAYS: int = 252
+
+@dataclass(frozen=True)
+class RegimeSettings:
+
+    BULL_THRESHOLD: float = 0.15
+
+    BEAR_THRESHOLD: float = -0.15
+
+    MIN_REGIME_DAYS: int = 20
+
+    MIN_REGIME_SCORE: float = 50.0
+
+@dataclass(frozen=True)
+class ForecastSettings:
+
+    FORECAST_HORIZON_1M: int = 21
+
+    FORECAST_HORIZON_3M: int = 63
+
+    FORECAST_HORIZON_12M: int = 252
+
+    RETURN_WEIGHT_ROLLING: float = 0.40
+
+    RETURN_WEIGHT_REGIME: float = 0.30
+
+    RETURN_WEIGHT_HISTORICAL: float = 0.20
+
+    RETURN_WEIGHT_ALPHA: float = 0.10
+
+    VOL_WEIGHT_ROLLING: float = 0.70
+
+    VOL_WEIGHT_REGIME: float = 0.30
+
+# ==========================================================
 # SETTINGS CONTAINER
 # ==========================================================
 
@@ -150,7 +223,7 @@ class Settings:
 
         self.execution = (
             ExecutionSettings()
-        )
+        )  
 
         self.governance = (
             GovernanceSettings()
@@ -160,6 +233,21 @@ class Settings:
             DatabaseSettings()
         )
 
+        self.surveillance = (
+            SurveillanceSettings()
+        )
+
+        self.performance = (
+            PerformanceSettings()
+        )
+
+        self.regime = (
+            RegimeSettings()
+        ) 
+
+        self.forecast = (
+            ForecastSettings()
+        )
 
 # ==========================================================
 # GLOBAL SETTINGS
