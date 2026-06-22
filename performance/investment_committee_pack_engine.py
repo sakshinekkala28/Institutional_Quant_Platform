@@ -56,6 +56,16 @@ PERFORMANCE_DIR = (
 
 )
 
+MONITORING_DIR = (
+
+    ROOT_DIR
+
+    / "data"
+
+    / "monitoring"
+
+)
+
 FORECAST_FILE = (
 
     PERFORMANCE_DIR
@@ -69,6 +79,14 @@ GOVERNANCE_FILE = (
     PERFORMANCE_DIR
 
     / "governance_decision.csv"
+
+)
+
+ALERT_GOVERNANCE_FILE = (
+
+    MONITORING_DIR
+
+    / "alert_governance.csv"
 
 )
 
@@ -851,6 +869,71 @@ class GovernanceReviewEngine:
 
         )
 
+class AlertGovernanceReviewEngine:
+
+    @staticmethod
+    def build(
+
+        alert_governance
+
+    ):
+
+        logger.info(
+
+            "Building Alert Governance Review"
+
+        )
+
+        review_rows = []
+
+        for _, row in alert_governance.iterrows():
+
+            review_rows.append(
+
+                {
+
+                    "Section":
+
+                        "Alert_Governance",
+
+                    "Metric":
+
+                        str(
+
+                            row["Metric"]
+
+                        ),
+
+                    "Value":
+
+                        str(
+
+                            row["Value"]
+
+                        )
+
+                }
+
+            )
+
+        return pd.DataFrame(
+
+            review_rows
+
+        )
+    
+
+class AlertGovernanceLoader:
+
+    @staticmethod
+    def load():
+
+        return pd.read_csv(
+
+            ALERT_GOVERNANCE_FILE
+
+        )
+    
 
 # ==========================================================
 # SURVEILLANCE REVIEW ENGINE
@@ -1062,6 +1145,8 @@ class ExecutiveDashboardEngine:
 
         stress_df: pd.DataFrame,
 
+        alert_metrics: dict,
+
         pack_score: float,
 
         recommendation: str
@@ -1217,6 +1302,42 @@ class ExecutiveDashboardEngine:
 
                     "Metric":
 
+                        "Alert_Health_Score",
+
+                    "Value":
+
+                        alert_metrics.get(
+
+                            "Alert_Health_Score",
+
+                            "N/A"
+
+                        )
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Alert_Escalation",
+
+                    "Value":
+
+                        alert_metrics.get(
+
+                            "Alert_Escalation",
+
+                            "N/A"
+
+                        )
+
+                },
+
+                {
+
+                    "Metric":
+
                         "Pack_Grade",
 
                     "Value":
@@ -1279,6 +1400,26 @@ class InvestmentCommitteePackEngine:
             CommitteePackRepository
 
             .load_governance()
+
+        )
+
+        alert_governance = (
+
+            AlertGovernanceLoader
+
+            .load()
+
+        )
+
+        alert_metrics = dict(
+
+            zip(
+
+                alert_governance["Metric"],
+
+                alert_governance["Value"]
+
+            )
 
         )
 
@@ -1378,6 +1519,18 @@ class InvestmentCommitteePackEngine:
 
         )
 
+        alert_governance_review = (
+
+            AlertGovernanceReviewEngine
+
+            .build(
+
+                alert_governance
+
+            )
+
+        )
+
         surveillance_review = (
 
             SurveillanceReviewEngine
@@ -1436,6 +1589,8 @@ class InvestmentCommitteePackEngine:
 
                 stress_df,
 
+                alert_metrics,
+
                 pack_score,
 
                 recommendation
@@ -1455,6 +1610,8 @@ class InvestmentCommitteePackEngine:
                 stress_review,
 
                 governance_review,
+
+                alert_governance_review,
 
                 surveillance_review
 
