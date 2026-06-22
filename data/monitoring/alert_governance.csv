@@ -1,7 +1,7 @@
 Metric,Value
 Alert_Health_Score,0
-Alert_Escalation,WATCH
+Alert_Escalation,ESCALATING
 Governance_View,CRITICAL
 Trend_Direction,INSUFFICIENT_HISTORY
 Top_Category,STRESS
-Total_Alerts,12
+Total_Alerts,18
