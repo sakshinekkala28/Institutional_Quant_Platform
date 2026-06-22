@@ -108,6 +108,12 @@ jobs:
 
           python -m monitoring.governance_command_center
 
+      - name: Governance Committee Integration
+
+        run: |
+
+          python -m performance.governance_committee_integration
+
       # -------------------------
       # COMMITTEE / REPORTING
       # -------------------------
