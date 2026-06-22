@@ -202,37 +202,7 @@ class HistoryLoaderEngine:
 
             )
 
-            date = (
-
-                file.stem
-
-                .replace(
-
-                    "monitor_",
-
-                    ""
-
-                )
-
-            )
-
-            overall = (
-
-                df[
-
-                    df["Category"]
-
-                    ==
-
-                    "Overall"
-
-                ]
-
-            )
-
-            if overall.empty:
-
-                continue
+            row = df.iloc[0]
 
             records.append(
 
@@ -240,17 +210,11 @@ class HistoryLoaderEngine:
 
                     "Date":
 
-                        date,
+                        row["Date"],
 
                     "Status":
 
-                        overall
-
-                        .iloc[0][
-
-                            "Status"
-
-                        ]
+                        row["Overall_Status"]
 
                 }
 

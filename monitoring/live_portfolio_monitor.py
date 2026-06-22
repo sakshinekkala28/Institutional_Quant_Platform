@@ -683,39 +683,6 @@ class MonitorAggregator:
             )
 
         return alerts, statuses
-    
-# ==========================================================
-# MONITOR AGGREGATOR
-# ==========================================================
-
-class MonitorAggregator:
-
-    @staticmethod
-    def combine(
-
-        *results
-
-    ):
-
-        alerts = []
-
-        statuses = []
-
-        for result in results:
-
-            alerts.extend(
-
-                result[0]
-
-            )
-
-            statuses.extend(
-
-                result[1]
-
-            )
-
-        return alerts, statuses
 
 # ==========================================================
 # STRESS MONITOR ENGINE
@@ -1298,9 +1265,16 @@ class MonitorHistoryEngine:
     @staticmethod
     def archive(
 
+
         dashboard
 
     ):
+
+        logger.info(
+
+            "Archiving Monitor History"
+
+        )
 
         history_dir = (
 
@@ -1332,7 +1306,109 @@ class MonitorHistoryEngine:
 
         )
 
-        dashboard.to_csv(
+        history_record = pd.DataFrame(
+
+            [
+
+                {
+
+                    "Date":
+
+                        pd.Timestamp.now()
+
+                        .strftime(
+
+                            "%Y-%m-%d"
+
+                        ),
+
+                    "Forecast_Status":
+
+                        dashboard.loc[
+
+                            dashboard["Category"]
+
+                            ==
+
+                            "Forecast",
+
+                            "Status"
+
+                        ]
+
+                        .iloc[0],
+
+                    "Committee_Status":
+
+                        dashboard.loc[
+
+                            dashboard["Category"]
+
+                            ==
+
+                            "Committee",
+
+                            "Status"
+
+                        ]
+
+                        .iloc[0],
+
+                    "Stress_Status":
+
+                        dashboard.loc[
+
+                            dashboard["Category"]
+
+                            ==
+
+                            "Stress",
+
+                            "Status"
+
+                        ]
+
+                        .iloc[0],
+
+                    "Surveillance_Status":
+
+                        dashboard.loc[
+
+                            dashboard["Category"]
+
+                            ==
+
+                            "Surveillance",
+
+                            "Status"
+
+                        ]
+
+                        .iloc[0],
+
+                    "Overall_Status":
+
+                        dashboard.loc[
+
+                            dashboard["Category"]
+
+                            ==
+
+                            "Overall",
+
+                            "Status"
+
+                        ]
+
+                        .iloc[0]
+
+                }
+
+            ]
+
+        )
+        
+        history_record.to_csv(
 
             history_file,
 
