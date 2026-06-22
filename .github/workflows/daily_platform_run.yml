@@ -44,7 +44,7 @@ jobs:
 
         run: |
 
-          python -m analytics.forecast_engine
+          python -m performance.performance_forecast_engine
 
       - name: Scenario Analysis
 
@@ -87,7 +87,7 @@ jobs:
         run: |
 
           python -m reporting.powerpoint_report_engine
-    
+
       - name: Commit Generated Files
 
         run: |
