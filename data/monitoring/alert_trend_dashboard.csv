@@ -1,7 +1,7 @@
 Metric,Value
-Total_Alerts,18
-Critical_Alerts,6
+Total_Alerts,24
+Critical_Alerts,8
 Trend_Direction,INSUFFICIENT_HISTORY
 Observation_Count,1
-High_Alerts,6
-Medium_Alerts,6
+High_Alerts,8
+Medium_Alerts,8
