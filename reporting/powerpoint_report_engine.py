@@ -60,6 +60,18 @@ PERFORMANCE_DIR = (
 
 )
 
+ALERT_GOVERNANCE_FILE = (
+
+    ROOT_DIR
+
+    / "data"
+
+    / "monitoring"
+
+    / "alert_governance.csv"
+
+)
+
 REPORT_DIR = (
 
     ROOT_DIR
@@ -182,6 +194,15 @@ class PPTRepository:
         return pd.read_csv(
 
             COMMITTEE_PACK_FILE
+
+        )
+    
+    @staticmethod
+    def load_alert_governance():
+
+        return pd.read_csv(
+
+            ALERT_GOVERNANCE_FILE
 
         )
 
@@ -850,6 +871,116 @@ class CommitteePackSlideBuilder:
 
             )
 
+
+
+class AlertGovernanceSlideBuilder:
+
+    @staticmethod
+    def build(
+
+        prs,
+
+        alert_governance
+
+    ):
+
+        logger.info(
+
+            "Building Alert Governance Slide"
+
+        )
+
+        slide = (
+
+            prs.slides.add_slide(
+
+                prs.slide_layouts[1]
+
+            )
+
+        )
+
+        slide.shapes.title.text = (
+
+            "Alert Governance"
+
+        )
+
+        metrics = dict(
+
+            zip(
+
+                alert_governance["Metric"],
+
+                alert_governance["Value"]
+
+            )
+
+        )
+
+        textbox = (
+
+            slide.shapes.add_textbox(
+
+                Inches(0.5),
+
+                Inches(1.2),
+
+                Inches(8),
+
+                Inches(4)
+
+            )
+
+        )
+
+        tf = (
+
+            textbox.text_frame
+
+        )
+
+        tf.add_paragraph().text = (
+
+            f"Health Score: "
+
+            f"{metrics.get('Alert_Health_Score')}"
+
+        )
+
+        tf.add_paragraph().text = (
+
+            f"Escalation: "
+
+            f"{metrics.get('Alert_Escalation')}"
+
+        )
+
+        tf.add_paragraph().text = (
+
+            f"Governance View: "
+
+            f"{metrics.get('Governance_View')}"
+
+        )
+
+        tf.add_paragraph().text = (
+
+            f"Trend Direction: "
+
+            f"{metrics.get('Trend_Direction')}"
+
+        )
+
+        tf.add_paragraph().text = (
+
+            f"Top Category: "
+
+            f"{metrics.get('Top_Category')}"
+
+        )
+
+
 # ==========================================================
 # SURVEILLANCE SLIDE
 # ==========================================================
@@ -995,6 +1126,14 @@ class PPTBuilder:
 
         )
 
+        alert_governance = (
+
+            PPTRepository
+
+            .load_alert_governance()
+
+        )
+
         executive = (
 
             PPTRepository
@@ -1068,6 +1207,14 @@ class PPTBuilder:
             prs,
 
             committee
+
+        )
+
+        AlertGovernanceSlideBuilder.build(
+
+            prs,
+
+            alert_governance
 
         )
 

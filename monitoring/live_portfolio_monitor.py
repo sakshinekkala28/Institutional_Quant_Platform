@@ -8,6 +8,12 @@ import pandas as pd
 
 from core.settings import settings
 
+from monitoring.alert_history_engine import (
+
+    AlertHistoryEngine
+
+)
+
 # ==========================================================
 # LOGGING
 # ==========================================================
@@ -1538,6 +1544,12 @@ def run_example():
     )
 
     MonitorAlertExporter.export(
+
+        result["alerts"]
+
+    )
+
+    AlertHistoryEngine.append(
 
         result["alerts"]
 

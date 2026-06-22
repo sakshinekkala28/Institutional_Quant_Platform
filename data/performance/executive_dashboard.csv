@@ -6,4 +6,6 @@ Expected_Return_12M,0.3695181329490239
 Scenario_Average,61.17
 Stress_Average,27.93
 Committee_View,BUY
+Alert_Health_Score,0
+Alert_Escalation,WATCH
 Pack_Grade,C

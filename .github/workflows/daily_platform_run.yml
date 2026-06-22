@@ -40,6 +40,10 @@ jobs:
 
           pip install -r requirements.txt
 
+      # -------------------------
+      # PERFORMANCE LAYER
+      # -------------------------
+
       - name: Forecast Engine
 
         run: |
@@ -58,11 +62,9 @@ jobs:
 
           python -m performance.stress_testing_engine
 
-      - name: Investment Committee
-
-        run: |
-
-          python -m performance.investment_committee_pack_engine
+      # -------------------------
+      # MONITORING LAYER
+      # -------------------------
 
       - name: Live Monitoring
 
@@ -70,11 +72,51 @@ jobs:
 
           python -m monitoring.live_portfolio_monitor
 
-      - name: Trend Analytics
+      - name: Monitor Trends
 
         run: |
 
           python -m monitoring.monitor_trend_engine
+
+      - name: Alert History
+
+        run: |
+
+          python -m monitoring.alert_history_engine
+
+      - name: Alert Trend Analytics
+
+        run: |
+
+          python -m monitoring.alert_trend_engine
+
+      - name: Alert Dashboard
+
+        run: |
+
+          python -m monitoring.alert_dashboard_engine
+
+      - name: Alert Governance
+
+        run: |
+
+          python -m monitoring.alert_governance_engine
+
+      - name: Governance Command Center
+
+        run: |
+
+          python -m monitoring.governance_command_center
+
+      # -------------------------
+      # COMMITTEE / REPORTING
+      # -------------------------
+
+      - name: Investment Committee
+
+        run: |
+
+          python -m performance.investment_committee_pack_engine
 
       - name: PDF Report
 
@@ -87,6 +129,46 @@ jobs:
         run: |
 
           python -m reporting.powerpoint_report_engine
+
+      # -------------------------
+      # ARTIFACTS
+      # -------------------------
+
+      - name: Upload PDF Report
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: investment-committee-pdf
+
+          path: data/reports/*.pdf
+
+      - name: Upload PowerPoint Report
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: investment-committee-ppt
+
+          path: data/reports/*.pptx
+
+      - name: Upload Monitoring Reports
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: monitoring-reports
+
+          path: |
+            data/monitoring/*.csv
+            data/performance/*.csv
+
+      # -------------------------
+      # COMMIT CHANGES
+      # -------------------------
 
       - name: Commit Generated Files
 
