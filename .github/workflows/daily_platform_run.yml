@@ -1,0 +1,103 @@
+name: Daily Platform Run
+
+on:
+
+  workflow_dispatch:
+
+  schedule:
+
+    - cron: "0 3 * * *"
+
+permissions:
+
+  contents: write
+
+jobs:
+
+  daily-run:
+
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout Repository
+
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+
+        uses: actions/setup-python@v5
+
+        with:
+
+          python-version: "3.12"
+
+      - name: Install Dependencies
+
+        run: |
+
+          python -m pip install --upgrade pip
+
+          pip install -r requirements.txt
+
+      - name: Forecast Engine
+
+        run: |
+
+          python -m analytics.forecast_engine
+
+      - name: Scenario Analysis
+
+        run: |
+
+          python -m performance.scenario_analysis_engine
+
+      - name: Stress Testing
+
+        run: |
+
+          python -m performance.stress_testing_engine
+
+      - name: Investment Committee
+
+        run: |
+
+          python -m performance.investment_committee_pack_engine
+
+      - name: Live Monitoring
+
+        run: |
+
+          python -m monitoring.live_portfolio_monitor
+
+      - name: Trend Analytics
+
+        run: |
+
+          python -m monitoring.monitor_trend_engine
+
+      - name: PDF Report
+
+        run: |
+
+          python -m reporting.pdf_report_engine
+
+      - name: PowerPoint Report
+
+        run: |
+
+          python -m reporting.powerpoint_report_engine
+    
+      - name: Commit Generated Files
+
+        run: |
+
+          git config --global user.name "github-actions"
+
+          git config --global user.email "github-actions@github.com"
+
+          git add data/
+
+          git commit -m "Daily platform refresh" || echo "No changes"
+
+          git push
