@@ -70,3 +70,5 @@ virtualenv==21.5.1
 websockets==16.0
 xlsxwriter==3.2.9
 yfinance==1.4.1
+reportlab>=4.0.0
+reportlab>=4.0.0
