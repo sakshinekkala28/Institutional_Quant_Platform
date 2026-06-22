@@ -10,7 +10,6 @@ import pandas as pd
 
 from core.settings import settings
 
-
 # ==========================================================
 # PATHS
 # ==========================================================
@@ -57,27 +56,27 @@ GOVERNANCE_DECISION_FILE = (
 
 )
 
-SCENARIO_ANALYSIS_FILE = (
+STRESS_TEST_RESULTS_FILE = (
 
     PERFORMANCE_DIR
 
-    / "scenario_analysis.csv"
+    / "stress_test_results.csv"
 
 )
 
-SCENARIO_DASHBOARD_FILE = (
+STRESS_TEST_DASHBOARD_FILE = (
 
     PERFORMANCE_DIR
 
-    / "scenario_dashboard.csv"
+    / "stress_test_dashboard.csv"
 
 )
 
-SCENARIO_COMMITTEE_IMPACT_FILE = (
+STRESS_COMMITTEE_IMPACT_FILE = (
 
     PERFORMANCE_DIR
 
-    / "scenario_committee_impact.csv"
+    / "stress_committee_impact.csv"
 
 )
 
@@ -108,30 +107,30 @@ logger = logging.getLogger(
 )
 
 # ==========================================================
-# SCENARIO MODEL
+# STRESS MODEL
 # ==========================================================
 
 @dataclass
 
-class ScenarioResult:
+class StressScenario:
 
     Scenario: str
 
-    Expected_Return: float
+    Return_Impact: float
 
-    Expected_Volatility: float
+    Volatility_Impact: float
 
-    Expected_Drawdown: float
+    Drawdown_Impact: float
 
-    Expected_Sharpe: float
+    Stress_Score: float
 
-    Committee_Impact: str
+    Committee_Decision: str
 
 # ==========================================================
 # REPOSITORY
 # ==========================================================
 
-class ScenarioRepository:
+class StressRepository:
 
     @staticmethod
     def load_forecast() -> pd.DataFrame:
@@ -153,7 +152,7 @@ class ScenarioRepository:
 
         logger.info(
 
-            "Loading Performance Summary"
+            "Loading Summary"
 
         )
 
@@ -168,7 +167,7 @@ class ScenarioRepository:
 
         logger.info(
 
-            "Loading Governance Decision"
+            "Loading Committee Decision"
 
         )
 
@@ -182,7 +181,7 @@ class ScenarioRepository:
 # VALIDATOR
 # ==========================================================
 
-class ScenarioValidator:
+class StressValidator:
 
     @staticmethod
     def validate(
@@ -215,32 +214,32 @@ class ScenarioValidator:
 
             raise ValueError(
 
-                "Committee Decision Empty"
+                "Committee Empty"
 
             )
 
         logger.info(
 
-            "Scenario Validation Passed"
+            "Stress Validation Passed"
 
         )
 
 # ==========================================================
-# BULL SCENARIO ENGINE
+# GFC STRESS ENGINE
 # ==========================================================
 
-class BullScenarioEngine:
+class GFCStressEngine:
 
     @staticmethod
     def build(
 
         forecast: pd.DataFrame
 
-    ) -> ScenarioResult:
+    ) -> dict:
 
         logger.info(
 
-            "Building Bull Scenario"
+            "Building 2008 GFC Stress"
 
         )
 
@@ -252,25 +251,17 @@ class BullScenarioEngine:
 
         )
 
-        return ScenarioResult(
+        return {
 
-            Scenario=
+            "Scenario":
 
-                "BULL",
+                "2008_GFC",
 
-            Expected_Return=
+            "Return_Impact":
 
-                float(
+                -0.55,
 
-                    row[
-                        "Expected_Return_12M"
-                    ]
-
-                    * 1.25
-
-                ),
-
-            Expected_Volatility=
+            "Volatility_Impact":
 
                 float(
 
@@ -278,11 +269,11 @@ class BullScenarioEngine:
                         "Expected_Volatility"
                     ]
 
-                    * 0.90
+                    * 3.00
 
                 ),
 
-            Expected_Drawdown=
+            "Drawdown_Impact":
 
                 float(
 
@@ -290,44 +281,28 @@ class BullScenarioEngine:
                         "Expected_Max_Drawdown"
                     ]
 
-                    * 0.80
+                    * 3.50
 
-                ),
+                )
 
-            Expected_Sharpe=
-
-                float(
-
-                    row[
-                        "Expected_Sharpe"
-                    ]
-
-                    * 1.15
-
-                ),
-
-            Committee_Impact=
-
-                "STRONG_APPROVAL"
-
-        )
+        }
     
 # ==========================================================
-# BASE SCENARIO ENGINE
+# COVID CRASH ENGINE
 # ==========================================================
 
-class BaseScenarioEngine:
+class CovidStressEngine:
 
     @staticmethod
     def build(
 
         forecast: pd.DataFrame
 
-    ) -> ScenarioResult:
+    ) -> dict:
 
         logger.info(
 
-            "Building Base Scenario"
+            "Building COVID Crash Stress"
 
         )
 
@@ -339,191 +314,17 @@ class BaseScenarioEngine:
 
         )
 
-        return ScenarioResult(
+        return {
 
-            Scenario=
+            "Scenario":
 
-                "BASE",
+                "COVID_CRASH",
 
-            Expected_Return=
+            "Return_Impact":
+                -0.35,
 
-                float(
 
-                    row[
-                        "Expected_Return_12M"
-                    ]
-
-                ),
-
-            Expected_Volatility=
-
-                float(
-
-                    row[
-                        "Expected_Volatility"
-                    ]
-
-                ),
-
-            Expected_Drawdown=
-
-                float(
-
-                    row[
-                        "Expected_Max_Drawdown"
-                    ]
-
-                ),
-
-            Expected_Sharpe=
-
-                float(
-
-                    row[
-                        "Expected_Sharpe"
-                    ]
-
-                ),
-
-            Committee_Impact=
-
-                "APPROVE"
-
-        )
-    
-# ==========================================================
-# BEAR SCENARIO ENGINE
-# ==========================================================
-
-class BearScenarioEngine:
-
-    @staticmethod
-    def build(
-
-        forecast: pd.DataFrame
-
-    ) -> ScenarioResult:
-
-        logger.info(
-
-            "Building Bear Scenario"
-
-        )
-
-        row = (
-
-            forecast
-
-            .iloc[0]
-
-        )
-
-        return ScenarioResult(
-
-            Scenario=
-
-                "BEAR",
-
-            Expected_Return=
-
-                float(
-
-                    row[
-                        "Expected_Return_12M"
-                    ]
-
-                    * 0.40
-
-                ),
-
-            Expected_Volatility=
-
-                float(
-
-                    row[
-                        "Expected_Volatility"
-                    ]
-
-                    * 1.40
-
-                ),
-
-            Expected_Drawdown=
-
-                float(
-
-                    row[
-                        "Expected_Max_Drawdown"
-                    ]
-
-                    * 1.80
-
-                ),
-
-            Expected_Sharpe=
-
-                float(
-
-                    row[
-                        "Expected_Sharpe"
-                    ]
-
-                    * 0.50
-
-                ),
-
-            Committee_Impact=
-
-                "REVIEW_REQUIRED"
-
-        )
-    
-# ==========================================================
-# CRISIS SCENARIO ENGINE
-# ==========================================================
-
-class CrisisScenarioEngine:
-
-    @staticmethod
-    def build(
-
-        forecast: pd.DataFrame
-
-    ) -> ScenarioResult:
-
-        logger.info(
-
-            "Building Crisis Scenario"
-
-        )
-
-        row = (
-
-            forecast
-
-            .iloc[0]
-
-        )
-
-        return ScenarioResult(
-
-            Scenario=
-
-                "CRISIS",
-
-            Expected_Return=
-
-                float(
-
-                    row[
-                        "Expected_Return_12M"
-                    ]
-
-                    * -0.50
-
-                ),
-
-            Expected_Volatility=
+            "Volatility_Impact":
 
                 float(
 
@@ -535,7 +336,7 @@ class CrisisScenarioEngine:
 
                 ),
 
-            Expected_Drawdown=
+            "Drawdown_Impact":
 
                 float(
 
@@ -543,33 +344,284 @@ class CrisisScenarioEngine:
                         "Expected_Max_Drawdown"
                     ]
 
-                    * 3.00
+                    * 2.80
 
-                ),
+                )
 
-            Expected_Sharpe=
+        }
+    
+# ==========================================================
+# RATE HIKE SHOCK ENGINE
+# ==========================================================
+
+class RateHikeStressEngine:
+
+    @staticmethod
+    def build(
+
+        forecast: pd.DataFrame
+
+    ) -> dict:
+
+        logger.info(
+
+            "Building Rate Hike Shock"
+
+        )
+
+        row = (
+
+            forecast
+
+            .iloc[0]
+
+        )
+
+        return {
+
+            "Scenario":
+
+                "RATE_HIKE_SHOCK",
+
+            "Return_Impact":
 
                 float(
 
                     row[
-                        "Expected_Sharpe"
+                        "Expected_Return_12M"
                     ]
 
-                    * -0.50
+                    - 0.20
 
                 ),
 
-            Committee_Impact=
+            "Volatility_Impact":
 
-                "REJECT"
+                float(
 
-        )
+                    row[
+                        "Expected_Volatility"
+                    ]
+
+                    * 1.60
+
+                ),
+
+            "Drawdown_Impact":
+
+                float(
+
+                    row[
+                        "Expected_Max_Drawdown"
+                    ]
+
+                    * 1.80
+
+                )
+
+        }
     
 # ==========================================================
-# SCENARIO BUILDER ENGINE
+# LIQUIDITY SHOCK ENGINE
 # ==========================================================
 
-class ScenarioBuilderEngine:
+class LiquidityStressEngine:
+
+    @staticmethod
+    def build(
+
+        forecast: pd.DataFrame
+
+    ) -> dict:
+
+        logger.info(
+
+            "Building Liquidity Shock"
+
+        )
+
+        row = (
+
+            forecast
+
+            .iloc[0]
+
+        )
+
+        return {
+
+            "Scenario":
+
+                "LIQUIDITY_SHOCK",
+
+            "Return_Impact":
+                -0.25,
+
+            "Volatility_Impact":
+
+                float(
+
+                    row[
+                        "Expected_Volatility"
+                    ]
+
+                    * 1.90
+
+                ),
+
+            "Drawdown_Impact":
+
+                float(
+
+                    row[
+                        "Expected_Max_Drawdown"
+                    ]
+
+                    * 2.00
+
+                )
+
+        }
+
+# ==========================================================
+# MARKET CRASH ENGINE
+# ==========================================================
+
+class MarketCrashStressEngine:
+
+    @staticmethod
+    def build(
+
+        forecast: pd.DataFrame
+
+    ) -> dict:
+
+        logger.info(
+
+            "Building Market Crash Stress"
+
+        )
+
+        row = (
+
+            forecast
+
+            .iloc[0]
+
+        )
+
+        return {
+
+            "Scenario":
+
+                "MARKET_CRASH_30",
+
+            "Return_Impact":
+                -0.30,
+
+
+            "Volatility_Impact":
+
+                float(
+
+                    row[
+                        "Expected_Volatility"
+                    ]
+
+                    * 2.00
+
+                ),
+
+            "Drawdown_Impact":
+
+                float(
+
+                    row[
+                        "Expected_Max_Drawdown"
+                    ]
+
+                    * 3.0
+
+                )
+
+        }
+    
+# ==========================================================
+# VOLATILITY SHOCK ENGINE
+# ==========================================================
+
+class VolatilityStressEngine:
+
+    @staticmethod
+    def build(
+
+        forecast: pd.DataFrame
+
+    ) -> dict:
+
+        logger.info(
+
+            "Building Volatility Shock"
+
+        )
+
+        row = (
+
+            forecast
+
+            .iloc[0]
+
+        )
+
+        return {
+
+            "Scenario":
+
+                "VOLATILITY_SHOCK",
+
+            "Return_Impact":
+
+                float(
+
+                    row[
+                        "Expected_Return_12M"
+                    ]
+
+                    - 0.10
+
+                ),
+
+            "Volatility_Impact":
+
+                float(
+
+                    row[
+                        "Expected_Volatility"
+                    ]
+
+                    * 2.80
+
+                ),
+
+            "Drawdown_Impact":
+
+                float(
+
+                    row[
+                        "Expected_Max_Drawdown"
+                    ]
+
+                    * 1.50
+
+                )
+
+        }
+    
+# ==========================================================
+# STRESS BUILDER ENGINE
+# ==========================================================
+
+class StressBuilderEngine:
 
     @staticmethod
     def build(
@@ -578,92 +630,72 @@ class ScenarioBuilderEngine:
 
     ) -> pd.DataFrame:
 
-        bull = (
-
-            BullScenarioEngine
-
-            .build(
-
-                forecast
-
-            )
-
-        )
-
-        base = (
-
-            BaseScenarioEngine
-
-            .build(
-
-                forecast
-
-            )
-
-        )
-
-        bear = (
-
-            BearScenarioEngine
-
-            .build(
-
-                forecast
-
-            )
-
-        )
-
-        crisis = (
-
-            CrisisScenarioEngine
-
-            .build(
-
-                forecast
-
-            )
-
-        )
-
         return pd.DataFrame(
 
             [
 
-                bull.__dict__,
+                GFCStressEngine.build(
 
-                base.__dict__,
+                    forecast
 
-                bear.__dict__,
+                ),
 
-                crisis.__dict__
+                CovidStressEngine.build(
+
+                    forecast
+
+                ),
+
+                RateHikeStressEngine.build(
+
+                    forecast
+
+                ),
+
+                LiquidityStressEngine.build(
+
+                    forecast
+
+                ),
+
+                MarketCrashStressEngine.build(
+
+                    forecast
+
+                ),
+
+                VolatilityStressEngine.build(
+
+                    forecast
+
+                )
 
             ]
 
         )
     
 # ==========================================================
-# SCENARIO SCORE ENGINE
+# STRESS SCORE ENGINE
 # ==========================================================
 
-class ScenarioScoreEngine:
+class StressScoreEngine:
 
     @staticmethod
     def calculate(
 
-        scenario_df: pd.DataFrame
+        stress_df: pd.DataFrame
 
     ) -> pd.DataFrame:
 
         logger.info(
 
-            "Calculating Scenario Scores"
+            "Calculating Stress Scores"
 
         )
 
         df = (
 
-            scenario_df
+            stress_df
 
             .copy()
 
@@ -675,85 +707,57 @@ class ScenarioScoreEngine:
 
             score = 50.0
 
-            score += min(
+            adjustment = (
 
-                row[
-
-                    "Expected_Return"
-
-                ] * 100,
-
-                30
+                row["Return_Impact"] * 40
 
             )
 
-            score += min(
+            if adjustment < -50:
 
-                row[
-        
-                    "Expected_Sharpe"
+                adjustment = -50
 
-                ] * 10,
+            score += adjustment
 
-                20
+            if row["Return_Impact"] < -0.50:
 
-            )
-    
+                score -= 25
+
+            elif row["Return_Impact"] < -0.35:
+
+                score -= 15
+
+            elif row["Return_Impact"] < -0.20:
+
+                score -= 8
+
+            elif row["Return_Impact"] < -0.10:
+
+                score -= 4
+
             if row[
-
-                "Expected_Return"
-
-            ] < 0:
-
-                score -= 40
-
-            elif row[
-
-                "Expected_Return"
-
-            ] < 0.10:
+                "Volatility_Impact"
+            ] > 0.60:
 
                 score -= 20
 
             elif row[
-
-                "Expected_Return"
-
-            ] < 0.20:
+                "Volatility_Impact"
+            ] > 0.40:
 
                 score -= 10
 
             if row[
-
-                "Expected_Volatility"
-
-            ] > 0.40:
-
-                score -= 30
-
-            elif row[
-
-                "Expected_Volatility"
-
-            ] > 0.25:
+                "Drawdown_Impact"
+            ] > 0.50:
 
                 score -= 15
 
-            if row[
-
-                "Expected_Drawdown"
-
-            ] > 0.40:
-
-                score -= 30
-
             elif row[
+                "Drawdown_Impact"
+            ] > 0.30:
 
-                "Expected_Drawdown"
-
-            ] > 0.25:
-
-                score -= 15
+                score -= 10
 
             scores.append(
 
@@ -769,34 +773,34 @@ class ScenarioScoreEngine:
 
         df[
 
-            "Scenario_Score"
+            "Stress_Score"
 
         ] = scores
 
         return df
     
 # ==========================================================
-# SCENARIO STRESS RANKING ENGINE
+# STRESS RANKING ENGINE
 # ==========================================================
 
-class ScenarioStressRankingEngine:
+class StressRankingEngine:
 
     @staticmethod
     def build(
 
-        scenario_df: pd.DataFrame
+        stress_df: pd.DataFrame
 
     ) -> pd.DataFrame:
 
         logger.info(
 
-            "Building Scenario Rankings"
+            "Building Stress Rankings"
 
         )
 
         df = (
 
-            scenario_df
+            stress_df
 
             .copy()
 
@@ -808,7 +812,7 @@ class ScenarioStressRankingEngine:
 
             .sort_values(
 
-                "Scenario_Score",
+                "Stress_Score",
 
                 ascending=False
 
@@ -818,7 +822,7 @@ class ScenarioStressRankingEngine:
 
         df[
 
-            "Scenario_Rank"
+            "Stress_Rank"
 
         ] = (
 
@@ -835,31 +839,31 @@ class ScenarioStressRankingEngine:
         return df
     
 # ==========================================================
-# COMMITTEE IMPACT ENGINE
+# STRESS COMMITTEE IMPACT ENGINE
 # ==========================================================
 
-class CommitteeImpactEngine:
+class StressCommitteeImpactEngine:
 
     @staticmethod
     def build(
 
-        scenario_df: pd.DataFrame
+        stress_df: pd.DataFrame
 
     ) -> pd.DataFrame:
 
         logger.info(
 
-            "Building Committee Impact"
+            "Building Stress Committee Impact"
 
         )
 
-        impacts = []
+        results = []
 
-        for _, row in scenario_df.iterrows():
+        for _, row in stress_df.iterrows():
 
             score = row[
 
-                "Scenario_Score"
+                "Stress_Score"
 
             ]
 
@@ -871,7 +875,7 @@ class CommitteeImpactEngine:
 
                 )
 
-            elif score >= 70:
+            elif score >= 60:
 
                 decision = (
 
@@ -879,7 +883,7 @@ class CommitteeImpactEngine:
 
                 )
 
-            elif score >= 40:
+            elif score >= 35:
 
                 decision = (
 
@@ -895,19 +899,17 @@ class CommitteeImpactEngine:
 
                 )
 
-            impacts.append(
+            results.append(
 
                 {
 
                     "Scenario":
 
                         row[
-
                             "Scenario"
-
                         ],
 
-                    "Scenario_Score":
+                    "Stress_Score":
 
                         score,
 
@@ -921,36 +923,36 @@ class CommitteeImpactEngine:
 
         return pd.DataFrame(
 
-            impacts
+            results
 
         )
     
 # ==========================================================
-# SCENARIO SUMMARY ENGINE
+# STRESS SUMMARY ENGINE
 # ==========================================================
 
-class ScenarioSummaryEngine:
+class StressSummaryEngine:
 
     @staticmethod
     def build(
 
-        scenario_df: pd.DataFrame
+        stress_df: pd.DataFrame
 
     ) -> pd.DataFrame:
 
         logger.info(
 
-            "Building Scenario Summary"
+            "Building Stress Summary"
 
         )
 
         best = (
 
-            scenario_df
+            stress_df
 
             .sort_values(
 
-                "Scenario_Score",
+                "Stress_Score",
 
                 ascending=False
 
@@ -962,11 +964,11 @@ class ScenarioSummaryEngine:
 
         worst = (
 
-            scenario_df
+            stress_df
 
             .sort_values(
 
-                "Scenario_Score",
+                "Stress_Score",
 
                 ascending=True
 
@@ -984,14 +986,12 @@ class ScenarioSummaryEngine:
 
                     "Metric":
 
-                        "Best_Scenario",
+                        "Best_Stress_Scenario",
 
                     "Value":
 
                         best[
-
                             "Scenario"
-
                         ]
 
                 },
@@ -1000,14 +1000,12 @@ class ScenarioSummaryEngine:
 
                     "Metric":
 
-                        "Worst_Scenario",
+                        "Worst_Stress_Scenario",
 
                     "Value":
 
                         worst[
-
                             "Scenario"
-
                         ]
 
                 },
@@ -1016,14 +1014,12 @@ class ScenarioSummaryEngine:
 
                     "Metric":
 
-                        "Best_Score",
+                        "Best_Stress_Score",
 
                     "Value":
 
                         best[
-
-                            "Scenario_Score"
-
+                            "Stress_Score"
                         ]
 
                 },
@@ -1032,14 +1028,12 @@ class ScenarioSummaryEngine:
 
                     "Metric":
 
-                        "Worst_Score",
+                        "Worst_Stress_Score",
 
                     "Value":
 
                         worst[
-
-                            "Scenario_Score"
-
+                            "Stress_Score"
                         ]
 
                 }
@@ -1049,138 +1043,15 @@ class ScenarioSummaryEngine:
         )
     
 # ==========================================================
-# SCENARIO SUMMARY ENGINE
+# STRESS DASHBOARD ENGINE
 # ==========================================================
 
-class ScenarioSummaryEngine:
+class StressDashboardEngine:
 
     @staticmethod
     def build(
 
-        scenario_df: pd.DataFrame
-
-    ) -> pd.DataFrame:
-
-        logger.info(
-
-            "Building Scenario Summary"
-
-        )
-
-        best = (
-
-            scenario_df
-
-            .sort_values(
-
-                "Scenario_Score",
-
-                ascending=False
-
-            )
-
-            .iloc[0]
-
-        )
-
-        worst = (
-
-            scenario_df
-
-            .sort_values(
-
-                "Scenario_Score",
-
-                ascending=True
-
-            )
-
-            .iloc[0]
-
-        )
-
-        return pd.DataFrame(
-
-            [
-
-                {
-
-                    "Metric":
-
-                        "Best_Scenario",
-
-                    "Value":
-
-                        best[
-
-                            "Scenario"
-
-                        ]
-
-                },
-
-                {
-
-                    "Metric":
-
-                        "Worst_Scenario",
-
-                    "Value":
-
-                        worst[
-
-                            "Scenario"
-
-                        ]
-
-                },
-
-                {
-
-                    "Metric":
-
-                        "Best_Score",
-
-                    "Value":
-
-                        best[
-
-                            "Scenario_Score"
-
-                        ]
-
-                },
-
-                {
-
-                    "Metric":
-
-                        "Worst_Score",
-
-                    "Value":
-
-                        worst[
-
-                            "Scenario_Score"
-
-                        ]
-
-                }
-
-            ]
-
-        )
-
-# ==========================================================
-# SCENARIO DASHBOARD ENGINE
-# ==========================================================
-
-class ScenarioDashboardEngine:
-
-    @staticmethod
-    def build(
-
-        scenario_df: pd.DataFrame,
+        stress_df: pd.DataFrame,
 
         committee_impact_df: pd.DataFrame
 
@@ -1188,17 +1059,17 @@ class ScenarioDashboardEngine:
 
         logger.info(
 
-            "Building Scenario Dashboard"
+            "Building Stress Dashboard"
 
         )
 
         best = (
 
-            scenario_df
+            stress_df
 
             .sort_values(
 
-                "Scenario_Score",
+                "Stress_Score",
 
                 ascending=False
 
@@ -1210,11 +1081,11 @@ class ScenarioDashboardEngine:
 
         worst = (
 
-            scenario_df
+            stress_df
 
             .sort_values(
 
-                "Scenario_Score",
+                "Stress_Score",
 
                 ascending=True
 
@@ -1232,7 +1103,7 @@ class ScenarioDashboardEngine:
 
                     "Metric":
 
-                        "Best_Scenario",
+                        "Best_Stress_Scenario",
 
                     "Value":
 
@@ -1246,12 +1117,12 @@ class ScenarioDashboardEngine:
 
                     "Metric":
 
-                        "Best_Scenario_Score",
+                        "Best_Stress_Score",
 
                     "Value":
 
                         best[
-                            "Scenario_Score"
+                            "Stress_Score"
                         ]
 
                 },
@@ -1260,7 +1131,7 @@ class ScenarioDashboardEngine:
 
                     "Metric":
 
-                        "Worst_Scenario",
+                        "Worst_Stress_Scenario",
 
                     "Value":
 
@@ -1274,12 +1145,12 @@ class ScenarioDashboardEngine:
 
                     "Metric":
 
-                        "Worst_Scenario_Score",
+                        "Worst_Stress_Score",
 
                     "Value":
 
                         worst[
-                            "Scenario_Score"
+                            "Stress_Score"
                         ]
 
                 },
@@ -1288,7 +1159,7 @@ class ScenarioDashboardEngine:
 
                     "Metric":
 
-                        "Committee_Approvals",
+                        "Approved_Scenarios",
 
                     "Value":
 
@@ -1306,12 +1177,26 @@ class ScenarioDashboardEngine:
 
                         .sum()
 
+                },
+
+                {
+                    "Metric":
+                        "Rejected_Scenarios",
+
+                    "Value":
+                        (
+                            committee_impact_df[
+                                "Committee_Decision"
+                            ]
+                            ==
+                            "REJECT"
+                        ).sum()
                 }
 
             ]
 
         )
-        
+    
 # ==========================================================
 # EXPORT ENGINE
 # ==========================================================
@@ -1321,7 +1206,7 @@ class ExportEngine:
     @staticmethod
     def save(
 
-        scenario_df: pd.DataFrame,
+        stress_df: pd.DataFrame,
 
         dashboard_df: pd.DataFrame,
 
@@ -1331,13 +1216,13 @@ class ExportEngine:
 
         logger.info(
 
-            "Exporting Scenario Reports"
+            "Exporting Stress Reports"
 
         )
 
-        scenario_df.to_csv(
+        stress_df.to_csv(
 
-            SCENARIO_ANALYSIS_FILE,
+            STRESS_TEST_RESULTS_FILE,
 
             index=False
 
@@ -1345,7 +1230,7 @@ class ExportEngine:
 
         dashboard_df.to_csv(
 
-            SCENARIO_DASHBOARD_FILE,
+            STRESS_TEST_DASHBOARD_FILE,
 
             index=False
 
@@ -1353,7 +1238,7 @@ class ExportEngine:
 
         committee_impact_df.to_csv(
 
-            SCENARIO_COMMITTEE_IMPACT_FILE,
+            STRESS_COMMITTEE_IMPACT_FILE,
 
             index=False
 
@@ -1361,15 +1246,15 @@ class ExportEngine:
 
         logger.info(
 
-            "Scenario Reports Exported"
+            "Stress Reports Exported"
 
         )
-
+    
 # ==========================================================
-# SCENARIO ANALYSIS ENGINE
+# STRESS TESTING ENGINE
 # ==========================================================
 
-class ScenarioAnalysisEngine:
+class StressTestingEngine:
 
     def run(
 
@@ -1379,13 +1264,13 @@ class ScenarioAnalysisEngine:
 
         logger.info(
 
-            "Starting Scenario Analysis"
+            "Starting Stress Testing"
 
         )
 
         forecast = (
 
-            ScenarioRepository
+            StressRepository
 
             .load_forecast()
 
@@ -1393,7 +1278,7 @@ class ScenarioAnalysisEngine:
 
         summary = (
 
-            ScenarioRepository
+            StressRepository
 
             .load_summary()
 
@@ -1401,13 +1286,13 @@ class ScenarioAnalysisEngine:
 
         committee = (
 
-            ScenarioRepository
+            StressRepository
 
             .load_committee()
 
         )
 
-        ScenarioValidator.validate(
+        StressValidator.validate(
 
             forecast,
 
@@ -1417,9 +1302,9 @@ class ScenarioAnalysisEngine:
 
         )
 
-        scenario_df = (
+        stress_df = (
 
-            ScenarioBuilderEngine
+            StressBuilderEngine
 
             .build(
 
@@ -1429,25 +1314,25 @@ class ScenarioAnalysisEngine:
 
         )
 
-        scenario_df = (
+        stress_df = (
 
-            ScenarioScoreEngine
+            StressScoreEngine
 
             .calculate(
 
-                scenario_df
+                stress_df
 
             )
 
         )
 
-        scenario_df = (
+        stress_df = (
 
-            ScenarioStressRankingEngine
+            StressRankingEngine
 
             .build(
 
-                scenario_df
+                stress_df
 
             )
 
@@ -1455,11 +1340,11 @@ class ScenarioAnalysisEngine:
 
         committee_impact_df = (
 
-            CommitteeImpactEngine
+            StressCommitteeImpactEngine
 
             .build(
 
-                scenario_df
+                stress_df
 
             )
 
@@ -1467,11 +1352,11 @@ class ScenarioAnalysisEngine:
 
         dashboard_df = (
 
-            ScenarioDashboardEngine
+            StressDashboardEngine
 
             .build(
 
-                scenario_df,
+                stress_df,
 
                 committee_impact_df
 
@@ -1481,7 +1366,7 @@ class ScenarioAnalysisEngine:
 
         ExportEngine.save(
 
-            scenario_df,
+            stress_df,
 
             dashboard_df,
 
@@ -1491,11 +1376,11 @@ class ScenarioAnalysisEngine:
 
         logger.info(
 
-            "Scenario Analysis Complete"
+            "Stress Testing Complete"
 
         )
 
-        return scenario_df
+        return stress_df
     
 # ==========================================================
 # RUNNER
@@ -1505,7 +1390,7 @@ def run_example():
 
     result = (
 
-        ScenarioAnalysisEngine()
+        StressTestingEngine()
 
         .run()
 
@@ -1521,7 +1406,7 @@ def run_example():
 
     print(
 
-        "SCENARIO ANALYSIS SUMMARY"
+        "STRESS TEST SUMMARY"
 
     )
 
@@ -1539,11 +1424,9 @@ def run_example():
 
                 "Scenario",
 
-                "Scenario_Score",
+                "Stress_Score",
 
-                "Scenario_Rank",
-
-                "Committee_Impact"
+                "Stress_Rank"
 
             ]
 
