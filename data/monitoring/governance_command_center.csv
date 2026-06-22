@@ -1,7 +1,7 @@
 Metric,Value
 Governance_Score,30.69
 Risk_Level,CRITICAL
-Escalation,WATCH
+Escalation,ESCALATING
 Governance_View,CRITICAL
 Overall_Status,CRITICAL
-Executive_Action,REDUCE_EXPOSURE
+Executive_Action,ACTIVATE_DEFENSIVE_MODE
