@@ -1,0 +1,16 @@
+Metric,Value
+Expected_Return_1M,0.030793177745751993
+Expected_Return_3M,0.09237953323725598
+Expected_Return_12M,0.3695181329490239
+Expected_Volatility,0.18275052180787488
+Expected_Sharpe,1.6936648382017725
+Expected_Information_Ratio,3.707977498752867
+Expected_Max_Drawdown,0.13580855364754957
+Rolling_Confidence,61.92
+Regime_Confidence,90.0
+Alpha_Confidence,79.78079984144149
+Forecast_Confidence,76.7241599682883
+Forecast_Regime,BULL
+Forecast_Risk_Grade,LOW
+Forecast_Recommendation,OVERWEIGHT
+Regime_Probability,50.176150761353014
