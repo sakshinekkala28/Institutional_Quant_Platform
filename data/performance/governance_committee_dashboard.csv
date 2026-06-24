@@ -1,8 +1,8 @@
 Metric,Value
-Governance_Score,30.69
-Risk_Level,CRITICAL
-Executive_Action,ACTIVATE_DEFENSIVE_MODE
-Overall_Status,CRITICAL
+Governance_Score,66.84
+Risk_Level,MODERATE
+Executive_Action,MAINTAIN_NEUTRAL
+Overall_Status,WATCH
 Pack_Score,69.16
 Recommendation,OVERWEIGHT
 Forecast_Regime,BULL

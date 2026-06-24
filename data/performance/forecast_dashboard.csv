@@ -15,6 +15,7 @@ Forecast_Risk_Grade,LOW
 Forecast_Recommendation,UNDERWEIGHT
 Macro_Score,48.82
 Macro_Regime,RISK_OFF
+Macro_Risk_Level,HIGH
 Macro_Confidence,91.09
 Macro_Recommendation,UNDERWEIGHT
 Regime_Probability,50.176150761353014
