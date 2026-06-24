@@ -1,7 +1,7 @@
 Metric,Value
-Alert_Health_Score,0
-Alert_Escalation,ESCALATING
-Governance_View,CRITICAL
+Alert_Health_Score,68.33
+Alert_Escalation,STABLE
+Governance_View,WATCH
 Trend_Direction,STABLE
 Top_Category,STRESS
 Total_Alerts,30

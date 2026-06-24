@@ -50,6 +50,12 @@ jobs:
 
           python -m performance.performance_forecast_engine
 
+      - name: Multi Horizon Forecast
+
+        run: |
+
+          python -m performance.multi_horizon_forecast_engine
+
       - name: Scenario Analysis
 
         run: |
@@ -113,6 +119,18 @@ jobs:
         run: |
 
           python -m performance.governance_committee_integration
+
+      - name: Final Decision Engine
+
+        run: |
+
+          python -m performance.final_decision_engine
+        
+      - name: Final Decision Integration
+
+        run: |
+
+          python -m performance.final_decision_integration
 
       # -------------------------
       # COMMITTEE / REPORTING

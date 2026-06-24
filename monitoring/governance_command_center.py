@@ -34,7 +34,6 @@ MONITORING_DIR = (
 
 )
 
-
 FORECAST_FILE = (
 
     PERFORMANCE_DIR
@@ -74,6 +73,54 @@ OUTPUT_FILE = (
     / "governance_command_center.csv"
 
 )
+
+GOVERNANCE_FORECAST_FILE = (
+
+    PERFORMANCE_DIR
+
+    / "forecast_dashboard.csv"
+
+)
+
+MULTI_HORIZON_FILE = (
+
+    PERFORMANCE_DIR
+
+    / "multi_horizon_forecast_dashboard.csv"
+
+)
+
+FINAL_DECISION_FILE = (
+
+    PERFORMANCE_DIR
+
+    / "final_decision_dashboard.csv"
+
+)
+
+class GovernanceStatusEngine:
+
+    @staticmethod
+    def classify(
+
+        score
+
+    ):
+
+        if score >= 80:
+
+            return "NORMAL"
+
+        if score >= 60:
+
+            return "ELEVATED_RISK"
+
+        if score >= 40:
+
+            return "HIGH_RISK"
+
+        return "CRITICAL"
+    
 
 class GovernanceRepository:
 
@@ -115,7 +162,155 @@ class GovernanceRepository:
             monitor
 
         )
+
+class GovernanceForecastLoader:
+
+    @staticmethod
+    def load():
+
+        logger.info(
+
+            "Loading Governance Forecast Inputs"
+
+        )
+
+        forecast = pd.read_csv(
+
+            GOVERNANCE_FORECAST_FILE
+
+        )
+
+        horizon = pd.read_csv(
+
+            MULTI_HORIZON_FILE
+
+        )
+
+        decision = pd.read_csv(
+
+            FINAL_DECISION_FILE
+
+        )
+
+        return (
+
+            forecast,
+
+            horizon,
+
+            decision
+
+        )
+
+
+class GovernanceSignalEngine:
+
+    @staticmethod
+    def build(
+
+        forecast_df,
+
+        horizon_df,
+
+        decision_df
+
+    ):
+
+        forecast_metrics = dict(
+
+            zip(
+
+                forecast_df["Metric"],
+
+                forecast_df["Value"]
+
+            )
+
+        )
+
+        horizon_metrics = dict(
+
+            zip(
+
+                horizon_df["Metric"],
+
+                horizon_df["Value"]
+
+            )
+
+        )
+
+        decision_metrics = dict(
+
+            zip(
+
+                decision_df["Metric"],
+
+                decision_df["Value"]
+
+            )
+
+        )
+
+        return {
+
+            "Forecast_Bias":
+
+                horizon_metrics.get(
+
+                    "Forecast_Bias"
+
+                ),
+
+            "Forecast_Confidence":
+
+                float(
+
+                    horizon_metrics.get(
+
+                        "Forecast_Confidence",
+
+                        0
+
+                    )
+
+                ),
+
+            "Macro_Regime":
+
+                horizon_metrics.get(
+
+                    "Macro_Regime"
+
+                ),
+
+            "Macro_Risk_Level":
+
+                horizon_metrics.get(
+
+                    "Macro_Risk_Level"
+
+                ),
+
+            "Final_Decision":
+
+                decision_metrics.get(
+
+                    "Final_Decision"
+
+                ),
+
+            "Portfolio_Mandate":
+
+                decision_metrics.get(
+
+                    "Portfolio_Mandate"
+
+                )
+
+        }
     
+
 class GovernanceScoringEngine:
 
     @staticmethod
@@ -127,7 +322,9 @@ class GovernanceScoringEngine:
 
         alert_governance,
 
-        monitor
+        monitor,
+
+        signals
 
     ):
 
@@ -209,23 +406,116 @@ class GovernanceScoringEngine:
 
         governance_score = (
 
-            forecast_confidence * 0.40
+            forecast_confidence * 0.45
 
             +
 
-            alert_health * 0.60
+            alert_health * 0.55
 
         )
 
-        if governance_score >= 85:
+        if (
+
+            signals["Forecast_Bias"]
+
+            ==
+
+            "STRONGLY_BULLISH"
+
+        ):
+
+            governance_score += 15
+
+        elif (
+
+            signals["Forecast_Bias"]
+
+            ==
+
+            "BULLISH"
+
+        ):
+
+            governance_score += 10
+
+        elif (
+
+            signals["Forecast_Bias"]
+
+            ==
+
+            "CAUTIOUS_BULLISH"
+
+        ):
+
+            governance_score += 5
+
+
+        if (
+
+            signals["Macro_Risk_Level"]
+
+            ==
+
+            "HIGH"
+
+        ):
+
+            governance_score -= 5
+        
+        if (
+
+            signals["Macro_Regime"]
+
+            ==
+
+            "CRISIS"
+
+        ):
+
+            governance_score -= 20
+
+        elif (
+
+            signals["Macro_Regime"]
+
+            ==
+        
+            "RISK_OFF"
+
+        ):
+
+            governance_score -= 5
+
+        if (
+
+            signals["Forecast_Bias"]
+
+            ==
+
+            "BEARISH"
+
+        ):
+
+            governance_score -= 10
+
+        governance_score = max(
+
+            governance_score,
+
+            0
+
+        )
+
+        if governance_score >= 80:
 
             risk_level = "LOW"
 
-        elif governance_score >= 70:
+        elif governance_score >= 60:
 
             risk_level = "MODERATE"
 
-        elif governance_score >= 50:
+        elif governance_score >= 40:
 
             risk_level = "HIGH"
 
@@ -302,7 +592,15 @@ class ExecutiveRecommendationEngine:
 
         )
 
-        if escalation == "ESCALATING":
+        if (
+
+            escalation == "ESCALATING"
+
+            and
+
+            risk_level == "CRITICAL"
+
+        ):
 
             return (
 
@@ -347,7 +645,11 @@ class GovernanceCommandCenter:
 
         metrics,
 
-        recommendation
+        recommendation,
+
+        signals,
+
+        governance_status
 
     ):
 
@@ -439,6 +741,114 @@ class GovernanceCommandCenter:
 
                     "Metric":
 
+                        "Forecast_Bias",
+
+                    "Value":
+
+                        signals[
+
+                            "Forecast_Bias"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Forecast_Confidence",
+
+                    "Value":
+
+                        signals[
+
+                            "Forecast_Confidence"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Macro_Risk_Level",
+
+                    "Value":
+
+                        signals[
+
+                            "Macro_Risk_Level"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Macro_Regime",
+
+                    "Value":
+
+                        signals[
+
+                            "Macro_Regime"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Final_Decision",
+
+                    "Value":
+
+                        signals[
+
+                            "Final_Decision"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Portfolio_Mandate",
+
+                    "Value":
+
+                        signals[
+
+                            "Portfolio_Mandate"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Governance_Status",
+
+                    "Value":
+
+                        governance_status
+
+                },
+
+                {
+
+                    "Metric":
+
                         "Executive_Action",
 
                     "Value":
@@ -484,6 +894,38 @@ def run_example():
 
     ) = GovernanceRepository.load()
 
+    (
+
+        forecast_dashboard,
+
+        horizon_dashboard,
+
+        decision_dashboard
+
+    ) = (
+
+        GovernanceForecastLoader
+
+        .load()
+
+    )
+
+    signals = (
+
+        GovernanceSignalEngine
+
+        .build(
+
+            forecast_dashboard,
+
+            horizon_dashboard,
+
+            decision_dashboard
+
+        )
+
+    )
+
     metrics = (
 
         GovernanceScoringEngine
@@ -496,7 +938,9 @@ def run_example():
 
             alert_governance,
 
-            monitor
+            monitor,
+
+            signals
 
         )
 
@@ -514,6 +958,22 @@ def run_example():
 
     )
 
+    governance_status = (
+
+        GovernanceStatusEngine
+
+        .classify(
+
+            metrics[
+
+                "Governance_Score"
+
+            ]
+
+        )
+
+    )
+
     dashboard = (
 
         GovernanceCommandCenter
@@ -522,7 +982,11 @@ def run_example():
 
             metrics,
 
-            recommendation
+            recommendation,
+
+            signals,
+
+            governance_status
 
         )
 

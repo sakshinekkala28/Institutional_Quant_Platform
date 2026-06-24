@@ -25,6 +25,14 @@ ROOT_DIR = (
 
 )
 
+DATA_DIR = (
+
+    ROOT_DIR
+
+    / "data"
+
+)
+
 PERFORMANCE_DIR = (
 
     ROOT_DIR
@@ -56,6 +64,16 @@ REGIME_SCORECARD_FILE = (
     PERFORMANCE_DIR
 
     / "regime_scorecard.csv"
+
+)
+
+MACRO_REGIME_FILE = (
+
+    DATA_DIR
+
+    / "regime"
+
+    / "macro_regime_dashboard.csv"
 
 )
 
@@ -1145,7 +1163,143 @@ class RegimeWeightedForecastEngine:
             ).sum()
 
         )
+
+class MacroRegimeLoader:
+
+    @staticmethod
+    def load():
+
+        logger.info(
+
+            "Loading Macro Regime"
+
+        )
+
+        if not MACRO_REGIME_FILE.exists():
+
+            raise FileNotFoundError(
+
+                MACRO_REGIME_FILE
+
+            )
         
+        return pd.read_csv(
+
+            MACRO_REGIME_FILE
+
+        )
+
+class MacroForecastAdjuster:
+
+    @staticmethod
+    def adjust(
+
+        expected_return,
+
+        forecast_confidence,
+
+        macro_metrics
+
+    ):
+
+        macro_regime = str(
+
+            macro_metrics.get(
+
+                "Macro_Regime",
+
+                "NEUTRAL"
+
+            )
+
+        )
+
+        if macro_regime == "STRONG_RISK_ON":
+
+            expected_return *= 1.20
+
+            forecast_confidence += 15
+
+        elif macro_regime == "RISK_ON":
+
+            expected_return *= 1.10
+
+            forecast_confidence += 10
+
+        elif macro_regime == "RISK_OFF":
+
+            expected_return *= 0.75
+
+            forecast_confidence -= 10
+
+        elif macro_regime == "CRISIS":
+
+            expected_return *= 0.50
+
+            forecast_confidence -= 20
+
+        forecast_confidence = max(
+
+            0,
+
+            min(
+
+                100,
+
+                forecast_confidence
+
+            )
+
+        )
+
+        macro_confidence = float(
+
+            macro_metrics.get(
+
+                "Macro_Confidence",
+
+                50
+
+            )
+
+        )
+
+        forecast_confidence = (
+
+            0.80
+
+            * forecast_confidence
+
+            +
+
+            0.20
+
+            * macro_confidence
+
+        )
+
+        forecast_confidence = max(
+
+            0,
+
+            min(
+
+                100,
+
+                forecast_confidence
+
+            )
+
+        )
+
+        return (
+
+            expected_return,
+
+            forecast_confidence
+
+        )
+                
 # ==========================================================
 # RETURN DISTRIBUTION ENGINE
 # ==========================================================
@@ -1693,7 +1847,9 @@ class ForecastDashboardEngine:
 
         forecast_metrics: ForecastMetrics,
 
-        regime_forecast: pd.DataFrame
+        regime_forecast: pd.DataFrame,
+
+        macro_metrics
 
     ) -> pd.DataFrame:
 
@@ -1889,6 +2045,86 @@ class ForecastDashboardEngine:
 
                     "Metric":
 
+                        "Macro_Score",
+
+                    "Value":
+
+                        macro_metrics.get(
+
+                            "Macro_Score"
+
+                        )
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Macro_Regime",
+
+                    "Value":
+
+                        macro_metrics.get(
+
+                            "Macro_Regime"
+
+                        )
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Macro_Risk_Level",
+
+                    "Value":
+
+                        macro_metrics.get(
+                
+                            "Macro_Risk_Level"
+
+                        )
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Macro_Confidence",
+
+                    "Value":
+
+                        macro_metrics.get(
+
+                            "Macro_Confidence"
+
+                        )
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Macro_Recommendation",
+
+                    "Value":
+
+                        macro_metrics.get(
+
+                            "Macro_Recommendation"
+
+                        )
+
+                },
+
+                {
+
+                    "Metric":
+
                         "Regime_Probability",
 
                     "Value":
@@ -1964,6 +2200,83 @@ class ExportEngine:
 
         )
 
+
+class RecommendationOverrideEngine:
+
+    @staticmethod
+    def apply(
+
+        forecast_recommendation,
+
+        macro_recommendation
+
+    ):
+
+        ranking = {
+
+            "OVERWEIGHT": 4,
+
+            "MARKET_WEIGHT": 3,
+
+            "UNDERWEIGHT": 2,
+
+            "REDUCE": 1
+
+        }
+
+        if macro_recommendation == "AGGRESSIVE_OVERWEIGHT":
+
+            macro_rank = 4
+
+        elif macro_recommendation == "OVERWEIGHT":
+
+            macro_rank = 3
+
+        elif macro_recommendation == "UNDERWEIGHT":
+
+            macro_rank = 2
+
+        elif macro_recommendation == "REDUCE":
+
+            macro_rank = 1
+
+        else:
+
+            macro_rank = forecast_rank
+
+
+        forecast_rank = ranking.get(
+
+            forecast_recommendation,
+
+            1
+
+        )
+
+        final_rank = min(
+
+            forecast_rank,
+
+            macro_rank
+
+        )
+
+        reverse_map = {
+
+            value: key
+
+            for key, value
+
+            in ranking.items()
+
+        }
+
+        return reverse_map[
+
+            final_rank
+
+        ]
+    
 # ==========================================================
 # PERFORMANCE FORECAST ENGINE
 # ==========================================================
@@ -2013,6 +2326,26 @@ class PerformanceForecastEngine:
             rolling_df,
 
             regime_df
+
+        )
+
+        macro_df = (
+
+            MacroRegimeLoader
+
+            .load()
+
+        )
+
+        macro_metrics = dict(
+
+            zip(
+
+                macro_df["Metric"],
+
+                macro_df["Value"]
+
+            )
 
         )
 
@@ -2084,38 +2417,6 @@ class PerformanceForecastEngine:
 
         )
 
-        expected_returns[
-
-            "Expected_Return_3M"
-
-        ] = (
-
-            expected_returns[
-
-                "Expected_Return_12M"
-
-            ]
-
-            / 4
-
-        )
-
-        expected_returns[
-
-            "Expected_Return_1M"
-
-        ] = (
-
-            expected_returns[
-
-                "Expected_Return_12M"
-
-            ]
-
-            / 12
-
-        )
-
         weighted_regime_volatility = (
 
             RegimeWeightedForecastEngine
@@ -2153,22 +2454,6 @@ class PerformanceForecastEngine:
             *
 
             weighted_regime_volatility
-
-        )
-
-        expected_sharpe = (
-
-            ExpectedSharpeEngine
-
-            .calculate(
-
-                expected_returns[
-                    "Expected_Return_12M"
-                ],
-
-                expected_volatility
-
-            )
 
         )
 
@@ -2254,6 +2539,86 @@ class PerformanceForecastEngine:
 
         )
 
+        (
+
+            expected_returns[
+
+                "Expected_Return_12M"
+
+            ],
+
+            forecast_confidence
+
+        ) = (
+
+            MacroForecastAdjuster
+
+            .adjust(
+
+                expected_returns[
+
+                    "Expected_Return_12M"
+
+                ],
+
+                forecast_confidence,
+
+                macro_metrics
+
+            )
+
+        )
+
+        expected_returns[
+
+            "Expected_Return_3M"
+
+        ] = (
+
+            expected_returns[
+
+                "Expected_Return_12M"
+
+            ]
+
+            / 4
+
+        )
+
+        expected_returns[
+
+            "Expected_Return_1M"
+
+        ] = (
+
+            expected_returns[
+
+                "Expected_Return_12M"
+
+            ]
+
+            / 12
+
+        )
+
+        expected_sharpe = (
+
+            ExpectedSharpeEngine
+
+            .calculate(
+
+                expected_returns[
+
+                    "Expected_Return_12M"
+
+                ],
+
+                expected_volatility
+
+            )
+
+        )
+
         forecast_risk_grade = (
 
             ForecastRiskGradeEngine
@@ -2297,7 +2662,33 @@ class PerformanceForecastEngine:
             )
 
         )
-        
+
+        macro_recommendation = str(
+
+            macro_metrics.get(
+
+                "Macro_Recommendation",
+
+                ""
+
+            )
+
+        )
+
+        forecast_recommendation = (
+
+            RecommendationOverrideEngine
+
+            .apply(
+
+                forecast_recommendation,
+
+                macro_recommendation
+
+            )
+
+        )
+
         distribution_df = (
 
             ReturnDistributionEngine
@@ -2305,7 +2696,9 @@ class PerformanceForecastEngine:
             .build(
 
                 expected_returns[
+
                     "Expected_Return_12M"
+
                 ],
 
                 expected_volatility
@@ -2321,19 +2714,25 @@ class PerformanceForecastEngine:
                 Expected_Return_1M=
 
                     expected_returns[
+
                         "Expected_Return_1M"
+
                     ],
 
                 Expected_Return_3M=
 
                     expected_returns[
+
                         "Expected_Return_3M"
+
                     ],
 
                 Expected_Return_12M=
 
                     expected_returns[
+
                         "Expected_Return_12M"
+
                     ],
 
                 Expected_Volatility=
@@ -2414,7 +2813,9 @@ class PerformanceForecastEngine:
 
                 forecast_metrics,
 
-                regime_forecast
+                regime_forecast,
+
+                macro_metrics
 
             )
 

@@ -146,6 +146,14 @@ EXECUTIVE_DASHBOARD_FILE = (
 
 )
 
+GOVERNANCE_COMMITTEE_DASHBOARD_FILE = (
+
+    PERFORMANCE_DIR
+
+    / "governance_committee_dashboard.csv"
+
+)
+
 # ==========================================================
 # REPOSITORY
 # ==========================================================
@@ -923,6 +931,59 @@ class AlertGovernanceReviewEngine:
         )
     
 
+class GovernanceCommandCenterReview:
+
+    @staticmethod
+    def build(
+
+        governance_committee
+
+    ):
+
+        logger.info(
+
+            "Building Governance Command Center Review"
+
+        )
+
+        rows = []
+
+        for _, row in governance_committee.iterrows():
+
+            rows.append(
+
+                {
+
+                    "Section":
+
+                        "Governance_Command_Center",
+
+                    "Metric":
+
+                        str(
+
+                            row["Metric"]
+
+                        ),
+
+                    "Value":
+
+                        str(
+
+                            row["Value"]
+
+                        )
+
+                }
+
+            )
+
+        return pd.DataFrame(
+
+            rows
+
+        )
+    
 class AlertGovernanceLoader:
 
     @staticmethod
@@ -934,7 +995,23 @@ class AlertGovernanceLoader:
 
         )
     
+class GovernanceCommitteeDashboardLoader:
 
+    @staticmethod
+    def load():
+
+        logger.info(
+
+            "Loading Governance Committee Dashboard"
+
+        )
+
+        return pd.read_csv(
+
+            GOVERNANCE_COMMITTEE_DASHBOARD_FILE
+
+        )
+    
 # ==========================================================
 # SURVEILLANCE REVIEW ENGINE
 # ==========================================================
@@ -1145,6 +1222,8 @@ class ExecutiveDashboardEngine:
 
         stress_df: pd.DataFrame,
 
+        governance_command_metrics: dict,
+
         alert_metrics: dict,
 
         pack_score: float,
@@ -1162,6 +1241,39 @@ class ExecutiveDashboardEngine:
         return pd.DataFrame(
 
             [
+
+                {
+                    "Metric":
+                        "Governance_Score",
+
+                    "Value":
+                        governance_command_metrics.get(
+                            "Governance_Score",
+                            "N/A"
+                        )
+                },
+
+                {
+                    "Metric":
+                        "Risk_Level",
+
+                    "Value":
+                        governance_command_metrics.get(
+                            "Risk_Level",
+                            "N/A"
+                        )
+                },
+
+                {
+                    "Metric":
+                        "Executive_Action",
+
+                    "Value":
+                        governance_command_metrics.get(
+                            "Executive_Action",
+                            "N/A"
+                        )
+                },
 
                 {
 
@@ -1411,6 +1523,14 @@ class InvestmentCommitteePackEngine:
 
         )
 
+        governance_committee = (
+
+            GovernanceCommitteeDashboardLoader
+        
+            .load()
+
+        )
+
         alert_metrics = dict(
 
             zip(
@@ -1531,6 +1651,30 @@ class InvestmentCommitteePackEngine:
 
         )
 
+        governance_command_center_review = (
+
+            GovernanceCommandCenterReview
+
+            .build(
+
+                governance_committee
+
+            )
+
+        )
+
+        governance_command_metrics = dict(
+
+            zip(
+
+                governance_committee["Metric"],
+
+                governance_committee["Value"]
+                
+            )
+
+        )
+
         surveillance_review = (
 
             SurveillanceReviewEngine
@@ -1589,6 +1733,8 @@ class InvestmentCommitteePackEngine:
 
                 stress_df,
 
+                governance_command_metrics,
+
                 alert_metrics,
 
                 pack_score,
@@ -1612,6 +1758,8 @@ class InvestmentCommitteePackEngine:
                 governance_review,
 
                 alert_governance_review,
+
+                governance_command_center_review,
 
                 surveillance_review
 
