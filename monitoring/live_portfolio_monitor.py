@@ -737,6 +737,34 @@ class StressMonitorEngine:
 
         )
 
+        stress_average = (
+
+            stress[
+
+                "Stress_Score"
+
+            ]
+
+            .mean()
+
+        )
+
+        if stress_average >= 70:
+
+            stress_view = "RESILIENT"
+
+        elif stress_average >= 50:
+
+            stress_view = "STABLE"
+
+        elif stress_average >= 30:
+
+            stress_view = "VULNERABLE"
+
+        else:
+
+            stress_view = "TAIL_RISK"
+
         if worst_score < 10:
 
             alerts.append(
@@ -835,6 +863,20 @@ class StressMonitorEngine:
 
             )
 
+        alerts.append(
+
+            AlertBuilder.build(
+
+                "INFO",
+
+                "STRESS",
+
+                f"Stress View: {stress_view}"
+
+            )
+
+        )
+        
         statuses.append(
 
             StatusBuilder.build(
@@ -1005,35 +1047,57 @@ class AlertSeverityEngine:
     @staticmethod
     def summarize(
 
-        alerts
+        statuses
 
     ):
 
-        if not alerts:
+        score_map = {
 
-            return "NORMAL"
+            "NORMAL": 100,
 
-        severities = [
+            "WATCH": 70,
 
-            alert["Severity"]
+            "WARNING": 40,
 
-            for alert in alerts
+            "CRITICAL": 10
+
+        }
+
+        scores = [
+
+            score_map.get(
+
+                item["Status"],
+
+                0
+
+            )
+
+            for item in statuses
 
         ]
 
-        if "CRITICAL" in severities:
+        overall_score = (
 
-            return "CRITICAL"
+            sum(scores)
 
-        if "HIGH" in severities:
+            / len(scores)
 
-            return "HIGH"
+        )
 
-        if "MEDIUM" in severities:
+        if overall_score >= 80:
 
-            return "MEDIUM"
+            return "NORMAL"
 
-        return "LOW"
+        if overall_score >= 60:
+
+            return "WATCH"
+
+        if overall_score >= 40:
+
+            return "WARNING"
+
+        return "CRITICAL"
     
 # ==========================================================
 # MONITOR DASHBOARD BUILDER
@@ -1226,7 +1290,7 @@ class LivePortfolioMonitor:
 
             .summarize(
 
-                alerts
+                statuses
 
             )
 

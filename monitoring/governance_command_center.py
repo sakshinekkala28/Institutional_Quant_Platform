@@ -275,6 +275,16 @@ class GovernanceSignalEngine:
                     )
 
                 ),
+            
+            "Stress_View":
+
+                horizon_metrics.get(
+
+                    "Stress_View",
+
+                    "UNKNOWN"
+
+                ),
 
             "Macro_Regime":
 
@@ -458,6 +468,18 @@ class GovernanceScoringEngine:
             ==
 
             "HIGH"
+
+        ):
+
+            governance_score -= 5
+        
+        if (
+
+            signals["Stress_View"]
+
+            ==
+
+            "TAIL_RISK"
 
         ):
 
@@ -764,6 +786,22 @@ class GovernanceCommandCenter:
                         signals[
 
                             "Forecast_Confidence"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Stress_View",
+                
+                    "Value":
+
+                        signals[
+
+                            "Stress_View"
 
                         ]
 

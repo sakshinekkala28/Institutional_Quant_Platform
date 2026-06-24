@@ -326,6 +326,18 @@ class CIODecisionEngine:
             )
 
         )
+        
+        stress_view = str(
+
+            governance_metrics.get(
+
+                "Stress_View",
+
+                ""
+
+            )
+
+        )
 
         macro_risk = str(
 
@@ -368,6 +380,10 @@ class CIODecisionEngine:
             final_decision = "DEFENSIVE"
 
         elif governance_status == "CRITICAL":
+
+            final_decision = "CAUTIOUS"
+
+        elif stress_view == "TAIL_RISK":
 
             final_decision = "CAUTIOUS"
 
