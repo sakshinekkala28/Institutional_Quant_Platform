@@ -42,14 +42,6 @@ FORECAST_FILE = (
 
 )
 
-COMMITTEE_FILE = (
-
-    PERFORMANCE_DIR
-
-    / "investment_committee_pack.csv"
-
-)
-
 ALERT_GOVERNANCE_FILE = (
 
     MONITORING_DIR
@@ -63,6 +55,14 @@ MONITOR_FILE = (
     MONITORING_DIR
 
     / "monitor_dashboard.csv"
+
+)
+
+STRESS_DASHBOARD_FILE = (
+
+    MONITORING_DIR
+
+    / "stress_dashboard.csv"
 
 )
 
@@ -133,12 +133,6 @@ class GovernanceRepository:
 
         )
 
-        committee = pd.read_csv(
-
-            COMMITTEE_FILE
-
-        )
-
         alert_governance = pd.read_csv(
 
             ALERT_GOVERNANCE_FILE
@@ -151,15 +145,21 @@ class GovernanceRepository:
 
         )
 
+        stress_dashboard = pd.read_csv(
+
+            STRESS_DASHBOARD_FILE
+
+        )
+
         return (
 
             forecast,
 
-            committee,
-
             alert_governance,
 
-            monitor
+            monitor,
+
+            stress_dashboard
 
         )
 
@@ -212,7 +212,9 @@ class GovernanceSignalEngine:
 
         horizon_df,
 
-        decision_df
+        decision_df,
+
+        stress_dashboard
 
     ):
 
@@ -252,6 +254,18 @@ class GovernanceSignalEngine:
 
         )
 
+        stress_metrics = dict(
+
+            zip(
+
+                stress_dashboard["Metric"],
+
+                stress_dashboard["Value"]
+
+            )
+
+        )
+
         return {
 
             "Forecast_Bias":
@@ -275,15 +289,71 @@ class GovernanceSignalEngine:
                     )
 
                 ),
-            
+
+            "Stress_Severity_Score":
+
+                float(
+
+                    stress_metrics.get(
+
+                        "Stress_Severity_Score",
+
+                        0
+
+                    )
+
+                ),
+
             "Stress_View":
 
-                horizon_metrics.get(
-
+                stress_metrics.get(
+            
                     "Stress_View",
 
                     "UNKNOWN"
 
+                ),
+
+            "Stress_Average":
+
+                float(
+
+                    stress_metrics.get(
+
+                        "Stress_Average",
+
+                        0
+
+                    )
+
+                ),
+
+            "Worst_Stress_Score":
+
+                float(
+
+                    stress_metrics.get(
+
+                        "Worst_Stress_Score",
+
+                        0
+
+                    )
+
+                ),
+
+            "Rejected_Scenarios":
+
+                int(
+
+                    stress_metrics.get(
+
+                        "Rejected_Scenarios",
+
+                        0
+            
+                    )
+            
                 ),
 
             "Macro_Regime":
@@ -327,8 +397,6 @@ class GovernanceScoringEngine:
     def calculate(
 
         forecast,
-
-        committee,
 
         alert_governance,
 
@@ -473,17 +541,17 @@ class GovernanceScoringEngine:
 
             governance_score -= 5
         
-        if (
+        governance_score -= (
 
-            signals["Stress_View"]
+            signals[
 
-            ==
+                "Stress_Severity_Score"
 
-            "TAIL_RISK"
+            ]
 
-        ):
+            * 0.10
 
-            governance_score -= 5
+        )
         
         if (
 
@@ -529,15 +597,15 @@ class GovernanceScoringEngine:
 
         )
 
-        if governance_score >= 80:
+        if governance_score >= 85:
 
             risk_level = "LOW"
 
-        elif governance_score >= 60:
+        elif governance_score >= 70:
 
             risk_level = "MODERATE"
 
-        elif governance_score >= 40:
+        elif governance_score >= 55:
 
             risk_level = "HIGH"
 
@@ -794,31 +862,70 @@ class GovernanceCommandCenter:
                 {
 
                     "Metric":
-
                         "Stress_View",
                 
                     "Value":
-
                         signals[
-
                             "Stress_View"
-
                         ]
 
                 },
 
                 {
+                    "Metric":
+                        "Stress_Average",
+
+                    "Value":
+                        signals[
+                            "Stress_Average"
+                        ]
+                },
+
+
+                {
 
                     "Metric":
 
+                        "Stress_Severity_Score",
+
+                    "Value":
+
+                        signals[
+
+                            "Stress_Severity_Score"
+
+                        ]
+                
+                },
+                
+                {
+                    "Metric":
+                        "Worst_Stress_Score",
+
+                    "Value":
+                        signals[
+                            "Worst_Stress_Score"
+                        ]
+                },
+
+                {
+                    "Metric":
+                        "Rejected_Scenarios",
+                
+                    "Value":
+                        signals[
+                            "Rejected_Scenarios"
+                        ]
+                },
+
+                {
+
+                    "Metric":
                         "Macro_Risk_Level",
 
                     "Value":
-
                         signals[
-
                             "Macro_Risk_Level"
-
                         ]
 
                 },
@@ -826,15 +933,11 @@ class GovernanceCommandCenter:
                 {
 
                     "Metric":
-
                         "Macro_Regime",
 
                     "Value":
-
                         signals[
-
                             "Macro_Regime"
-
                         ]
 
                 },
@@ -926,9 +1029,9 @@ def run_example():
 
     (
         forecast,
-        committee,
         alert_governance,
-        monitor
+        monitor,
+        stress_dashboard
 
     ) = GovernanceRepository.load()
 
@@ -958,7 +1061,9 @@ def run_example():
 
             horizon_dashboard,
 
-            decision_dashboard
+            decision_dashboard,
+
+            stress_dashboard
 
         )
 
@@ -971,8 +1076,6 @@ def run_example():
         .calculate(
 
             forecast,
-
-            committee,
 
             alert_governance,
 

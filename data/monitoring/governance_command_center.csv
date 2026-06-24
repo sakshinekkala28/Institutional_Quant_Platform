@@ -1,15 +1,28 @@
 Metric,Value
+<<<<<<< HEAD
 Governance_Score,66.84
 Risk_Level,MODERATE
+=======
+Governance_Score,57.59
+Risk_Level,HIGH
+>>>>>>> 7a01724 ("24/06/2026")
 Escalation,STABLE
 Governance_View,WATCH
 Overall_Status,WATCH
 Forecast_Bias,CAUTIOUS_BULLISH
 Forecast_Confidence,71.59732797463064
+<<<<<<< HEAD
 Stress_View,UNKNOWN
+=======
+Stress_View,TAIL_RISK
+Stress_Average,27.926908439320318
+Stress_Severity_Score,72.07309156067969
+Worst_Stress_Score,0.0
+Rejected_Scenarios,3
+>>>>>>> 7a01724 ("24/06/2026")
 Macro_Risk_Level,HIGH
 Macro_Regime,RISK_OFF
 Final_Decision,CAUTIOUS
 Portfolio_Mandate,RISK_CONTROL
-Governance_Status,ELEVATED_RISK
-Executive_Action,MAINTAIN_NEUTRAL
+Governance_Status,HIGH_RISK
+Executive_Action,REVIEW_POSITIONING

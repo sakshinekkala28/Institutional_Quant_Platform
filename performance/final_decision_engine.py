@@ -80,14 +80,6 @@ GOVERNANCE_COMMAND_CENTER_FILE = (
 
 )
 
-COMMITTEE_PACK_FILE = (
-
-    PERFORMANCE_DIR
-
-    / "investment_committee_pack.csv"
-
-)
-
 OUTPUT_FILE = (
 
     PERFORMANCE_DIR
@@ -125,25 +117,13 @@ class FinalDecisionRepository:
 
         )
 
-        logger.info(
 
-            "Loading Committee Pack"
-
-        )
-
-        committee = pd.read_csv(
-
-            COMMITTEE_PACK_FILE
-
-        )
 
         return (
 
             executive,
 
-            governance,
-
-            committee
+            governance
 
         )
 
@@ -157,9 +137,7 @@ class FinalDecisionValidator:
 
             EXECUTIVE_DASHBOARD_FILE,
 
-            GOVERNANCE_COMMAND_CENTER_FILE,
-
-            COMMITTEE_PACK_FILE
+            GOVERNANCE_COMMAND_CENTER_FILE
 
         ]
 
@@ -250,6 +228,18 @@ class DecisionScoringEngine:
 
         )
 
+        stress_severity = float(
+
+            governance_metrics.get(
+
+                "Stress_Severity_Score",
+
+                0
+
+            )
+
+        )
+
         return {
 
             "Pack_Score":
@@ -262,7 +252,11 @@ class DecisionScoringEngine:
 
             "Alert_Health":
 
-                alert_score
+                alert_score,
+
+            "Stress_Severity_Score":
+
+                stress_severity,
 
         }
     
@@ -339,6 +333,16 @@ class CIODecisionEngine:
 
         )
 
+        stress_severity = float(
+
+            scores[
+
+                "Stress_Severity_Score"
+
+            ]
+
+        )
+
         macro_risk = str(
 
             governance_metrics.get(
@@ -379,11 +383,21 @@ class CIODecisionEngine:
 
             final_decision = "DEFENSIVE"
 
-        elif governance_status == "CRITICAL":
+        elif governance_status in [
+
+            "CRITICAL",
+
+            "HIGH_RISK"
+
+        ]:
 
             final_decision = "CAUTIOUS"
 
-        elif stress_view == "TAIL_RISK":
+        elif stress_severity >= 80:
+
+            final_decision = "DEFENSIVE"
+
+        elif stress_severity >= 60:
 
             final_decision = "CAUTIOUS"
 
@@ -416,6 +430,14 @@ class CIODecisionEngine:
             "Governance_Status":
 
                 governance_status,
+
+            "Stress_View":
+
+                stress_view,
+            
+            "Stress_Severity_Score":
+
+                stress_severity,
 
             "Macro_Risk_Level":
 
@@ -558,6 +580,38 @@ class FinalDecisionDashboard:
 
                     "Metric":
 
+                        "Stress_View",
+
+                    "Value":
+
+                        decision_metrics[
+
+                            "Stress_View"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Stress_Severity_Score",
+
+                    "Value":
+
+                        decision_metrics[
+
+                            "Stress_Severity_Score"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
                         "Governance_Status",
 
                     "Value":
@@ -653,9 +707,7 @@ def run_example():
 
         executive,
 
-        governance,
-
-        committee
+        governance
 
     ) = (
 

@@ -72,6 +72,14 @@ MONITORING_DIR = (
 
 )
 
+STRESS_DASHBOARD_FILE = (
+
+    MONITORING_DIR
+
+    / "stress_dashboard.csv"
+
+)
+
 MONITORING_DIR.mkdir(
 
     parents=True,
@@ -690,28 +698,15 @@ class MonitorAggregator:
 
         return alerts, statuses
 
-# ==========================================================
-# STRESS MONITOR ENGINE
-# ==========================================================
 
-class StressMonitorEngine:
+class StressAnalytics:
 
     @staticmethod
-    def evaluate(
+    def calculate(
 
         stress
 
     ):
-
-        logger.info(
-
-            "Evaluating Stress Monitor"
-
-        )
-
-        alerts = []
-
-        statuses = []
 
         worst_score = (
 
@@ -740,12 +735,20 @@ class StressMonitorEngine:
         stress_average = (
 
             stress[
-
                 "Stress_Score"
-
             ]
 
             .mean()
+
+        )
+
+        stress_severity_score = (
+
+            100
+
+            -
+
+            stress_average
 
         )
 
@@ -764,6 +767,104 @@ class StressMonitorEngine:
         else:
 
             stress_view = "TAIL_RISK"
+
+        return {
+
+            "Worst_Stress_Score":
+
+                worst_score,
+
+            "Rejected_Scenarios":
+
+                rejected,
+
+            "Stress_Average":
+
+                stress_average,
+
+            "Stress_Severity_Score":
+                    stress_severity_score,
+
+            "Stress_View":
+
+                stress_view
+
+        }
+    
+# ==========================================================
+# STRESS MONITOR ENGINE
+# ==========================================================
+
+class StressMonitorEngine:
+
+    @staticmethod
+    def evaluate(
+
+        stress
+
+    ):
+
+        logger.info(
+
+            "Evaluating Stress Monitor"
+
+        )
+
+        alerts = []
+
+        statuses = []
+
+        stress_metrics = (
+
+            StressAnalytics
+
+            .calculate(
+
+                stress
+
+            )
+
+        )
+
+        worst_score = (
+
+            stress_metrics[
+
+                "Worst_Stress_Score"
+
+            ]
+
+        )
+
+        rejected = (
+
+            stress_metrics[
+
+                "Rejected_Scenarios"
+
+            ]
+
+        )
+
+        stress_average = (
+
+            stress_metrics[
+
+                "Stress_Average"
+
+            ]
+
+        )
+
+        stress_view = (
+
+            stress_metrics[
+
+                "Stress_View"
+
+            ]
+
+        )
 
         if worst_score < 10:
 
@@ -876,7 +977,7 @@ class StressMonitorEngine:
             )
 
         )
-        
+
         statuses.append(
 
             StatusBuilder.build(
@@ -890,7 +991,117 @@ class StressMonitorEngine:
         )
 
         return alerts, statuses
-        
+
+
+class StressDashboardBuilder:
+
+    @staticmethod
+    def build(
+
+        stress
+
+    ):
+
+        stress_metrics = (
+
+            StressAnalytics
+
+            .calculate(
+
+                stress
+
+            )
+
+        )
+
+        return pd.DataFrame(
+
+            [
+
+                {
+
+                    "Metric":
+
+                        "Stress_View",
+
+                    "Value":
+
+                        stress_metrics[
+
+                            "Stress_View"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Stress_Average",
+
+                    "Value":
+
+                        stress_metrics[
+
+                            "Stress_Average"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Stress_Severity_Score",
+
+                    "Value":
+
+                        stress_metrics[
+
+                            "Stress_Severity_Score"
+
+                        ]                
+
+                },
+                
+                {
+
+                    "Metric":
+
+                        "Worst_Stress_Score",
+
+                    "Value":
+
+                        stress_metrics[
+
+                            "Worst_Stress_Score"
+
+                        ]
+
+                },
+
+                {
+
+                    "Metric":
+
+                        "Rejected_Scenarios",
+
+                    "Value":
+
+                        stress_metrics[
+
+                            "Rejected_Scenarios"
+
+                        ]
+
+                }
+
+            ]
+
+        )
+    
 # ==========================================================
 # SURVEILLANCE MONITOR ENGINE
 # ==========================================================
@@ -1282,6 +1493,26 @@ class LivePortfolioMonitor:
 
             )
 
+        )
+
+        stress_dashboard = (
+
+            StressDashboardBuilder
+
+            .build(
+
+                stress
+
+            )
+
+        )
+
+        stress_dashboard.to_csv(
+
+            STRESS_DASHBOARD_FILE,
+
+            index=False
+        
         )
 
         severity = (
