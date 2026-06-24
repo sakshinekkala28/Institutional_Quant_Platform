@@ -204,35 +204,87 @@ class AlertGovernanceEngine:
 
         )
 
-        health_score = 100
+        if total_alerts == 0:
 
-        health_score -= (
+            health_score = 100
 
-            critical_alerts * 20
+        else:
+
+            critical_ratio = (
+
+                critical_alerts
+
+                / total_alerts
+
+            )
+
+            high_ratio = (
+
+                high_alerts
+
+                / total_alerts
+
+            )
+
+            medium_ratio = (
+
+                medium_alerts
+
+                / total_alerts
+
+            )
+
+            health_score = (
+
+                100
+
+                -
+
+                critical_ratio * 60
+
+                -
+
+                high_ratio * 25
+
+                -
+
+                medium_ratio * 10
+
+            )
+
+            health_score = round(
+
+                max(
+
+                    health_score,
+
+                    0
+
+                ),
+
+                2
+
+            )
+
+        trend_direction = (
+
+            trend.loc[
+
+                trend["Metric"]
+
+                ==
+
+                "Trend_Direction",
+
+                "Value"
+
+            ]
+
+            .iloc[0]
 
         )
 
-        health_score -= (
-
-            high_alerts * 10
-
-        )
-
-        health_score -= (
-
-            medium_alerts * 5
-
-        )
-
-        health_score = max(
-
-            0,
-
-            health_score
-
-        )
-
-        if critical_alerts > 5:
+        if trend_direction == "UP":
 
             escalation = (
 
@@ -240,11 +292,11 @@ class AlertGovernanceEngine:
 
             )
 
-        elif critical_alerts > 2:
+        elif trend_direction == "DOWN":
 
             escalation = (
 
-                "WATCH"
+                "IMPROVING"
 
             )
 
@@ -288,23 +340,6 @@ class AlertGovernanceEngine:
 
             )
 
-        trend_direction = (
-
-            trend.loc[
-
-                trend["Metric"]
-
-                ==
-
-                "Trend_Direction",
-
-                "Value"
-
-            ]
-
-            .iloc[0]
-
-        )
 
         return pd.DataFrame(
 
