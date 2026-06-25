@@ -1,5 +1,5 @@
 Metric,Value
-Governance_Score,59.63
+Governance_Score,61.06
 Risk_Level,HIGH
 Escalation,STABLE
 Governance_View,WATCH
@@ -7,13 +7,13 @@ Overall_Status,WATCH
 Forecast_Bias,CAUTIOUS_BULLISH
 Forecast_Confidence,71.59732797463064
 Stress_View,TAIL_RISK
-Stress_Average,27.926908439320318
-Stress_Severity_Score,72.07309156067969
+Stress_Average,26.69518132949024
+Stress_Severity_Score,73.30481867050976
 Worst_Stress_Score,0.0
 Rejected_Scenarios,3
 Macro_Risk_Level,HIGH
 Macro_Regime,RISK_OFF
 Final_Decision,CAUTIOUS
 Portfolio_Mandate,RISK_CONTROL
-Governance_Status,HIGH_RISK
+Governance_Status,ELEVATED_RISK
 Executive_Action,REVIEW_POSITIONING
