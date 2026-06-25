@@ -1,7 +1,7 @@
 Metric,Value
-Governance_Score,66.84
-Risk_Level,MODERATE
-Executive_Action,MAINTAIN_NEUTRAL
+Governance_Score,61.06
+Risk_Level,HIGH
+Executive_Action,REVIEW_POSITIONING
 Pack_Score,66.92
 Recommendation,UNDERWEIGHT
 Forecast_Regime,BULL
@@ -9,6 +9,6 @@ Expected_Return_12M,0.2771385997117679
 Scenario_Average,56.32
 Stress_Average,26.7
 Committee_View,BUY
-Alert_Health_Score,72.04
+Alert_Health_Score,74.85
 Alert_Escalation,STABLE
 Pack_Grade,C
