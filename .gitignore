@@ -12,3 +12,11 @@ data/database/
 
 .vscode/
 .idea/
+
+# Logs
+logs/**/*.log
+logs/platform.log
+logs/platform_error.log
+
+# Keep directory structure
+!logs/**/.gitkeep

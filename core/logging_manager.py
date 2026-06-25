@@ -1,5 +1,7 @@
 from pathlib import Path
 import logging
+
+from logging.handlers import RotatingFileHandler
 import sys
 
 class LogConfig:
@@ -26,7 +28,7 @@ class FileLogger:
             exist_ok=True
         )
 
-        file_handler = logging.FileHandler(
+        file_handler = RotatingFileHandler(
 
             LogConfig.LOG_DIRECTORY
             / "platform.log"
