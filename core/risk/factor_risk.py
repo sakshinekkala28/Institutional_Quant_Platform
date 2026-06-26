@@ -2,232 +2,291 @@
 ====================================================================
 Institutional Quant Platform
 
-Base Risk Model
+Factor Risk
 
 Author : Institutional Quant Platform
 
 Purpose
 -------
-Abstract base class for all institutional
-risk models.
+Institutional multi-factor risk model.
 
 Provides
 
-• Common validation
-• Common metadata
-• Portfolio validation
-• Report creation
-• Logging hooks
-• Execution contract
+• Portfolio Factor Exposure
+• Factor Contribution
+• Factor Variance
+• Specific Risk
+• Systematic Risk
+• Active Factor Exposure
 
-Inherited By
+Inherited From
 
-• PortfolioRisk
-• MarketRisk
-• PerformanceRisk
-• TailRisk
-• FactorRisk
+• BaseRiskModel
 
 ====================================================================
 """
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
-
-from core.models.asset_returns import AssetReturns
-from core.models.benchmark import Benchmark
-from core.models.covariance_matrix import CovarianceMatrix
-from core.models.factor_exposure import FactorExposure
-from core.models.portfolio import Portfolio
 from core.models.risk_report import RiskReport
 
+from core.risk.base_risk_model import BaseRiskModel
 
-class BaseRiskModel(ABC):
+from core.math.factor import (
+    active_factor_exposure,
+    factor_contribution,
+    factor_variance,
+    portfolio_factor_exposure,
+    specific_risk,
+    systematic_risk,
+)
+
+
+class FactorRisk(
+
+    BaseRiskModel
+
+):
     """
-    Abstract institutional risk model.
+    Institutional factor risk model.
     """
-
-    def __init__(
-
-        self,
-
-        portfolio: Portfolio,
-
-        asset_returns: AssetReturns,
-
-        covariance_matrix: CovarianceMatrix,
-
-        benchmark: Benchmark | None = None,
-
-        factor_exposure: FactorExposure | None = None
-
-    ) -> None:
-
-        self._portfolio = portfolio
-
-        self._asset_returns = asset_returns
-
-        self._covariance_matrix = covariance_matrix
-
-        self._benchmark = benchmark
-
-        self._factor_exposure = factor_exposure
-
-        self.validate()
 
     # =====================================================
-    # PROPERTIES
+    # FACTOR EXPOSURE
     # =====================================================
-
-    @property
-    def portfolio(
-
-        self
-
-    ) -> Portfolio:
-
-        return self._portfolio
-
-    @property
-    def asset_returns(
-
-        self
-
-    ) -> AssetReturns:
-
-        return self._asset_returns
-
-    @property
-    def covariance_matrix(
-
-        self
-
-    ) -> CovarianceMatrix:
-
-        return self._covariance_matrix
-
-    @property
-    def benchmark(
-
-        self
-
-    ) -> Benchmark | None:
-
-        return self._benchmark
 
     @property
     def factor_exposure(
 
         self
 
-    ) -> FactorExposure | None:
+    ) -> dict[str, float]:
 
-        return self._factor_exposure
+        return portfolio_factor_exposure(
 
-    # =====================================================
-    # VALIDATION
-    # =====================================================
+            self.weights,
 
-    def validate(
+            self.factor_exposure.factor_matrix
 
-        self
-
-    ) -> None:
-
-        """
-        Validate all dependencies.
-        """
-
-        if self.portfolio.is_empty:
-
-            raise ValueError(
-
-                "Portfolio cannot be empty."
-
-            )
-
-        self.asset_returns.validate()
-
-        self.covariance_matrix.validate()
-
-        if self.benchmark is not None:
-
-            self.benchmark.validate()
-
-        if self.factor_exposure is not None:
-
-            self.factor_exposure.validate()
+        )
 
     # =====================================================
-    # UTILITIES
+    # FACTOR CONTRIBUTION
     # =====================================================
 
     @property
-    def weights(
+    def factor_contribution(
 
         self
 
-    ) -> list[float]:
+    ) -> dict[str, float]:
 
-        return [
+        return factor_contribution(
 
-            position.weight
+            self.weights,
 
-            for position
+            self.factor_exposure.factor_matrix,
 
-            in self.portfolio
+            self.factor_exposure.factor_covariance
 
-        ]
+        )
+
+    # =====================================================
+    # FACTOR VARIANCE
+    # =====================================================
 
     @property
-    def symbols(
+    def factor_variance(
 
         self
 
-    ) -> list[str]:
+    ) -> float:
 
-        return self.portfolio.symbols()
+        return factor_variance(
+
+            self.weights,
+
+            self.factor_exposure.factor_matrix,
+
+            self.factor_exposure.factor_covariance
+
+        )
+
+    # =====================================================
+    # SYSTEMATIC RISK
+    # =====================================================
 
     @property
-    def holdings(
+    def systematic_risk(
 
         self
 
-    ) -> int:
+    ) -> float:
 
-        return self.portfolio.holdings
+        return systematic_risk(
+
+            self.weights,
+
+            self.factor_exposure.factor_matrix,
+
+            self.factor_exposure.factor_covariance
+
+        )
 
     # =====================================================
-    # REPORT
+    # SPECIFIC RISK
     # =====================================================
 
-    def create_report(
+    @property
+    def specific_risk(
 
         self
 
-    ) -> RiskReport:
+    ) -> float:
 
-        """
-        Create an empty institutional risk report.
-        """
+        return specific_risk(
 
-        return RiskReport()
+            self.weights,
+
+            self.factor_exposure.specific_variance
+
+        )
 
     # =====================================================
-    # EXECUTION
+    # ACTIVE FACTOR EXPOSURE
     # =====================================================
 
-    @abstractmethod
+    @property
+    def active_factor_exposure(
+
+        self
+
+    ) -> dict[str, float]:
+
+        if self.benchmark is None:
+
+            return {}
+
+        return active_factor_exposure(
+
+            self.factor_exposure.factor_matrix,
+
+            self.benchmark.factor_exposure.factor_matrix,
+
+            self.weights,
+
+            self.benchmark.weights
+
+        )
+
+    # =====================================================
+    # CALCULATE
+    # =====================================================
+
     def calculate(
 
         self
 
     ) -> RiskReport:
 
-        """
-        Calculate risk model.
-        """
+        report = self.create_report()
 
-        raise NotImplementedError
+        report.factor_variance = (
+
+            self.factor_variance
+
+        )
+
+        report.systematic_risk = (
+
+            self.systematic_risk
+
+        )
+
+        report.specific_risk = (
+
+            self.specific_risk
+
+        )
+
+        report.factor_exposure = (
+
+            self.factor_exposure
+
+        )
+
+        report.factor_contribution = (
+
+            self.factor_contribution
+
+        )
+
+        report.active_factor_exposure = (
+
+            self.active_factor_exposure
+
+        )
+
+        report.metadata.update(
+
+            {
+
+                "risk_model":
+
+                    self.__class__.__name__
+
+            }
+
+        )
+
+        return report
+
+    # =====================================================
+    # SUMMARY
+    # =====================================================
+
+    def summary(
+
+        self
+
+    ) -> dict:
+
+        return {
+
+            "factor_variance":
+
+                self.factor_variance,
+
+            "systematic_risk":
+
+                self.systematic_risk,
+
+            "specific_risk":
+
+                self.specific_risk
+
+        }
+
+    # =====================================================
+    # REPRESENTATION
+    # =====================================================
+
+    def __repr__(
+
+        self
+
+    ) -> str:
+
+        return (
+
+            f"{self.__class__.__name__}("
+
+            f"Systematic={self.systematic_risk:.4f}, "
+
+            f"Specific={self.specific_risk:.4f}"
+
+            f")"
+
+        )
+
+    __str__ = __repr__
