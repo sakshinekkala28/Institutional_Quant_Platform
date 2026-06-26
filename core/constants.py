@@ -133,7 +133,7 @@ class ReportType:
 
     GOVERNANCE = "GOVERNANCE"
 
-    # ==========================================================
+# ==========================================================
 # NSE SECTORS
 # ==========================================================
 
@@ -198,4 +198,52 @@ class TableName:
 
     PERFORMANCE_REPORT = (
         "performance_report"
+    )
+
+
+# ==========================================================
+# RISK CONSTANTS
+# ==========================================================
+
+class RiskConstants:
+    """
+    Institutional quantitative risk constants.
+    """
+
+    # Numerical tolerances
+    EPSILON = 1e-12
+
+    MIN_VARIANCE = EPSILON
+
+    MIN_VOLATILITY = EPSILON
+
+    MIN_DRAWDOWN = EPSILON
+
+    MIN_TRACKING_ERROR = EPSILON
+
+    MIN_BETA = EPSILON
+
+    # Trading calendar
+    TRADING_DAYS_PER_YEAR = 252
+
+    TRADING_WEEKS_PER_YEAR = 52
+
+    TRADING_MONTHS_PER_YEAR = 12
+
+    # Confidence levels
+    CONFIDENCE_LEVEL_90 = 0.90
+
+    CONFIDENCE_LEVEL_95 = 0.95
+
+    CONFIDENCE_LEVEL_99 = 0.99
+
+    # Defaults
+    DEFAULT_RISK_FREE_RATE = 0.0
+
+    DEFAULT_TARGET_RETURN = 0.0
+
+    DEFAULT_BETA = 1.0
+
+    DEFAULT_CONFIDENCE_LEVEL = (
+        CONFIDENCE_LEVEL_95
     )

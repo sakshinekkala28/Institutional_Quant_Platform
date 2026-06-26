@@ -28,11 +28,12 @@ Used By
 from __future__ import annotations
 
 from dataclasses import dataclass
-from dataclasses import field
 
 from collections import defaultdict
 
 from core.models.portfolio_position import PortfolioPosition
+
+import pandas as pd
 
 
 @dataclass(slots=True)
@@ -45,6 +46,150 @@ class Portfolio:
     positions: list[PortfolioPosition]
 
     nav: float = 100_000_000.0
+
+    __hash__ = None
+
+    # =====================================================
+    # COLLECTION PROTOCOL
+    # =====================================================
+
+    def __iter__(
+
+        self
+
+    ):
+
+        """
+        Iterate over portfolio positions.
+        """
+
+        return iter(
+
+            self.positions
+
+        )
+
+    def __reversed__(
+
+        self
+
+    ):
+
+        """
+        Reverse iteration.
+        """
+
+        return reversed(
+
+            self.positions
+
+        )
+        
+    def __len__(
+
+        self
+
+    ) -> int:
+
+        """
+        Number of holdings.
+        """
+
+        return len(
+
+            self.positions
+
+        )
+    
+    def __contains__(
+
+        self,
+
+        symbol: str
+
+    ) -> bool:
+
+        """
+        Membership test by symbol.
+        """
+
+        return any(
+
+            position.symbol == symbol
+
+            for position
+
+            in self
+
+        )
+    
+    def __getitem__(
+
+        self,
+
+        key: int | str
+
+    ) -> PortfolioPosition:
+
+        """
+        Access by index or symbol.
+        """
+
+        if isinstance(
+
+            key,
+
+            int
+
+        ):
+
+            return self.positions[key]
+
+        if isinstance(
+
+            key,
+
+            str
+
+        ):
+
+            position = self.get(
+
+                key
+
+            )
+
+            if position is None:
+
+                raise KeyError(
+
+                    f"Portfolio position '{key}' not found."
+
+                )
+
+            return position
+
+        raise TypeError(
+
+            "Key must be int or str."
+
+        )
+    
+    def __bool__(
+
+        self
+
+    ) -> bool:
+
+        """
+        True if portfolio has positions.
+        """
+
+        return len(
+
+            self
+
+        ) > 0
 
     # =====================================================
     # BASIC
@@ -59,7 +204,7 @@ class Portfolio:
 
         return len(
 
-            self.positions
+            self
 
         )
 
@@ -76,7 +221,7 @@ class Portfolio:
 
             for position
 
-            in self.positions
+            in self
 
         )
 
@@ -87,7 +232,7 @@ class Portfolio:
 
     ) -> float:
 
-        if not self.positions:
+        if self.is_empty:
 
             return 0.0
 
@@ -99,13 +244,13 @@ class Portfolio:
 
                 for position
 
-                in self.positions
+                in self
 
             )
 
             / len(
 
-                self.positions
+                self
 
             )
 
@@ -127,7 +272,7 @@ class Portfolio:
 
             for position
 
-            in self.positions
+            in self
 
         ]
 
@@ -139,15 +284,7 @@ class Portfolio:
 
     ) -> bool:
 
-        return any(
-
-            position.symbol == symbol
-
-            for position
-
-            in self.positions
-
-        )
+        return symbol in self
 
     def get(
 
@@ -157,7 +294,7 @@ class Portfolio:
 
     ) -> PortfolioPosition | None:
 
-        for position in self.positions:
+        for position in self:
 
             if position.symbol == symbol:
 
@@ -168,7 +305,7 @@ class Portfolio:
     # =====================================================
     # ANALYTICS
     # =====================================================
-
+  
     def top_holdings(
 
         self,
@@ -177,11 +314,19 @@ class Portfolio:
 
     ) -> list[PortfolioPosition]:
 
+        if n < 1:
+
+            raise ValueError(
+
+                "n must be greater than zero."
+
+            )
+    
         return sorted(
 
-            self.positions,
+            self,
 
-            key=lambda p: p.weight,
+            key=lambda position: position.weight,
 
             reverse=True
 
@@ -199,7 +344,7 @@ class Portfolio:
 
         )
 
-        for position in self.positions:
+        for position in self:
 
             weights[
 
@@ -220,15 +365,15 @@ class Portfolio:
 
     ) -> PortfolioPosition | None:
 
-        if not self.positions:
+        if self.is_empty:
 
             return None
 
         return max(
 
-            self.positions,
+            self,
 
-            key=lambda p: p.weight
+            key=lambda position: position.weight
 
         )
 
@@ -253,6 +398,40 @@ class Portfolio:
 
         )
 
+    @property
+    def is_empty(
+
+        self
+
+    ) -> bool:
+
+        """
+        Whether the portfolio contains no positions.
+        """
+
+        return len(
+
+            self
+
+        ) == 0
+
+    @property
+    def position_count(
+
+        self
+
+    ) -> int:
+
+        """
+        Number of positions.
+        """
+
+        return len(
+
+            self
+
+        )
+        
     # =====================================================
     # VALIDATION
     # =====================================================
@@ -271,6 +450,7 @@ class Portfolio:
 
         )
 
+    
     @property
     def fully_invested(
 
@@ -288,9 +468,7 @@ class Portfolio:
 
         self
 
-    ):
-
-        import pandas as pd
+    ) -> pd.DataFrame:
 
         return pd.DataFrame(
 
@@ -300,7 +478,7 @@ class Portfolio:
 
                 for position
 
-                in self.positions
+                in self
 
             ]
 
