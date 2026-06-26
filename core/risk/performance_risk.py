@@ -8,18 +8,23 @@ Author : Institutional Quant Platform
 
 Purpose
 -------
-Institutional performance-adjusted risk model.
+Institutional performance risk model.
 
 Provides
 
 • Sharpe Ratio
 • Sortino Ratio
 • Treynor Ratio
-• Omega Ratio
+• Information Ratio
 • Calmar Ratio
+• Omega Ratio
 • Gain/Loss Ratio
-• Upside Capture Ratio
-• Downside Capture Ratio
+• Maximum Drawdown
+• Average Drawdown
+• Drawdown Duration
+• Recovery Period
+• Upside Capture
+• Downside Capture
 
 Inherited From
 
@@ -30,7 +35,24 @@ Inherited From
 
 from __future__ import annotations
 
-import numpy as np
+from core.math.drawdown import (
+    average_drawdown,
+    drawdown_duration,
+    maximum_drawdown,
+    recovery_period,
+)
+
+from core.math.performance import (
+    calmar_ratio,
+    downside_capture_ratio,
+    gain_loss_ratio,
+    information_ratio,
+    omega_ratio,
+    sharpe_ratio,
+    sortino_ratio,
+    treynor_ratio,
+    upside_capture_ratio,
+)
 
 from core.models.risk_report import RiskReport
 
@@ -43,217 +65,11 @@ class PerformanceRisk(
 
 ):
     """
-    Institutional performance-adjusted risk model.
+    Institutional performance risk model.
     """
 
     # =====================================================
-    # INTERNAL
-    # =====================================================
-
-    @property
-    def portfolio_returns(
-
-        self
-
-    ) -> np.ndarray:
-        """
-        Weighted portfolio return series.
-        """
-
-        returns = np.vstack(
-
-            [
-
-                self.asset_returns[
-                    symbol
-                ].values
-
-                for symbol
-
-                in self.symbols
-
-            ]
-
-        )
-
-        weights = np.asarray(
-
-            self.weights,
-
-            dtype=np.float64
-
-        )
-
-        return (
-
-            weights
-
-            @ returns
-
-        )
-
-    @property
-    def benchmark_returns(
-
-        self
-
-    ) -> np.ndarray:
-        """
-        Benchmark return series.
-        """
-
-        if self.benchmark is None:
-
-            raise ValueError(
-
-                "Benchmark is required."
-
-            )
-
-        return np.asarray(
-
-            self.benchmark
-                .return_series
-                .values,
-
-            dtype=np.float64
-
-        )
-
-    @property
-    def risk_free_rate(
-
-        self
-
-    ) -> float:
-        """
-        Risk-free rate.
-        """
-
-        if self.benchmark is None:
-
-            return 0.0
-
-        return (
-
-            self.benchmark
-
-            .risk_free_rate
-
-        )
-
-    # =====================================================
-    # DOWNSIDE RETURNS
-    # =====================================================
-
-    @property
-    def downside_returns(
-
-        self
-
-    ) -> np.ndarray:
-        """
-        Portfolio returns below
-        the risk-free rate.
-        """
-
-        returns = (
-
-            self.portfolio_returns
-
-        )
-
-        return returns[
-
-            returns
-
-            <
-
-            self.risk_free_rate
-
-        ]
-
-    # =====================================================
-    # DOWNSIDE DEVIATION
-    # =====================================================
-
-    @property
-    def downside_deviation(
-
-        self
-
-    ) -> float:
-        """
-        Downside deviation.
-        """
-
-        downside = (
-
-            self.downside_returns
-
-        )
-
-        if downside.size == 0:
-
-            return 0.0
-
-        deviations = (
-
-            downside
-
-            -
-
-            self.risk_free_rate
-
-        )
-
-        return float(
-
-            np.sqrt(
-
-                np.mean(
-
-                    deviations ** 2
-
-                )
-
-            )
-
-        )
-
-    # =====================================================
-    # UPSIDE RETURNS
-    # =====================================================
-
-    @property
-    def upside_returns(
-
-        self
-
-    ) -> np.ndarray:
-        """
-        Portfolio returns above
-        the risk-free rate.
-        """
-
-        returns = (
-
-            self.portfolio_returns
-
-        )
-
-        return returns[
-
-            returns
-
-            >=
-
-            self.risk_free_rate
-
-        ]
-    
-    # =====================================================
-    # SHARPE RATIO
+    # SHARPE
     # =====================================================
 
     @property
@@ -262,65 +78,17 @@ class PerformanceRisk(
         self
 
     ) -> float:
-        """
-        Annualized Sharpe Ratio.
 
-        Sharpe =
-            (Rp - Rf) / σp
-        """
+        return sharpe_ratio(
 
-        portfolio_returns = (
-
-            self.portfolio_returns
-
-        )
-
-        if portfolio_returns.size < 2:
-
-            return 0.0
-
-        excess_returns = (
-
-            portfolio_returns
-
-            -
+            self.portfolio_returns,
 
             self.risk_free_rate
 
         )
 
-        volatility = float(
-
-            np.std(
-
-                excess_returns,
-
-                ddof=1
-
-            )
-
-        )
-
-        if volatility <= 0.0:
-
-            return 0.0
-
-        return float(
-
-            np.mean(
-
-                excess_returns
-
-            )
-
-            /
-
-            volatility
-
-        )
-
     # =====================================================
-    # SORTINO RATIO
+    # SORTINO
     # =====================================================
 
     @property
@@ -329,41 +97,17 @@ class PerformanceRisk(
         self
 
     ) -> float:
-        """
-        Annualized Sortino Ratio.
 
-        Sortino =
-            (Rp - Rf) / Downside Deviation
-        """
+        return sortino_ratio(
 
-        downside = (
-
-            self.downside_deviation
-
-        )
-
-        if downside <= 0.0:
-
-            return 0.0
-
-        excess_return = float(
-
-            np.mean(
-
-                self.portfolio_returns
-
-            )
-
-            -
+            self.portfolio_returns,
 
             self.risk_free_rate
 
         )
 
-        return excess_return / downside
-
     # =====================================================
-    # TREYNOR RATIO
+    # TREYNOR
     # =====================================================
 
     @property
@@ -372,85 +116,55 @@ class PerformanceRisk(
         self
 
     ) -> float:
-        """
-        Treynor Ratio.
 
-        Treynor =
-            (Rp - Rf) / Beta
-        """
+        return treynor_ratio(
 
-        benchmark = (
+            self.portfolio_returns,
 
-            self.benchmark_returns
-
-        )
-
-        portfolio = (
-
-            self.portfolio_returns
-
-        )
-
-        benchmark_variance = float(
-
-            np.var(
-
-                benchmark,
-
-                ddof=1
-
-            )
-
-        )
-
-        if benchmark_variance <= 0.0:
-
-            return 0.0
-
-        beta = float(
-
-            np.cov(
-
-                portfolio,
-
-                benchmark,
-
-                ddof=1
-
-            )[0, 1]
-
-            /
-
-            benchmark_variance
-
-        )
-
-        if abs(
-
-            beta
-
-        ) < 1e-12:
-
-            return 0.0
-
-        excess_return = float(
-
-            np.mean(
-
-                portfolio
-
-            )
-
-            -
+            self.benchmark_returns,
 
             self.risk_free_rate
 
         )
 
-        return excess_return / beta
+    # =====================================================
+    # INFORMATION
+    # =====================================================
+
+    @property
+    def information_ratio(
+
+        self
+
+    ) -> float:
+
+        return information_ratio(
+
+            self.portfolio_returns,
+
+            self.benchmark_returns
+
+        )
 
     # =====================================================
-    # OMEGA RATIO
+    # CALMAR
+    # =====================================================
+
+    @property
+    def calmar_ratio(
+
+        self
+
+    ) -> float:
+
+        return calmar_ratio(
+
+            self.portfolio_returns
+
+        )
+
+    # =====================================================
+    # OMEGA
     # =====================================================
 
     @property
@@ -459,75 +173,30 @@ class PerformanceRisk(
         self
 
     ) -> float:
-        """
-        Omega Ratio.
 
-        Threshold =
-            Risk-free rate.
-        """
-
-        returns = (
+        return omega_ratio(
 
             self.portfolio_returns
 
         )
 
-        threshold = (
+    # =====================================================
+    # GAIN / LOSS
+    # =====================================================
 
-            self.risk_free_rate
+    @property
+    def gain_loss_ratio(
 
-        )
+        self
 
-        gains = np.clip(
+    ) -> float:
 
-            returns - threshold,
+        return gain_loss_ratio(
 
-            a_min=0.0,
-
-            a_max=None
-
-        )
-
-        losses = np.clip(
-
-            threshold - returns,
-
-            a_min=0.0,
-
-            a_max=None
+            self.portfolio_returns
 
         )
 
-        denominator = float(
-
-            np.sum(
-
-                losses
-
-            )
-
-        )
-
-        if denominator <= 0.0:
-
-            return float(
-
-                "inf"
-
-            )
-
-        numerator = float(
-
-            np.sum(
-
-                gains
-
-            )
-
-        )
-
-        return numerator / denominator
-    
     # =====================================================
     # MAXIMUM DRAWDOWN
     # =====================================================
@@ -538,184 +207,61 @@ class PerformanceRisk(
         self
 
     ) -> float:
-        """
-        Maximum Drawdown.
 
-        Returns
-        -------
-        float
-            Absolute maximum drawdown.
-        """
-
-        returns = (
+        return maximum_drawdown(
 
             self.portfolio_returns
 
         )
 
-        if returns.size == 0:
-
-            return 0.0
-
-        cumulative = np.cumprod(
-
-            1.0 + returns
-
-        )
-
-        running_max = np.maximum.accumulate(
-
-            cumulative
-
-        )
-
-        drawdowns = (
-
-            cumulative
-
-            /
-
-            running_max
-
-        ) - 1.0
-
-        return float(
-
-            abs(
-
-                np.min(
-
-                    drawdowns
-
-                )
-
-            )
-
-        )
-
     # =====================================================
-    # CALMAR RATIO
+    # AVERAGE DRAWDOWN
     # =====================================================
 
     @property
-    def calmar_ratio(
+    def average_drawdown(
 
         self
 
     ) -> float:
-        """
-        Annualized Calmar Ratio.
-        """
 
-        maximum_drawdown = (
+        return average_drawdown(
 
-            self.maximum_drawdown
-
-        )
-
-        if maximum_drawdown <= 0.0:
-
-            return 0.0
-
-        annual_return = (
-
-            float(
-
-                np.mean(
-
-                    self.portfolio_returns
-
-                )
-
-            )
-
-            * 252.0
-
-        )
-
-        return (
-
-            annual_return
-
-            /
-
-            maximum_drawdown
+            self.portfolio_returns
 
         )
 
     # =====================================================
-    # GAIN / LOSS RATIO
+    # DRAWDOWN DURATION
     # =====================================================
 
     @property
-    def gain_loss_ratio(
+    def drawdown_duration(
 
         self
 
-    ) -> float:
-        """
-        Gain/Loss Ratio.
-        """
+    ) -> int:
 
-        gains = (
+        return drawdown_duration(
 
-            self.upside_returns
+            self.portfolio_returns
 
         )
 
-        losses = (
+    # =====================================================
+    # RECOVERY PERIOD
+    # =====================================================
 
-            self.downside_returns
+    @property
+    def recovery_period(
 
-        )
+        self
 
-        if losses.size == 0:
+    ) -> int:
 
-            return float(
+        return recovery_period(
 
-                "inf"
-
-            )
-
-        average_gain = float(
-
-            np.mean(
-
-                gains
-
-            )
-
-        ) if gains.size else 0.0
-
-        average_loss = abs(
-
-            float(
-
-                np.mean(
-
-                    losses
-
-                )
-
-            )
-
-        )
-
-        if average_loss <= 0.0:
-
-            return float(
-
-                "inf"
-
-            )
-
-        return (
-
-            average_gain
-
-            /
-
-            average_loss
+            self.portfolio_returns
 
         )
 
@@ -729,71 +275,12 @@ class PerformanceRisk(
         self
 
     ) -> float:
-        """
-        Upside Capture Ratio.
-        """
 
-        benchmark = (
+        return upside_capture_ratio(
+
+            self.portfolio_returns,
 
             self.benchmark_returns
-
-        )
-
-        portfolio = (
-
-            self.portfolio_returns
-
-        )
-
-        mask = (
-
-            benchmark > 0.0
-
-        )
-
-        if not np.any(
-
-            mask
-
-        ):
-
-            return 0.0
-
-        benchmark_up = float(
-
-            np.mean(
-
-                benchmark[mask]
-
-            )
-
-        )
-
-        if abs(
-
-            benchmark_up
-
-        ) < 1e-12:
-
-            return 0.0
-
-        portfolio_up = float(
-
-            np.mean(
-
-                portfolio[mask]
-
-            )
-
-        )
-
-        return (
-
-            portfolio_up
-
-            /
-
-            benchmark_up
 
         )
 
@@ -807,78 +294,15 @@ class PerformanceRisk(
         self
 
     ) -> float:
-        """
-        Downside Capture Ratio.
-        """
 
-        benchmark = (
+        return downside_capture_ratio(
+
+            self.portfolio_returns,
 
             self.benchmark_returns
 
         )
 
-        portfolio = (
-
-            self.portfolio_returns
-
-        )
-
-        mask = (
-
-            benchmark < 0.0
-
-        )
-
-        if not np.any(
-
-            mask
-
-        ):
-
-            return 0.0
-
-        benchmark_down = abs(
-
-            float(
-
-                np.mean(
-
-                    benchmark[mask]
-
-                )
-
-            )
-
-        )
-
-        if benchmark_down <= 0.0:
-
-            return 0.0
-
-        portfolio_down = abs(
-
-            float(
-
-                np.mean(
-
-                    portfolio[mask]
-
-                )
-
-            )
-
-        )
-
-        return (
-
-            portfolio_down
-
-            /
-
-            benchmark_down
-
-        )
-    
     # =====================================================
     # CALCULATE
     # =====================================================
@@ -888,26 +312,18 @@ class PerformanceRisk(
         self
 
     ) -> RiskReport:
-        """
-        Calculate performance-adjusted
-        portfolio risk metrics.
-
-        Returns
-        -------
-        RiskReport
-        """
 
         report = self.create_report()
 
-        report.sharpe_ratio = (
+        report.sharpe_ratio = self.sharpe_ratio
 
-            self.sharpe_ratio
+        report.sortino_ratio = self.sortino_ratio
 
-        )
+        report.treynor_ratio = self.treynor_ratio
 
-        report.sortino_ratio = (
+        report.information_ratio = (
 
-            self.sortino_ratio
+            self.information_ratio
 
         )
 
@@ -917,35 +333,57 @@ class PerformanceRisk(
 
         )
 
+        report.omega_ratio = (
+
+            self.omega_ratio
+
+        )
+
+        report.gain_loss_ratio = (
+
+            self.gain_loss_ratio
+
+        )
+
         report.maximum_drawdown = (
 
             self.maximum_drawdown
 
         )
 
+        report.average_drawdown = (
+
+            self.average_drawdown
+
+        )
+
+        report.drawdown_duration = (
+
+            self.drawdown_duration
+
+        )
+
+        report.recovery_period = (
+
+            self.recovery_period
+
+        )
+
+        report.upside_capture_ratio = (
+
+            self.upside_capture_ratio
+
+        )
+
+        report.downside_capture_ratio = (
+
+            self.downside_capture_ratio
+
+        )
+
         report.metadata.update(
 
             {
-
-                "treynor_ratio":
-
-                    self.treynor_ratio,
-
-                "omega_ratio":
-
-                    self.omega_ratio,
-
-                "gain_loss_ratio":
-
-                    self.gain_loss_ratio,
-
-                "upside_capture_ratio":
-
-                    self.upside_capture_ratio,
-
-                "downside_capture_ratio":
-
-                    self.downside_capture_ratio,
 
                 "risk_model":
 
@@ -956,86 +394,3 @@ class PerformanceRisk(
         )
 
         return report
-
-    # =====================================================
-    # SUMMARY
-    # =====================================================
-
-    def summary(
-
-        self
-
-    ) -> dict[str, float]:
-        """
-        Performance risk summary.
-
-        Returns
-        -------
-        dict
-        """
-
-        return {
-
-            "sharpe_ratio":
-
-                self.sharpe_ratio,
-
-            "sortino_ratio":
-
-                self.sortino_ratio,
-
-            "treynor_ratio":
-
-                self.treynor_ratio,
-
-            "omega_ratio":
-
-                self.omega_ratio,
-
-            "calmar_ratio":
-
-                self.calmar_ratio,
-
-            "gain_loss_ratio":
-
-                self.gain_loss_ratio,
-
-            "maximum_drawdown":
-
-                self.maximum_drawdown,
-
-            "upside_capture_ratio":
-
-                self.upside_capture_ratio,
-
-            "downside_capture_ratio":
-
-                self.downside_capture_ratio
-
-        }
-
-    # =====================================================
-    # REPRESENTATION
-    # =====================================================
-
-    def __repr__(
-
-        self
-
-    ) -> str:
-
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Sharpe={self.sharpe_ratio:.4f}, "
-
-            f"Sortino={self.sortino_ratio:.4f}, "
-
-            f"Calmar={self.calmar_ratio:.4f}"
-
-            f")"
-
-        )
-
-    __str__ = __repr__
