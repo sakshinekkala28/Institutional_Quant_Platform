@@ -148,7 +148,7 @@ from execution.trade_engine import (
     TradeEngine
 )
 
-from execution.execution_engine import (
+from execution.execution_simulator import (
     ExecutionEngine
 )
 

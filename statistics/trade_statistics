@@ -1,0 +1,467 @@
+"""
+====================================================================
+Institutional Quant Platform
+
+Trade Statistics
+
+Author : Institutional Quant Platform
+
+Purpose
+-------
+Reusable institutional trade statistics.
+
+Provides
+
+• Win Rate
+• Loss Rate
+• Average Win
+• Average Loss
+• Profit Factor
+• Expectancy
+• Average Holding Period
+• Turnover
+
+Used By
+
+• Performance Engine
+• Reporting
+• Dashboard
+• Trade Analytics
+
+====================================================================
+"""
+
+from __future__ import annotations
+
+import numpy as np
+
+
+class TradeStatistics:
+    """
+    Institutional trade statistics.
+    """
+
+    # =====================================================
+    # WIN RATE
+    # =====================================================
+
+    @staticmethod
+    def win_rate(
+
+        trade_returns: list[float] | np.ndarray,
+
+    ) -> float:
+
+        trades = np.asarray(
+
+            trade_returns,
+
+            dtype=np.float64,
+
+        )
+
+        if trades.size == 0:
+
+            return 0.0
+
+        return float(
+
+            np.sum(
+
+                trades > 0
+
+            )
+
+            / trades.size
+
+        )
+
+    # =====================================================
+    # LOSS RATE
+    # =====================================================
+
+    @staticmethod
+    def loss_rate(
+
+        trade_returns: list[float] | np.ndarray,
+
+    ) -> float:
+
+        return (
+
+            1.0
+
+            -
+
+            TradeStatistics.win_rate(
+
+                trade_returns
+
+            )
+
+        )
+
+    # =====================================================
+    # AVERAGE WIN
+    # =====================================================
+
+    @staticmethod
+    def average_win(
+
+        trade_returns: list[float] | np.ndarray,
+
+    ) -> float:
+
+        trades = np.asarray(
+
+            trade_returns,
+
+            dtype=np.float64,
+
+        )
+
+        wins = trades[
+
+            trades > 0
+
+        ]
+
+        if wins.size == 0:
+
+            return 0.0
+
+        return float(
+
+            wins.mean()
+
+        )
+
+    # =====================================================
+    # AVERAGE LOSS
+    # =====================================================
+
+    @staticmethod
+    def average_loss(
+
+        trade_returns: list[float] | np.ndarray,
+
+    ) -> float:
+
+        trades = np.asarray(
+
+            trade_returns,
+
+            dtype=np.float64,
+
+        )
+
+        losses = trades[
+
+            trades < 0
+
+        ]
+
+        if losses.size == 0:
+
+            return 0.0
+
+        return float(
+
+            abs(
+
+                losses.mean()
+
+            )
+
+        )
+
+    # =====================================================
+    # PROFIT FACTOR
+    # =====================================================
+
+    @staticmethod
+    def profit_factor(
+
+        trade_returns: list[float] | np.ndarray,
+
+    ) -> float:
+
+        trades = np.asarray(
+
+            trade_returns,
+
+            dtype=np.float64,
+
+        )
+
+        gross_profit = np.sum(
+
+            trades[
+
+                trades > 0
+
+            ]
+
+        )
+
+        gross_loss = abs(
+
+            np.sum(
+
+                trades[
+
+                    trades < 0
+
+                ]
+
+            )
+
+        )
+
+        if gross_loss <= 0:
+
+            return 0.0
+
+        return float(
+
+            gross_profit
+
+            / gross_loss
+
+        )
+
+    # =====================================================
+    # EXPECTANCY
+    # =====================================================
+
+    @staticmethod
+    def expectancy(
+
+        trade_returns: list[float] | np.ndarray,
+
+    ) -> float:
+
+        win_rate = (
+
+            TradeStatistics
+
+            .win_rate(
+
+                trade_returns
+
+            )
+
+        )
+
+        loss_rate = (
+
+            TradeStatistics
+
+            .loss_rate(
+
+                trade_returns
+
+            )
+
+        )
+
+        average_win = (
+
+            TradeStatistics
+
+            .average_win(
+
+                trade_returns
+
+            )
+
+        )
+
+        average_loss = (
+
+            TradeStatistics
+
+            .average_loss(
+
+                trade_returns
+
+            )
+
+        )
+
+        return (
+
+            win_rate
+
+            * average_win
+
+        ) - (
+
+            loss_rate
+
+            * average_loss
+
+        )
+
+    # =====================================================
+    # AVERAGE HOLDING PERIOD
+    # =====================================================
+
+    @staticmethod
+    def average_holding_period(
+
+        holding_periods: list[int] | np.ndarray,
+
+    ) -> float:
+
+        periods = np.asarray(
+
+            holding_periods,
+
+            dtype=np.float64,
+
+        )
+
+        if periods.size == 0:
+
+            return 0.0
+
+        return float(
+
+            periods.mean()
+
+        )
+
+    # =====================================================
+    # TURNOVER
+    # =====================================================
+
+    @staticmethod
+    def turnover(
+
+        traded_value: float,
+
+        average_portfolio_value: float,
+
+    ) -> float:
+
+        if average_portfolio_value <= 0:
+
+            return 0.0
+
+        return (
+
+            traded_value
+
+            /
+
+            average_portfolio_value
+
+        )
+
+    # =====================================================
+    # SUMMARY
+    # =====================================================
+
+    @classmethod
+    def summary(
+
+        cls,
+
+        trade_returns: list[float] | np.ndarray,
+
+        holding_periods: list[int] | np.ndarray,
+
+        traded_value: float,
+
+        average_portfolio_value: float,
+
+    ) -> dict:
+
+        return {
+
+            "WinRate":
+
+                cls.win_rate(
+
+                    trade_returns
+
+                ),
+
+            "LossRate":
+
+                cls.loss_rate(
+
+                    trade_returns
+
+                ),
+
+            "AverageWin":
+
+                cls.average_win(
+
+                    trade_returns
+
+                ),
+
+            "AverageLoss":
+
+                cls.average_loss(
+
+                    trade_returns
+
+                ),
+
+            "ProfitFactor":
+
+                cls.profit_factor(
+
+                    trade_returns
+
+                ),
+
+            "Expectancy":
+
+                cls.expectancy(
+
+                    trade_returns
+
+                ),
+
+            "AverageHoldingPeriod":
+
+                cls.average_holding_period(
+
+                    holding_periods
+
+                ),
+
+            "Turnover":
+
+                cls.turnover(
+
+                    traded_value,
+
+                    average_portfolio_value,
+
+                ),
+
+        }
+
+    # =====================================================
+    # REPRESENTATION
+    # =====================================================
+
+    def __repr__(
+
+        self,
+
+    ) -> str:
+
+        return (
+
+            f"{self.__class__.__name__}()"
+
+        )
+
+    __str__ = __repr__
