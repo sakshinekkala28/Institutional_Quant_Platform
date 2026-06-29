@@ -18,13 +18,13 @@ Stress,Rejected_Stress_Scenarios,4
 Governance,Committee_Score,90.0
 Governance,Governance_Score,96.0
 Governance,Risk_Score,95.0
-Alert_Governance,Alert_Health_Score,74.85
+Alert_Governance,Alert_Health_Score,76.4
 Alert_Governance,Alert_Escalation,STABLE
 Alert_Governance,Governance_View,WATCH
 Alert_Governance,Trend_Direction,IMPROVING
 Alert_Governance,Top_Category,STRESS
-Alert_Governance,Total_Alerts,67
-Governance_Command_Center,Governance_Score,61.06
+Alert_Governance,Total_Alerts,107
+Governance_Command_Center,Governance_Score,61.91
 Governance_Command_Center,Risk_Level,HIGH
 Governance_Command_Center,Executive_Action,REVIEW_POSITIONING
 Governance_Command_Center,Overall_Status,WATCH
