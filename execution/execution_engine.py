@@ -1,297 +1,243 @@
-# ==========================================================
-# EXECUTION ENGINE
-# Institutional Execution Simulation
-# ==========================================================
+"""
+====================================================================
+Institutional Quant Platform
+
+Execution Engine
+
+Author : Institutional Quant Platform
+
+Purpose
+-------
+Institutional execution orchestration engine.
+
+Coordinates
+
+• Order Validation
+• Order Routing
+• Execution Algorithm
+• Broker
+• Fill Model
+• Slippage
+• Market Impact
+
+Produces
+
+• Execution Report
+
+====================================================================
+"""
 
 from __future__ import annotations
 
-import numpy as np
-import pandas as pd
+from execution.execution_report import ExecutionReport
+from execution.order import Order
+from execution.order_router import OrderRouter
+from execution.execution_model import ExecutionModel
 
 
-# ==========================================================
-# ORDER BOOK SIMULATOR
-# ==========================================================
+class ExecutionEngine:
+    """
+    Institutional execution engine.
+    """
 
-class OrderBookSimulator:
+    def __init__(
 
-    @staticmethod
-    def estimate_fill_rate(
-        trade_value,
-        adv_20d
+        self,
+
+        router: OrderRouter,
+
+        execution_model: ExecutionModel,
+
+    ) -> None:
+
+        self.router = router
+
+        self.execution_model = execution_model
+
+    # =====================================================
+    # VALIDATE
+    # =====================================================
+
+    def validate(
+
+        self,
+
+        order: Order,
+
+    ) -> None:
+
+        order.validate()
+
+    # =====================================================
+    # ROUTE
+    # =====================================================
+
+    def route(
+
+        self,
+
+        order: Order,
+
     ):
 
-        if adv_20d <= 0:
+        return self.router.route(
 
-            return 0.0
-
-        participation = (
-            trade_value / adv_20d
-        )
-
-        fill_rate = max(
-            0.0,
-            1.0 - participation
-        )
-
-        return min(
-            fill_rate,
-            1.0
-        )
-
-
-# ==========================================================
-# PARTICIPATION MODEL
-# ==========================================================
-
-class ParticipationModel:
-
-    @staticmethod
-    def calculate(
-        trades
-    ):
-
-        trades = trades.copy()
-
-        trades[
-            "Participation_Rate"
-        ] = (
-
-            trades["Trade_Value"]
-
-            /
-
-            trades["ADV_20D"]
+            order
 
         )
 
-        return trades
-    
-# ==========================================================
-# MARKET IMPACT MODEL
-# ==========================================================
+    # =====================================================
+    # EXECUTE
+    # =====================================================
 
-class MarketImpactModel:
+    def execute(
 
-    @staticmethod
-    def estimate(
-        trades
-    ):
+        self,
 
-        trades = trades.copy()
+        order: Order,
 
-        trades[
-            "Market_Impact_bps"
-        ] = (
+    ) -> ExecutionReport:
 
-            15
+        self.validate(
 
-            *
+            order
 
-            np.sqrt(
+        )
 
-                trades[
-                    "Participation_Rate"
-                ]
+        routed_order = self.route(
 
-                .clip(
-                    lower=0
+            order
+
+        )
+
+        return self.execution_model.execute(
+
+            routed_order
+
+        )
+
+    # =====================================================
+    # BATCH EXECUTION
+    # =====================================================
+
+    def execute_all(
+
+        self,
+
+        orders: list[Order],
+
+    ) -> list[ExecutionReport]:
+
+        reports: list[ExecutionReport] = []
+
+        for order in orders:
+
+            reports.append(
+
+                self.execute(
+
+                    order
+
                 )
 
             )
 
-        )
+        return reports
 
-        return trades
+    # =====================================================
+    # SUMMARY
+    # =====================================================
 
+    def summary(
 
-# ==========================================================
-# SLIPPAGE MODEL
-# ==========================================================
-
-class SlippageModel:
-
-    @staticmethod
-    def estimate(
-        trades
-    ):
-
-        trades = trades.copy()
-
-        trades[
-            "Slippage_bps"
-        ] = (
-
-            2
-
-            +
-
-            trades[
-                "Market_Impact_bps"
-            ]
-
-            * 0.50
-
-        )
-
-        return trades
-    
-# ==========================================================
-# VWAP MODEL
-# ==========================================================
-
-class VWAPExecutionModel:
-
-    @staticmethod
-    def estimate_price(
-        trades
-    ):
-
-        trades = trades.copy()
-
-        trades[
-            "VWAP_Price"
-        ] = (
-
-            trades["Last_Price"]
-
-            *
-
-            (
-
-                1
-
-                +
-
-                trades[
-                    "Slippage_bps"
-                ]
-
-                / 10000
-
-            )
-
-        )
-
-        return trades
-
-
-# ==========================================================
-# TWAP MODEL
-# ==========================================================
-
-class TWAPExecutionModel:
-
-    @staticmethod
-    def estimate_price(
-        trades
-    ):
-
-        trades = trades.copy()
-
-        trades[
-            "TWAP_Price"
-        ] = (
-
-            trades["Last_Price"]
-
-            *
-
-            (
-
-                1
-
-                +
-
-                trades[
-                    "Slippage_bps"
-                ]
-
-                / 12000
-
-            )
-
-        )
-
-        return trades
-    
-# ==========================================================
-# EXECUTION ANALYTICS
-# ==========================================================
-
-class ExecutionAnalytics:
-
-    @staticmethod
-    def implementation_shortfall(
-        trades
-    ):
-
-        trades = trades.copy()
-
-        trades[
-            "Implementation_Shortfall"
-        ] = (
-
-            trades[
-                "VWAP_Price"
-            ]
-
-            -
-
-            trades[
-                "Last_Price"
-            ]
-
-        )
-
-        return trades
-
-
-# ==========================================================
-# EXECUTION ENGINE
-# ==========================================================
-
-class ExecutionEngine:
-
-    def run(
         self,
-        trades
-    ):
 
-        trades = (
-            ParticipationModel
-            .calculate(trades)
+        reports: list[ExecutionReport],
+
+    ) -> dict:
+
+        total_orders = len(
+
+            reports
+
         )
 
-        trades = (
-            MarketImpactModel
-            .estimate(trades)
+        filled = sum(
+
+            report.is_filled
+
+            for report in reports
+
         )
 
-        trades = (
-            SlippageModel
-            .estimate(trades)
+        partial = sum(
+
+            report.is_partial
+
+            for report in reports
+
         )
 
-        trades = (
-            VWAPExecutionModel
-            .estimate_price(trades)
+        rejected = sum(
+
+            report.is_rejected
+
+            for report in reports
+
         )
 
-        trades = (
-            TWAPExecutionModel
-            .estimate_price(trades)
+        total_cost = sum(
+
+            report.total_cost
+
+            for report in reports
+
         )
 
-        trades = (
-            ExecutionAnalytics
-            .implementation_shortfall(
-                trades
-            )
+        return {
+
+            "Orders":
+
+                total_orders,
+
+            "Filled":
+
+                filled,
+
+            "Partial":
+
+                partial,
+
+            "Rejected":
+
+                rejected,
+
+            "Total_Cost":
+
+                total_cost,
+
+        }
+
+    # =====================================================
+    # REPRESENTATION
+    # =====================================================
+
+    def __repr__(
+
+        self,
+
+    ) -> str:
+
+        return (
+
+            f"{self.__class__.__name__}("
+
+            f"Router={self.router.__class__.__name__}, "
+
+            f"ExecutionModel={self.execution_model.__class__.__name__}"
+
+            f")"
+
         )
 
-        print(
-            "\n✓ Execution Simulation Complete"
-        )
-
-        return trades
+    __str__ = __repr__
