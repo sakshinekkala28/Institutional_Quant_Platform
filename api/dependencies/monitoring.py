@@ -12,14 +12,16 @@ FastAPI dependency providers for monitoring services.
 
 Provides
 
-• Monitoring Service
-• Health Checker
-• Metrics Collector
-• Alert Manager
-• Audit Service
-• System Diagnostics
-• Performance Monitor
-• Event Logger
+• Live Portfolio Monitor
+• System Monitor
+• Health Monitor
+• Risk Monitor
+• Signal Monitor
+• Execution Monitor
+• Portfolio Monitor
+• Data Monitor
+• Metrics Registry
+• Alert Engine
 
 Used By
 
@@ -36,165 +38,185 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from monitoring.monitoring_service import (
-    MonitoringService,
+from monitoring.live_portfolio_monitor import (
+    LivePortfolioMonitor,
 )
 
-from monitoring.health_checker import (
-    HealthChecker,
+from monitoring.system_monitor import (
+    SystemMonitor,
 )
 
-from monitoring.metrics_collector import (
-    MetricsCollector,
+from monitoring.health_monitor import (
+    HealthMonitor,
 )
 
-from monitoring.alert_manager import (
-    AlertManager,
+from monitoring.risk_monitor import (
+    RiskMonitor,
 )
 
-from monitoring.audit_service import (
-    AuditService,
+from monitoring.signal_monitor import (
+    SignalMonitor,
 )
 
-from monitoring.system_diagnostics import (
-    SystemDiagnostics,
+from monitoring.execution_monitor import (
+    ExecutionMonitor,
 )
 
-from monitoring.performance_monitor import (
-    PerformanceMonitor,
+from monitoring.portfolio_monitor import (
+    PortfolioMonitor,
 )
 
-from monitoring.event_logger import (
-    EventLogger,
+from monitoring.data_monitor import (
+    DataMonitor,
+)
+
+from monitoring.metrics_registry import (
+    MetricsRegistry,
+)
+
+from monitoring.alert_engine import (
+    AlertEngine,
 )
 
 
 # ==========================================================
-# MONITORING SERVICE
+# LIVE PORTFOLIO MONITOR
 # ==========================================================
 
 
 @lru_cache
-def get_monitoring_service(
-
-) -> MonitoringService:
+def get_live_portfolio_monitor() -> LivePortfolioMonitor:
     """
-    Primary monitoring service.
+    Live portfolio monitor.
     """
 
-    return MonitoringService()
+    return LivePortfolioMonitor()
 
 
 # ==========================================================
-# HEALTH CHECKER
+# SYSTEM MONITOR
 # ==========================================================
 
 
 @lru_cache
-def get_health_checker(
-
-) -> HealthChecker:
+def get_system_monitor() -> SystemMonitor:
     """
-    Health checker.
+    System monitor.
     """
 
-    return HealthChecker()
+    return SystemMonitor()
 
 
 # ==========================================================
-# METRICS COLLECTOR
+# HEALTH MONITOR
 # ==========================================================
 
 
 @lru_cache
-def get_metrics_collector(
-
-) -> MetricsCollector:
+def get_health_monitor() -> HealthMonitor:
     """
-    Metrics collector.
+    Health monitor.
     """
 
-    return MetricsCollector()
+    return HealthMonitor()
 
 
 # ==========================================================
-# ALERT MANAGER
+# RISK MONITOR
 # ==========================================================
 
 
 @lru_cache
-def get_alert_manager(
-
-) -> AlertManager:
+def get_risk_monitor() -> RiskMonitor:
     """
-    Alert manager.
+    Risk monitor.
     """
 
-    return AlertManager()
+    return RiskMonitor()
 
 
 # ==========================================================
-# AUDIT SERVICE
+# SIGNAL MONITOR
 # ==========================================================
 
 
 @lru_cache
-def get_audit_service(
-
-) -> AuditService:
+def get_signal_monitor() -> SignalMonitor:
     """
-    Audit service.
+    Signal monitor.
     """
 
-    return AuditService()
+    return SignalMonitor()
 
 
 # ==========================================================
-# SYSTEM DIAGNOSTICS
+# EXECUTION MONITOR
 # ==========================================================
 
 
 @lru_cache
-def get_system_diagnostics(
-
-) -> SystemDiagnostics:
+def get_execution_monitor() -> ExecutionMonitor:
     """
-    System diagnostics.
+    Execution monitor.
     """
 
-    return SystemDiagnostics()
+    return ExecutionMonitor()
 
 
 # ==========================================================
-# PERFORMANCE MONITOR
+# PORTFOLIO MONITOR
 # ==========================================================
 
 
 @lru_cache
-def get_performance_monitor(
-
-) -> PerformanceMonitor:
+def get_portfolio_monitor() -> PortfolioMonitor:
     """
-    Performance monitor.
+    Portfolio monitor.
     """
 
-    return PerformanceMonitor()
+    return PortfolioMonitor()
 
 
 # ==========================================================
-# EVENT LOGGER
+# DATA MONITOR
 # ==========================================================
 
 
 @lru_cache
-def get_event_logger(
-
-) -> EventLogger:
+def get_data_monitor() -> DataMonitor:
     """
-    Event logger.
+    Data monitor.
     """
 
-    return EventLogger()
+    return DataMonitor()
+
+
+# ==========================================================
+# METRICS REGISTRY
+# ==========================================================
+
+
+@lru_cache
+def get_metrics_registry() -> MetricsRegistry:
+    """
+    Metrics registry.
+    """
+
+    return MetricsRegistry()
+
+
+# ==========================================================
+# ALERT ENGINE
+# ==========================================================
+
+
+@lru_cache
+def get_alert_engine() -> AlertEngine:
+    """
+    Alert engine.
+    """
+
+    return AlertEngine()
 
 
 # ==========================================================
@@ -202,16 +224,14 @@ def get_event_logger(
 # ==========================================================
 
 
-def monitoring_health(
-
-) -> dict:
+def monitoring_health() -> dict:
     """
     Dependency health.
     """
 
     return {
 
-        "engine": "MonitoringService",
+        "engine": "LivePortfolioMonitor",
 
         "status": "healthy",
 
@@ -225,9 +245,7 @@ def monitoring_health(
 # ==========================================================
 
 
-def monitoring_summary(
-
-) -> dict:
+def monitoring_summary() -> dict:
     """
     Registered monitoring services.
     """
@@ -236,25 +254,29 @@ def monitoring_summary(
 
         "services": [
 
-            "MonitoringService",
+            "LivePortfolioMonitor",
 
-            "HealthChecker",
+            "SystemMonitor",
 
-            "MetricsCollector",
+            "HealthMonitor",
 
-            "AlertManager",
+            "RiskMonitor",
 
-            "AuditService",
+            "SignalMonitor",
 
-            "SystemDiagnostics",
+            "ExecutionMonitor",
 
-            "PerformanceMonitor",
+            "PortfolioMonitor",
 
-            "EventLogger",
+            "DataMonitor",
+
+            "MetricsRegistry",
+
+            "AlertEngine",
 
         ],
 
-        "count": 8,
+        "count": 10,
 
     }
 
@@ -266,21 +288,25 @@ def monitoring_summary(
 
 __all__ = [
 
-    "get_monitoring_service",
+    "get_live_portfolio_monitor",
 
-    "get_health_checker",
+    "get_system_monitor",
 
-    "get_metrics_collector",
+    "get_health_monitor",
 
-    "get_alert_manager",
+    "get_risk_monitor",
 
-    "get_audit_service",
+    "get_signal_monitor",
 
-    "get_system_diagnostics",
+    "get_execution_monitor",
 
-    "get_performance_monitor",
+    "get_portfolio_monitor",
 
-    "get_event_logger",
+    "get_data_monitor",
+
+    "get_metrics_registry",
+
+    "get_alert_engine",
 
     "monitoring_health",
 
