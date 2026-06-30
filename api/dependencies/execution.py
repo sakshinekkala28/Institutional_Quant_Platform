@@ -13,14 +13,13 @@ FastAPI dependency providers for execution services.
 Provides
 
 • Execution Engine
-• Order Manager
-• Execution Manager
-• VWAP Engine
-• TWAP Engine
+• Trade Engine
+• Order Router
 • Slippage Engine
-• Market Impact Engine
+• Market Impact
 • Transaction Cost Engine
 • Execution Analytics
+• Monitoring Engine
 
 Used By
 
@@ -39,36 +38,32 @@ from execution.execution_engine import (
     ExecutionEngine,
 )
 
-from execution.order_manager import (
-    OrderManager,
+from execution.trade_engine import (
+    TradeEngine,
 )
 
-from execution.execution_manager import (
-    ExecutionManager,
-)
-
-from execution.vwap_engine import (
-    VWAPEngine,
-)
-
-from execution.twap_engine import (
-    TWAPEngine,
+from execution.order_router import (
+    OrderRouter,
 )
 
 from execution.slippage_engine import (
     SlippageEngine,
 )
 
-from execution.market_impact_engine import (
-    MarketImpactEngine,
+from execution.market_impact import (
+    MarketImpact,
 )
 
 from execution.transaction_cost_engine import (
     TransactionCostEngine,
 )
 
-from execution.execution_analytics import (
+from execution.execution_simulator import (
     ExecutionAnalytics,
+)
+
+from execution.monitoring_engine import (
+    MonitoringEngine,
 )
 
 
@@ -78,93 +73,49 @@ from execution.execution_analytics import (
 
 
 @lru_cache
-def get_execution_engine(
-
-) -> ExecutionEngine:
+def get_execution_engine() -> ExecutionEngine:
     """
-    Execution engine.
+    Primary execution engine.
     """
-
     return ExecutionEngine()
 
 
 # ==========================================================
-# ORDER MANAGER
+# TRADE ENGINE
 # ==========================================================
 
 
 @lru_cache
-def get_order_manager(
-
-) -> OrderManager:
+def get_trade_engine() -> TradeEngine:
     """
-    Order manager.
+    Trade generation engine.
     """
-
-    return OrderManager()
+    return TradeEngine()
 
 
 # ==========================================================
-# EXECUTION MANAGER
+# ORDER ROUTER
 # ==========================================================
 
 
 @lru_cache
-def get_execution_manager(
-
-) -> ExecutionManager:
+def get_order_router() -> OrderRouter:
     """
-    Execution manager.
+    Order routing engine.
     """
-
-    return ExecutionManager()
+    return OrderRouter()
 
 
 # ==========================================================
-# VWAP
+# SLIPPAGE ENGINE
 # ==========================================================
 
 
 @lru_cache
-def get_vwap_engine(
-
-) -> VWAPEngine:
+def get_slippage_engine() -> SlippageEngine:
     """
-    VWAP engine.
+    Slippage model.
     """
-
-    return VWAPEngine()
-
-
-# ==========================================================
-# TWAP
-# ==========================================================
-
-
-@lru_cache
-def get_twap_engine(
-
-) -> TWAPEngine:
-    """
-    TWAP engine.
-    """
-
-    return TWAPEngine()
-
-
-# ==========================================================
-# SLIPPAGE
-# ==========================================================
-
-
-@lru_cache
-def get_slippage_engine(
-
-) -> SlippageEngine:
-    """
-    Slippage engine.
-    """
-
     return SlippageEngine()
 
 
@@ -174,29 +125,23 @@ def get_slippage_engine(
 
 
 @lru_cache
-def get_market_impact_engine(
-
-) -> MarketImpactEngine:
+def get_market_impact() -> MarketImpact:
     """
     Market impact model.
     """
-
-    return MarketImpactEngine()
+    return MarketImpact()
 
 
 # ==========================================================
-# TRANSACTION COST
+# TRANSACTION COST ENGINE
 # ==========================================================
 
 
 @lru_cache
-def get_transaction_cost_engine(
-
-) -> TransactionCostEngine:
+def get_transaction_cost_engine() -> TransactionCostEngine:
     """
     Transaction cost engine.
     """
-
     return TransactionCostEngine()
 
 
@@ -206,14 +151,24 @@ def get_transaction_cost_engine(
 
 
 @lru_cache
-def get_execution_analytics(
-
-) -> ExecutionAnalytics:
+def get_execution_analytics() -> ExecutionAnalytics:
     """
     Execution analytics.
     """
-
     return ExecutionAnalytics()
+
+
+# ==========================================================
+# MONITORING ENGINE
+# ==========================================================
+
+
+@lru_cache
+def get_monitoring_engine() -> MonitoringEngine:
+    """
+    Execution monitoring.
+    """
+    return MonitoringEngine()
 
 
 # ==========================================================
@@ -221,9 +176,10 @@ def get_execution_analytics(
 # ==========================================================
 
 
-def execution_health(
-
-) -> dict:
+def execution_health() -> dict:
+    """
+    Dependency health.
+    """
 
     return {
 
@@ -241,9 +197,10 @@ def execution_health(
 # ==========================================================
 
 
-def execution_summary(
-
-) -> dict:
+def execution_summary() -> dict:
+    """
+    Registered services.
+    """
 
     return {
 
@@ -251,25 +208,23 @@ def execution_summary(
 
             "ExecutionEngine",
 
-            "OrderManager",
+            "TradeEngine",
 
-            "ExecutionManager",
-
-            "VWAPEngine",
-
-            "TWAPEngine",
+            "OrderRouter",
 
             "SlippageEngine",
 
-            "MarketImpactEngine",
+            "MarketImpact",
 
             "TransactionCostEngine",
 
             "ExecutionAnalytics",
 
+            "MonitoringEngine",
+
         ],
 
-        "count": 9,
+        "count": 8,
 
     }
 
@@ -283,21 +238,19 @@ __all__ = [
 
     "get_execution_engine",
 
-    "get_order_manager",
+    "get_trade_engine",
 
-    "get_execution_manager",
-
-    "get_vwap_engine",
-
-    "get_twap_engine",
+    "get_order_router",
 
     "get_slippage_engine",
 
-    "get_market_impact_engine",
+    "get_market_impact",
 
     "get_transaction_cost_engine",
 
     "get_execution_analytics",
+
+    "get_monitoring_engine",
 
     "execution_health",
 

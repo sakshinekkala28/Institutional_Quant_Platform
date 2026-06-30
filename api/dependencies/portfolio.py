@@ -13,11 +13,12 @@ FastAPI dependency providers for portfolio services.
 Provides
 
 • Portfolio Engine
-• Portfolio Manager
-• Holdings Service
-• Allocation Service
-• Performance Service
-• Portfolio Analytics
+• Portfolio Constructor
+• Portfolio Validator
+• Portfolio Health Check
+• Risk Parity Allocator
+• Constraint Engine
+• Black-Litterman Overlay
 
 Used By
 
@@ -33,24 +34,14 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from analytics.portfolio.portfolio_engine import (
+from portfolio.portfolio_engine import (
     PortfolioEngine,
-)
-
-from analytics.portfolio.performance_engine import (
-    PerformanceEngine,
-)
-
-from analytics.portfolio.allocation_engine import (
-    AllocationEngine,
-)
-
-from analytics.portfolio.holdings_engine import (
-    HoldingsEngine,
-)
-
-from analytics.portfolio.analytics_engine import (
-    PortfolioAnalyticsEngine,
+    PortfolioConstructor,
+    PortfolioDataValidator,
+    PortfolioHealthCheck,
+    RiskParityAllocator,
+    ConstraintEngine,
+    BlackLittermanOverlay,
 )
 
 
@@ -60,78 +51,89 @@ from analytics.portfolio.analytics_engine import (
 
 
 @lru_cache
-def get_portfolio_engine(
-
-) -> PortfolioEngine:
+def get_portfolio_engine() -> PortfolioEngine:
     """
-    Portfolio engine singleton.
+    Primary portfolio engine.
     """
-
     return PortfolioEngine()
 
 
 # ==========================================================
-# HOLDINGS ENGINE
+# PORTFOLIO CONSTRUCTOR
 # ==========================================================
 
 
 @lru_cache
-def get_holdings_engine(
-
-) -> HoldingsEngine:
+def get_portfolio_constructor() -> PortfolioConstructor:
     """
-    Holdings engine.
+    Portfolio construction engine.
     """
-
-    return HoldingsEngine()
+    return PortfolioConstructor()
 
 
 # ==========================================================
-# ALLOCATION ENGINE
+# PORTFOLIO VALIDATOR
 # ==========================================================
 
 
 @lru_cache
-def get_allocation_engine(
-
-) -> AllocationEngine:
+def get_portfolio_validator() -> PortfolioDataValidator:
     """
-    Allocation engine.
+    Portfolio validation service.
     """
-
-    return AllocationEngine()
+    return PortfolioDataValidator()
 
 
 # ==========================================================
-# PERFORMANCE ENGINE
+# HEALTH CHECK
 # ==========================================================
 
 
 @lru_cache
-def get_performance_engine(
-
-) -> PerformanceEngine:
+def get_portfolio_health_check() -> PortfolioHealthCheck:
     """
-    Performance engine.
+    Portfolio health checker.
     """
-
-    return PerformanceEngine()
+    return PortfolioHealthCheck()
 
 
 # ==========================================================
-# ANALYTICS ENGINE
+# RISK PARITY
 # ==========================================================
 
 
 @lru_cache
-def get_portfolio_analytics(
-
-) -> PortfolioAnalyticsEngine:
+def get_risk_parity_allocator() -> RiskParityAllocator:
     """
-    Portfolio analytics.
+    Risk parity allocation engine.
     """
+    return RiskParityAllocator()
 
-    return PortfolioAnalyticsEngine()
+
+# ==========================================================
+# CONSTRAINT ENGINE
+# ==========================================================
+
+
+@lru_cache
+def get_constraint_engine() -> ConstraintEngine:
+    """
+    Portfolio constraint engine.
+    """
+    return ConstraintEngine()
+
+
+# ==========================================================
+# BLACK-LITTERMAN
+# ==========================================================
+
+
+@lru_cache
+def get_black_litterman_overlay() -> BlackLittermanOverlay:
+    """
+    Black-Litterman overlay.
+    """
+    return BlackLittermanOverlay()
 
 
 # ==========================================================
@@ -139,11 +141,9 @@ def get_portfolio_analytics(
 # ==========================================================
 
 
-def portfolio_health(
-
-) -> dict:
+def portfolio_health() -> dict:
     """
-    Portfolio dependency health.
+    Dependency health.
     """
 
     return {
@@ -162,11 +162,9 @@ def portfolio_health(
 # ==========================================================
 
 
-def portfolio_summary(
-
-) -> dict:
+def portfolio_summary() -> dict:
     """
-    Portfolio services summary.
+    Registered services.
     """
 
     return {
@@ -175,17 +173,21 @@ def portfolio_summary(
 
             "PortfolioEngine",
 
-            "HoldingsEngine",
+            "PortfolioConstructor",
 
-            "AllocationEngine",
+            "PortfolioDataValidator",
 
-            "PerformanceEngine",
+            "PortfolioHealthCheck",
 
-            "PortfolioAnalyticsEngine",
+            "RiskParityAllocator",
+
+            "ConstraintEngine",
+
+            "BlackLittermanOverlay",
 
         ],
 
-        "count": 5,
+        "count": 7,
 
     }
 
@@ -199,13 +201,17 @@ __all__ = [
 
     "get_portfolio_engine",
 
-    "get_holdings_engine",
+    "get_portfolio_constructor",
 
-    "get_allocation_engine",
+    "get_portfolio_validator",
 
-    "get_performance_engine",
+    "get_portfolio_health_check",
 
-    "get_portfolio_analytics",
+    "get_risk_parity_allocator",
+
+    "get_constraint_engine",
+
+    "get_black_litterman_overlay",
 
     "portfolio_health",
 

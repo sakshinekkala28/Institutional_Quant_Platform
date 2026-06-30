@@ -13,13 +13,13 @@ FastAPI dependency providers for backtesting services.
 Provides
 
 • Backtest Engine
-• Performance Analyzer
+• Performance Engine
 • Benchmark Engine
-• Attribution Engine
-• Statistics Engine
-• Report Generator
-• Walk Forward Engine
-• Scenario Engine
+• Backtest Report
+• Portfolio Tracker
+• Position Manager
+• Cash Manager
+• Event Engine
 
 Used By
 
@@ -39,32 +39,32 @@ from backtesting.backtest_engine import (
     BacktestEngine,
 )
 
-from backtesting.performance_analyzer import (
-    PerformanceAnalyzer,
+from backtesting.performance_engine import (
+    PerformanceEngine,
 )
 
 from backtesting.benchmark_engine import (
     BenchmarkEngine,
 )
 
-from backtesting.attribution_engine import (
-    AttributionEngine,
+from backtesting.backtest_report import (
+    BacktestReport,
 )
 
-from backtesting.statistics_engine import (
-    StatisticsEngine,
+from backtesting.portfolio_tracker import (
+    PortfolioTracker,
 )
 
-from backtesting.report_generator import (
-    ReportGenerator,
+from backtesting.position_manager import (
+    PositionManager,
 )
 
-from backtesting.walk_forward_engine import (
-    WalkForwardEngine,
+from backtesting.cash_manager import (
+    CashManager,
 )
 
-from backtesting.scenario_engine import (
-    ScenarioEngine,
+from backtesting.event_engine import (
+    EventEngine,
 )
 
 
@@ -74,30 +74,24 @@ from backtesting.scenario_engine import (
 
 
 @lru_cache
-def get_backtest_engine(
-
-) -> BacktestEngine:
+def get_backtest_engine() -> BacktestEngine:
     """
     Primary backtest engine.
     """
-
     return BacktestEngine()
 
 
 # ==========================================================
-# PERFORMANCE ANALYZER
+# PERFORMANCE ENGINE
 # ==========================================================
 
 
 @lru_cache
-def get_performance_analyzer(
-
-) -> PerformanceAnalyzer:
+def get_performance_engine() -> PerformanceEngine:
     """
-    Performance analyzer.
+    Performance engine.
     """
-
-    return PerformanceAnalyzer()
+    return PerformanceEngine()
 
 
 # ==========================================================
@@ -106,94 +100,76 @@ def get_performance_analyzer(
 
 
 @lru_cache
-def get_benchmark_engine(
-
-) -> BenchmarkEngine:
+def get_benchmark_engine() -> BenchmarkEngine:
     """
-    Benchmark comparison engine.
+    Benchmark engine.
     """
-
     return BenchmarkEngine()
 
 
 # ==========================================================
-# ATTRIBUTION ENGINE
+# BACKTEST REPORT
 # ==========================================================
 
 
 @lru_cache
-def get_attribution_engine(
-
-) -> AttributionEngine:
+def get_backtest_report() -> BacktestReport:
     """
-    Performance attribution engine.
+    Backtest reporting service.
     """
-
-    return AttributionEngine()
+    return BacktestReport()
 
 
 # ==========================================================
-# STATISTICS ENGINE
+# PORTFOLIO TRACKER
 # ==========================================================
 
 
 @lru_cache
-def get_statistics_engine(
-
-) -> StatisticsEngine:
+def get_portfolio_tracker() -> PortfolioTracker:
     """
-    Statistical analysis engine.
+    Portfolio tracker.
     """
-
-    return StatisticsEngine()
+    return PortfolioTracker()
 
 
 # ==========================================================
-# REPORT GENERATOR
+# POSITION MANAGER
 # ==========================================================
 
 
 @lru_cache
-def get_report_generator(
-
-) -> ReportGenerator:
+def get_position_manager() -> PositionManager:
     """
-    Report generator.
+    Position manager.
     """
-
-    return ReportGenerator()
+    return PositionManager()
 
 
 # ==========================================================
-# WALK FORWARD ENGINE
+# CASH MANAGER
 # ==========================================================
 
 
 @lru_cache
-def get_walk_forward_engine(
-
-) -> WalkForwardEngine:
+def get_cash_manager() -> CashManager:
     """
-    Walk-forward validation engine.
+    Cash manager.
     """
-
-    return WalkForwardEngine()
+    return CashManager()
 
 
 # ==========================================================
-# SCENARIO ENGINE
+# EVENT ENGINE
 # ==========================================================
 
 
 @lru_cache
-def get_scenario_engine(
-
-) -> ScenarioEngine:
+def get_event_engine() -> EventEngine:
     """
-    Scenario analysis engine.
+    Event processing engine.
     """
-
-    return ScenarioEngine()
+    return EventEngine()
 
 
 # ==========================================================
@@ -201,9 +177,7 @@ def get_scenario_engine(
 # ==========================================================
 
 
-def backtest_health(
-
-) -> dict:
+def backtest_health() -> dict:
     """
     Dependency health.
     """
@@ -224,9 +198,7 @@ def backtest_health(
 # ==========================================================
 
 
-def backtest_summary(
-
-) -> dict:
+def backtest_summary() -> dict:
     """
     Registered services.
     """
@@ -237,19 +209,19 @@ def backtest_summary(
 
             "BacktestEngine",
 
-            "PerformanceAnalyzer",
+            "PerformanceEngine",
 
             "BenchmarkEngine",
 
-            "AttributionEngine",
+            "BacktestReport",
 
-            "StatisticsEngine",
+            "PortfolioTracker",
 
-            "ReportGenerator",
+            "PositionManager",
 
-            "WalkForwardEngine",
+            "CashManager",
 
-            "ScenarioEngine",
+            "EventEngine",
 
         ],
 
@@ -267,19 +239,19 @@ __all__ = [
 
     "get_backtest_engine",
 
-    "get_performance_analyzer",
+    "get_performance_engine",
 
     "get_benchmark_engine",
 
-    "get_attribution_engine",
+    "get_backtest_report",
 
-    "get_statistics_engine",
+    "get_portfolio_tracker",
 
-    "get_report_generator",
+    "get_position_manager",
 
-    "get_walk_forward_engine",
+    "get_cash_manager",
 
-    "get_scenario_engine",
+    "get_event_engine",
 
     "backtest_health",
 

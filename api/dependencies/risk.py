@@ -13,13 +13,19 @@ FastAPI dependency providers for risk management services.
 Provides
 
 • Risk Engine
-• VaR Engine
-• Expected Shortfall Engine
-• Stress Testing Engine
-• Exposure Engine
-• Factor Risk Engine
-• Concentration Risk Engine
-• Risk Monitor
+• Covariance Engine
+• Volatility Engine
+• Beta Engine
+• Tracking Error Engine
+• Risk Contribution Engine
+• Factor Exposure Engine
+• Tail Risk Engine
+• Governance Engine
+• Position Limit Engine
+• Sector Limit Engine
+• Concentration Engine
+• Turnover Governance
+• Audit Engine
 
 Used By
 
@@ -38,34 +44,22 @@ from functools import lru_cache
 
 from risk.risk_engine import (
     RiskEngine,
+    CovarianceEngine,
+    VolatilityEngine,
+    BetaEngine,
+    TrackingErrorEngine,
+    RiskContributionEngine,
+    FactorExposureEngine,
+    TailRiskEngine,
 )
 
-from risk.var_engine import (
-    ValueAtRiskEngine,
-)
-
-from risk.expected_shortfall_engine import (
-    ExpectedShortfallEngine,
-)
-
-from risk.stress_testing_engine import (
-    StressTestingEngine,
-)
-
-from risk.exposure_engine import (
-    ExposureEngine,
-)
-
-from risk.factor_risk_engine import (
-    FactorRiskEngine,
-)
-
-from risk.concentration_engine import (
-    ConcentrationRiskEngine,
-)
-
-from risk.risk_monitor import (
-    RiskMonitor,
+from risk.governance_engine import (
+    GovernanceEngine,
+    PositionLimitEngine,
+    SectorLimitEngine,
+    ConcentrationEngine,
+    TurnoverGovernance,
+    AuditEngine,
 )
 
 
@@ -75,126 +69,180 @@ from risk.risk_monitor import (
 
 
 @lru_cache
-def get_risk_engine(
-
-) -> RiskEngine:
+def get_risk_engine() -> RiskEngine:
     """
-    Portfolio risk engine.
+    Primary portfolio risk engine.
     """
-
     return RiskEngine()
 
 
 # ==========================================================
-# VALUE AT RISK
+# COVARIANCE
 # ==========================================================
 
 
 @lru_cache
-def get_var_engine(
-
-) -> ValueAtRiskEngine:
+def get_covariance_engine() -> CovarianceEngine:
     """
-    Value-at-Risk engine.
+    Covariance estimation engine.
     """
-
-    return ValueAtRiskEngine()
+    return CovarianceEngine()
 
 
 # ==========================================================
-# EXPECTED SHORTFALL
+# VOLATILITY
 # ==========================================================
 
 
 @lru_cache
-def get_expected_shortfall_engine(
-
-) -> ExpectedShortfallEngine:
+def get_volatility_engine() -> VolatilityEngine:
     """
-    Expected Shortfall engine.
+    Volatility engine.
     """
-
-    return ExpectedShortfallEngine()
+    return VolatilityEngine()
 
 
 # ==========================================================
-# STRESS TESTING
+# BETA
 # ==========================================================
 
 
 @lru_cache
-def get_stress_testing_engine(
-
-) -> StressTestingEngine:
+def get_beta_engine() -> BetaEngine:
     """
-    Stress testing engine.
+    Beta calculation engine.
     """
-
-    return StressTestingEngine()
+    return BetaEngine()
 
 
 # ==========================================================
-# EXPOSURE
+# TRACKING ERROR
 # ==========================================================
 
 
 @lru_cache
-def get_exposure_engine(
-
-) -> ExposureEngine:
+def get_tracking_error_engine() -> TrackingErrorEngine:
     """
-    Exposure analytics engine.
+    Tracking error engine.
     """
-
-    return ExposureEngine()
+    return TrackingErrorEngine()
 
 
 # ==========================================================
-# FACTOR RISK
+# RISK CONTRIBUTION
 # ==========================================================
 
 
 @lru_cache
-def get_factor_risk_engine(
-
-) -> FactorRiskEngine:
+def get_risk_contribution_engine() -> RiskContributionEngine:
     """
-    Factor risk model.
+    Marginal risk contribution engine.
     """
-
-    return FactorRiskEngine()
+    return RiskContributionEngine()
 
 
 # ==========================================================
-# CONCENTRATION RISK
+# FACTOR EXPOSURE
 # ==========================================================
 
 
 @lru_cache
-def get_concentration_engine(
-
-) -> ConcentrationRiskEngine:
+def get_factor_exposure_engine() -> FactorExposureEngine:
     """
-    Concentration risk engine.
+    Factor exposure engine.
     """
-
-    return ConcentrationRiskEngine()
+    return FactorExposureEngine()
 
 
 # ==========================================================
-# RISK MONITOR
+# TAIL RISK
 # ==========================================================
 
 
 @lru_cache
-def get_risk_monitor(
-
-) -> RiskMonitor:
+def get_tail_risk_engine() -> TailRiskEngine:
     """
-    Continuous risk monitor.
+    Tail risk engine.
     """
+    return TailRiskEngine()
 
-    return RiskMonitor()
+
+# ==========================================================
+# GOVERNANCE
+# ==========================================================
+
+
+@lru_cache
+def get_governance_engine() -> GovernanceEngine:
+    """
+    Governance engine.
+    """
+    return GovernanceEngine()
+
+
+# ==========================================================
+# POSITION LIMITS
+# ==========================================================
+
+
+@lru_cache
+def get_position_limit_engine() -> PositionLimitEngine:
+    """
+    Position limit engine.
+    """
+    return PositionLimitEngine()
+
+
+# ==========================================================
+# SECTOR LIMITS
+# ==========================================================
+
+
+@lru_cache
+def get_sector_limit_engine() -> SectorLimitEngine:
+    """
+    Sector limit engine.
+    """
+    return SectorLimitEngine()
+
+
+# ==========================================================
+# CONCENTRATION
+# ==========================================================
+
+
+@lru_cache
+def get_concentration_engine() -> ConcentrationEngine:
+    """
+    Concentration engine.
+    """
+    return ConcentrationEngine()
+
+
+# ==========================================================
+# TURNOVER GOVERNANCE
+# ==========================================================
+
+
+@lru_cache
+def get_turnover_governance() -> TurnoverGovernance:
+    """
+    Turnover governance engine.
+    """
+    return TurnoverGovernance()
+
+
+# ==========================================================
+# AUDIT
+# ==========================================================
+
+
+@lru_cache
+def get_audit_engine() -> AuditEngine:
+    """
+    Risk audit engine.
+    """
+    return AuditEngine()
 
 
 # ==========================================================
@@ -202,9 +250,7 @@ def get_risk_monitor(
 # ==========================================================
 
 
-def risk_health(
-
-) -> dict:
+def risk_health() -> dict:
     """
     Dependency health.
     """
@@ -225,9 +271,7 @@ def risk_health(
 # ==========================================================
 
 
-def risk_summary(
-
-) -> dict:
+def risk_summary() -> dict:
     """
     Registered services.
     """
@@ -238,23 +282,35 @@ def risk_summary(
 
             "RiskEngine",
 
-            "ValueAtRiskEngine",
+            "CovarianceEngine",
 
-            "ExpectedShortfallEngine",
+            "VolatilityEngine",
 
-            "StressTestingEngine",
+            "BetaEngine",
 
-            "ExposureEngine",
+            "TrackingErrorEngine",
 
-            "FactorRiskEngine",
+            "RiskContributionEngine",
 
-            "ConcentrationRiskEngine",
+            "FactorExposureEngine",
 
-            "RiskMonitor",
+            "TailRiskEngine",
+
+            "GovernanceEngine",
+
+            "PositionLimitEngine",
+
+            "SectorLimitEngine",
+
+            "ConcentrationEngine",
+
+            "TurnoverGovernance",
+
+            "AuditEngine",
 
         ],
 
-        "count": 8,
+        "count": 14,
 
     }
 
@@ -268,19 +324,31 @@ __all__ = [
 
     "get_risk_engine",
 
-    "get_var_engine",
+    "get_covariance_engine",
 
-    "get_expected_shortfall_engine",
+    "get_volatility_engine",
 
-    "get_stress_testing_engine",
+    "get_beta_engine",
 
-    "get_exposure_engine",
+    "get_tracking_error_engine",
 
-    "get_factor_risk_engine",
+    "get_risk_contribution_engine",
+
+    "get_factor_exposure_engine",
+
+    "get_tail_risk_engine",
+
+    "get_governance_engine",
+
+    "get_position_limit_engine",
+
+    "get_sector_limit_engine",
 
     "get_concentration_engine",
 
-    "get_risk_monitor",
+    "get_turnover_governance",
+
+    "get_audit_engine",
 
     "risk_health",
 
