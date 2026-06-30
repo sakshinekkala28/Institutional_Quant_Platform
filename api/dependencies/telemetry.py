@@ -12,14 +12,13 @@ FastAPI dependency providers for telemetry services.
 
 Provides
 
-• Telemetry Service
+• Telemetry
 • Metrics Registry
-• OpenTelemetry Provider
-• Trace Manager
-• Span Manager
-• Performance Collector
-• Metrics Exporter
-• Distributed Tracing
+• Metric
+• Event
+• Cost Telemetry
+• Logging Manager
+• Audit Logger
 
 Used By
 
@@ -35,53 +34,41 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from telemetry.telemetry_service import (
-    TelemetryService,
+from monitoring.telemetry import (
+    Telemetry,
+    Metric,
+    Event,
 )
 
-from telemetry.metrics_registry import (
+from monitoring.metrics_registry import (
     MetricsRegistry,
 )
 
-from telemetry.opentelemetry_provider import (
-    OpenTelemetryProvider,
+from execution.transaction_cost_engine import (
+    CostTelemetry,
 )
 
-from telemetry.trace_manager import (
-    TraceManager,
+from core.logging_manager import (
+    LoggingManager,
 )
 
-from telemetry.span_manager import (
-    SpanManager,
-)
-
-from telemetry.performance_collector import (
-    PerformanceCollector,
-)
-
-from telemetry.metrics_exporter import (
-    MetricsExporter,
-)
-
-from telemetry.distributed_tracing import (
-    DistributedTracing,
+from core.audit_logger import (
+    AuditLogger,
 )
 
 
 # ==========================================================
-# TELEMETRY SERVICE
+# TELEMETRY
 # ==========================================================
 
 
 @lru_cache
-def get_telemetry(
-
-) -> TelemetryService:
+def get_telemetry() -> Telemetry:
     """
     Primary telemetry service.
     """
 
-    return TelemetryService()
+    return Telemetry()
 
 
 # ==========================================================
@@ -90,9 +77,7 @@ def get_telemetry(
 
 
 @lru_cache
-def get_metrics_registry(
-
-) -> MetricsRegistry:
+def get_metrics_registry() -> MetricsRegistry:
     """
     Metrics registry.
     """
@@ -101,99 +86,73 @@ def get_metrics_registry(
 
 
 # ==========================================================
-# OPENTELEMETRY
+# METRIC
 # ==========================================================
 
 
 @lru_cache
-def get_opentelemetry(
-
-) -> OpenTelemetryProvider:
+def get_metric() -> Metric:
     """
-    OpenTelemetry provider.
+    Metric model.
     """
 
-    return OpenTelemetryProvider()
+    return Metric()
 
 
 # ==========================================================
-# TRACE MANAGER
+# EVENT
 # ==========================================================
 
 
 @lru_cache
-def get_trace_manager(
-
-) -> TraceManager:
+def get_event() -> Event:
     """
-    Trace manager.
+    Telemetry event.
     """
 
-    return TraceManager()
+    return Event()
 
 
 # ==========================================================
-# SPAN MANAGER
+# COST TELEMETRY
 # ==========================================================
 
 
 @lru_cache
-def get_span_manager(
-
-) -> SpanManager:
+def get_cost_telemetry() -> CostTelemetry:
     """
-    Span manager.
+    Transaction-cost telemetry.
     """
 
-    return SpanManager()
+    return CostTelemetry()
 
 
 # ==========================================================
-# PERFORMANCE COLLECTOR
+# LOGGING MANAGER
 # ==========================================================
 
 
 @lru_cache
-def get_performance_collector(
-
-) -> PerformanceCollector:
+def get_logging_manager() -> LoggingManager:
     """
-    Performance collector.
+    Platform logging manager.
     """
 
-    return PerformanceCollector()
+    return LoggingManager()
 
 
 # ==========================================================
-# METRICS EXPORTER
+# AUDIT LOGGER
 # ==========================================================
 
 
 @lru_cache
-def get_metrics_exporter(
-
-) -> MetricsExporter:
+def get_audit_logger() -> AuditLogger:
     """
-    Metrics exporter.
+    Audit logger.
     """
 
-    return MetricsExporter()
-
-
-# ==========================================================
-# DISTRIBUTED TRACING
-# ==========================================================
-
-
-@lru_cache
-def get_distributed_tracing(
-
-) -> DistributedTracing:
-    """
-    Distributed tracing service.
-    """
-
-    return DistributedTracing()
+    return AuditLogger()
 
 
 # ==========================================================
@@ -201,16 +160,14 @@ def get_distributed_tracing(
 # ==========================================================
 
 
-def telemetry_health(
-
-) -> dict:
+def telemetry_health() -> dict:
     """
     Dependency health.
     """
 
     return {
 
-        "engine": "TelemetryService",
+        "engine": "Telemetry",
 
         "status": "healthy",
 
@@ -224,9 +181,7 @@ def telemetry_health(
 # ==========================================================
 
 
-def telemetry_summary(
-
-) -> dict:
+def telemetry_summary() -> dict:
     """
     Registered telemetry services.
     """
@@ -235,25 +190,23 @@ def telemetry_summary(
 
         "services": [
 
-            "TelemetryService",
+            "Telemetry",
 
             "MetricsRegistry",
 
-            "OpenTelemetryProvider",
+            "Metric",
 
-            "TraceManager",
+            "Event",
 
-            "SpanManager",
+            "CostTelemetry",
 
-            "PerformanceCollector",
+            "LoggingManager",
 
-            "MetricsExporter",
-
-            "DistributedTracing",
+            "AuditLogger",
 
         ],
 
-        "count": 8,
+        "count": 7,
 
     }
 
@@ -269,17 +222,15 @@ __all__ = [
 
     "get_metrics_registry",
 
-    "get_opentelemetry",
+    "get_metric",
 
-    "get_trace_manager",
+    "get_event",
 
-    "get_span_manager",
+    "get_cost_telemetry",
 
-    "get_performance_collector",
+    "get_logging_manager",
 
-    "get_metrics_exporter",
-
-    "get_distributed_tracing",
+    "get_audit_logger",
 
     "telemetry_health",
 

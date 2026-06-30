@@ -8,26 +8,13 @@ Author : Institutional Quant Platform
 
 Purpose
 -------
-FastAPI dependency providers for caching services.
+Placeholder dependency providers for the current repository.
 
-Provides
-
-• Cache Manager
-• Redis Client
-• In-Memory Cache
-• TTL Manager
-• Cache Statistics
-• Cache Invalidation
-• Cache Warming
-• Cache Health
-
-Used By
-
-• Portfolio Router
-• Signal Router
-• Risk Router
-• Execution Router
-• Monitoring Router
+NOTE
+----
+The current repository does not contain a dedicated cache package.
+This module provides a lightweight dependency that can later be
+extended when Redis or another caching backend is introduced.
 
 ====================================================================
 """
@@ -36,158 +23,55 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from cache.cache_manager import (
-    CacheManager,
-)
-
-from cache.redis_cache import (
-    RedisCache,
-)
-
-from cache.memory_cache import (
-    MemoryCache,
-)
-
-from cache.ttl_manager import (
-    TTLManager,
-)
-
-from cache.cache_statistics import (
-    CacheStatistics,
-)
-
-from cache.cache_invalidator import (
-    CacheInvalidator,
-)
-
-from cache.cache_warmer import (
-    CacheWarmer,
-)
-
 
 # ==========================================================
 # CACHE MANAGER
 # ==========================================================
 
 
-@lru_cache
-def get_cache(
-
-) -> CacheManager:
+class CacheManager:
     """
-    Primary cache manager.
+    Lightweight cache manager placeholder.
+
+    Replace this implementation when a dedicated cache package
+    (Redis, Memcached, DiskCache, etc.) is introduced.
+    """
+
+    def __init__(self) -> None:
+        self.enabled = False
+
+    def health(self) -> dict:
+        return {
+            "enabled": self.enabled,
+            "backend": "none",
+        }
+
+
+# ==========================================================
+# CACHE PROVIDER
+# ==========================================================
+
+
+@lru_cache
+def get_cache() -> CacheManager:
+    """
+    Cache manager singleton.
     """
 
     return CacheManager()
 
 
 # ==========================================================
-# REDIS
+# HEALTH
 # ==========================================================
 
 
-@lru_cache
-def get_redis(
-
-) -> RedisCache:
-    """
-    Redis cache.
-    """
-
-    return RedisCache()
-
-
-# ==========================================================
-# MEMORY CACHE
-# ==========================================================
-
-
-@lru_cache
-def get_memory_cache(
-
-) -> MemoryCache:
-    """
-    Local memory cache.
-    """
-
-    return MemoryCache()
-
-
-# ==========================================================
-# TTL MANAGER
-# ==========================================================
-
-
-@lru_cache
-def get_ttl_manager(
-
-) -> TTLManager:
-    """
-    TTL manager.
-    """
-
-    return TTLManager()
-
-
-# ==========================================================
-# CACHE STATISTICS
-# ==========================================================
-
-
-@lru_cache
-def get_cache_statistics(
-
-) -> CacheStatistics:
-    """
-    Cache statistics.
-    """
-
-    return CacheStatistics()
-
-
-# ==========================================================
-# CACHE INVALIDATOR
-# ==========================================================
-
-
-@lru_cache
-def get_cache_invalidator(
-
-) -> CacheInvalidator:
-    """
-    Cache invalidator.
-    """
-
-    return CacheInvalidator()
-
-
-# ==========================================================
-# CACHE WARMER
-# ==========================================================
-
-
-@lru_cache
-def get_cache_warmer(
-
-) -> CacheWarmer:
-    """
-    Cache warming service.
-    """
-
-    return CacheWarmer()
-
-
-# ==========================================================
-# CACHE HEALTH
-# ==========================================================
-
-
-def cache_health(
-
-) -> dict:
+def cache_health() -> dict:
     """
     Cache dependency health.
     """
+
+    cache = get_cache()
 
     return {
 
@@ -195,19 +79,19 @@ def cache_health(
 
         "status": "healthy",
 
+        "backend": cache.health()["backend"],
+
         "singleton": True,
 
     }
 
 
 # ==========================================================
-# CACHE SUMMARY
+# SUMMARY
 # ==========================================================
 
 
-def cache_summary(
-
-) -> dict:
+def cache_summary() -> dict:
     """
     Cache services summary.
     """
@@ -218,21 +102,9 @@ def cache_summary(
 
             "CacheManager",
 
-            "RedisCache",
-
-            "MemoryCache",
-
-            "TTLManager",
-
-            "CacheStatistics",
-
-            "CacheInvalidator",
-
-            "CacheWarmer",
-
         ],
 
-        "count": 7,
+        "count": 1,
 
     }
 
@@ -244,19 +116,9 @@ def cache_summary(
 
 __all__ = [
 
+    "CacheManager",
+
     "get_cache",
-
-    "get_redis",
-
-    "get_memory_cache",
-
-    "get_ttl_manager",
-
-    "get_cache_statistics",
-
-    "get_cache_invalidator",
-
-    "get_cache_warmer",
 
     "cache_health",
 
