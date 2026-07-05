@@ -1,28 +1,34 @@
 """
-Institutional Quant Platform
-============================
+=========================================================
+INSTITUTIONAL QUANT PLATFORM
+=========================================================
 
-Base Engine Interface
+Base Engine
 
-Every engine in the platform must inherit from BaseEngine.
+Every executable analytics engine must inherit from
+BaseEngine.
 
 Responsibilities
-----------------
-- Standard execution lifecycle
-- Logging
-- Runtime measurement
-- Validation hooks
-- Output tracking
-- Dependency declaration
 
-Author: Institutional Quant Platform
+• Standard execution lifecycle
+• Runtime measurement
+• Validation hooks
+• Pre/Post execution hooks
+• Dependency declaration
+• Metadata exposure
+• Retry configuration
+• Timeout configuration
+• Output registration
+• Execution summary
+
+=========================================================
 """
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 from time import perf_counter
 from typing import Any, Dict, List, Optional
 
@@ -30,29 +36,11 @@ from typing import Any, Dict, List, Optional
 class BaseEngine(ABC):
     """
     Base class for every engine in the platform.
-
-    Example
-    -------
-    class SignalEngine(BaseEngine):
-
-        NAME = "signal_engine"
-
-        DEPENDS_ON = [
-            "factor_engine",
-            "security_master"
-        ]
-
-        OUTPUTS = [
-            "data/factors/signal_master.csv"
-        ]
-
-        def execute(self, context):
-            ...
     """
 
-    # ------------------------------------------------------------------
-    # Engine Metadata
-    # ------------------------------------------------------------------
+    # =====================================================
+    # ENGINE METADATA
+    # =====================================================
 
     NAME: str = "base_engine"
 
@@ -60,71 +48,98 @@ class BaseEngine(ABC):
 
     VERSION: str = "1.0.0"
 
+    CATEGORY: str = "general"
+
     STAGE: str = "general"
+
+    OWNER: str = "Institutional Quant Platform"
+
+    TAGS: List[str] = []
 
     ENABLED: bool = True
 
-    # ------------------------------------------------------------------
-    # Dependency Management
-    # ------------------------------------------------------------------
+    CRITICAL: bool = True
+
+    PRIORITY: int = 100
+
+    PARALLELIZABLE: bool = False
+
+    SUPPORTS_INCREMENTAL: bool = False
+
+    CACHEABLE: bool = False
+
+    MAX_RETRIES: int = 0
+
+    RETRY_DELAY: int = 0
+
+    TIMEOUT: int = 3600
+
+    # =====================================================
+    # DEPENDENCIES
+    # =====================================================
 
     DEPENDS_ON: List[str] = []
 
-    OUTPUTS: List[str] = []
-
     INPUTS: List[str] = []
 
-    # ------------------------------------------------------------------
+    OUTPUTS: List[str] = []
+
+    # =====================================================
+    # CONSTRUCTOR
+    # =====================================================
 
     def __init__(self) -> None:
 
         self.started_at: Optional[datetime] = None
+
         self.finished_at: Optional[datetime] = None
 
         self.runtime_seconds: float = 0.0
 
         self.status: str = "PENDING"
 
-    # ------------------------------------------------------------------
+    # =====================================================
+    # REQUIRED IMPLEMENTATION
+    # =====================================================
 
     @abstractmethod
     def execute(self, context) -> Any:
         """
-        Engine implementation.
-
-        Must be implemented by every child engine.
+        Execute engine logic.
         """
         raise NotImplementedError
 
-    # ------------------------------------------------------------------
+    # =====================================================
+    # OPTIONAL HOOKS
+    # =====================================================
 
     def pre_execute(self, context) -> None:
         """
-        Hook executed before execute().
+        Executed before execute().
         """
 
-    # ------------------------------------------------------------------
-
-    def post_execute(self, context, result: Any) -> None:
+    def post_execute(
+        self,
+        context,
+        result: Any,
+    ) -> None:
         """
-        Hook executed after execute().
+        Executed after execute().
         """
-
-    # ------------------------------------------------------------------
 
     def validate_inputs(self, context) -> None:
         """
-        Optional validation hook.
+        Optional input validation.
         """
-
-    # ------------------------------------------------------------------
 
     def validate_outputs(self, context) -> None:
         """
-        Optional validation hook.
+        Optional output validation.
         """
 
-    # ------------------------------------------------------------------
+    # =====================================================
+    # EXECUTION
+    # =====================================================
 
     def run(self, context) -> Any:
         """
@@ -145,7 +160,10 @@ class BaseEngine(ABC):
 
             result = self.execute(context)
 
-            self.post_execute(context, result)
+            self.post_execute(
+                context,
+                result,
+            )
 
             self.validate_outputs(context)
 
@@ -161,40 +179,100 @@ class BaseEngine(ABC):
 
         finally:
 
-            self.runtime_seconds = perf_counter() - timer
+            self.runtime_seconds = (
+
+                perf_counter()
+
+                - timer
+
+            )
 
             self.finished_at = datetime.utcnow()
 
-    # ------------------------------------------------------------------
+    # =====================================================
+    # METADATA
+    # =====================================================
 
     @classmethod
     def metadata(cls) -> Dict[str, Any]:
         """
-        Returns engine metadata.
+        Return engine metadata.
         """
 
         return {
+
             "name": cls.NAME,
+
             "description": cls.DESCRIPTION,
+
             "version": cls.VERSION,
+
+            "category": cls.CATEGORY,
+
             "stage": cls.STAGE,
+
+            "owner": cls.OWNER,
+
+            "tags": cls.TAGS,
+
             "enabled": cls.ENABLED,
-            "depends_on": cls.DEPENDS_ON,
-            "inputs": cls.INPUTS,
-            "outputs": cls.OUTPUTS,
+
+            "critical": cls.CRITICAL,
+
+            "priority": cls.PRIORITY,
+
+            "parallelizable":
+                cls.PARALLELIZABLE,
+
+            "supports_incremental":
+                cls.SUPPORTS_INCREMENTAL,
+
+            "cacheable":
+                cls.CACHEABLE,
+
+            "max_retries":
+                cls.MAX_RETRIES,
+
+            "retry_delay":
+                cls.RETRY_DELAY,
+
+            "timeout":
+                cls.TIMEOUT,
+
+            "depends_on":
+                cls.DEPENDS_ON,
+
+            "inputs":
+                cls.INPUTS,
+
+            "outputs":
+                cls.OUTPUTS,
+
         }
 
-    # ------------------------------------------------------------------
+    # =====================================================
+    # OUTPUT PATHS
+    # =====================================================
 
     @classmethod
     def output_paths(cls) -> List[Path]:
         """
-        Returns output paths as pathlib objects.
+        Return outputs as pathlib objects.
         """
 
-        return [Path(path) for path in cls.OUTPUTS]
+        return [
 
-    # ------------------------------------------------------------------
+            Path(path)
+
+            for path
+
+            in cls.OUTPUTS
+
+        ]
+
+    # =====================================================
+    # SUMMARY
+    # =====================================================
 
     def summary(self) -> Dict[str, Any]:
         """
@@ -202,20 +280,51 @@ class BaseEngine(ABC):
         """
 
         return {
-            "engine": self.NAME,
-            "status": self.status,
-            "started_at": self.started_at.isoformat() if self.started_at else None,
-            "finished_at": self.finished_at.isoformat() if self.finished_at else None,
-            "runtime_seconds": round(self.runtime_seconds, 3),
+
+            "engine":
+                self.NAME,
+
+            "status":
+                self.status,
+
+            "started_at":
+                (
+                    self.started_at.isoformat()
+                    if self.started_at
+                    else None
+                ),
+
+            "finished_at":
+                (
+                    self.finished_at.isoformat()
+                    if self.finished_at
+                    else None
+                ),
+
+            "runtime_seconds":
+                round(
+                    self.runtime_seconds,
+                    3,
+                ),
+
         }
 
-    # ------------------------------------------------------------------
+    # =====================================================
+    # REPRESENTATION
+    # =====================================================
 
     def __repr__(self) -> str:
 
         return (
+
             f"{self.__class__.__name__}("
+
             f"name='{self.NAME}', "
+
+            f"category='{self.CATEGORY}', "
+
             f"stage='{self.STAGE}', "
+
             f"status='{self.status}')"
+
         )

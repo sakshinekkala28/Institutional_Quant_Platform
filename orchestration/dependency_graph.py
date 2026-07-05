@@ -1,260 +1,1780 @@
 """
-Institutional Quant Platform
-============================
+=========================================================
+INSTITUTIONAL QUANT PLATFORM
+=========================================================
 
 Dependency Graph
 
-Builds and validates the execution DAG for all registered engines.
+Enterprise-grade Directed Acyclic Graph (DAG)
+responsible for constructing, validating and
+planning execution of all registered engines.
 
 Responsibilities
-----------------
-- Build dependency graph
-- Validate dependencies
-- Detect circular dependencies
-- Compute topological execution order
-- Determine executable stages
 
-Author: Institutional Quant Platform
+• Build Dependency Graph
+• Dependency Validation
+• Cycle Detection
+• Topological Sorting
+• Parallel Stage Planning
+• Critical Path Analysis
+• Graph Metrics
+• Execution Planning
+• Graph Export
+
+=========================================================
 """
 
 from __future__ import annotations
 
-from collections import defaultdict, deque
-from typing import Dict, List, Set
+from collections import defaultdict
+from collections import deque
 
-from orchestration.engine_registry import EngineRegistry
+from typing import Dict
+from typing import List
+from typing import Set
+from typing import Tuple
+from typing import Optional
+from typing import Iterable
+from typing import Type
+
+from orchestration.base_engine import (
+    BaseEngine,
+)
+
+from orchestration.engine_registry import (
+    EngineRegistry,
+)
 
 
 class DependencyGraph:
     """
-    Directed Acyclic Graph (DAG) of engine dependencies.
+    Directed Acyclic Graph (DAG)
+    representing execution dependencies
+    between all registered engines.
+
+    Graph Direction
+
+        Dependency
+             │
+             ▼
+
+        Factor Engine
+             │
+             ▼
+
+        Signal Engine
+             │
+             ▼
+
+        Portfolio Engine
+
+    Internally stored as
+
+        Factor
+            ─────► Signal
+
+        Signal
+            ─────► Portfolio
     """
 
-    def __init__(self, registry: EngineRegistry):
+    # =====================================================
+    # CONSTRUCTOR
+    # =====================================================
+
+    def __init__(
+        self,
+        registry: EngineRegistry,
+    ) -> None:
 
         self.registry = registry
 
-        self.graph: Dict[str, List[str]] = defaultdict(list)
+        # ---------------------------------------------
+        # Forward Graph
+        #
+        # dependency -> dependents
+        # ---------------------------------------------
 
-        self.reverse_graph: Dict[str, List[str]] = defaultdict(list)
+        self._graph: Dict[
+            str,
+            Set[str],
+        ] = defaultdict(set)
 
-        self.indegree: Dict[str, int] = defaultdict(int)
+        # ---------------------------------------------
+        # Reverse Graph
+        #
+        # engine -> dependencies
+        # ---------------------------------------------
 
-        self._build()
+        self._reverse_graph: Dict[
+            str,
+            Set[str],
+        ] = defaultdict(set)
 
-    # ------------------------------------------------------------------
+        # ---------------------------------------------
+        # Engine Registry Snapshot
+        # ---------------------------------------------
 
-    def _build(self):
+        self._nodes: Dict[
+            str,
+            Type[BaseEngine],
+        ] = {}
 
-        metadata = self.registry.metadata()
+        # ---------------------------------------------
+        # In-degree Cache
+        # ---------------------------------------------
 
-        # initialize
+        self._indegree: Dict[
+            str,
+            int,
+        ] = defaultdict(int)
 
-        for engine in metadata:
+        # ---------------------------------------------
+        # Build Status
+        # ---------------------------------------------
 
-            self.indegree[engine] = 0
+        self._built = False
 
-        # build graph
+    # =====================================================
+    # PROPERTIES
+    # =====================================================
 
-        for engine, info in metadata.items():
+    @property
+    def node_count(
+        self,
+    ) -> int:
 
-            for dependency in info["depends_on"]:
+        return len(self._nodes)
 
-                if dependency not in metadata:
+    # -----------------------------------------------------
 
-                    raise ValueError(
-                        f"{engine} depends on unknown engine '{dependency}'"
-                    )
+    @property
+    def edge_count(
+        self,
+    ) -> int:
 
-                self.graph[dependency].append(engine)
+        return sum(
 
-                self.reverse_graph[engine].append(dependency)
+            len(edges)
 
-                self.indegree[engine] += 1
+            for edges
 
-    # ------------------------------------------------------------------
+            in self._graph.values()
 
-    def execution_order(self) -> List[str]:
-        """
-        Topological sort using Kahn's algorithm.
-        """
-
-        indegree = dict(self.indegree)
-
-        queue = deque(
-            sorted(
-                [
-                    node
-                    for node, degree in indegree.items()
-                    if degree == 0
-                ]
-            )
         )
 
-        order = []
+    # -----------------------------------------------------
 
-        while queue:
+    @property
+    def is_built(
+        self,
+    ) -> bool:
 
-            node = queue.popleft()
+        return self._built
+
+    # -----------------------------------------------------
+
+    @property
+    def nodes(
+        self,
+    ) -> List[str]:
+
+        return sorted(
+
+            self._nodes.keys()
+
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def roots(
+        self,
+    ) -> List[str]:
+
+        return sorted(
+
+            [
+
+                node
+
+                for (
+                    node,
+                    degree,
+                ) in self._indegree.items()
+
+                if degree == 0
+
+            ],
+
+            key=lambda node: (
+
+                self._nodes[
+                    node
+                ].PRIORITY,
+
+                node,
+
+            ),
+
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def leaves(
+        self,
+    ) -> List[str]:
+
+        return sorted(
+
+            [
+
+                node
+
+                for node
+
+                in self._nodes
+
+                if not self._graph[node]
+
+            ],
+
+            key=lambda node: (
+
+                self._nodes[
+                    node
+                ].PRIORITY,
+
+                node,
+
+            ),
+
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def isolated_nodes(
+        self,
+    ) -> List[str]:
+
+        isolated = []
+
+        for node in self._nodes:
+
+            if (
+
+                not self._graph[node]
+
+                and
+
+                not self._reverse_graph[node]
+
+            ):
+
+                isolated.append(node)
+
+        return sorted(isolated)
+    
+    # =====================================================
+    # BUILD GRAPH
+    # =====================================================
+
+    def build(self) -> None:
+        """
+        Build the dependency graph from the
+        registered engines.
+        """
+
+        # ---------------------------------------------
+        # Reset current graph
+        # ---------------------------------------------
+
+        self._graph.clear()
+
+        self._reverse_graph.clear()
+
+        self._nodes.clear()
+
+        self._indegree.clear()
+
+        # ---------------------------------------------
+        # Register every engine
+        # ---------------------------------------------
+
+        for engine in self.registry.sorted_by_priority():
+
+            self.add_node(engine)
+
+        # ---------------------------------------------
+        # Register dependencies
+        # ---------------------------------------------
+
+        for engine in self.registry.sorted_by_priority():
+
+            for dependency in engine.DEPENDS_ON:
+
+                self.add_dependency(
+
+                    dependency,
+
+                    engine.NAME,
+
+                )
+
+        self._built = True
+
+    # =====================================================
+    # REBUILD GRAPH
+    # =====================================================
+
+    def rebuild(self) -> None:
+        """
+        Rebuild graph from registry.
+        """
+
+        self.build()
+
+    # =====================================================
+    # ADD NODE
+    # =====================================================
+
+    def add_node(
+        self,
+        engine: Type[BaseEngine],
+    ) -> None:
+        """
+        Register an engine as a graph node.
+        """
+
+        if engine.NAME in self._nodes:
+
+            return
+
+        self._nodes[
+            engine.NAME
+        ] = engine
+
+        self._graph.setdefault(
+
+            engine.NAME,
+
+            set(),
+
+        )
+
+        self._reverse_graph.setdefault(
+
+            engine.NAME,
+
+            set(),
+
+        )
+
+        self._indegree.setdefault(
+
+            engine.NAME,
+
+            0,
+
+        )
+
+    # =====================================================
+    # REMOVE NODE
+    # =====================================================
+
+    def remove_node(
+        self,
+        engine_name: str,
+    ) -> None:
+        """
+        Remove an engine from the graph.
+        """
+
+        if engine_name not in self._nodes:
+
+            return
+
+        # ---------------------------------------------
+        # Remove outgoing edges
+        # ---------------------------------------------
+
+        for child in list(
+
+            self._graph[engine_name]
+
+        ):
+
+            self.remove_dependency(
+
+                engine_name,
+
+                child,
+
+            )
+
+        # ---------------------------------------------
+        # Remove incoming edges
+        # ---------------------------------------------
+
+        for parent in list(
+
+            self._reverse_graph[engine_name]
+
+        ):
+
+            self.remove_dependency(
+
+                parent,
+
+                engine_name,
+
+            )
+
+        # ---------------------------------------------
+        # Remove node
+        # ---------------------------------------------
+
+        self._graph.pop(
+
+            engine_name,
+
+            None,
+
+        )
+
+        self._reverse_graph.pop(
+
+            engine_name,
+
+            None,
+
+        )
+
+        self._indegree.pop(
+
+            engine_name,
+
+            None,
+
+        )
+
+        self._nodes.pop(
+
+            engine_name,
+
+            None,
+
+        )
+
+    # =====================================================
+    # ADD DEPENDENCY
+    # =====================================================
+
+    def add_dependency(
+        self,
+        dependency: str,
+        engine: str,
+    ) -> None:
+        """
+        Register a dependency.
+
+        dependency ---> engine
+        """
+
+        if dependency not in self._nodes:
+
+            raise KeyError(
+
+                f"Unknown dependency "
+
+                f"'{dependency}'."
+
+            )
+
+        if engine not in self._nodes:
+
+            raise KeyError(
+
+                f"Unknown engine "
+
+                f"'{engine}'."
+
+            )
+
+        if engine in self._graph[dependency]:
+
+            return
+
+        self._graph[
+            dependency
+        ].add(engine)
+
+        self._reverse_graph[
+            engine
+        ].add(dependency)
+
+        self._indegree[
+            engine
+        ] += 1
+
+    # =====================================================
+    # REMOVE DEPENDENCY
+    # =====================================================
+
+    def remove_dependency(
+        self,
+        dependency: str,
+        engine: str,
+    ) -> None:
+        """
+        Remove a dependency edge.
+        """
+
+        if (
+
+            dependency
+            not in self._graph
+
+        ):
+
+            return
+
+        if (
+
+            engine
+            not in self._graph[
+                dependency
+            ]
+
+        ):
+
+            return
+
+        self._graph[
+            dependency
+        ].remove(engine)
+
+        self._reverse_graph[
+            engine
+        ].remove(dependency)
+
+        self._indegree[
+            engine
+        ] -= 1
+
+    # =====================================================
+    # GRAPH RESET
+    # =====================================================
+
+    def clear(self) -> None:
+        """
+        Remove every node and edge.
+        """
+
+        self._graph.clear()
+
+        self._reverse_graph.clear()
+
+        self._nodes.clear()
+
+        self._indegree.clear()
+
+        self._built = False
+
+    # =====================================================
+    # NODE QUERIES
+    # =====================================================
+
+    def has_node(
+        self,
+        engine_name: str,
+    ) -> bool:
+        """
+        Check whether a node exists.
+        """
+
+        return engine_name in self._nodes
+
+    # -----------------------------------------------------
+
+    def has_dependency(
+        self,
+        dependency: str,
+        engine: str,
+    ) -> bool:
+        """
+        Return True if
+
+            dependency ---> engine
+
+        exists.
+        """
+
+        return (
+
+            dependency in self._graph
+
+            and
+
+            engine in self._graph[
+                dependency
+            ]
+
+        )
+
+    # =====================================================
+    # DIRECT RELATIONSHIPS
+    # =====================================================
+
+    def upstream(
+        self,
+        engine_name: str,
+    ) -> List[str]:
+        """
+        Immediate dependencies.
+
+        engine
+            ↑
+        dependencies
+        """
+
+        if not self.has_node(
+            engine_name
+        ):
+
+            raise KeyError(
+
+                f"Unknown engine "
+
+                f"'{engine_name}'."
+
+            )
+
+        return sorted(
+
+            self._reverse_graph[
+                engine_name
+            ],
+
+            key=lambda node: (
+
+                self._nodes[
+                    node
+                ].PRIORITY,
+
+                node,
+
+            ),
+
+        )
+
+    # -----------------------------------------------------
+
+    def downstream(
+        self,
+        engine_name: str,
+    ) -> List[str]:
+        """
+        Immediate dependents.
+
+        engine
+            ↓
+        dependents
+        """
+
+        if not self.has_node(
+            engine_name
+        ):
+
+            raise KeyError(
+
+                f"Unknown engine "
+
+                f"'{engine_name}'."
+
+            )
+
+        return sorted(
+
+            self._graph[
+                engine_name
+            ],
+
+            key=lambda node: (
+
+                self._nodes[
+                    node
+                ].PRIORITY,
+
+                node,
+
+            ),
+
+        )
+
+    # =====================================================
+    # RECURSIVE RELATIONSHIPS
+    # =====================================================
+
+    def ancestors(
+        self,
+        engine_name: str,
+    ) -> List[str]:
+        """
+        Return every upstream dependency.
+        """
+
+        if not self.has_node(
+            engine_name
+        ):
+
+            raise KeyError(
+                engine_name
+            )
+
+        visited: Set[str] = set()
+
+        def dfs(
+            node: str,
+        ) -> None:
+
+            for parent in self._reverse_graph[
+                node
+            ]:
+
+                if parent in visited:
+
+                    continue
+
+                visited.add(parent)
+
+                dfs(parent)
+
+        dfs(engine_name)
+
+        return sorted(
+
+            visited,
+
+            key=lambda node: (
+
+                self._nodes[
+                    node
+                ].PRIORITY,
+
+                node,
+
+            ),
+
+        )
+
+    # -----------------------------------------------------
+
+    def descendants(
+        self,
+        engine_name: str,
+    ) -> List[str]:
+        """
+        Return every downstream engine.
+        """
+
+        if not self.has_node(
+            engine_name
+        ):
+
+            raise KeyError(
+                engine_name
+            )
+
+        visited: Set[str] = set()
+
+        def dfs(
+            node: str,
+        ) -> None:
+
+            for child in self._graph[
+                node
+            ]:
+
+                if child in visited:
+
+                    continue
+
+                visited.add(child)
+
+                dfs(child)
+
+        dfs(engine_name)
+
+        return sorted(
+
+            visited,
+
+            key=lambda node: (
+
+                self._nodes[
+                    node
+                ].PRIORITY,
+
+                node,
+
+            ),
+
+        )
+
+    # =====================================================
+    # ALIASES
+    # =====================================================
+
+    def dependencies(
+        self,
+        engine_name: str,
+    ) -> List[str]:
+        """
+        Alias for upstream().
+        """
+
+        return self.upstream(
+            engine_name
+        )
+
+    # -----------------------------------------------------
+
+    def dependents(
+        self,
+        engine_name: str,
+    ) -> List[str]:
+        """
+        Alias for downstream().
+        """
+
+        return self.downstream(
+            engine_name
+        )
+
+    # =====================================================
+    # GRAPH INSPECTION
+    # =====================================================
+
+    def neighbors(
+        self,
+        engine_name: str,
+    ) -> Dict[
+        str,
+        List[str],
+    ]:
+        """
+        Return adjacent nodes.
+        """
+
+        return {
+
+            "upstream":
+
+                self.upstream(
+                    engine_name
+                ),
+
+            "downstream":
+
+                self.downstream(
+                    engine_name
+                ),
+
+        }
+
+    # -----------------------------------------------------
+
+    def degree(
+        self,
+        engine_name: str,
+    ) -> Dict[str, int]:
+        """
+        Return node degree.
+        """
+
+        return {
+
+            "indegree":
+
+                len(
+
+                    self._reverse_graph[
+                        engine_name
+                    ]
+
+                ),
+
+            "outdegree":
+
+                len(
+
+                    self._graph[
+                        engine_name
+                    ]
+
+                ),
+
+            "total":
+
+                len(
+
+                    self._reverse_graph[
+                        engine_name
+                    ]
+
+                )
+
+                +
+
+                len(
+
+                    self._graph[
+                        engine_name
+                    ]
+
+                ),
+
+        }
+
+    # -----------------------------------------------------
+
+    def adjacency_list(
+        self,
+    ) -> Dict[
+        str,
+        List[str],
+    ]:
+        """
+        Return graph as an
+        adjacency list.
+        """
+
+        return {
+
+            node:
+
+                sorted(
+
+                    children,
+
+                    key=lambda n: (
+
+                        self._nodes[
+                            n
+                        ].PRIORITY,
+
+                        n,
+
+                    ),
+
+                )
+
+            for (
+
+                node,
+
+                children,
+
+            ) in self._graph.items()
+
+        }
+
+    # =====================================================
+    # VALIDATION
+    # =====================================================
+
+    def validate_dependencies(
+        self,
+    ) -> List[str]:
+        """
+        Validate that every declared dependency
+        exists inside the graph.
+        """
+
+        errors: List[str] = []
+
+        for engine in self._nodes.values():
+
+            for dependency in engine.DEPENDS_ON:
+
+                if dependency not in self._nodes:
+
+                    errors.append(
+
+                        f"{engine.NAME} "
+
+                        f"depends on "
+
+                        f"'{dependency}' "
+
+                        f"which is not "
+
+                        f"registered."
+
+                    )
+
+        return errors
+
+    # -----------------------------------------------------
+
+    def validate_nodes(
+        self,
+    ) -> List[str]:
+        """
+        Validate node integrity.
+        """
+
+        errors: List[str] = []
+
+        for node in self._nodes:
+
+            if node not in self._graph:
+
+                errors.append(
+
+                    f"Missing graph node "
+
+                    f"'{node}'."
+
+                )
+
+            if node not in self._reverse_graph:
+
+                errors.append(
+
+                    f"Missing reverse graph "
+
+                    f"node '{node}'."
+
+                )
+
+        return errors
+
+    # =====================================================
+    # CYCLE DETECTION
+    # =====================================================
+
+    def detect_cycles(
+        self,
+    ) -> List[List[str]]:
+        """
+        Detect dependency cycles.
+
+        Returns a list of cycles.
+        """
+
+        visited: Set[str] = set()
+
+        stack: Set[str] = set()
+
+        cycles: List[List[str]] = []
+
+        path: List[str] = []
+
+        def dfs(node: str) -> None:
+
+            visited.add(node)
+
+            stack.add(node)
+
+            path.append(node)
+
+            for child in self._graph[node]:
+
+                if child not in visited:
+
+                    dfs(child)
+
+                elif child in stack:
+
+                    try:
+
+                        start = path.index(child)
+
+                        cycles.append(
+
+                            path[start:] + [child]
+
+                        )
+
+                    except ValueError:
+
+                        pass
+
+            stack.remove(node)
+
+            path.pop()
+
+        for node in self._nodes:
+
+            if node not in visited:
+
+                dfs(node)
+
+        return cycles
+
+    # =====================================================
+    # TOPOLOGICAL SORT
+    # =====================================================
+
+    def execution_order(
+        self,
+    ) -> List[str]:
+        """
+        Compute dependency order using
+        Kahn's Algorithm.
+        """
+
+        indegree = dict(
+            self._indegree
+        )
+
+        ready = deque(
+
+            sorted(
+
+                [
+
+                    node
+
+                    for node, degree
+
+                    in indegree.items()
+
+                    if degree == 0
+
+                ],
+
+                key=lambda node: (
+
+                    self._nodes[
+                        node
+                    ].PRIORITY,
+
+                    node,
+
+                ),
+
+            )
+
+        )
+
+        order: List[str] = []
+
+        while ready:
+
+            node = ready.popleft()
 
             order.append(node)
 
-            for child in sorted(self.graph[node]):
+            children = sorted(
+
+                self._graph[node],
+
+                key=lambda child: (
+
+                    self._nodes[
+                        child
+                    ].PRIORITY,
+
+                    child,
+
+                ),
+
+            )
+
+            for child in children:
 
                 indegree[child] -= 1
 
                 if indegree[child] == 0:
 
-                    queue.append(child)
+                    ready.append(child)
 
-        if len(order) != len(indegree):
+        if len(order) != self.node_count:
 
             raise RuntimeError(
-                "Circular dependency detected in pipeline."
+
+                "Dependency graph "
+
+                "contains one or "
+
+                "more cycles."
+
             )
 
         return order
 
-    # ------------------------------------------------------------------
+    # =====================================================
+    # VALIDATE
+    # =====================================================
 
-    def stages(self) -> List[List[str]]:
+    def validate(
+        self,
+    ) -> Dict[str, object]:
         """
-        Returns engines grouped into executable parallel stages.
+        Validate the complete graph.
         """
 
-        indegree = dict(self.indegree)
+        dependency_errors = (
 
-        stages = []
+            self.validate_dependencies()
 
-        remaining = set(indegree.keys())
+        )
+
+        node_errors = (
+
+            self.validate_nodes()
+
+        )
+
+        cycles = (
+
+            self.detect_cycles()
+
+        )
+
+        return {
+
+            "valid":
+
+                (
+
+                    not dependency_errors
+
+                    and
+
+                    not node_errors
+
+                    and
+
+                    not cycles
+
+                ),
+
+            "dependency_errors":
+
+                dependency_errors,
+
+            "node_errors":
+
+                node_errors,
+
+            "cycles":
+
+                cycles,
+
+        }
+    
+    # =====================================================
+    # EXECUTION LEVELS
+    # =====================================================
+
+    def execution_levels(
+        self,
+    ) -> List[List[str]]:
+        """
+        Compute execution levels.
+
+        Engines within the same level have
+        no dependency on each other and may
+        execute in parallel.
+        """
+
+        indegree = dict(self._indegree)
+
+        remaining = set(self._nodes.keys())
+
+        levels: List[List[str]] = []
 
         while remaining:
 
             ready = sorted(
+
                 [
+
                     node
+
                     for node in remaining
+
                     if indegree[node] == 0
-                ]
+
+                ],
+
+                key=lambda node: (
+
+                    self._nodes[node].PRIORITY,
+
+                    node,
+
+                ),
+
             )
 
             if not ready:
 
                 raise RuntimeError(
-                    "Circular dependency detected."
+
+                    "Dependency cycle detected."
+
                 )
 
-            stages.append(ready)
+            levels.append(ready)
 
             for node in ready:
 
                 remaining.remove(node)
 
-                for child in self.graph[node]:
+                for child in self._graph[node]:
 
                     indegree[child] -= 1
 
-        return stages
+        return levels
 
-    # ------------------------------------------------------------------
+    # =====================================================
+    # EXECUTION PLAN
+    # =====================================================
 
-    def downstream(self, engine: str) -> List[str]:
+    def execution_plan(
+        self,
+    ) -> List[Dict]:
         """
-        Returns engines depending on this engine.
-        """
-
-        return sorted(self.graph.get(engine, []))
-
-    # ------------------------------------------------------------------
-
-    def upstream(self, engine: str) -> List[str]:
-        """
-        Returns dependencies of this engine.
+        Build execution plan suitable
+        for the Pipeline Builder.
         """
 
-        return sorted(self.reverse_graph.get(engine, []))
+        plan = []
 
-    # ------------------------------------------------------------------
+        for level, engines in enumerate(
 
-    def validate(self) -> bool:
+            self.execution_levels(),
 
-        self.execution_order()
+            start=1,
 
-        return True
+        ):
 
-    # ------------------------------------------------------------------
+            plan.append(
 
-    def roots(self) -> List[str]:
+                {
+
+                    "level": level,
+
+                    "parallel": True,
+
+                    "engine_count": len(engines),
+
+                    "engines": engines,
+
+                }
+
+            )
+
+        return plan
+
+    # =====================================================
+    # GRAPH METRICS
+    # =====================================================
+
+    def maximum_depth(
+        self,
+    ) -> int:
         """
-        Engines with no dependencies.
+        Maximum dependency depth.
         """
 
-        return sorted(
-            [
-                node
-                for node, degree in self.indegree.items()
-                if degree == 0
-            ]
+        return len(
+
+            self.execution_levels()
+
         )
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------
 
-    def leaves(self) -> List[str]:
+    def maximum_parallelism(
+        self,
+    ) -> int:
         """
-        Engines with no dependents.
+        Largest number of engines that
+        may execute concurrently.
         """
 
-        return sorted(
-            [
-                node
-                for node in self.indegree
-                if len(self.graph[node]) == 0
-            ]
+        return max(
+
+            (
+
+                len(level)
+
+                for level
+
+                in self.execution_levels()
+
+            ),
+
+            default=0,
+
         )
 
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------
 
-    def visualize(self):
+    def edge_density(
+        self,
+    ) -> float:
+        """
+        Directed graph density.
+        """
 
-        print("=" * 80)
-        print("DEPENDENCY GRAPH")
-        print("=" * 80)
+        n = self.node_count
 
-        for engine in self.execution_order():
+        if n <= 1:
 
-            deps = self.upstream(engine)
+            return 0.0
+
+        maximum_edges = n * (n - 1)
+
+        return round(
+
+            self.edge_count / maximum_edges,
+
+            4,
+
+        )
+
+    # -----------------------------------------------------
+
+    def graph_metrics(
+        self,
+    ) -> Dict[str, object]:
+        """
+        Return graph statistics.
+        """
+
+        return {
+
+            "nodes":
+
+                self.node_count,
+
+            "edges":
+
+                self.edge_count,
+
+            "roots":
+
+                len(self.roots),
+
+            "leaves":
+
+                len(self.leaves),
+
+            "isolated":
+
+                len(self.isolated_nodes),
+
+            "depth":
+
+                self.maximum_depth(),
+
+            "parallelism":
+
+                self.maximum_parallelism(),
+
+            "density":
+
+                self.edge_density(),
+
+        }
+
+    # =====================================================
+    # CRITICAL PATH
+    # =====================================================
+
+    def critical_path(
+        self,
+    ) -> List[str]:
+        """
+        Approximate critical execution path.
+
+        Currently returns the longest
+        dependency chain based on execution
+        levels.
+        """
+
+        levels = self.execution_levels()
+
+        if not levels:
+
+            return []
+
+        path = []
+
+        for level in levels:
+
+            path.append(level[0])
+
+        return path
+    
+    # =====================================================
+    # EXPORT
+    # =====================================================
+
+    def to_dict(
+        self,
+    ) -> Dict[str, object]:
+        """
+        Export the graph as a serializable
+        dictionary.
+        """
+
+        return {
+
+            "nodes": sorted(
+                self._nodes.keys()
+            ),
+
+            "edges": {
+
+                node: sorted(
+
+                    children,
+
+                    key=lambda n: (
+
+                        self._nodes[n].PRIORITY,
+
+                        n,
+
+                    ),
+
+                )
+
+                for (
+
+                    node,
+
+                    children,
+
+                ) in self._graph.items()
+
+            },
+
+            "metrics":
+
+                self.graph_metrics(),
+
+            "execution_plan":
+
+                self.execution_plan(),
+
+        }
+
+    # -----------------------------------------------------
+
+    def to_json(
+        self,
+        indent: int = 4,
+    ) -> str:
+        """
+        Export graph as JSON.
+        """
+
+        import json
+
+        return json.dumps(
+
+            self.to_dict(),
+
+            indent=indent,
+
+        )
+
+    # =====================================================
+    # MERMAID EXPORT
+    # =====================================================
+
+    def to_mermaid(
+        self,
+    ) -> str:
+        """
+        Export graph in Mermaid format.
+        """
+
+        lines = [
+
+            "graph TD",
+
+        ]
+
+        for (
+
+            parent,
+
+            children,
+
+        ) in sorted(
+
+            self._graph.items()
+
+        ):
+
+            if not children:
+
+                lines.append(
+
+                    f"    {parent}"
+
+                )
+
+                continue
+
+            for child in sorted(children):
+
+                lines.append(
+
+                    f"    {parent} --> {child}"
+
+                )
+
+        return "\n".join(lines)
+
+    # =====================================================
+    # ASCII EXPORT
+    # =====================================================
+
+    def to_ascii(
+        self,
+    ) -> str:
+        """
+        Human-readable graph.
+        """
+
+        lines = []
+
+        for node in self.execution_order():
+
+            deps = self.upstream(node)
 
             if deps:
 
-                print(
-                    f"{engine:<35} ← {', '.join(deps)}"
+                dependency_text = (
+
+                    ", ".join(deps)
+
                 )
 
             else:
 
-                print(
-                    f"{engine:<35} ← ROOT"
-                )
+                dependency_text = "ROOT"
 
-        print("=" * 80)
+            lines.append(
 
-    # ------------------------------------------------------------------
+                f"{node:<35}"
 
-    def summary(self):
+                f"<-- {dependency_text}"
+
+            )
+
+        return "\n".join(lines)
+
+    # =====================================================
+    # SUMMARY
+    # =====================================================
+
+    def summary(
+        self,
+    ) -> Dict[str, object]:
+        """
+        Graph summary.
+        """
+
+        validation = self.validate()
 
         return {
-            "engines": len(self.indegree),
-            "roots": self.roots(),
-            "leaves": self.leaves(),
-            "execution_order": self.execution_order(),
-            "parallel_stages": self.stages(),
+
+            "built":
+
+                self.is_built,
+
+            "valid":
+
+                validation["valid"],
+
+            "metrics":
+
+                self.graph_metrics(),
+
+            "roots":
+
+                self.roots,
+
+            "leaves":
+
+                self.leaves,
+
+            "execution_order":
+
+                self.execution_order(),
+
+            "execution_levels":
+
+                self.execution_levels(),
+
+            "validation":
+
+                validation,
+
         }
 
-    # ------------------------------------------------------------------
+    # =====================================================
+    # DUNDER METHODS
+    # =====================================================
 
-    def __repr__(self):
+    def __len__(
+        self,
+    ) -> int:
+
+        return self.node_count
+
+    # -----------------------------------------------------
+
+    def __contains__(
+        self,
+        engine_name: str,
+    ) -> bool:
+
+        return self.has_node(
+            engine_name
+        )
+
+    # -----------------------------------------------------
+
+    def __iter__(
+        self,
+    ):
+
+        return iter(
+
+            self.execution_order()
+
+        )
+
+    # -----------------------------------------------------
+
+    def __repr__(
+        self,
+    ) -> str:
 
         return (
-            f"DependencyGraph("
-            f"engines={len(self.indegree)})"
+
+            f"{self.__class__.__name__}("
+
+            f"nodes={self.node_count}, "
+
+            f"edges={self.edge_count}, "
+
+            f"depth={self.maximum_depth()}, "
+
+            f"built={self.is_built})"
+
         )

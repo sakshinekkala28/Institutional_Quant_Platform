@@ -1,22 +1,53 @@
-# ==========================================================
-# SCHEDULER
-# Institutional Workflow Automation
-# ==========================================================
+"""
+=========================================================
+INSTITUTIONAL QUANT PLATFORM
+=========================================================
+
+Scheduler
+
+Coordinates scheduled execution of the platform.
+
+Responsibilities
+----------------
+• Job registration
+• Job management
+• One-time execution
+• Scheduled execution
+• Job enable / disable
+• Orchestrator integration
+
+The Scheduler NEVER executes engines directly.
+It delegates execution to MasterOrchestrator.
+
+=========================================================
+"""
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from datetime import datetime
+import threading
+import time
 
-import pandas as pd
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+from typing import Dict, List, Optional
 
+from orchestration.master_orchestrator import (
+    MasterOrchestrator,
+)
 
-# ==========================================================
-# JOB CONFIGURATION
-# ==========================================================
+from orchestration.models.master_result import (
+    MasterResult,
+)
 
-@dataclass
+# =========================================================
+# SCHEDULED JOB
+# =========================================================
+
+@dataclass(slots=True)
 class ScheduledJob:
+    """
+    Scheduled platform execution.
+    """
 
     name: str
 
@@ -24,195 +55,217 @@ class ScheduledJob:
 
     enabled: bool = True
 
+    executor: str = "sequential"
 
-# ==========================================================
+    interval_seconds: int = 0
+
+    pipeline: str = "default"
+
+    metadata: Dict[str, str] = field(
+        default_factory=dict
+    )
+
+    created_at: datetime = field(
+        default_factory=datetime.utcnow
+    )
+
+    last_run: Optional[
+        datetime
+    ] = None
+
+    next_run: Optional[
+        datetime
+    ] = None
+
+    run_count: int = 0
+
+    failure_count: int = 0
+
+    def mark_executed(self) -> None:
+
+        self.last_run = datetime.utcnow()
+
+        self.run_count += 1
+
+        if self.interval_seconds > 0:
+
+            self.next_run = (
+
+                self.last_run
+
+                + timedelta(
+
+                    seconds=self.interval_seconds
+
+                )
+
+            )
+
+    def mark_failed(self) -> None:
+
+        self.failure_count += 1
+
+# =========================================================
 # JOB REGISTRY
-# ==========================================================
+# =========================================================
 
 class JobRegistry:
+    """
+    Stores scheduled jobs.
+    """
 
-    def __init__(self):
+    def __init__(self) -> None:
 
-        self.jobs = []
+        self._jobs: Dict[
+            str,
+            ScheduledJob,
+        ] = {}
+
+    # -----------------------------------------------------
 
     def register(
         self,
-        job: ScheduledJob
-    ):
+        job: ScheduledJob,
+    ) -> None:
 
-        self.jobs.append(job)
+        if job.name in self._jobs:
 
-    def active_jobs(self):
+            raise ValueError(
 
-        return [
-
-            j
-
-            for j in self.jobs
-
-            if j.enabled
-
-        ]
-    
-# ==========================================================
-# WORKFLOW ENGINE
-# ==========================================================
-
-class WorkflowEngine:
-
-    def daily_workflow(self):
-
-        return [
-
-            "Data Refresh",
-
-            "Signal Generation",
-
-            "Portfolio Construction",
-
-            "Risk Validation"
-
-        ]
-
-    def weekly_workflow(self):
-
-        return [
-
-            "Portfolio Rebalance",
-
-            "Trade Generation",
-
-            "Execution Simulation"
-
-        ]
-
-    def monthly_workflow(self):
-
-        return [
-
-            "Governance Review",
-
-            "Performance Attribution",
-
-            "Reporting"
-
-        ]
-
-    def quarterly_workflow(self):
-
-        return [
-
-            "Model Review",
-
-            "Strategy Review"
-
-        ]
-    
-# ==========================================================
-# EXECUTION SCHEDULER
-# ==========================================================
-
-class ExecutionScheduler:
-
-    def execute(
-
-        self,
-
-        workflow_name,
-
-        steps
-
-    ):
-
-        print(
-
-            f"\nExecuting "
-
-            f"{workflow_name}"
-
-        )
-
-        for step in steps:
-
-            print(
-
-                f"→ {step}"
+                f"Job '{job.name}' already exists."
 
             )
 
-        return {
+        self._jobs[job.name] = job
 
-            "Workflow":
+    # -----------------------------------------------------
 
-            workflow_name,
+    def unregister(
+        self,
+        name: str,
+    ) -> None:
 
-            "Status":
+        self._jobs.pop(
+            name,
+            None,
+        )
 
-            "SUCCESS",
+    # -----------------------------------------------------
 
-            "Steps":
+    def get(
+        self,
+        name: str,
+    ) -> ScheduledJob:
 
-            len(steps),
+        return self._jobs[name]
 
-            "Timestamp":
+    # -----------------------------------------------------
 
-            datetime.now()
+    def jobs(
+        self,
+    ) -> List[ScheduledJob]:
 
-        }
+        return list(
+
+            self._jobs.values()
+
+        )
+
+    # -----------------------------------------------------
+
+    def active_jobs(
+        self,
+    ) -> List[ScheduledJob]:
+
+        return [
+
+            job
+
+            for job
+
+            in self._jobs.values()
+
+            if job.enabled
+
+        ]
+
+    # -----------------------------------------------------
+
+    def enable(
+        self,
+        name: str,
+    ) -> None:
+
+        self.get(name).enabled = True
+
+    # -----------------------------------------------------
+
+    def disable(
+        self,
+        name: str,
+    ) -> None:
+
+        self.get(name).enabled = False
+
+    # -----------------------------------------------------
+
+    def __len__(
+        self,
+    ) -> int:
+
+        return len(self._jobs)
+
+    # -----------------------------------------------------
+
+    def __contains__(
+        self,
+        name: str,
+    ) -> bool:
+
+        return name in self._jobs
     
-# ==========================================================
-# MASTER SCHEDULER
-# ==========================================================
+# =========================================================
+# SCHEDULER
+# =========================================================
 
 class Scheduler:
+    """
+    Institutional platform scheduler.
+    """
 
-    def __init__(self):
+    def __init__(self) -> None:
 
         self.registry = JobRegistry()
 
-        self.workflow = WorkflowEngine()
+        self._thread = None
 
-        self.executor = (
+        self._running = False
 
-            ExecutionScheduler()
+        self._last_result: Optional[
+            MasterResult
+        ] = None
 
-        )
+        self._last_run: Optional[
+            datetime
+        ] = None
 
-        self._register_jobs()
+    # =====================================================
+    # DEFAULT JOBS
+    # =====================================================
 
-    def _register_jobs(self):
-
-        self.registry.register(
-
-            ScheduledJob(
-
-                "Daily_Run",
-
-                "DAILY"
-
-            )
-
-        )
+    def register_default_jobs(
+        self,
+    ) -> None:
 
         self.registry.register(
 
             ScheduledJob(
 
-                "Weekly_Rebalance",
+                name="daily",
 
-                "WEEKLY"
+                frequency="DAILY",
 
-            )
-
-        )
-
-        self.registry.register(
-
-            ScheduledJob(
-
-                "Monthly_Review",
-
-                "MONTHLY"
+                interval_seconds=86400,
 
             )
 
@@ -222,66 +275,300 @@ class Scheduler:
 
             ScheduledJob(
 
-                "Quarterly_Model_Review",
+                name="weekly",
 
-                "QUARTERLY"
+                frequency="WEEKLY",
 
-            )
-
-        )
-
-    def run(self):
-
-        results = []
-
-        results.append(
-
-            self.executor.execute(
-
-                "Daily",
-
-                self.workflow.daily_workflow()
+                interval_seconds=604800,
 
             )
 
         )
 
-        results.append(
+        self.registry.register(
 
-            self.executor.execute(
+            ScheduledJob(
 
-                "Weekly",
+                name="monthly",
 
-                self.workflow.weekly_workflow()
-
-            )
-
-        )
-
-        results.append(
-
-            self.executor.execute(
-
-                "Monthly",
-
-                self.workflow.monthly_workflow()
+                frequency="MONTHLY",
 
             )
 
         )
 
-        results.append(
+    # =====================================================
+    # JOB EXECUTION
+    # =====================================================
 
-            self.executor.execute(
+    def run_job(
+        self,
+        name: str,
+    ) -> MasterResult:
+        """
+        Execute a single scheduled job.
+        """
 
-                "Quarterly",
+        job = self.registry.get(name)
 
-                self.workflow.quarterly_workflow()
+        if not job.enabled:
+
+            raise RuntimeError(
+
+                f"Job '{name}' is disabled."
 
             )
 
+        orchestrator = MasterOrchestrator(
+
+            executor=job.executor,
+
         )
 
-        return pd.DataFrame(
-            results
+        try:
+
+            result = orchestrator.run()
+
+            job.mark_executed()
+
+            self._last_run = job.last_run
+
+            self._last_result = result
+
+            return result
+
+        except Exception:
+
+            job.mark_failed()
+
+            raise
+
+    # =====================================================
+    # RUN ALL JOBS
+    # =====================================================
+
+    def run_all(
+        self,
+    ) -> List[MasterResult]:
+        """
+        Execute all enabled jobs.
+        """
+
+        results: List[
+            MasterResult
+        ] = []
+
+        for job in self.registry.active_jobs():
+
+            results.append(
+
+                self.run_job(
+
+                    job.name,
+
+                )
+
+            )
+
+        return results
+
+    # =====================================================
+    # BACKGROUND LOOP
+    # =====================================================
+
+    def _worker(
+        self,
+    ) -> None:
+        """
+        Background scheduler loop.
+        """
+
+        while self._running:
+
+            now = datetime.utcnow()
+
+            for job in self.registry.active_jobs():
+
+                if (
+
+                    job.next_run is None
+
+                    or
+
+                    now >= job.next_run
+
+                ):
+
+                    try:
+
+                        self.run_job(
+
+                            job.name
+
+                        )
+
+                    except Exception:
+
+                        # Continue scheduling
+                        # remaining jobs.
+                        pass
+
+            time.sleep(1)
+
+    # =====================================================
+    # START
+    # =====================================================
+
+    def start(
+        self,
+    ) -> None:
+        """
+        Start background scheduling.
+        """
+
+        if self._running:
+
+            return
+
+        self._running = True
+
+        self._thread = threading.Thread(
+
+            target=self._worker,
+
+            daemon=True,
+
+            name="PlatformScheduler",
+
+        )
+
+        self._thread.start()
+
+    # =====================================================
+    # STOP
+    # =====================================================
+
+    def stop(
+        self,
+    ) -> None:
+        """
+        Stop scheduler.
+        """
+
+        self._running = False
+
+        if self._thread is not None:
+
+            self._thread.join()
+
+            self._thread = None
+
+    # =====================================================
+    # STATUS
+    # =====================================================
+
+    @property
+    def running(
+        self,
+    ) -> bool:
+
+        return self._running
+
+    # -----------------------------------------------------
+
+    @property
+    def last_result(
+        self,
+    ) -> Optional[
+        MasterResult
+    ]:
+
+        return self._last_result
+
+    # -----------------------------------------------------
+
+    @property
+    def last_run(
+        self,
+    ) -> Optional[
+        datetime
+    ]:
+
+        return self._last_run
+
+    # =====================================================
+    # SUMMARY
+    # =====================================================
+
+    def summary(
+        self,
+    ) -> dict:
+        """
+        Scheduler summary.
+        """
+
+        return {
+
+            "running":
+
+                self.running,
+
+            "registered_jobs":
+
+                len(
+
+                    self.registry,
+
+                ),
+
+            "active_jobs":
+
+                len(
+
+                    self.registry.active_jobs(),
+
+                ),
+
+            "last_run":
+
+                (
+
+                    self.last_run.isoformat()
+
+                    if self.last_run
+
+                    else None
+
+                ),
+
+            "last_status":
+
+                (
+
+                    self.last_result.status.value
+
+                    if self.last_result
+
+                    else "NOT_RUN"
+
+                ),
+
+        }
+
+    # =====================================================
+    # DUNDER
+    # =====================================================
+
+    def __repr__(
+        self,
+    ) -> str:
+
+        return (
+
+            f"{self.__class__.__name__}("
+
+            f"jobs={len(self.registry)}, "
+
+            f"running={self.running})"
+
         )

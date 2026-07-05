@@ -1,89 +1,195 @@
 """
-Institutional Quant Platform
-============================
+=========================================================
+INSTITUTIONAL QUANT PLATFORM
+=========================================================
 
 Adapter Factory
 
-Dynamically wraps existing engines without modifying them.
+Creates and manages platform adapters.
+
+Responsibilities
+----------------
+• Adapter registration
+• Adapter discovery
+• Adapter creation
+• Backend abstraction
+• Dependency injection
+
+Supported Backends
+------------------
+• CSV
+• Parquet
+• DuckDB
+• SQLite
+• PostgreSQL
+• REST APIs
+• Custom adapters
+
+=========================================================
 """
 
 from __future__ import annotations
 
-import inspect
-from typing import Any, Callable
+from typing import Dict
+from typing import Type
 
-from orchestration.base_engine import BaseEngine
+from orchestration.adapters.base_adapter import (
+    BaseAdapter,
+)
 
+# =========================================================
+# ADAPTER FACTORY
+# =========================================================
 
-class GenericEngineAdapter(BaseEngine):
+class AdapterFactory:
     """
-    Wraps an existing class or callable as a BaseEngine.
+    Factory for platform adapters.
     """
 
-    TARGET = None
+    _registry: Dict[
+        str,
+        Type[BaseAdapter],
+    ] = {}
 
-    def execute(self, context):
+    # =====================================================
+    # REGISTER
+    # =====================================================
 
-        if self.TARGET is None:
-            raise RuntimeError(f"{self.NAME}: TARGET not configured.")
+    @classmethod
+    def register(
+        cls,
+        name: str,
+        adapter: Type[BaseAdapter],
+    ) -> None:
 
-        target = self.TARGET
+        cls._registry[
+            name.lower()
+        ] = adapter
 
-        # Function
-        if inspect.isfunction(target):
-            return target()
+    # =====================================================
+    # CREATE
+    # =====================================================
 
-        # Existing class
-        if inspect.isclass(target):
+    @classmethod
+    def create(
+        cls,
+        name: str,
+        **kwargs,
+    ) -> BaseAdapter:
 
-            instance = target()
+        key = name.lower()
 
-            if hasattr(instance, "run") and callable(instance.run):
-                return instance.run()
+        if key not in cls._registry:
 
-            if hasattr(instance, "execute") and callable(instance.execute):
-                return instance.execute()
+            raise KeyError(
 
-            raise RuntimeError(
-                f"{self.NAME}: Target class has no run() or execute()."
+                f"Unknown adapter '{name}'."
+
             )
 
-        # Callable object
-        if callable(target):
-            return target()
+        return cls._registry[
+            key
+        ](**kwargs)
 
-        raise RuntimeError(
-            f"{self.NAME}: Unsupported target type {type(target)}."
+    # =====================================================
+    # DISCOVERY
+    # =====================================================
+
+    @classmethod
+    def registered(
+        cls,
+    ) -> list[str]:
+
+        return sorted(
+
+            cls._registry.keys()
+
         )
 
+    # =====================================================
+    # EXISTS
+    # =====================================================
 
-def create_adapter(
-    *,
-    name: str,
-    stage: str,
-    target: Callable[..., Any] | type,
-    depends_on=None,
-    outputs=None,
-    description="",
-):
-    """
-    Dynamically create a BaseEngine adapter.
-    """
+    @classmethod
+    def exists(
+        cls,
+        name: str,
+    ) -> bool:
 
-    depends_on = depends_on or []
-    outputs = outputs or []
+        return (
 
-    attrs = {
-        "NAME": name,
-        "STAGE": stage,
-        "DESCRIPTION": description,
-        "DEPENDS_ON": depends_on,
-        "OUTPUTS": outputs,
-        "TARGET": target,
-    }
+            name.lower()
 
-    return type(
-        f"{name.title().replace('_', '')}Adapter",
-        (GenericEngineAdapter,),
-        attrs,
-    )
+            in cls._registry
+
+        )
+
+    # =====================================================
+    # REMOVE
+    # =====================================================
+
+    @classmethod
+    def unregister(
+        cls,
+        name: str,
+    ) -> None:
+
+        cls._registry.pop(
+
+            name.lower(),
+
+            None,
+
+        )
+
+    # =====================================================
+    # CLEAR
+    # =====================================================
+
+    @classmethod
+    def clear(
+        cls,
+    ) -> None:
+
+        cls._registry.clear()
+
+    # =====================================================
+    # SUMMARY
+    # =====================================================
+
+    @classmethod
+    def summary(
+        cls,
+    ) -> dict:
+
+        return {
+
+            "registered":
+
+                len(
+
+                    cls._registry
+
+                ),
+
+            "adapters":
+
+                cls.registered(),
+
+        }
+
+    # =====================================================
+    # DUNDER
+    # =====================================================
+
+    def __repr__(
+        self,
+    ) -> str:
+
+        return (
+
+            f"{self.__class__.__name__}("
+
+            f"registered={len(self._registry)})"
+
+        )

@@ -22,52 +22,49 @@ Last_Updated
 
 =========================================================
 """
-
-from pathlib import Path
 import random
 import time
 
 import pandas as pd
 import yfinance as yf
 
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 from orchestration.models.engine_result import EngineResult
 
-# =========================================================
-# CONFIG
-# =========================================================
+from orchestration.models.engine_status import (
+    EngineStatus,
+)
+
+from utils.file_utils import (
+    ensure_parent_directory,
+)
+
+from config.settings import (
+    DATE_FORMAT,
+)
+
+from config.thresholds import (
+    MAX_RETRIES,
+    SAVE_INTERVAL,
+    COOLDOWN_AFTER,
+    COOLDOWN_SECONDS,
+)
 
 ENGINE_NAME = "SymbolMetadata"
 
-MAX_RETRIES = 3
-
-SAVE_INTERVAL = 50
-
-COOLDOWN_AFTER = 100
-
-COOLDOWN_SECONDS = 30
-
 TODAY = pd.Timestamp.now().strftime(
-    "%Y-%m-%d"
+    DATE_FORMAT
 )
-
 # =========================================================
 # PATHS
 # =========================================================
 
-ROOT = Path(__file__).resolve().parents[2]
-
-INPUT_FILE = (
-    ROOT
-    / "data"
-    / "raw"
-    / "valid_stocks.xlsx"
-)
-
-OUTPUT_FILE = (
-    ROOT
-    / "data"
-    / "raw"
-    / "symbol_metadata.csv"
+from config.paths import (
+    SYMBOL_METADATA_FILE,
+    VALID_STOCKS_FILE,
 )
 
 # =========================================================
@@ -204,13 +201,12 @@ def save_checkpoint(records):
         )
     )
 
-    OUTPUT_FILE.parent.mkdir(
-        parents=True,
-        exist_ok=True,
+    ensure_parent_directory(
+        SYMBOL_METADATA_FILE
     )
 
     df.to_csv(
-        OUTPUT_FILE,
+        SYMBOL_METADATA_FILE,
         index=False,
     )
 
@@ -232,12 +228,12 @@ def main():
         # LOAD STOCKS
         # =====================================================
 
-        print(
+        logger.info(
             "\n📥 Loading Valid Stocks..."
         )
 
         stocks = pd.read_excel(
-            INPUT_FILE
+            VALID_STOCKS_FILE
         )
 
         possible_columns = [
@@ -290,14 +286,14 @@ def main():
 
         metadata = []
 
-        if OUTPUT_FILE.exists():
+        if SYMBOL_METADATA_FILE.exists():
 
             print(
                 "\n♻️ Loading Existing Cache..."
             )
 
             existing = pd.read_csv(
-                OUTPUT_FILE
+                SYMBOL_METADATA_FILE
             ).fillna("")
 
             required_cols = [
@@ -457,7 +453,7 @@ def main():
         # =====================================================
 
         final_df = pd.read_csv(
-            OUTPUT_FILE
+            SYMBOL_METADATA_FILE
         ).fillna("")
 
         print("\n" + "=" * 60)
@@ -491,7 +487,7 @@ def main():
         print("=" * 60)
 
         print(
-            f"\nSaved:\n{OUTPUT_FILE}"
+            f"\nSaved:\n{SYMBOL_METADATA_FILE}"
         )
 
         print(
@@ -537,9 +533,9 @@ def main():
 
         return EngineResult(
             engine=ENGINE_NAME,
-            status="SUCCESS",
+            status=EngineStatus.SUCCESS,
             records=len(final_df),
-            output=OUTPUT_FILE,
+            output=SYMBOL_METADATA_FILE,
             duration=duration,
             metadata=execution_metadata,
         )
@@ -557,7 +553,7 @@ def main():
 
         return EngineResult(
             engine=ENGINE_NAME,
-            status="FAILED",
+            status=EngineStatus.FAILED,
             duration=duration,
             metadata={
                 "error": str(e),

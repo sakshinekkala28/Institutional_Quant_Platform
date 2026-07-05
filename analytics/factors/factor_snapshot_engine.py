@@ -4,585 +4,1223 @@ FACTOR SNAPSHOT ENGINE
 =========================================================
 
 Purpose:
-Build Monthly Institutional Factor Snapshots
+Build historical institutional factor snapshots
+for every month-end.
 
-Inputs:
+Inputs
+------
 data/raw/security_master.csv
 data/raw/prices/*.parquet
 
-Outputs:
+Outputs
+-------
 data/factor_snapshots/*.parquet
 data/factors/factor_snapshot_master.csv
+
+Reports
+-------
+data/logs/factor_snapshot_report.csv
 
 =========================================================
 """
 
-from pathlib import Path
+from __future__ import annotations
+
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 
 import numpy as np
 import pandas as pd
 
+from config.paths import (
+    SECURITY_MASTER_FILE,
+    PRICE_HISTORY_DIRECTORY,
+    FACTOR_SNAPSHOT_DIRECTORY,
+    FACTOR_SNAPSHOT_MASTER_FILE,
+    FACTOR_SNAPSHOT_REPORT_FILE,
+)
+
+from config.settings import (
+    ENGINE_VERSION,
+    MAX_WORKERS,
+    TRADING_DAYS,
+    DATE_FORMAT,
+)
+
+from orchestration.models.engine_result import (
+    EngineResult,
+)
+
+from orchestration.models.engine_status import (
+    EngineStatus,
+)
+
+from utils.file_utils import (
+    ensure_parent_directory,
+)
+
+from utils.logger import (
+    get_logger,
+)
+
+from utils.timer import (
+    Timer,
+)
+
 # =========================================================
 # CONFIG
 # =========================================================
 
-ENGINE_VERSION = "1.0.0"
+ENGINE_NAME = "FactorSnapshotEngine"
 
-MAX_WORKERS = 4
-
-TRADING_DAYS = 252
+logger = get_logger(__name__)
 
 # =========================================================
-# PATHS
+# MAIN
 # =========================================================
 
-ROOT = Path(__file__).resolve().parents[2]
+def main() -> EngineResult:
+    """
+    Build historical factor snapshots.
+    """
 
-SECURITY_MASTER = (
-    ROOT
-    / "data"
-    / "raw"
-    / "security_master.csv"
-)
+    with Timer() as timer:
 
-PRICE_DIR = (
-    ROOT
-    / "data"
-    / "raw"
-    / "prices"
-)
+        try:
 
-SNAPSHOT_DIR = (
-    ROOT
-    / "data"
-    / "factor_snapshots"
-)
+            # =================================================
+            # VALIDATE INPUTS
+            # =================================================
 
-MASTER_FILE = (
-    ROOT
-    / "data"
-    / "factors"
-    / "factor_snapshot_master.csv"
-)
-
-REPORT_FILE = (
-    ROOT
-    / "data"
-    / "logs"
-    / "factor_snapshot_report.csv"
-)
-
-SNAPSHOT_DIR.mkdir(
-    parents=True,
-    exist_ok=True,
-)
-
-# =========================================================
-# LOAD SECURITY MASTER
-# =========================================================
-
-print(
-    "\n📥 Loading Security Master..."
-)
-
-security = pd.read_csv(
-    SECURITY_MASTER
-)
-
-security_lookup = (
-    security
-    .set_index("Symbol")
-)
-
-symbols = (
-    security["Symbol"]
-    .dropna()
-    .unique()
-    .tolist()
-)
-
-# =========================================================
-# BUILD MONTH-END CALENDAR
-# =========================================================
-
-sample_file = (
-    PRICE_DIR
-    / f"{symbols[0]}.parquet"
-)
-
-sample = pd.read_parquet(
-    sample_file,
-    columns=["Date"]
-)
-
-sample["Date"] = pd.to_datetime(
-    sample["Date"]
-)
-
-month_ends = (
-
-    sample
-
-    .groupby(
-        sample["Date"]
-        .dt.to_period("M")
-    )["Date"]
-
-    .max()
-
-    .tolist()
-)
-
-# =========================================================
-# FACTOR FUNCTION
-# =========================================================
-
-def calculate_snapshot(
-    symbol,
-    snapshot_date,
-):
-
-    try:
-
-        file = (
-            PRICE_DIR
-            / f"{symbol}.parquet"
-        )
-
-        if not file.exists():
-            return None
-
-        df = pd.read_parquet(
-            file
-        )
-
-        df["Date"] = pd.to_datetime(
-            df["Date"]
-        )
-
-        df = df[
-            df["Date"]
-            <= snapshot_date
-        ]
-
-        if len(df) < 252:
-            return None
-
-        close = pd.to_numeric(
-            df["Close"],
-            errors="coerce"
-        )
-
-        high = pd.to_numeric(
-            df["High"],
-            errors="coerce"
-        )
-
-        low = pd.to_numeric(
-            df["Low"],
-            errors="coerce"
-        )
-
-        volume = pd.to_numeric(
-            df["Volume"],
-            errors="coerce"
-        )
-
-        close = close.dropna()
-
-        if len(close) < 252:
-            return None
-
-        returns = (
-            close
-            .pct_change()
-            .dropna()
-        )
-
-        # -------------------------------------
-        # MOMENTUM
-        # -------------------------------------
-
-        mom_1m = (
-            close.iloc[-1]
-            / close.iloc[-21]
-            - 1
-        )
-
-        mom_3m = (
-            close.iloc[-1]
-            / close.iloc[-63]
-            - 1
-        )
-
-        mom_6m = (
-            close.iloc[-1]
-            / close.iloc[-126]
-            - 1
-        )
-
-        mom_12m = (
-            close.iloc[-1]
-            / close.iloc[-252]
-            - 1
-        )
-
-        # -------------------------------------
-        # VOLATILITY
-        # -------------------------------------
-
-        vol_20d = (
-            returns.tail(20)
-            .std()
-            * np.sqrt(
-                TRADING_DAYS
+            logger.info(
+                "Loading Security Master..."
             )
-        )
 
-        vol_60d = (
-            returns.tail(60)
-            .std()
-            * np.sqrt(
-                TRADING_DAYS
+            if not SECURITY_MASTER_FILE.exists():
+
+                raise FileNotFoundError(
+
+                    f"Missing file:\n"
+
+                    f"{SECURITY_MASTER_FILE}"
+
+                )
+
+            if not PRICE_HISTORY_DIRECTORY.exists():
+
+                raise FileNotFoundError(
+
+                    f"Missing directory:\n"
+
+                    f"{PRICE_HISTORY_DIRECTORY}"
+
+                )
+
+            # =================================================
+            # LOAD SECURITY MASTER
+            # =================================================
+
+            security = pd.read_csv(
+                SECURITY_MASTER_FILE
             )
-        )
 
-        # -------------------------------------
-        # ATR
-        # -------------------------------------
+            if security.empty:
 
-        prev_close = (
-            close.shift(1)
-        )
+                raise ValueError(
+                    "Security Master is empty."
+                )
 
-        tr = pd.concat(
-            [
-                high - low,
-                (high - prev_close).abs(),
-                (low - prev_close).abs(),
-            ],
-            axis=1,
-        ).max(axis=1)
+            required_columns = [
 
-        atr_14 = (
-            tr.tail(14)
-            .mean()
-        )
+                "Security_ID",
 
-        # -------------------------------------
-        # DRAWDOWN
-        # -------------------------------------
+                "Symbol",
 
-        rolling_max = (
-            close.cummax()
-        )
-
-        drawdown = (
-            close
-            / rolling_max
-        ) - 1
-
-        max_dd = (
-            drawdown
-            .tail(252)
-            .min()
-        )
-
-        # -------------------------------------
-        # MOVING AVERAGES
-        # -------------------------------------
-
-        sma50 = (
-            close
-            .tail(50)
-            .mean()
-        )
-
-        sma200 = (
-            close
-            .tail(200)
-            .mean()
-        )
-
-        distance_sma50 = (
-            close.iloc[-1]
-            / sma50
-        ) - 1
-
-        distance_sma200 = (
-            close.iloc[-1]
-            / sma200
-        ) - 1
-
-        # -------------------------------------
-        # 52W HIGH
-        # -------------------------------------
-
-        high_52w = (
-            close
-            .tail(252)
-            .max()
-        )
-
-        distance_52w = (
-            close.iloc[-1]
-            / high_52w
-        ) - 1
-
-        # -------------------------------------
-        # LIQUIDITY
-        # -------------------------------------
-
-        adv_20d = (
-            close.tail(20)
-            * volume.tail(20)
-        ).mean()
-
-        dollar_volume = adv_20d
-
-        # -------------------------------------
-        # METADATA
-        # -------------------------------------
-
-        meta = security_lookup.loc[
-            symbol
-        ]
-
-        return {
-
-            "Snapshot_Date":
-            snapshot_date,
-
-            "Security_ID":
-            meta["Security_ID"],
-
-            "Symbol":
-            symbol,
-
-            "Company_Name":
-            meta.get(
                 "Company_Name",
-                ""
-            ),
 
-            "Sector":
-            meta.get(
                 "Sector",
-                ""
-            ),
 
-            "Industry":
-            meta.get(
                 "Industry",
-                ""
-            ),
 
-            "Market_Cap":
-            meta.get(
                 "Market_Cap",
-                np.nan
-            ),
 
-            "Last_Close":
-            float(close.iloc[-1]),
+            ]
 
-            "Momentum_1M":
-            mom_1m,
+            missing = [
 
-            "Momentum_3M":
-            mom_3m,
+                column
 
-            "Momentum_6M":
-            mom_6m,
+                for column
+                in required_columns
 
-            "Momentum_12M":
-            mom_12m,
+                if column
+                not in security.columns
 
-            "Volatility_20D":
-            vol_20d,
+            ]
 
-            "Volatility_60D":
-            vol_60d,
+            if missing:
 
-            "ATR_14":
-            atr_14,
+                raise ValueError(
 
-            "Max_Drawdown_252D":
-            max_dd,
+                    "Missing columns: "
 
-            "Distance_SMA50":
-            distance_sma50,
+                    f"{missing}"
 
-            "Distance_SMA200":
-            distance_sma200,
+                )
 
-            "Distance_52W_High":
-            distance_52w,
+            security["Symbol"] = (
 
-            "ADV_20D":
-            adv_20d,
+                security["Symbol"]
 
-            "Dollar_Volume":
-            dollar_volume,
-        }
+                .astype(str)
 
-    except Exception:
+                .str.upper()
 
-        return None
+                .str.strip()
 
-# =========================================================
-# BUILD SNAPSHOTS
-# =========================================================
-
-master_rows = []
-
-print(
-    "\n🚀 Building Factor Snapshots..."
-)
-
-for snapshot_date in month_ends:
-
-    print(
-        snapshot_date.strftime(
-            "%Y-%m"
-        )
-    )
-
-    records = []
-
-    with ThreadPoolExecutor(
-        max_workers=MAX_WORKERS
-    ) as executor:
-
-        results = executor.map(
-
-            lambda s:
-            calculate_snapshot(
-                s,
-                snapshot_date,
-            ),
-
-            symbols,
-        )
-
-        for r in results:
-
-            if r is not None:
-                records.append(r)
-
-    snapshot_df = pd.DataFrame(
-        records
-    )
-
-    snapshot_file = (
-
-        SNAPSHOT_DIR
-
-        / (
-            "factor_snapshot_"
-            + snapshot_date.strftime(
-                "%Y_%m"
             )
-            + ".parquet"
-        )
+
+            security_lookup = (
+
+                security
+
+                .set_index(
+                    "Symbol"
+                )
+
+            )
+
+            symbols = (
+
+                security["Symbol"]
+
+                .dropna()
+
+                .unique()
+
+                .tolist()
+
+            )
+
+            logger.info(
+
+                "Universe Loaded : %s securities",
+
+                f"{len(symbols):,}",
+
+            )
+
+            # =================================================
+            # BUILD MONTH-END CALENDAR
+            # =================================================
+
+            logger.info(
+                "Building month-end calendar..."
+            )
+
+            sample_file = (
+
+                PRICE_HISTORY_DIRECTORY
+
+                / f"{symbols[0]}.parquet"
+
+            )
+
+            if not sample_file.exists():
+
+                raise FileNotFoundError(
+
+                    f"Sample history missing:\n"
+
+                    f"{sample_file}"
+
+                )
+
+            sample = pd.read_parquet(
+
+                sample_file,
+
+                columns=["Date"],
+
+            )
+
+            sample["Date"] = pd.to_datetime(
+                sample["Date"]
+            )
+
+            month_ends = (
+
+                sample
+
+                .groupby(
+
+                    sample["Date"]
+
+                    .dt.to_period("M")
+
+                )["Date"]
+
+                .max()
+
+                .tolist()
+
+            )
+
+            logger.info(
+
+                "Snapshots to Build : %s",
+
+                len(month_ends),
+
+            )
+
+            # =================================================
+            # PREPARE COLLECTIONS
+            # =================================================
+
+            master_rows: list[
+                dict
+            ] = []
+
+            failures: list[
+                dict
+            ] = []
+
+            # =================================================
+            # SNAPSHOT CALCULATION
+            # =================================================
+
+            def calculate_snapshot(
+                symbol: str,
+                snapshot_date: pd.Timestamp,
+            ) -> dict | None:
+                """
+                Calculate factor snapshot for
+                a single security.
+                """
+
+                try:
+
+                    history_file = (
+
+                        PRICE_HISTORY_DIRECTORY
+
+                        / f"{symbol}.parquet"
+
+                    )
+
+                    if not history_file.exists():
+
+                        return None
+
+                    history = pd.read_parquet(
+                        history_file
+                    )
+
+                    history["Date"] = pd.to_datetime(
+                        history["Date"]
+                    )
+
+                    history = history[
+                        history["Date"]
+                        <= snapshot_date
+                    ]
+
+                    if len(history) < TRADING_DAYS:
+
+                        return None
+
+                    # =========================================
+                    # PRICE SERIES
+                    # =========================================
+
+                    close = (
+
+                        pd.to_numeric(
+
+                            history["Close"],
+
+                            errors="coerce",
+
+                        )
+
+                        .dropna()
+
+                    )
+
+                    high = pd.to_numeric(
+
+                        history["High"],
+
+                        errors="coerce",
+
+                    )
+
+                    low = pd.to_numeric(
+
+                        history["Low"],
+
+                        errors="coerce",
+
+                    )
+
+                    volume = pd.to_numeric(
+
+                        history["Volume"],
+
+                        errors="coerce",
+
+                    )
+
+                    if len(close) < TRADING_DAYS:
+
+                        return None
+
+                    returns = (
+
+                        close
+
+                        .pct_change()
+
+                        .dropna()
+
+                    )
+
+                    # =========================================
+                    # MOMENTUM
+                    # =========================================
+
+                    momentum_1m = (
+
+                        close.iloc[-1]
+
+                        / close.iloc[-21]
+
+                        - 1
+
+                    )
+
+                    momentum_3m = (
+
+                        close.iloc[-1]
+
+                        / close.iloc[-63]
+
+                        - 1
+
+                    )
+
+                    momentum_6m = (
+
+                        close.iloc[-1]
+
+                        / close.iloc[-126]
+
+                        - 1
+
+                    )
+
+                    momentum_12m = (
+
+                        close.iloc[-1]
+
+                        / close.iloc[-252]
+
+                        - 1
+
+                    )
+
+                    # =========================================
+                    # VOLATILITY
+                    # =========================================
+
+                    volatility_20d = (
+
+                        returns
+
+                        .tail(20)
+
+                        .std()
+
+                        * np.sqrt(
+                            TRADING_DAYS
+                        )
+
+                    )
+
+                    volatility_60d = (
+
+                        returns
+
+                        .tail(60)
+
+                        .std()
+
+                        * np.sqrt(
+                            TRADING_DAYS
+                        )
+
+                    )
+
+                    # =========================================
+                    # ATR
+                    # =========================================
+
+                    previous_close = (
+                        close.shift(1)
+                    )
+
+                    true_range = pd.concat(
+
+                        [
+
+                            high - low,
+
+                            (
+                                high
+                                - previous_close
+                            ).abs(),
+
+                            (
+                                low
+                                - previous_close
+                            ).abs(),
+
+                        ],
+
+                        axis=1,
+
+                    ).max(axis=1)
+
+                    atr_14 = (
+
+                        true_range
+
+                        .tail(14)
+
+                        .mean()
+
+                    )
+
+                    # =========================================
+                    # MAXIMUM DRAWDOWN
+                    # =========================================
+
+                    rolling_max = (
+                        close.cummax()
+                    )
+
+                    drawdown = (
+
+                        close
+
+                        / rolling_max
+
+                    ) - 1
+
+                    max_drawdown = (
+
+                        drawdown
+
+                        .tail(TRADING_DAYS)
+
+                        .min()
+
+                    )
+
+                    # =========================================
+                    # TREND
+                    # =========================================
+
+                    sma_50 = (
+
+                        close
+
+                        .tail(50)
+
+                        .mean()
+
+                    )
+
+                    sma_200 = (
+
+                        close
+
+                        .tail(200)
+
+                        .mean()
+
+                    )
+
+                    distance_sma50 = (
+
+                        close.iloc[-1]
+
+                        / sma_50
+
+                    ) - 1
+
+                    distance_sma200 = (
+
+                        close.iloc[-1]
+
+                        / sma_200
+
+                    ) - 1
+
+                    # =========================================
+                    # 52 WEEK HIGH
+                    # =========================================
+
+                    high_52w = (
+
+                        close
+
+                        .tail(TRADING_DAYS)
+
+                        .max()
+
+                    )
+
+                    distance_52w_high = (
+
+                        close.iloc[-1]
+
+                        / high_52w
+
+                    ) - 1
+
+                    # =========================================
+                    # LIQUIDITY
+                    # =========================================
+
+                    adv_20d = (
+
+                        close.tail(20)
+
+                        * volume.tail(20)
+
+                    ).mean()
+
+                    dollar_volume = adv_20d
+
+                    # =========================================
+                    # SECURITY METADATA
+                    # =========================================
+
+                    metadata = security_lookup.loc[
+                        symbol
+                    ]
+
+                    # =========================================
+                    # BUILD SNAPSHOT RECORD
+                    # =========================================
+
+                    return {
+
+                        # ==============================
+                        # SNAPSHOT INFO
+                        # ==============================
+
+                        "Snapshot_Date":
+
+                            snapshot_date.strftime(
+                                DATE_FORMAT
+                            ),
+
+                        # ==============================
+                        # IDENTIFIERS
+                        # ==============================
+
+                        "Security_ID":
+
+                            metadata[
+                                "Security_ID"
+                            ],
+
+                        "Symbol":
+
+                            symbol,
+
+                        "Company_Name":
+
+                            metadata.get(
+                                "Company_Name",
+                                "",
+                            ),
+
+                        "Sector":
+
+                            metadata.get(
+                                "Sector",
+                                "",
+                            ),
+
+                        "Industry":
+
+                            metadata.get(
+                                "Industry",
+                                "",
+                            ),
+
+                        # ==============================
+                        # SIZE
+                        # ==============================
+
+                        "Market_Cap":
+
+                            float(
+                                metadata.get(
+                                    "Market_Cap",
+                                    np.nan,
+                                )
+                            ),
+
+                        # ==============================
+                        # PRICE
+                        # ==============================
+
+                        "Last_Close":
+
+                            float(
+                                close.iloc[-1]
+                            ),
+
+                        # ==============================
+                        # MOMENTUM
+                        # ==============================
+
+                        "Momentum_1M":
+
+                            float(
+                                momentum_1m
+                            ),
+
+                        "Momentum_3M":
+
+                            float(
+                                momentum_3m
+                            ),
+
+                        "Momentum_6M":
+
+                            float(
+                                momentum_6m
+                            ),
+
+                        "Momentum_12M":
+
+                            float(
+                                momentum_12m
+                            ),
+
+                        # ==============================
+                        # RISK
+                        # ==============================
+
+                        "Volatility_20D":
+
+                            float(
+                                volatility_20d
+                            ),
+
+                        "Volatility_60D":
+
+                            float(
+                                volatility_60d
+                            ),
+
+                        "ATR_14":
+
+                            float(
+                                atr_14
+                            ),
+
+                        "Max_Drawdown_252D":
+
+                            float(
+                                max_drawdown
+                            ),
+
+                        # ==============================
+                        # TREND
+                        # ==============================
+
+                        "SMA_50":
+
+                            float(
+                                sma_50
+                            ),
+
+                        "SMA_200":
+
+                            float(
+                                sma_200
+                            ),
+
+                        "Distance_SMA50":
+
+                            float(
+                                distance_sma50
+                            ),
+
+                        "Distance_SMA200":
+
+                            float(
+                                distance_sma200
+                            ),
+
+                        # ==============================
+                        # 52 WEEK HIGH
+                        # ==============================
+
+                        "Distance_52W_High":
+
+                            float(
+                                distance_52w_high
+                            ),
+
+                        # ==============================
+                        # LIQUIDITY
+                        # ==============================
+
+                        "ADV_20D":
+
+                            float(
+                                adv_20d
+                            ),
+
+                        "Dollar_Volume":
+
+                            float(
+                                dollar_volume
+                            ),
+
+                        # ==============================
+                        # ENGINE METADATA
+                        # ==============================
+
+                        "Engine_Version":
+
+                            ENGINE_VERSION,
+
+                    }
+
+                except Exception as exc:
+
+                    failures.append(
+
+                        {
+
+                            "Snapshot_Date":
+
+                                snapshot_date.strftime(
+                                    DATE_FORMAT
+                                ),
+
+                            "Symbol":
+
+                                symbol,
+
+                            "Error":
+
+                                str(exc),
+
+                            "Timestamp":
+
+                                datetime.now().strftime(
+                                    "%Y-%m-%d %H:%M:%S"
+                                ),
+
+                        }
+
+                    )
+
+                    logger.exception(
+
+                        "Snapshot failed for %s",
+
+                        symbol,
+
+                    )
+
+                    return None
+
+            # =================================================
+            # BUILD MONTHLY SNAPSHOTS
+            # =================================================
+
+            logger.info(
+                "Building historical factor snapshots..."
+            )
+
+            ensure_parent_directory(
+                FACTOR_SNAPSHOT_MASTER_FILE
+            )
+
+            for snapshot_date in month_ends:
+
+                logger.info(
+
+                    "Snapshot : %s",
+
+                    snapshot_date.strftime(
+                        "%Y-%m"
+                    ),
+
+                )
+
+                records: list[
+                    dict
+                ] = []
+
+                with ThreadPoolExecutor(
+
+                    max_workers=MAX_WORKERS,
+
+                ) as executor:
+
+                    results = executor.map(
+
+                        lambda security:
+                        calculate_snapshot(
+                            security,
+                            snapshot_date,
+                        ),
+
+                        symbols,
+
+                    )
+
+                    for result in results:
+
+                        if result is not None:
+
+                            records.append(
+                                result
+                            )
+
+                snapshot_df = pd.DataFrame(
+                    records
+                )
+
+                snapshot_file = (
+
+                    FACTOR_SNAPSHOT_DIRECTORY
+
+                    /
+
+                    (
+
+                        "factor_snapshot_"
+
+                        + snapshot_date.strftime(
+                            "%Y_%m"
+                        )
+
+                        + ".parquet"
+
+                    )
+
+                )
+
+                ensure_parent_directory(
+                    snapshot_file
+                )
+
+                snapshot_df.to_parquet(
+
+                    snapshot_file,
+
+                    index=False,
+
+                )
+
+                master_rows.extend(
+                    records
+                )
+
+            # =================================================
+            # BUILD MASTER SNAPSHOT
+            # =================================================
+
+            logger.info(
+                "Building master snapshot..."
+            )
+
+            master_snapshot = (
+
+                pd.DataFrame(
+                    master_rows
+                )
+
+                .sort_values(
+
+                    [
+
+                        "Snapshot_Date",
+
+                        "Market_Cap",
+
+                    ],
+
+                    ascending=[
+                        True,
+                        False,
+                    ],
+
+                )
+
+                .reset_index(
+                    drop=True
+                )
+
+            )
+
+            master_snapshot.to_csv(
+
+                FACTOR_SNAPSHOT_MASTER_FILE,
+
+                index=False,
+
+            )
+
+            # =================================================
+            # BUILD EXECUTION REPORT
+            # =================================================
+
+            report = pd.DataFrame(
+
+                {
+
+                    "Metric": [
+
+                        "Snapshots",
+
+                        "Total_Rows",
+
+                        "Unique_Securities",
+
+                        "Failures",
+
+                        "Run_Date",
+
+                        "Engine_Version",
+
+                    ],
+
+                    "Value": [
+
+                        len(month_ends),
+
+                        len(master_snapshot),
+
+                        master_snapshot[
+                            "Symbol"
+                        ].nunique(),
+
+                        len(failures),
+
+                        datetime.now().strftime(
+                            DATE_FORMAT
+                        ),
+
+                        ENGINE_VERSION,
+
+                    ],
+
+                }
+
+            )
+
+            ensure_parent_directory(
+                FACTOR_SNAPSHOT_REPORT_FILE
+            )
+
+            report.to_csv(
+
+                FACTOR_SNAPSHOT_REPORT_FILE,
+
+                index=False,
+
+            )
+
+            # =================================================
+            # SAVE FAILURE REPORT
+            # =================================================
+
+            if failures:
+
+                failure_file = (
+
+                    FACTOR_SNAPSHOT_REPORT_FILE
+
+                    .parent
+
+                    / "factor_snapshot_failures.csv"
+
+                )
+
+                pd.DataFrame(
+                    failures
+                ).to_csv(
+
+                    failure_file,
+
+                    index=False,
+
+                )
+
+            # =================================================
+            # EXECUTION SUMMARY
+            # =================================================
+
+            logger.info("=" * 70)
+
+            logger.info(
+                "FACTOR SNAPSHOT ENGINE COMPLETE"
+            )
+
+            logger.info("=" * 70)
+
+            logger.info(
+
+                "Snapshots Built : %s",
+
+                len(month_ends),
+
+            )
+
+            logger.info(
+
+                "Rows Generated  : %s",
+
+                f"{len(master_snapshot):,}",
+
+            )
+
+            logger.info(
+
+                "Securities      : %s",
+
+                f"{master_snapshot['Symbol'].nunique():,}",
+
+            )
+
+            logger.info(
+
+                "Failures        : %s",
+
+                len(failures),
+
+            )
+
+            logger.info(
+
+                "Snapshot Master : %s",
+
+                FACTOR_SNAPSHOT_MASTER_FILE,
+
+            )
+
+            logger.info("=" * 70)
+
+            # =================================================
+            # EXECUTION METADATA
+            # =================================================
+
+            execution_metadata = {
+
+                "engine_version":
+                    ENGINE_VERSION,
+
+                "snapshots":
+                    len(month_ends),
+
+                "records_processed":
+                    len(master_snapshot),
+
+                "unique_securities":
+
+                    master_snapshot[
+                        "Symbol"
+                    ].nunique(),
+
+                "failed_snapshots":
+                    len(failures),
+
+                "run_date":
+
+                    datetime.now().strftime(
+                        DATE_FORMAT
+                    ),
+
+            }
+
+            # =================================================
+            # RETURN RESULT
+            # =================================================
+
+            return EngineResult(
+
+                engine=ENGINE_NAME,
+
+                status=EngineStatus.SUCCESS,
+
+                records=len(
+                    master_snapshot
+                ),
+
+                output=FACTOR_SNAPSHOT_MASTER_FILE,
+
+                report=FACTOR_SNAPSHOT_REPORT_FILE,
+
+                duration=timer.elapsed,
+
+                metadata=execution_metadata,
+
+            )
+
+        # =====================================================
+        # EXCEPTION HANDLING
+        # =====================================================
+
+        except Exception as exc:
+
+            logger.exception(
+                "Factor Snapshot Engine failed."
+            )
+
+            return EngineResult(
+
+                engine=ENGINE_NAME,
+
+                status=EngineStatus.FAILED,
+
+                duration=timer.elapsed,
+
+                metadata={
+
+                    "error":
+                        str(exc),
+
+                },
+
+            )
+
+
+# =========================================================
+# ENTRY POINT
+# =========================================================
+
+if __name__ == "__main__":
+
+    result = main()
+
+    logger.info(
+
+        "Engine Status : %s",
+
+        result.status.value,
+
     )
-
-    snapshot_df.to_parquet(
-        snapshot_file,
-        index=False,
-    )
-
-    master_rows.extend(
-        records
-    )
-
-# =========================================================
-# MASTER FILE
-# =========================================================
-
-master = pd.DataFrame(
-    master_rows
-)
-
-master.to_csv(
-    MASTER_FILE,
-    index=False,
-)
-
-# =========================================================
-# REPORT
-# =========================================================
-
-report = pd.DataFrame({
-
-    "Metric": [
-
-        "Snapshots",
-
-        "Total_Rows",
-
-        "Unique_Securities",
-
-        "Run_Date",
-
-        "Engine_Version",
-    ],
-
-    "Value": [
-
-        len(month_ends),
-
-        len(master),
-
-        master["Symbol"]
-        .nunique(),
-
-        datetime.now()
-        .strftime(
-            "%Y-%m-%d"
-        ),
-
-        ENGINE_VERSION,
-    ]
-})
-
-report.to_csv(
-    REPORT_FILE,
-    index=False,
-)
-
-# =========================================================
-# COMPLETION
-# =========================================================
-
-print("\n" + "=" * 70)
-
-print(
-    "🏁 FACTOR SNAPSHOT ENGINE COMPLETE"
-)
-
-print("=" * 70)
-
-print(
-    f"Snapshots Built : "
-    f"{len(month_ends):,}"
-)
-
-print(
-    f"Rows Generated  : "
-    f"{len(master):,}"
-)
-
-print(
-    f"Securities      : "
-    f"{master['Symbol'].nunique():,}"
-)
-
-print(
-    f"\nSnapshot Directory:\n"
-    f"{SNAPSHOT_DIR}"
-)
-
-print("=" * 70)
