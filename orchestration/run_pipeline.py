@@ -1,131 +1,90 @@
-# ==========================================================
-# RUN PIPELINE
-# ==========================================================
+"""
+====================================================================
+Institutional Quant Platform
 
-from alpha.signal_engine import SignalEngine
-from portfolio.portfolio_engine import PortfolioEngine
-from risk.risk_engine import RiskEngine
-from execution.trade_engine import TradeEngine
-from reporting.reporting_engine import ReportingEngine
-from research.backtest_engine import BacktestEngine
+Daily Institutional Pipeline
 
-import numpy as np
+Author : Institutional Quant Platform
 
-def main():
+Purpose
+-------
+Daily production orchestration.
 
-    print("\n========== PIPELINE START ==========")
+Responsibilities
 
-    # ------------------------------------------------------
-    # SIGNALS
-    # ------------------------------------------------------
+• Initialize Platform
+• Execute All Engines
+• Generate All Data Artifacts
+• Validate Outputs
+• Publish Reports
+• Update Dashboard
+• Refresh API Cache
 
-    signal_engine = SignalEngine()
+====================================================================
+"""
 
-    data = (
-        signal_engine
-        .load_data()
-    )
+from __future__ import annotations
 
-    signal_universe = (
-        signal_engine
-        .build_alpha_universe(
-            data
-        )
-    )
+import logging
+import time
+from pathlib import Path
 
-    print(
-        f"Signals Generated: "
-        f"{len(signal_universe)}"
-    )
+from orchestration.pipeline import InstitutionalPipeline
+from orchestration.context import PipelineContext
+from orchestration.workflow import PIPELINE
 
-    # ------------------------------------------------------
-    # PORTFOLIO
-    # ------------------------------------------------------
+logger = logging.getLogger(__name__)
 
-    portfolio_engine = PortfolioEngine()
 
-    portfolio = portfolio_engine.construct(
-        signal_universe
-    )
+def banner() -> None:
 
-    # ------------------------------------------------------
-    # RISK
-    # ------------------------------------------------------
+    print()
 
-    risk_engine = RiskEngine()
+    print("=" * 80)
 
-    risk_report = risk_engine.evaluate(
-        portfolio
-    )
+    print("Institutional Quant Platform")
 
-    # ------------------------------------------------------
-    # TRADE
-    # ------------------------------------------------------
+    print("Daily Production Pipeline")
 
-    trade_engine = TradeEngine()
+    print("=" * 80)
 
-    current_portfolio = data["portfolio"]
+    print()
 
-    target_portfolio = portfolio
 
-    trades = trade_engine.generate(
-        current_portfolio,
-        target_portfolio
-    )
+def main() -> None:
 
-    # ------------------------------------------------------
-    # REPORTING
-    # ------------------------------------------------------
+    banner()
 
-    backtest_engine = BacktestEngine()
+    start = time.perf_counter()
 
-    performance_report = (
+    context = PipelineContext()
 
-        backtest_engine.run(
+    pipeline = InstitutionalPipeline(
 
-            np.random.normal(
+        workflow=PIPELINE,
 
-                0.001,
-
-                0.02,
-
-                252
-
-            )
-
-        )
+        context=context,
 
     )
 
-    reporting_engine = ReportingEngine()
+    pipeline.initialize()
 
-    reports = (
+    pipeline.execute()
 
-        reporting_engine.generate(
+    pipeline.publish()
 
-            portfolio,
+    pipeline.shutdown()
 
-            risk_report,
+    elapsed = time.perf_counter() - start
 
-            performance_report,
+    logger.info(
 
-            trades
+        "Pipeline completed in %.2f seconds",
 
-        )
-
-    )
-
-    print(
-
-        "\n✓ Reports Generated:"
+        elapsed,
 
     )
 
-    print(
-
-        reports.keys()
-
-    )
 
 if __name__ == "__main__":
 
