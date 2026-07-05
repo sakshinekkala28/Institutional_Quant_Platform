@@ -3693,40 +3693,80 @@
 │   │   └── run_pipeline.cpython-312.pyc
 │   ├── adapter_factory.py
 │   ├── adapters
+│   │   └── base_adapter.py
+│   ├── audit_logger.py
 │   ├── base_engine.py
 │   ├── config
 │   │   ├── __init__.py
 │   │   └── pipeline_config.py
+│   ├── config_loader.py
 │   ├── dependency_graph.py
-│   ├── engine_discovery.py
 │   ├── engine_registry.py
+│   ├── events
+│   │   ├── event_bus.py
+│   │   ├── events.py
+│   │   ├── publisher.py
+│   │   └── subscribers.py
 │   ├── execution_context.py
+│   ├── execution_manager.py
 │   ├── execution_report.py
+│   ├── executors
+│   │   ├── base_executor.py
+│   │   ├── distributed_executor.py
+│   │   ├── executor_factory.py
+│   │   ├── parallel_executor.py
+│   │   ├── retry_executor.py
+│   │   └── sequential_executor.py
+│   ├── health_manager.py
+│   ├── hook_manager.py
+│   ├── lifecycle_manager.py
 │   ├── master_orchestrator.py
 │   ├── master_rebalance_engine.py
 │   ├── metadata_builder.py
+│   ├── metrics_collector.py
 │   ├── models
 │   │   ├── __init__.py
 │   │   ├── engine_result.py
 │   │   ├── engine_status.py
 │   │   ├── master_result.py
 │   │   └── pipeline_result.py
-│   ├── orchestrartor.py
+│   ├── orchestrator.py
+│   ├── pipeline_analyzer.py
 │   ├── pipeline_builder.py
+│   ├── pipeline_validator.py
 │   ├── pipelines
 │   │   ├── __init__.py
 │   │   ├── alpha_pipeline.py
+│   │   ├── base_pipeline.py
 │   │   ├── data_pipeline.py
 │   │   ├── execution_pipeline.py
 │   │   ├── factor_pipeline.py
-│   │   ├── monitoring_pipeline.py
+│   │   ├── live_pipeline.py
+│   │   ├── performance_pipeline.py
 │   │   ├── portfolio_pipeline.py
+│   │   ├── regime_pipeline.py
 │   │   ├── reporting_pipeline.py
-│   │   └── risk_pipeline.py
+│   │   ├── risk_model_pipeline.py
+│   │   ├── risk_pipeline.py
+│   │   └── signal_pipeline.py
+│   ├── plugin_manager.py
+│   ├── plugin_registry.py
 │   ├── plugins
-│   │   └── __init__.py
+│   │   ├── __init__.py
+│   │   ├── audit_plugin.py
+│   │   ├── base_plugin.py
+│   │   ├── email_plugin.py
+│   │   ├── lifecycle_plugin.py
+│   │   ├── logging_plugin.py
+│   │   ├── metrics_plugin.py
+│   │   ├── monitoring_plugin.py
+│   │   ├── notification_plugin.py
+│   │   ├── slack_plugin.py
+│   │   └── webhook_plugin.py
+│   ├── resource_manager.py
 │   ├── run_pipeline.py
 │   ├── scheduler.py
+│   ├── service_container.py
 │   ├── stages
 │   │   ├── __init__.py
 │   │   ├── stage01_data.py
@@ -3847,4 +3887,4 @@
     ├── logger.py
     └── timer.py
 
-134 directories, 3714 files
+136 directories, 3752 files
