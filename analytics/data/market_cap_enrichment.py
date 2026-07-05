@@ -15,9 +15,6 @@ data/raw/symbol_metadata.csv
 =========================================================
 """
 
-from pathlib import Path
-
-import random
 import time
 
 import pandas as pd
@@ -25,32 +22,34 @@ import yfinance as yf
 
 from orchestration.models.engine_result import EngineResult
 
+from orchestration.models.engine_status import (
+    EngineStatus,
+)
+
+from utils.file_utils import (
+    ensure_parent_directory,
+)
+
+from config.paths import (
+    SYMBOL_METADATA_FILE,
+)
+
+from config.thresholds import (
+    MAX_RETRIES,
+    SAVE_INTERVAL,
+    COOLDOWN_AFTER,
+    COOLDOWN_SECONDS,
+)
+
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 # =========================================================
 # CONFIG
 # =========================================================
 
 ENGINE_NAME = "MarketCapEnrichment"
-
-MAX_RETRIES = 3
-
-SAVE_INTERVAL = 50
-
-COOLDOWN_AFTER = 100
-
-COOLDOWN_SECONDS = 10
-
-# =========================================================
-# PATHS
-# =========================================================
-
-ROOT = Path(__file__).resolve().parents[2]
-
-INPUT_FILE = (
-    ROOT
-    / "data"
-    / "raw"
-    / "symbol_metadata.csv"
-)
 
 # =========================================================
 # FETCH MARKET CAP
@@ -180,12 +179,12 @@ def main() -> EngineResult:
         # LOAD
         # =====================================================
 
-        print(
+        logger.info(
             "\n💰 Loading Symbol Metadata..."
         )
 
         df = pd.read_csv(
-            INPUT_FILE
+            SYMBOL_METADATA_FILE
         )
 
         # =====================================================
@@ -236,6 +235,10 @@ def main() -> EngineResult:
             f"{total:,}"
         )
 
+        newly_filled = (
+            filled - existing
+        )
+
         # =====================================================
         # NOTHING TO UPDATE
         # =====================================================
@@ -253,9 +256,9 @@ def main() -> EngineResult:
 
             return EngineResult(
                 engine=ENGINE_NAME,
-                status="SUCCESS",
+                status=EngineStatus.SUCCESS,
                 records=len(df),
-                output=INPUT_FILE,
+                output=SYMBOL_METADATA_FILE,
                 duration=duration,
                 metadata={
                     "existing_market_caps": int(
@@ -317,8 +320,12 @@ def main() -> EngineResult:
                 == 0
             ):
 
+                ensure_parent_directory(
+                    SYMBOL_METADATA_FILE
+                )
+
                 df.to_csv(
-                    INPUT_FILE,
+                    SYMBOL_METADATA_FILE,
                     index=False,
                 )
 
@@ -359,8 +366,12 @@ def main() -> EngineResult:
             )
         )
 
+        ensure_parent_directory(
+            SYMBOL_METADATA_FILE
+        )
+            
         df.to_csv(
-            INPUT_FILE,
+            SYMBOL_METADATA_FILE,
             index=False,
         )
 
@@ -406,7 +417,7 @@ def main() -> EngineResult:
         )
 
         print(
-            f"\nSaved:\n{INPUT_FILE}"
+            f"\nSaved:\n{SYMBOL_METADATA_FILE}"
         )
 
         print("=" * 70)
@@ -424,6 +435,11 @@ def main() -> EngineResult:
             "existing_market_caps": int(
                 existing
             ),
+
+            "newly_filled_market_caps": int(
+                newly_filled
+            ),
+
             "filled_market_caps": int(
                 filled
             ),
@@ -446,7 +462,7 @@ def main() -> EngineResult:
             engine=ENGINE_NAME,
             status="SUCCESS",
             records=len(df),
-            output=INPUT_FILE,
+            output=SYMBOL_METADATA_FILE,
             duration=duration,
             metadata=execution_metadata,
         )
@@ -464,7 +480,7 @@ def main() -> EngineResult:
 
         return EngineResult(
             engine=ENGINE_NAME,
-            status="FAILED",
+            status=EngineStatus.FAILED,
             duration=duration,
             metadata={
                 "error": str(e),

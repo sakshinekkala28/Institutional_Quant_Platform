@@ -1,236 +1,1424 @@
 """
-Institutional Quant Platform
-============================
+=========================================================
+INSTITUTIONAL QUANT PLATFORM
+=========================================================
 
 Execution Context
 
-Shared runtime context passed to every engine.
+Shared runtime state for the orchestration framework.
 
 Responsibilities
 ----------------
-- Pipeline metadata
-- Runtime configuration
-- Shared logger
-- Data paths
-- Runtime cache
-- Shared objects
+• Shared metadata
+• Engine outputs
+• Runtime variables
+• Generated artifacts
+• Execution cache
+• Runtime statistics
 
-Author: Institutional Quant Platform
+The ExecutionContext is shared between every engine,
+executor and orchestrator.
+
+=========================================================
 """
 
 from __future__ import annotations
 
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
+
 from datetime import datetime
+
 from pathlib import Path
-from typing import Any, Dict
-import logging
-import uuid
 
+from threading import RLock
 
-@dataclass
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
+from typing import Set
+
+# =========================================================
+# EXECUTION CONTEXT
+# =========================================================
+
+@dataclass(slots=True)
 class ExecutionContext:
     """
-    Shared runtime object passed to every engine.
+    Shared execution context.
     """
 
-    # ------------------------------------------------------------------
-    # Pipeline Information
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------
+    # Runtime Metadata
+    # -----------------------------------------------------
 
-    pipeline_name: str = "full"
-
-    pipeline_id: str = field(
-        default_factory=lambda: str(uuid.uuid4())
+    metadata: Dict[
+        str,
+        Any,
+    ] = field(
+        default_factory=dict
     )
+
+    # -----------------------------------------------------
+    # Engine Outputs
+    # -----------------------------------------------------
+
+    outputs: Dict[
+        str,
+        Any,
+    ] = field(
+        default_factory=dict
+    )
+
+    # -----------------------------------------------------
+    # Runtime Variables
+    # -----------------------------------------------------
+
+    variables: Dict[
+        str,
+        Any,
+    ] = field(
+        default_factory=dict
+    )
+
+    # -----------------------------------------------------
+    # Execution Cache
+    # -----------------------------------------------------
+
+    cache: Dict[
+        str,
+        Any,
+    ] = field(
+        default_factory=dict
+    )
+
+    # -----------------------------------------------------
+    # Artifacts
+    # -----------------------------------------------------
+
+    artifacts: Set[
+        str,
+    ] = field(
+        default_factory=set
+    )
+
+    # -----------------------------------------------------
+    # Generated Files
+    # -----------------------------------------------------
+
+    files: List[
+        Path,
+    ] = field(
+        default_factory=list
+    )
+
+    # -----------------------------------------------------
+    # Warnings
+    # -----------------------------------------------------
+
+    warnings: List[
+        str,
+    ] = field(
+        default_factory=list
+    )
+
+    # -----------------------------------------------------
+    # Errors
+    # -----------------------------------------------------
+
+    errors: List[
+        str,
+    ] = field(
+        default_factory=list
+    )
+
+    # -----------------------------------------------------
+    # Runtime
+    # -----------------------------------------------------
 
     started_at: datetime = field(
         default_factory=datetime.utcnow
     )
 
-    market_date: str = ""
+    finished_at: Optional[
+        datetime
+    ] = None
 
-    # ------------------------------------------------------------------
-    # Paths
-    # ------------------------------------------------------------------
+    # -----------------------------------------------------
+    # Synchronization
+    # -----------------------------------------------------
 
-    project_root: Path = field(
-        default_factory=lambda: Path.cwd()
+    _lock: RLock = field(
+        default_factory=RLock,
+        repr=False,
+        compare=False,
     )
 
-    data_dir: Path = field(init=False)
+    # =====================================================
+    # PROPERTIES
+    # =====================================================
 
-    raw_dir: Path = field(init=False)
-
-    processed_dir: Path = field(init=False)
-
-    logs_dir: Path = field(init=False)
-
-    live_dir: Path = field(init=False)
-
-    performance_dir: Path = field(init=False)
-
-    risk_dir: Path = field(init=False)
-
-    portfolio_dir: Path = field(init=False)
-
-    execution_dir: Path = field(init=False)
-
-    monitoring_dir: Path = field(init=False)
-
-    # ------------------------------------------------------------------
-    # Runtime
-    # ------------------------------------------------------------------
-
-    logger: logging.Logger = field(init=False)
-
-    configuration: Dict[str, Any] = field(
-        default_factory=dict
-    )
-
-    cache: Dict[str, Any] = field(
-        default_factory=dict
-    )
-
-    shared: Dict[str, Any] = field(
-        default_factory=dict
-    )
-
-    metrics: Dict[str, Any] = field(
-        default_factory=dict
-    )
-
-    # ------------------------------------------------------------------
-
-    def __post_init__(self):
-
-        data_root = self.project_root / "data"
-
-        self.data_dir = data_root
-
-        self.raw_dir = data_root / "raw"
-
-        self.processed_dir = data_root / "processed"
-
-        self.logs_dir = data_root / "logs"
-
-        self.live_dir = data_root / "live"
-
-        self.performance_dir = data_root / "performance"
-
-        self.risk_dir = data_root / "risk"
-
-        self.portfolio_dir = data_root / "portfolios"
-
-        self.execution_dir = data_root / "execution"
-
-        self.monitoring_dir = data_root / "monitoring"
-
-        self.logger = logging.getLogger("Pipeline")
-
-    # ------------------------------------------------------------------
-
-    def ensure_directories(self):
-
-        directories = [
-
-            self.data_dir,
-
-            self.raw_dir,
-
-            self.processed_dir,
-
-            self.logs_dir,
-
-            self.live_dir,
-
-            self.performance_dir,
-
-            self.risk_dir,
-
-            self.portfolio_dir,
-
-            self.execution_dir,
-
-            self.monitoring_dir,
-
-        ]
-
-        for directory in directories:
-
-            directory.mkdir(
-                parents=True,
-                exist_ok=True,
-            )
-
-    # ------------------------------------------------------------------
-
-    def set(self, key: str, value: Any):
-
-        self.shared[key] = value
-
-    # ------------------------------------------------------------------
-
-    def get(self, key: str, default=None):
-
-        return self.shared.get(key, default)
-
-    # ------------------------------------------------------------------
-
-    def cache_set(self, key: str, value: Any):
-
-        self.cache[key] = value
-
-    # ------------------------------------------------------------------
-
-    def cache_get(self, key: str, default=None):
-
-        return self.cache.get(key, default)
-
-    # ------------------------------------------------------------------
-
-    def add_metric(
+    @property
+    def runtime_seconds(
         self,
-        key: str,
-        value: Any,
-    ):
+    ) -> float:
 
-        self.metrics[key] = value
+        if self.finished_at is None:
 
-    # ------------------------------------------------------------------
+            return (
 
-    def summary(self):
+                datetime.utcnow()
+
+                - self.started_at
+
+            ).total_seconds()
+
+        return (
+
+            self.finished_at
+
+            - self.started_at
+
+        ).total_seconds()
+
+    # -----------------------------------------------------
+
+    @property
+    def artifact_count(
+        self,
+    ) -> int:
+
+        return len(
+            self.artifacts
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def output_count(
+        self,
+    ) -> int:
+
+        return len(
+            self.outputs
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def warning_count(
+        self,
+    ) -> int:
+
+        return len(
+            self.warnings
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def error_count(
+        self,
+    ) -> int:
+
+        return len(
+            self.errors
+        )
+    
+    # =====================================================
+    # RUNTIME
+    # =====================================================
+
+    @property
+    def finished(
+        self,
+    ) -> bool:
+
+        return self.finished_at is not None
+
+    # -----------------------------------------------------
+
+    def finish(
+        self,
+    ) -> None:
+
+        self.finished_at = (
+            datetime.utcnow()
+        )
+
+    # =====================================================
+    # SUMMARY
+    # =====================================================
+
+    def summary(
+        self,
+    ) -> Dict[str, Any]:
 
         return {
 
-            "pipeline_name": self.pipeline_name,
+            "runtime":
 
-            "pipeline_id": self.pipeline_id,
+                round(
+                    self.runtime_seconds,
+                    3,
+                ),
 
-            "started_at": self.started_at.isoformat(),
+            "outputs":
 
-            "project_root": str(self.project_root),
+                self.output_count,
 
-            "data_directory": str(self.data_dir),
+            "artifacts":
 
-            "cache_objects": len(self.cache),
+                self.artifact_count,
 
-            "shared_objects": len(self.shared),
+            "warnings":
 
-            "metrics": len(self.metrics),
+                self.warning_count,
+
+            "errors":
+
+                self.error_count,
 
         }
 
-    # ------------------------------------------------------------------
+    # =====================================================
+    # DUNDER
+    # =====================================================
 
-    def __repr__(self):
+    def __repr__(
+        self,
+    ) -> str:
+
+        return (
+
+            f"{self.__class__.__name__}("
+
+            f"outputs={self.output_count}, "
+
+            f"artifacts={self.artifact_count})"
+
+        )
+    
+    # =====================================================
+    # METADATA
+    # =====================================================
+
+    def set_metadata(
+        self,
+        key: str,
+        value: Any,
+    ) -> None:
+        """
+        Store metadata.
+        """
+
+        with self._lock:
+
+            self.metadata[key] = value
+
+    # -----------------------------------------------------
+
+    def get_metadata(
+        self,
+        key: str,
+        default: Optional[Any] = None,
+    ) -> Any:
+        """
+        Retrieve metadata.
+        """
+
+        with self._lock:
+
+            return self.metadata.get(
+                key,
+                default,
+            )
+
+    # -----------------------------------------------------
+
+    def metadata_exists(
+        self,
+        key: str,
+    ) -> bool:
+
+        with self._lock:
+
+            return key in self.metadata
+
+    # =====================================================
+    # VARIABLES
+    # =====================================================
+
+    def set_variable(
+        self,
+        key: str,
+        value: Any,
+    ) -> None:
+        """
+        Store runtime variable.
+        """
+
+        with self._lock:
+
+            self.variables[key] = value
+
+    # -----------------------------------------------------
+
+    def get_variable(
+        self,
+        key: str,
+        default: Optional[Any] = None,
+    ) -> Any:
+        """
+        Retrieve runtime variable.
+        """
+
+        with self._lock:
+
+            return self.variables.get(
+                key,
+                default,
+            )
+
+    # -----------------------------------------------------
+
+    def remove_variable(
+        self,
+        key: str,
+    ) -> None:
+
+        with self._lock:
+
+            self.variables.pop(
+                key,
+                None,
+            )
+    # =====================================================
+    # OUTPUTS
+    # =====================================================
+
+    def set_output(
+        self,
+        engine: str,
+        output: Any,
+    ) -> None:
+        """
+        Register engine output.
+        """
+
+        with self._lock:
+
+            self.outputs[
+                engine
+            ] = output
+
+    # -----------------------------------------------------
+
+    def get_output(
+        self,
+        engine: str,
+        default: Optional[Any] = None,
+    ) -> Any:
+        """
+        Retrieve engine output.
+        """
+
+        with self._lock:
+
+            return self.outputs.get(
+                engine,
+                default,
+            )
+
+    # -----------------------------------------------------
+
+    def output_exists(
+        self,
+        engine: str,
+    ) -> bool:
+
+        with self._lock:
+
+            return engine in self.outputs
+        
+    # =====================================================
+    # CACHE
+    # =====================================================
+
+    def cache_set(
+        self,
+        key: str,
+        value: Any,
+    ) -> None:
+
+        with self._lock:
+
+            self.cache[key] = value
+
+    # -----------------------------------------------------
+
+    def cache_get(
+        self,
+        key: str,
+        default: Optional[Any] = None,
+    ) -> Any:
+
+        with self._lock:
+
+            return self.cache.get(
+                key,
+                default,
+            )
+
+    # -----------------------------------------------------
+
+    def cache_remove(
+        self,
+        key: str,
+    ) -> None:
+
+        with self._lock:
+
+            self.cache.pop(
+                key,
+                None,
+            )
+
+    # -----------------------------------------------------
+
+    def clear_cache(
+        self,
+    ) -> None:
+
+        with self._lock:
+
+            self.cache.clear()
+
+    # =====================================================
+    # ARTIFACTS
+    # =====================================================
+
+    def add_artifact(
+        self,
+        artifact: str,
+    ) -> None:
+
+        with self._lock:
+
+            self.artifacts.add(
+                artifact
+            )
+
+    # -----------------------------------------------------
+
+    def has_artifact(
+        self,
+        artifact: str,
+    ) -> bool:
+
+        with self._lock:
+
+            return (
+                artifact
+                in self.artifacts
+            )
+
+    # -----------------------------------------------------
+
+    def remove_artifact(
+        self,
+        artifact: str,
+    ) -> None:
+
+        with self._lock:
+
+            self.artifacts.discard(
+                artifact
+            )
+
+    # =====================================================
+    # FILES
+    # =====================================================
+
+    def add_file(
+        self,
+        path: Path,
+    ) -> None:
+
+        with self._lock:
+
+            self.files.append(
+                path
+            )
+
+    # -----------------------------------------------------
+
+    def remove_file(
+        self,
+        path: Path,
+    ) -> None:
+
+        with self._lock:
+
+            if path in self.files:
+
+                self.files.remove(
+                    path
+                )
+
+    # =====================================================
+    # WARNINGS
+    # =====================================================
+
+    def add_warning(
+        self,
+        warning: str,
+    ) -> None:
+
+        with self._lock:
+
+            self.warnings.append(
+                warning
+            )
+
+    # -----------------------------------------------------
+
+    def add_error(
+        self,
+        error: str,
+    ) -> None:
+
+        with self._lock:
+
+            self.errors.append(
+                error
+            )
+
+    # -----------------------------------------------------
+
+    def clear_messages(
+        self,
+    ) -> None:
+
+        with self._lock:
+
+            self.warnings.clear()
+
+            self.errors.clear()
+
+    # =====================================================
+    # HELPERS
+    # =====================================================
+
+    def exists(
+        self,
+        key: str,
+    ) -> bool:
+        """
+        Search every namespace.
+        """
+
+        with self._lock:
+
+            return any(
+
+                key in container
+
+                for container in (
+
+                    self.metadata,
+
+                    self.outputs,
+
+                    self.variables,
+
+                    self.cache,
+
+                )
+
+            )
+
+    # -----------------------------------------------------
+
+    def remove(
+        self,
+        key: str,
+    ) -> None:
+        """
+        Remove key everywhere.
+        """
+
+        with self._lock:
+
+            self.metadata.pop(
+                key,
+                None,
+            )
+
+            self.outputs.pop(
+                key,
+                None,
+            )
+
+            self.variables.pop(
+                key,
+                None,
+            )
+
+            self.cache.pop(
+                key,
+                None,
+            )
+
+    # =====================================================
+    # SNAPSHOT
+    # =====================================================
+
+    def snapshot(
+        self,
+    ) -> Dict[str, Any]:
+        """
+        Create an immutable snapshot of the current
+        execution context.
+
+        Returns
+        -------
+        Dict[str, Any]
+        """
+
+        with self._lock:
+
+            return {
+
+                "metadata":
+
+                    dict(self.metadata),
+
+                "outputs":
+
+                    dict(self.outputs),
+
+                "variables":
+
+                    dict(self.variables),
+
+                "cache":
+
+                    dict(self.cache),
+
+                "artifacts":
+
+                    sorted(self.artifacts),
+
+                "files":
+
+                    [
+
+                        str(path)
+
+                        for path
+
+                        in self.files
+
+                    ],
+
+                "warnings":
+
+                    list(self.warnings),
+
+                "errors":
+
+                    list(self.errors),
+
+                "started_at":
+
+                    self.started_at.isoformat(),
+
+                "finished_at":
+
+                    (
+
+                        self.finished_at.isoformat()
+
+                        if self.finished_at
+
+                        else None
+
+                    ),
+
+            }
+
+    # =====================================================
+    # CLONE
+    # =====================================================
+
+    def clone(
+        self,
+    ) -> "ExecutionContext":
+        """
+        Deep copy of the execution context.
+        """
+
+        clone = ExecutionContext()
+
+        with self._lock:
+
+            clone.metadata.update(
+
+                self.metadata
+
+            )
+
+            clone.outputs.update(
+
+                self.outputs
+
+            )
+
+            clone.variables.update(
+
+                self.variables
+
+            )
+
+            clone.cache.update(
+
+                self.cache
+
+            )
+
+            clone.artifacts.update(
+
+                self.artifacts
+
+            )
+
+            clone.files.extend(
+
+                self.files
+
+            )
+
+            clone.warnings.extend(
+
+                self.warnings
+
+            )
+
+            clone.errors.extend(
+
+                self.errors
+
+            )
+
+            clone.started_at = (
+
+                self.started_at
+
+            )
+
+            clone.finished_at = (
+
+                self.finished_at
+
+            )
+
+        return clone
+    
+    # =====================================================
+    # MERGE
+    # =====================================================
+
+    def merge(
+        self,
+        other: "ExecutionContext",
+    ) -> None:
+        """
+        Merge another execution context.
+        """
+
+        with self._lock:
+
+            self.metadata.update(
+
+                other.metadata
+
+            )
+
+            self.outputs.update(
+
+                other.outputs
+
+            )
+
+            self.variables.update(
+
+                other.variables
+
+            )
+
+            self.cache.update(
+
+                other.cache
+
+            )
+
+            self.artifacts.update(
+
+                other.artifacts
+
+            )
+
+            self.files.extend(
+
+                other.files
+
+            )
+
+            self.warnings.extend(
+
+                other.warnings
+
+            )
+
+            self.errors.extend(
+
+                other.errors
+
+            )
+
+    # =====================================================
+    # EXPORT
+    # =====================================================
+
+    def to_dict(
+        self,
+    ) -> Dict[str, Any]:
+        """
+        Export execution context.
+        """
+
+        return self.snapshot()
+
+    # -----------------------------------------------------
+
+    def to_json(
+        self,
+        *,
+        indent: int = 4,
+    ) -> str:
+        """
+        JSON serialization.
+        """
+
+        import json
+
+        return json.dumps(
+
+            self.to_dict(),
+
+            indent=indent,
+
+            default=str,
+
+        )
+
+    # =====================================================
+    # RESTORE
+    # =====================================================
+
+    @classmethod
+    def from_dict(
+        cls,
+        data: Dict[str, Any],
+    ) -> "ExecutionContext":
+        """
+        Restore execution context.
+        """
+
+        context = cls()
+
+        context.metadata.update(
+
+            data.get(
+
+                "metadata",
+
+                {},
+
+            )
+
+        )
+
+        context.outputs.update(
+
+            data.get(
+
+                "outputs",
+
+                {},
+
+            )
+
+        )
+
+        context.variables.update(
+
+            data.get(
+
+                "variables",
+
+                {},
+
+            )
+
+        )
+
+        context.cache.update(
+
+            data.get(
+
+                "cache",
+
+                {},
+
+            )
+
+        )
+
+        context.artifacts.update(
+
+            data.get(
+
+                "artifacts",
+
+                [],
+
+            )
+
+        )
+
+        context.files.extend(
+
+            Path(path)
+
+            for path
+
+            in data.get(
+
+                "files",
+
+                [],
+
+            )
+
+        )
+
+        context.warnings.extend(
+
+            data.get(
+
+                "warnings",
+
+                [],
+
+            )
+
+        )
+
+        context.errors.extend(
+
+            data.get(
+
+                "errors",
+
+                [],
+
+            )
+
+        )
+
+        return context
+    
+    # =====================================================
+    # STATISTICS
+    # =====================================================
+
+    def statistics(
+        self,
+    ) -> Dict[str, int]:
+        """
+        Execution statistics.
+        """
+
+        return {
+
+            "metadata":
+
+                len(self.metadata),
+
+            "variables":
+
+                len(self.variables),
+
+            "outputs":
+
+                len(self.outputs),
+
+            "cache":
+
+                len(self.cache),
+
+            "artifacts":
+
+                len(self.artifacts),
+
+            "files":
+
+                len(self.files),
+
+            "warnings":
+
+                len(self.warnings),
+
+            "errors":
+
+                len(self.errors),
+
+        }
+
+    # =====================================================
+    # VALIDATION
+    # =====================================================
+
+    def validate(
+        self,
+    ) -> bool:
+        """
+        Validate execution context.
+        """
+
+        return (
+
+            self.started_at
+
+            is not None
+
+        )
+
+    # =====================================================
+    # CHECKPOINT
+    # =====================================================
+
+    def checkpoint(
+        self,
+    ) -> Dict[str, Any]:
+        """
+        Create a checkpoint of the current execution state.
+        """
+
+        return self.snapshot()
+
+    # -----------------------------------------------------
+
+    def restore(
+        self,
+        checkpoint: Dict[str, Any],
+    ) -> None:
+        """
+        Restore execution state from a checkpoint.
+        """
+
+        restored = self.from_dict(
+            checkpoint
+        )
+
+        with self._lock:
+
+            self.metadata = restored.metadata
+
+            self.outputs = restored.outputs
+
+            self.variables = restored.variables
+
+            self.cache = restored.cache
+
+            self.artifacts = restored.artifacts
+
+            self.files = restored.files
+
+            self.warnings = restored.warnings
+
+            self.errors = restored.errors
+
+            self.started_at = restored.started_at
+
+            self.finished_at = restored.finished_at
+
+    # =====================================================
+    # PERSISTENCE
+    # =====================================================
+
+    def save(
+        self,
+        path: Path,
+    ) -> None:
+        """
+        Save execution context to disk.
+        """
+
+        import json
+
+        path.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        with path.open(
+            "w",
+            encoding="utf-8",
+        ) as fp:
+
+            json.dump(
+
+                self.to_dict(),
+
+                fp,
+
+                indent=4,
+
+                default=str,
+
+            )
+
+    # -----------------------------------------------------
+
+    @classmethod
+    def load(
+        cls,
+        path: Path,
+    ) -> "ExecutionContext":
+        """
+        Load execution context.
+        """
+
+        import json
+
+        with path.open(
+            "r",
+            encoding="utf-8",
+        ) as fp:
+
+            data = json.load(fp)
+
+        return cls.from_dict(
+            data
+        )
+    
+    # =====================================================
+    # CLEANUP
+    # =====================================================
+
+    def cleanup(
+        self,
+    ) -> None:
+        """
+        Free temporary runtime memory.
+        """
+
+        with self._lock:
+
+            self.cache.clear()
+
+            self.variables.clear()
+
+
+    # -----------------------------------------------------
+
+    def clear_outputs(
+        self,
+    ) -> None:
+        """
+        Remove all outputs.
+        """
+
+        with self._lock:
+
+            self.outputs.clear()
+
+    # =====================================================
+    # DIFF
+    # =====================================================
+
+    def diff(
+        self,
+        other: "ExecutionContext",
+    ) -> Dict[str, Any]:
+        """
+        Compare two execution contexts.
+        """
+
+        return {
+
+            "metadata":
+
+                set(self.metadata)
+
+                ^
+
+                set(other.metadata),
+
+            "outputs":
+
+                set(self.outputs)
+
+                ^
+
+                set(other.outputs),
+
+            "variables":
+
+                set(self.variables)
+
+                ^
+
+                set(other.variables),
+
+            "artifacts":
+
+                self.artifacts
+
+                ^
+
+                other.artifacts,
+
+        }
+
+    # =====================================================
+    # HASH
+    # =====================================================
+
+    def checksum(
+        self,
+    ) -> str:
+        """
+        Stable checksum of the execution state.
+        """
+
+        import hashlib
+
+        return hashlib.sha256(
+
+            self.to_json().encode()
+
+        ).hexdigest()
+
+
+    # =====================================================
+    # REPORT
+    # =====================================================
+
+    def report(
+        self,
+    ) -> Dict[str, Any]:
+        """
+        Comprehensive execution context report.
+        """
+
+        return {
+
+            "summary":
+
+                self.summary(),
+
+            "statistics":
+
+                self.statistics(),
+
+            "runtime":
+
+                round(
+
+                    self.runtime_seconds,
+
+                    3,
+
+                ),
+
+            "finished":
+
+                self.finished,
+
+            "checksum":
+
+                self.checksum(),
+
+        }
+
+    # =====================================================
+    # CONTAINER
+    # =====================================================
+
+    def __len__(
+        self,
+    ) -> int:
+
+        return (
+
+            len(self.metadata)
+
+            +
+
+            len(self.outputs)
+
+            +
+
+            len(self.variables)
+
+            +
+
+            len(self.cache)
+
+        )
+
+    # -----------------------------------------------------
+
+    def __contains__(
+        self,
+        key: str,
+    ) -> bool:
+
+        return self.exists(
+            key
+        )
+
+    # -----------------------------------------------------
+
+    def __iter__(
+        self,
+    ):
+
+        return iter(
+
+            self.metadata.items()
+
+        )
+
+    # -----------------------------------------------------
+
+    def __str__(
+        self,
+    ) -> str:
 
         return (
 
             f"ExecutionContext("
 
-            f"pipeline='{self.pipeline_name}', "
+            f"runtime={self.runtime_seconds:.2f}s, "
 
-            f"id='{self.pipeline_id[:8]}')"
+            f"outputs={self.output_count}, "
+
+            f"artifacts={self.artifact_count})"
 
         )

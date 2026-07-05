@@ -16,7 +16,6 @@ data/raw/security_master.csv
 """
 
 from datetime import datetime
-from pathlib import Path
 
 import hashlib
 import time
@@ -25,31 +24,45 @@ import pandas as pd
 
 from orchestration.models.engine_result import EngineResult
 
+from orchestration.models.engine_status import (
+    EngineStatus,
+)
+
+from config.settings import (
+    DEFAULT_EXCHANGE,
+    DEFAULT_COUNTRY,
+    DEFAULT_CURRENCY,
+    DEFAULT_ASSET_CLASS,
+)
+
+from config.paths import (
+    UPDATED_STOCKS_FILE,
+    SECURITY_MASTER_FILE,
+)
+
+from config.thresholds import (
+    SMALL_CAP_MAX,
+    MID_CAP_MAX,
+)
+
+from config.settings import (
+    DATE_FORMAT,
+)
+
+from utils.file_utils import (
+    ensure_parent_directory,
+)
+
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
 # =========================================================
 # CONFIG
 # =========================================================
 
 ENGINE_NAME = "SecurityMaster"
-
-# =========================================================
-# PATHS
-# =========================================================
-
-ROOT = Path(__file__).resolve().parents[2]
-
-INPUT_FILE = (
-    ROOT
-    / "data"
-    / "raw"
-    / "updated_stocks.csv"
-)
-
-OUTPUT_FILE = (
-    ROOT
-    / "data"
-    / "raw"
-    / "security_master.csv"
-)
 
 # =========================================================
 # MAIN
@@ -68,12 +81,12 @@ def main() -> EngineResult:
         # LOAD
         # =====================================================
 
-        print(
+        logger.info(
             "\n📥 Loading Investable Universe..."
         )
 
         df = pd.read_csv(
-            INPUT_FILE
+            UPDATED_STOCKS_FILE
         )
 
         # =====================================================
@@ -176,23 +189,23 @@ def main() -> EngineResult:
             + ".NS"
         )
 
-        df["Exchange"] = "NSE"
+        df["Exchange"] = DEFAULT_EXCHANGE
 
-        df["Country"] = "India"
+        df["Country"] = DEFAULT_COUNTRY
 
-        df["Currency"] = "INR"
+        df["Currency"] = DEFAULT_CURRENCY
+
+        df["Asset_Type"] = DEFAULT_ASSET_CLASS
 
         df["Universe_Flag"] = 1
 
         today = datetime.now().strftime(
-            "%Y-%m-%d"
+            DATE_FORMAT
         )
 
         df["Created_Date"] = today
 
         df["Last_Updated"] = today
-
-        df["Asset_Type"] = "Equity"
 
         df["Is_Active"] = 1
 
@@ -200,8 +213,8 @@ def main() -> EngineResult:
             df["Market_Cap"],
             bins=[
                 0,
-                5e10,
-                2e11,
+                SMALL_CAP_MAX,
+                MID_CAP_MAX,
                 float("inf"),
             ],
             labels=[
@@ -286,13 +299,12 @@ def main() -> EngineResult:
         # SAVE
         # =====================================================
 
-        OUTPUT_FILE.parent.mkdir(
-            parents=True,
-            exist_ok=True,
+        ensure_parent_directory(
+            SECURITY_MASTER_FILE
         )
 
         security_master.to_csv(
-            OUTPUT_FILE,
+            SECURITY_MASTER_FILE,
             index=False,
         )
 
@@ -324,7 +336,7 @@ def main() -> EngineResult:
         )
 
         print(
-            f"\nSaved:\n{OUTPUT_FILE}"
+            f"\nSaved:\n{SECURITY_MASTER_FILE}"
         )
 
         print("=" * 70)
@@ -370,11 +382,11 @@ def main() -> EngineResult:
 
         return EngineResult(
             engine=ENGINE_NAME,
-            status="SUCCESS",
+            status=EngineStatus.SUCCESS,
             records=len(
                 security_master
             ),
-            output=OUTPUT_FILE,
+            output=SECURITY_MASTER_FILE,
             duration=duration,
             metadata=execution_metadata,
         )
@@ -392,7 +404,7 @@ def main() -> EngineResult:
 
         return EngineResult(
             engine=ENGINE_NAME,
-            status="FAILED",
+            status=EngineStatus.FAILED,
             duration=duration,
             metadata={
                 "error": str(e),

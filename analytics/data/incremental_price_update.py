@@ -28,51 +28,40 @@ import time
 import pandas as pd
 import yfinance as yf
 
-from orchestration.models.engine_result import EngineResult
+from orchestration.models.engine_status import (
+    EngineStatus,
+)
+
+from orchestration.models.engine_result import (
+    EngineResult,
+)
+
+from config.paths import (
+    UPDATED_STOCKS_FILE,
+    PRICE_DIR,
+    PRICE_UPDATE_FAILURE_FILE,
+    INVALID_SYMBOL_FILE,
+)
+
+from config.thresholds import (
+    MAX_WORKERS,
+    FULL_HISTORY_YEARS,
+)
+
+from utils.file_utils import (
+    ensure_directory,
+    ensure_parent_directory,
+)
+
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
 
 # =========================================================
 # CONFIG
 # =========================================================
 
 ENGINE_NAME = "IncrementalPriceUpdate"
-
-MAX_WORKERS = 2
-
-FULL_HISTORY_YEARS = 5
-
-# =========================================================
-# PATHS
-# =========================================================
-
-ROOT = Path(__file__).resolve().parents[2]
-
-UNIVERSE_FILE = (
-    ROOT
-    / "data"
-    / "raw"
-    / "updated_stocks.csv"
-)
-
-PRICE_DIR = (
-    ROOT
-    / "data"
-    / "raw"
-    / "prices"
-)
-
-FAILURE_FILE = (
-    ROOT
-    / "data"
-    / "logs"
-    / "price_update_failures.csv"
-)
-
-INVALID_FILE = (
-    ROOT
-    / "data"
-    / "logs"
-    / "invalid_symbols.csv"
-)
 
 # =========================================================
 # DOWNLOAD FULL HISTORY
@@ -324,26 +313,25 @@ def main() -> EngineResult:
         # PREPARE DIRECTORIES
         # =====================================================
 
-        PRICE_DIR.mkdir(
-            parents=True,
-            exist_ok=True,
+        ensure_directory(
+            PRICE_DIR
         )
 
-        FAILURE_FILE.parent.mkdir(
-            parents=True,
-            exist_ok=True,
+        ensure_parent_directory(
+            PRICE_UPDATE_FAILURE_FILE
+        
         )
 
         # =====================================================
         # LOAD UNIVERSE
         # =====================================================
 
-        print(
+        logger.info(
             "\n📥 Loading Investable Universe..."
         )
 
         universe = pd.read_csv(
-            UNIVERSE_FILE
+            UPDATED_STOCKS_FILE
         )
 
         symbols = (
@@ -362,11 +350,11 @@ def main() -> EngineResult:
 
         invalid_symbols = set()
 
-        if INVALID_FILE.exists():
+        if INVALID_SYMBOL_FILE.exists():
 
             invalid_symbols = set(
                 pd.read_csv(
-                    INVALID_FILE
+                    INVALID_SYMBOL_FILE
                 )["Symbol"]
                 .astype(str)
                 .str.upper()
@@ -484,7 +472,7 @@ def main() -> EngineResult:
             pd.DataFrame(
                 failures
             ).to_csv(
-                FAILURE_FILE,
+                PRICE_UPDATE_FAILURE_FILE,
                 index=False,
             )
 
@@ -498,10 +486,10 @@ def main() -> EngineResult:
                 new_invalid
             )
 
-            if INVALID_FILE.exists():
+            if INVALID_SYMBOL_FILE.exists():
 
                 old = pd.read_csv(
-                    INVALID_FILE
+                    INVALID_SYMBOL_FILE
                 )
 
                 invalid_df = pd.concat(
@@ -524,7 +512,7 @@ def main() -> EngineResult:
             )
 
             invalid_df.to_csv(
-                INVALID_FILE,
+                INVALID_SYMBOL_FILE,
                 index=False,
             )
 
@@ -593,7 +581,7 @@ def main() -> EngineResult:
 
             print(
                 f"\nFailure Log:\n"
-                f"{FAILURE_FILE}"
+                f"{PRICE_UPDATE_FAILURE_FILE}"
             )
 
         print(
@@ -632,14 +620,14 @@ def main() -> EngineResult:
 
         return EngineResult(
             engine=ENGINE_NAME,
-            status="SUCCESS",
+            status=EngineStatus.SUCCESS,
             records=(
                 new_count
                 + updated_count
             ),
             output=PRICE_DIR,
-            report=FAILURE_FILE
-            if FAILURE_FILE.exists()
+            report=PRICE_UPDATE_FAILURE_FILE
+            if PRICE_UPDATE_FAILURE_FILE.exists()
             else None,
             duration=duration,
             metadata=execution_metadata,
@@ -658,7 +646,7 @@ def main() -> EngineResult:
 
         return EngineResult(
             engine=ENGINE_NAME,
-            status="FAILED",
+            status=EngineStatus.FAILED,
             duration=duration,
             metadata={
                 "error": str(e),

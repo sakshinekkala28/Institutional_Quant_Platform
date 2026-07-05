@@ -1,299 +1,1627 @@
 """
-Institutional Quant Platform
-============================
+=========================================================
+INSTITUTIONAL QUANT PLATFORM
+=========================================================
 
 Execution Report
 
-Collects execution statistics for every engine and
-produces the final pipeline report.
+Central reporting component for the orchestration
+framework.
 
-Author: Institutional Quant Platform
+Responsibilities
+----------------
+• Collect engine execution results
+• Collect pipeline execution results
+• Generate execution metrics
+• Aggregate platform statistics
+• Track artifacts and outputs
+• Export execution reports
+• Provide execution audit trail
+
+Author
+------
+Institutional Quant Platform
+
+=========================================================
 """
 
 from __future__ import annotations
 
-import json
-from dataclasses import dataclass, field
+from dataclasses import dataclass
+from dataclasses import field
+
 from datetime import datetime
+
 from pathlib import Path
-from typing import Any, Dict, List, Optional
 
+from threading import RLock
 
-# ----------------------------------------------------------------------
+from typing import Any
+from typing import Dict
+from typing import List
+from typing import Optional
 
+from orchestration.models.engine_result import (
+    EngineResult,
+)
 
-@dataclass
-class EngineReport:
-    """
-    Execution report for a single engine.
-    """
+from orchestration.models.pipeline_result import (
+    PipelineResult,
+)
 
-    engine: str
+from orchestration.models.master_result import (
+    MasterResult,
+)
 
-    stage: str
+from orchestration.models.engine_status import (
+    EngineStatus,
+)
 
-    status: str
+# =========================================================
+# EXECUTION REPORT
+# =========================================================
 
-    started_at: Optional[str] = None
-
-    finished_at: Optional[str] = None
-
-    runtime_seconds: float = 0.0
-
-    outputs: List[str] = field(default_factory=list)
-
-    warnings: List[str] = field(default_factory=list)
-
-    error: Optional[str] = None
-
-    metadata: Dict[str, Any] = field(default_factory=dict)
-
-    def to_dict(self):
-
-        return {
-            "engine": self.engine,
-            "stage": self.stage,
-            "status": self.status,
-            "started_at": self.started_at,
-            "finished_at": self.finished_at,
-            "runtime_seconds": self.runtime_seconds,
-            "outputs": self.outputs,
-            "warnings": self.warnings,
-            "error": self.error,
-            "metadata": self.metadata,
-        }
-
-
-# ----------------------------------------------------------------------
-
-
+@dataclass(slots=True)
 class ExecutionReport:
     """
-    Pipeline execution report.
+    Platform execution report.
+
+    Collects execution information from every
+    engine, pipeline and orchestrator.
     """
 
-    def __init__(self):
+    # -----------------------------------------------------
+    # Results
+    # -----------------------------------------------------
 
-        self.pipeline_name = ""
+    engine_results: List[
+        EngineResult
+    ] = field(
+        default_factory=list
+    )
 
-        self.pipeline_id = ""
+    pipeline_results: List[
+        PipelineResult
+    ] = field(
+        default_factory=list
+    )
+
+    master_result: Optional[
+        MasterResult
+    ] = None
+
+    # -----------------------------------------------------
+    # Runtime Metadata
+    # -----------------------------------------------------
+
+    metadata: Dict[
+        str,
+        Any,
+    ] = field(
+        default_factory=dict
+    )
+
+    # -----------------------------------------------------
+    # Outputs
+    # -----------------------------------------------------
+
+    outputs: List[
+        str
+    ] = field(
+        default_factory=list
+    )
+
+    artifacts: List[
+        str
+    ] = field(
+        default_factory=list
+    )
+
+    # -----------------------------------------------------
+    # Diagnostics
+    # -----------------------------------------------------
+
+    warnings: List[
+        str
+    ] = field(
+        default_factory=list
+    )
+
+    errors: List[
+        str
+    ] = field(
+        default_factory=list
+    )
+
+    # -----------------------------------------------------
+    # Runtime
+    # -----------------------------------------------------
+
+    started_at: datetime = field(
+        default_factory=datetime.utcnow
+    )
+
+    finished_at: Optional[
+        datetime
+    ] = None
+
+    # -----------------------------------------------------
+    # Synchronization
+    # -----------------------------------------------------
+
+    _lock: RLock = field(
+        default_factory=RLock,
+        init=False,
+        repr=False,
+        compare=False,
+    )
+
+    # =====================================================
+    # PROPERTIES
+    # =====================================================
+
+    @property
+    def runtime_seconds(
+        self,
+    ) -> float:
+
+        if self.finished_at is None:
+
+            return (
+
+                datetime.utcnow()
+
+                -
+
+                self.started_at
+
+            ).total_seconds()
+
+        return (
+
+            self.finished_at
+
+            -
+
+            self.started_at
+
+        ).total_seconds()
+
+    # -----------------------------------------------------
+
+    @property
+    def finished(
+        self,
+    ) -> bool:
+
+        return self.finished_at is not None
+
+    # -----------------------------------------------------
+
+    @property
+    def total_engines(
+        self,
+    ) -> int:
+
+        return len(
+            self.engine_results
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def total_pipelines(
+        self,
+    ) -> int:
+
+        return len(
+            self.pipeline_results
+        )
+    
+    # =====================================================
+    # ENGINE STATISTICS
+    # =====================================================
+
+    @property
+    def successful_engines(
+        self,
+    ) -> int:
+
+        return sum(
+
+            result.status
+
+            == EngineStatus.SUCCESS
+
+            for result
+
+            in self.engine_results
+
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def failed_engines(
+        self,
+    ) -> int:
+
+        return sum(
+
+            result.status
+
+            == EngineStatus.FAILED
+
+            for result
+
+            in self.engine_results
+
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def skipped_engines(
+        self,
+    ) -> int:
+
+        return sum(
+
+            result.status
+
+            == EngineStatus.SKIPPED
+
+            for result
+
+            in self.engine_results
+
+        )
+    
+    # =====================================================
+    # PIPELINE STATISTICS
+    # =====================================================
+
+    @property
+    def successful_pipelines(
+        self,
+    ) -> int:
+
+        return sum(
+
+            pipeline.status
+
+            == EngineStatus.SUCCESS
+
+            for pipeline
+
+            in self.pipeline_results
+
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def failed_pipelines(
+        self,
+    ) -> int:
+
+        return sum(
+
+            pipeline.status
+
+            == EngineStatus.FAILED
+
+            for pipeline
+
+            in self.pipeline_results
+
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def pipeline_success_rate(
+        self,
+    ) -> float:
+
+        if not self.pipeline_results:
+
+            return 0.0
+
+        return round(
+
+            100
+
+            *
+
+            self.successful_pipelines
+
+            /
+
+            len(self.pipeline_results),
+
+            2,
+
+        )
+    
+    # =====================================================
+    # RUNTIME
+    # =====================================================
+
+    def finish(
+        self,
+    ) -> None:
+        """
+        Mark report as complete.
+        """
+
+        self.finished_at = (
+            datetime.utcnow()
+        )
+
+    # =====================================================
+    # SUMMARY
+    # =====================================================
+
+    def summary(
+        self,
+    ) -> Dict[str, Any]:
+
+        return {
+
+            "runtime":
+
+                round(
+
+                    self.runtime_seconds,
+
+                    3,
+
+                ),
+
+            "pipelines":
+
+                self.total_pipelines,
+
+            "engines":
+
+                self.total_engines,
+
+            "success_rate":
+
+                self.pipeline_success_rate,
+
+            "warnings":
+
+                len(self.warnings),
+
+            "errors":
+
+                len(self.errors),
+
+        }
+
+    # =====================================================
+    # DUNDER
+    # =====================================================
+
+    def __repr__(
+        self,
+    ) -> str:
+
+        return (
+
+            f"{self.__class__.__name__}("
+
+            f"pipelines={self.total_pipelines}, "
+
+            f"engines={self.total_engines})"
+
+        )
+    
+    # =====================================================
+    # ENGINE RESULTS
+    # =====================================================
+
+    def add_engine_result(
+        self,
+        result: EngineResult,
+    ) -> None:
+        """
+        Record an engine execution result.
+        """
+
+        with self._lock:
+
+            self.engine_results.append(
+                result
+            )
+
+    # -----------------------------------------------------
+
+    def add_engine_results(
+        self,
+        results: List[EngineResult],
+    ) -> None:
+        """
+        Record multiple engine results.
+        """
+
+        with self._lock:
+
+            self.engine_results.extend(
+                results
+            )
+
+    # =====================================================
+    # PIPELINE RESULTS
+    # =====================================================
+
+    def add_pipeline_result(
+        self,
+        result: PipelineResult,
+    ) -> None:
+        """
+        Record pipeline result.
+        """
+
+        with self._lock:
+
+            self.pipeline_results.append(
+                result
+            )
+
+    # -----------------------------------------------------
+
+    def add_pipeline_results(
+        self,
+        results: List[PipelineResult],
+    ) -> None:
+        """
+        Record multiple pipeline results.
+        """
+
+        with self._lock:
+
+            self.pipeline_results.extend(
+                results
+            )
+
+    # =====================================================
+    # MASTER RESULT
+    # =====================================================
+
+    def set_master_result(
+        self,
+        result: MasterResult,
+    ) -> None:
+        """
+        Set platform execution result.
+        """
+
+        self.master_result = result
+
+    # =====================================================
+    # METADATA
+    # =====================================================
+
+    def set_metadata(
+        self,
+        key: str,
+        value: Any,
+    ) -> None:
+
+        with self._lock:
+
+            self.metadata[key] = value
+
+    # -----------------------------------------------------
+
+    def get_metadata(
+        self,
+        key: str,
+        default: Any = None,
+    ) -> Any:
+
+        return self.metadata.get(
+            key,
+            default,
+        )
+    
+        # =====================================================
+    # OUTPUTS
+    # =====================================================
+
+    def add_output(
+        self,
+        output: str,
+    ) -> None:
+
+        with self._lock:
+
+            self.outputs.append(
+                output
+            )
+
+    # -----------------------------------------------------
+
+    def add_outputs(
+        self,
+        outputs: List[str],
+    ) -> None:
+
+        with self._lock:
+
+            self.outputs.extend(
+                outputs
+            )
+
+    # =====================================================
+    # ARTIFACTS
+    # =====================================================
+
+    def add_artifact(
+        self,
+        artifact: str,
+    ) -> None:
+
+        with self._lock:
+
+            self.artifacts.append(
+                artifact
+            )
+
+    # -----------------------------------------------------
+
+    def add_artifacts(
+        self,
+        artifacts: List[str],
+    ) -> None:
+
+        with self._lock:
+
+            self.artifacts.extend(
+                artifacts
+            )
+
+    # =====================================================
+    # WARNINGS
+    # =====================================================
+
+    def add_warning(
+        self,
+        warning: str,
+    ) -> None:
+
+        with self._lock:
+
+            self.warnings.append(
+                warning
+            )
+
+    # -----------------------------------------------------
+
+    def add_error(
+        self,
+        error: str,
+    ) -> None:
+
+        with self._lock:
+
+            self.errors.append(
+                error
+            )
+
+    # =====================================================
+    # MERGE
+    # =====================================================
+
+    def merge(
+        self,
+        other: "ExecutionReport",
+    ) -> None:
+        """
+        Merge another report.
+        """
+
+        with self._lock:
+
+            self.engine_results.extend(
+                other.engine_results
+            )
+
+            self.pipeline_results.extend(
+                other.pipeline_results
+            )
+
+            self.outputs.extend(
+                other.outputs
+            )
+
+            self.artifacts.extend(
+                other.artifacts
+            )
+
+            self.warnings.extend(
+                other.warnings
+            )
+
+            self.errors.extend(
+                other.errors
+            )
+
+            self.metadata.update(
+                other.metadata
+            )
+
+            if other.master_result:
+
+                self.master_result = (
+                    other.master_result
+                )
+
+    # =====================================================
+    # CLEAR
+    # =====================================================
+
+    def clear(
+        self,
+    ) -> None:
+        """
+        Reset report.
+        """
+
+        with self._lock:
+
+            self.engine_results.clear()
+
+            self.pipeline_results.clear()
+
+            self.outputs.clear()
+
+            self.artifacts.clear()
+
+            self.warnings.clear()
+
+            self.errors.clear()
+
+            self.metadata.clear()
+
+            self.master_result = None
+
+            self.started_at = (
+                datetime.utcnow()
+            )
+
+            self.finished_at = None
+
+    # =====================================================
+    # SUCCESS RATES
+    # =====================================================
+
+    @property
+    def engine_success_rate(
+        self,
+    ) -> float:
+        """
+        Engine success percentage.
+        """
+
+        if not self.engine_results:
+
+            return 0.0
+
+        return round(
+
+            100.0
+
+            * self.successful_engines
+
+            / self.total_engines,
+
+            2,
+
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def overall_status(
+        self,
+    ) -> EngineStatus:
+        """
+        Overall platform status.
+        """
+
+        if self.master_result:
+
+            return self.master_result.status
+
+        if self.failed_engines:
+
+            return EngineStatus.FAILED
+
+        if self.failed_pipelines:
+
+            return EngineStatus.FAILED
+
+        return EngineStatus.SUCCESS
+
+    # =====================================================
+    # RUNTIME ANALYTICS
+    # =====================================================
+
+    @property
+    def total_runtime(
+        self,
+    ) -> float:
+
+        return round(
+
+            sum(
+
+                engine.duration
+
+                for engine
+
+                in self.engine_results
+
+            ),
+
+            3,
+
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def average_engine_runtime(
+        self,
+    ) -> float:
+
+        if not self.engine_results:
+
+            return 0.0
+
+        return round(
+
+            self.total_runtime
+
+            / len(self.engine_results),
+
+            3,
+
+        )
+
+    # -----------------------------------------------------
+
+    @property
+    def average_pipeline_runtime(
+        self,
+    ) -> float:
+
+        if not self.pipeline_results:
+
+            return 0.0
+
+        return round(
+
+            sum(
+
+                pipeline.duration
+
+                for pipeline
+
+                in self.pipeline_results
+
+            )
+
+            /
+
+            len(self.pipeline_results),
+
+            3,
+
+        )
+
+    # =====================================================
+    # ENGINE RANKINGS
+    # =====================================================
+
+    def slowest_engines(
+        self,
+        limit: int = 10,
+    ) -> List[EngineResult]:
+        """
+        Slowest executed engines.
+        """
+
+        return sorted(
+
+            self.engine_results,
+
+            key=lambda result: result.duration,
+
+            reverse=True,
+
+        )[:limit]
+
+    # -----------------------------------------------------
+
+    def fastest_engines(
+        self,
+        limit: int = 10,
+    ) -> List[EngineResult]:
+        """
+        Fastest engines.
+        """
+
+        return sorted(
+
+            self.engine_results,
+
+            key=lambda result: result.duration,
+
+        )[:limit]
+
+    # =====================================================
+    # PIPELINE RANKINGS
+    # =====================================================
+
+    def slowest_pipelines(
+        self,
+        limit: int = 10,
+    ) -> List[PipelineResult]:
+
+        return sorted(
+
+            self.pipeline_results,
+
+            key=lambda result: result.duration,
+
+            reverse=True,
+
+        )[:limit]
+
+    # -----------------------------------------------------
+
+    def fastest_pipelines(
+        self,
+        limit: int = 10,
+    ) -> List[PipelineResult]:
+
+        return sorted(
+
+            self.pipeline_results,
+
+            key=lambda result: result.duration,
+
+        )[:limit]
+
+
+    # =====================================================
+    # FAILURES
+    # =====================================================
+
+    def failed_engine_results(
+        self,
+    ) -> List[EngineResult]:
+
+        return [
+
+            result
+
+            for result
+
+            in self.engine_results
+
+            if (
+
+                result.status
+
+                == EngineStatus.FAILED
+
+            )
+
+        ]
+
+    # -----------------------------------------------------
+
+    def failed_pipeline_results(
+        self,
+    ) -> List[PipelineResult]:
+
+        return [
+
+            result
+
+            for result
+
+            in self.pipeline_results
+
+            if (
+
+                result.status
+
+                == EngineStatus.FAILED
+
+            )
+
+        ]
+
+    # =====================================================
+    # TIMELINE
+    # =====================================================
+
+    def timeline(
+        self,
+    ) -> List[Dict[str, Any]]:
+        """
+        Execution timeline.
+        """
+
+        timeline = []
+
+        for engine in self.engine_results:
+
+            timeline.append(
+
+                {
+
+                    "type":
+
+                        "engine",
+
+                    "name":
+
+                        engine.engine,
+
+                    "status":
+
+                        engine.status.value,
+
+                    "duration":
+
+                        engine.duration,
+
+                }
+
+            )
+
+        for pipeline in self.pipeline_results:
+
+            timeline.append(
+
+                {
+
+                    "type":
+
+                        "pipeline",
+
+                    "name":
+
+                        pipeline.pipeline,
+
+                    "status":
+
+                        pipeline.status.value,
+
+                    "duration":
+
+                        pipeline.duration,
+
+                }
+
+            )
+
+        return timeline
+    
+    # =====================================================
+    # STATISTICS
+    # =====================================================
+
+    def statistics(
+        self,
+    ) -> Dict[str, Any]:
+
+        return {
+
+            "runtime":
+
+                round(
+
+                    self.runtime_seconds,
+
+                    3,
+
+                ),
+
+            "engine_success_rate":
+
+                self.engine_success_rate,
+
+            "pipeline_success_rate":
+
+                self.pipeline_success_rate,
+
+            "engines":
+
+                self.total_engines,
+
+            "pipelines":
+
+                self.total_pipelines,
+
+            "successful_engines":
+
+                self.successful_engines,
+
+            "failed_engines":
+
+                self.failed_engines,
+
+            "successful_pipelines":
+
+                self.successful_pipelines,
+
+            "failed_pipelines":
+
+                self.failed_pipelines,
+
+            "warnings":
+
+                len(self.warnings),
+
+            "errors":
+
+                len(self.errors),
+
+            "outputs":
+
+                len(self.outputs),
+
+            "artifacts":
+
+                len(self.artifacts),
+
+        }
+
+    # =====================================================
+    # AUDIT REPORT
+    # =====================================================
+
+    def audit_report(
+        self,
+    ) -> Dict[str, Any]:
+        """
+        Comprehensive execution audit.
+        """
+
+        return {
+
+            "summary":
+
+                self.summary(),
+
+            "statistics":
+
+                self.statistics(),
+
+            "timeline":
+
+                self.timeline(),
+
+            "metadata":
+
+                self.metadata,
+
+            "warnings":
+
+                self.warnings,
+
+            "errors":
+
+                self.errors,
+
+            "outputs":
+
+                self.outputs,
+
+            "artifacts":
+
+                self.artifacts,
+
+        }
+
+    # =====================================================
+    # EXPORT
+    # =====================================================
+
+    def to_dict(
+        self,
+    ) -> Dict[str, Any]:
+        """
+        Convert execution report to dictionary.
+        """
+
+        return {
+
+            "started_at":
+
+                self.started_at.isoformat(),
+
+            "finished_at":
+
+                self.finished_at.isoformat()
+
+                if self.finished_at
+
+                else None,
+
+            "runtime":
+
+                round(
+
+                    self.runtime_seconds,
+
+                    3,
+
+                ),
+
+            "master_result":
+
+                self.master_result.to_dict()
+
+                if self.master_result
+
+                else None,
+
+            "statistics":
+
+                self.statistics(),
+
+            "metadata":
+
+                dict(self.metadata),
+
+            "outputs":
+
+                list(self.outputs),
+
+            "artifacts":
+
+                list(self.artifacts),
+
+            "warnings":
+
+                list(self.warnings),
+
+            "errors":
+
+                list(self.errors),
+
+            "engines":
+
+                [
+
+                    engine.to_dict()
+
+                    for engine
+
+                    in self.engine_results
+
+                ],
+
+            "pipelines":
+
+                [
+
+                    pipeline.to_dict()
+
+                    for pipeline
+
+                    in self.pipeline_results
+
+                ],
+
+        }
+
+    # -----------------------------------------------------
+
+    def to_json(
+        self,
+        *,
+        indent: int = 4,
+    ) -> str:
+        """
+        JSON serialization.
+        """
+
+        import json
+
+        return json.dumps(
+
+            self.to_dict(),
+
+            indent=indent,
+
+            default=str,
+
+        )
+
+    # =====================================================
+    # PERSISTENCE
+    # =====================================================
+
+    def save(
+        self,
+        path: Path,
+    ) -> None:
+        """
+        Save report to disk.
+        """
+
+        path.parent.mkdir(
+
+            parents=True,
+
+            exist_ok=True,
+
+        )
+
+        path.write_text(
+
+            self.to_json(),
+
+            encoding="utf-8",
+
+        )
+
+    # -----------------------------------------------------
+
+    @classmethod
+    def load(
+        cls,
+        path: Path,
+    ) -> "ExecutionReport":
+        """
+        Restore report from JSON.
+
+        NOTE:
+        EngineResult/PipelineResult reconstruction
+        requires their corresponding from_dict()
+        implementations.
+        """
+
+        import json
+
+        data = json.loads(
+
+            path.read_text(
+
+                encoding="utf-8"
+
+            )
+
+        )
+
+        report = cls()
+
+        report.metadata.update(
+
+            data.get(
+
+                "metadata",
+
+                {},
+
+            )
+
+        )
+
+        report.outputs.extend(
+
+            data.get(
+
+                "outputs",
+
+                [],
+
+            )
+
+        )
+
+        report.artifacts.extend(
+
+            data.get(
+
+                "artifacts",
+
+                [],
+
+            )
+
+        )
+
+        report.warnings.extend(
+
+            data.get(
+
+                "warnings",
+
+                [],
+
+            )
+
+        )
+
+        report.errors.extend(
+
+            data.get(
+
+                "errors",
+
+                [],
+
+            )
+
+        )
+
+        return report
+
+    # =====================================================
+    # MARKDOWN
+    # =====================================================
+
+    def to_markdown(
+        self,
+    ) -> str:
+        """
+        Generate Markdown execution report.
+        """
+
+        lines = [
+
+            "# Execution Report",
+
+            "",
+
+            f"**Runtime:** {self.runtime_seconds:.2f}s",
+
+            f"**Status:** {self.overall_status.value}",
+
+            "",
+
+            "## Statistics",
+
+            "",
+
+        ]
+
+        for key, value in self.statistics().items():
+
+            lines.append(
+
+                f"- **{key}** : {value}"
+
+            )
+
+        lines.extend(
+
+            [
+
+                "",
+
+                "## Pipelines",
+
+                "",
+
+            ]
+
+        )
+
+        for pipeline in self.pipeline_results:
+
+            lines.append(
+
+                f"- {pipeline.pipeline}"
+
+                f" ({pipeline.status.value})"
+
+                f" [{pipeline.duration:.2f}s]"
+
+            )
+
+        lines.extend(
+
+            [
+
+                "",
+
+                "## Engines",
+
+                "",
+
+            ]
+
+        )
+
+        for engine in self.engine_results:
+
+            lines.append(
+
+                f"- {engine.engine}"
+
+                f" ({engine.status.value})"
+
+                f" [{engine.duration:.2f}s]"
+
+            )
+
+        return "\n".join(
+
+            lines
+
+        )
+
+    # =====================================================
+    # CSV
+    # =====================================================
+
+    def export_csv(
+        self,
+        path: Path,
+    ) -> None:
+        """
+        Export engine execution results.
+        """
+
+        import csv
+
+        path.parent.mkdir(
+
+            parents=True,
+
+            exist_ok=True,
+
+        )
+
+        with path.open(
+
+            "w",
+
+            newline="",
+
+            encoding="utf-8",
+
+        ) as fp:
+
+            writer = csv.writer(fp)
+
+            writer.writerow(
+
+                [
+
+                    "Engine",
+
+                    "Status",
+
+                    "Duration",
+
+                ]
+
+            )
+
+            for result in self.engine_results:
+
+                writer.writerow(
+
+                    [
+
+                        result.engine,
+
+                        result.status.value,
+
+                        result.duration,
+
+                    ]
+
+                )
+
+    # =====================================================
+    # CLEANUP
+    # =====================================================
+
+    def clear(
+        self,
+    ) -> None:
+        """
+        Reset report.
+        """
+
+        self.engine_results.clear()
+
+        self.pipeline_results.clear()
+
+        self.outputs.clear()
+
+        self.artifacts.clear()
+
+        self.warnings.clear()
+
+        self.errors.clear()
+
+        self.metadata.clear()
+
+        self.master_result = None
 
         self.started_at = datetime.utcnow()
 
         self.finished_at = None
 
-        self.engine_reports: List[EngineReport] = []
+    # =====================================================
+    # CONTAINER
+    # =====================================================
 
-        self.metadata: Dict[str, Any] = {}
-
-    # ------------------------------------------------------------------
-
-    def start_pipeline(
+    def __len__(
         self,
-        pipeline_name: str,
-        pipeline_id: str,
-    ):
-
-        self.pipeline_name = pipeline_name
-
-        self.pipeline_id = pipeline_id
-
-        self.started_at = datetime.utcnow()
-
-    # ------------------------------------------------------------------
-
-    def finish_pipeline(self):
-
-        self.finished_at = datetime.utcnow()
-
-    # ------------------------------------------------------------------
-
-    def add_engine_report(
-        self,
-        report: EngineReport,
-    ):
-
-        self.engine_reports.append(report)
-
-    # ------------------------------------------------------------------
-
-    @property
-    def successful(self):
-
-        return sum(
-            r.status == "SUCCESS"
-            for r in self.engine_reports
-        )
-
-    # ------------------------------------------------------------------
-
-    @property
-    def failed(self):
-
-        return sum(
-            r.status == "FAILED"
-            for r in self.engine_reports
-        )
-
-    # ------------------------------------------------------------------
-
-    @property
-    def skipped(self):
-
-        return sum(
-            r.status == "SKIPPED"
-            for r in self.engine_reports
-        )
-
-    # ------------------------------------------------------------------
-
-    @property
-    def runtime(self):
-
-        if self.finished_at is None:
-            return 0.0
+    ) -> int:
 
         return (
-            self.finished_at - self.started_at
-        ).total_seconds()
 
-    # ------------------------------------------------------------------
+            len(self.engine_results)
 
-    @property
-    def outputs(self):
+            +
 
-        files = []
+            len(self.pipeline_results)
 
-        for report in self.engine_reports:
+        )
 
-            files.extend(report.outputs)
+    # -----------------------------------------------------
 
-        return sorted(files)
-
-    # ------------------------------------------------------------------
-
-    def summary(self):
-
-        return {
-
-            "pipeline_name": self.pipeline_name,
-
-            "pipeline_id": self.pipeline_id,
-
-            "started_at": self.started_at.isoformat(),
-
-            "finished_at": (
-                self.finished_at.isoformat()
-                if self.finished_at
-                else None
-            ),
-
-            "runtime_seconds": round(
-                self.runtime,
-                2,
-            ),
-
-            "engines": len(
-                self.engine_reports
-            ),
-
-            "successful": self.successful,
-
-            "failed": self.failed,
-
-            "skipped": self.skipped,
-
-            "outputs_generated": len(
-                self.outputs
-            ),
-
-            "metadata": self.metadata,
-        }
-
-    # ------------------------------------------------------------------
-
-    def to_dict(self):
-
-        return {
-
-            "summary": self.summary(),
-
-            "engines": [
-
-                report.to_dict()
-
-                for report in self.engine_reports
-
-            ]
-
-        }
-
-    # ------------------------------------------------------------------
-
-    def save(
+    def __iter__(
         self,
-        output_directory: Path,
-    ) -> Path:
+    ):
 
-        output_directory.mkdir(
-            parents=True,
-            exist_ok=True,
-        )
+        return iter(
 
-        filename = (
-
-            f"pipeline_report_"
-
-            f"{datetime.utcnow():%Y%m%d_%H%M%S}.json"
+            self.engine_results
 
         )
 
-        path = output_directory / filename
+    # -----------------------------------------------------
 
-        with open(
-            path,
-            "w",
-            encoding="utf-8",
-        ) as fp:
+    def __contains__(
+        self,
+        engine_name: str,
+    ) -> bool:
 
-            json.dump(
-                self.to_dict(),
-                fp,
-                indent=4,
-            )
+        return any(
 
-        return path
+            result.engine
 
-    # ------------------------------------------------------------------
+            == engine_name
 
-    def print_summary(self):
+            for result
 
-        print("=" * 80)
-        print("PIPELINE EXECUTION REPORT")
-        print("=" * 80)
+            in self.engine_results
 
-        print(f"Pipeline : {self.pipeline_name}")
-        print(f"ID       : {self.pipeline_id}")
-        print(f"Runtime  : {self.runtime:.2f}s")
-        print()
+        )
 
-        print(f"Successful : {self.successful}")
-        print(f"Failed     : {self.failed}")
-        print(f"Skipped    : {self.skipped}")
-        print(f"Outputs    : {len(self.outputs)}")
+    # -----------------------------------------------------
 
-        print("=" * 80)
-
-    # ------------------------------------------------------------------
-
-    def __repr__(self):
+    def __str__(
+        self,
+    ) -> str:
 
         return (
 
             f"ExecutionReport("
 
-            f"pipeline='{self.pipeline_name}', "
+            f"engines={self.total_engines}, "
 
-            f"engines={len(self.engine_reports)})"
+            f"pipelines={self.total_pipelines}, "
+
+            f"runtime={self.runtime_seconds:.2f}s)"
 
         )

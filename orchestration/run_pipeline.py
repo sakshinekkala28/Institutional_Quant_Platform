@@ -1,91 +1,282 @@
 """
-====================================================================
-Institutional Quant Platform
+=========================================================
+INSTITUTIONAL QUANT PLATFORM
+=========================================================
 
-Daily Institutional Pipeline
+Run Pipeline
 
-Author : Institutional Quant Platform
-
-Purpose
--------
-Daily production orchestration.
+Platform entry point.
 
 Responsibilities
+----------------
+• Parse CLI arguments
+• Configure orchestrator
+• Execute platform
+• Handle failures
+• Generate execution summary
+• Return proper exit codes
 
-• Initialize Platform
-• Execute All Engines
-• Generate All Data Artifacts
-• Validate Outputs
-• Publish Reports
-• Update Dashboard
-• Refresh API Cache
+Usage
+-----
 
-====================================================================
+python -m orchestration.run_pipeline
+
+python -m orchestration.run_pipeline \
+    --executor parallel
+
+python -m orchestration.run_pipeline \
+    --executor retry
+
+=========================================================
 """
 
 from __future__ import annotations
 
+import argparse
 import logging
-import time
+import sys
 from pathlib import Path
 
-from orchestration.pipeline import InstitutionalPipeline
-from orchestration.context import PipelineContext
-from orchestration.workflow import PIPELINE
+from orchestration.orchestrator import (
+    Orchestrator,
+)
+
+from orchestration.models.engine_status import (
+    EngineStatus,
+)
 
 logger = logging.getLogger(__name__)
 
 
-def banner() -> None:
+# =========================================================
+# CLI
+# =========================================================
 
-    print()
+def parse_arguments() -> argparse.Namespace:
+    """
+    Parse command line arguments.
+    """
 
-    print("=" * 80)
+    parser = argparse.ArgumentParser(
 
-    print("Institutional Quant Platform")
-
-    print("Daily Production Pipeline")
-
-    print("=" * 80)
-
-    print()
-
-
-def main() -> None:
-
-    banner()
-
-    start = time.perf_counter()
-
-    context = PipelineContext()
-
-    pipeline = InstitutionalPipeline(
-
-        workflow=PIPELINE,
-
-        context=context,
+        description=(
+            "Institutional Quant Platform"
+        )
 
     )
 
-    pipeline.initialize()
+    parser.add_argument(
 
-    pipeline.execute()
+        "--executor",
 
-    pipeline.publish()
+        default="sequential",
 
-    pipeline.shutdown()
+        choices=[
 
-    elapsed = time.perf_counter() - start
+            "sequential",
 
-    logger.info(
+            "parallel",
 
-        "Pipeline completed in %.2f seconds",
+            "retry",
 
-        elapsed,
+            "distributed",
+
+        ],
+
+        help="Execution backend.",
 
     )
 
+    parser.add_argument(
+
+        "--summary",
+
+        action="store_true",
+
+        help="Print execution summary.",
+
+    )
+
+    parser.add_argument(
+
+        "--report",
+
+        type=Path,
+
+        help="Export execution report.",
+
+    )
+
+    parser.add_argument(
+
+        "--verbose",
+
+        action="store_true",
+
+        help="Verbose logging.",
+
+    )
+
+    return parser.parse_args()
+
+
+# =========================================================
+# LOGGING
+# =========================================================
+
+def configure_logging(
+    verbose: bool,
+) -> None:
+    """
+    Configure platform logging.
+    """
+
+    level = (
+
+        logging.DEBUG
+
+        if verbose
+
+        else logging.INFO
+
+    )
+
+    logging.basicConfig(
+
+        level=level,
+
+        format=(
+            "%(asctime)s "
+            "%(levelname)s "
+            "%(name)s : "
+            "%(message)s"
+        ),
+
+    )
+
+
+# =========================================================
+# MAIN
+# =========================================================
+
+def main() -> int:
+    """
+    Platform entry point.
+    """
+
+    args = parse_arguments()
+
+    configure_logging(
+
+        args.verbose,
+
+    )
+
+    orchestrator = Orchestrator(
+
+        executor=args.executor,
+
+    )
+
+    try:
+
+        result = orchestrator.run()
+
+        # ----------------------------------------------
+        # Optional report export
+        # ----------------------------------------------
+
+        if args.report:
+
+            orchestrator.report.save(
+
+                args.report,
+
+            )
+
+            logger.info(
+
+                "Execution report written to %s",
+
+                args.report,
+
+            )
+
+        # ----------------------------------------------
+        # Optional summary
+        # ----------------------------------------------
+
+        if args.summary:
+
+            print()
+
+            print("=" * 70)
+
+            print(
+
+                "PLATFORM EXECUTION SUMMARY"
+
+            )
+
+            print("=" * 70)
+
+            for key, value in (
+
+                orchestrator.summary()
+
+            ).items():
+
+                print(
+
+                    f"{key:<20}: {value}"
+
+                )
+
+            print("=" * 70)
+
+            print()
+
+        return (
+
+            0
+
+            if result.status
+
+            == EngineStatus.SUCCESS
+
+            else 1
+
+        )
+
+    except KeyboardInterrupt:
+
+        logger.warning(
+
+            "Execution interrupted."
+
+        )
+
+        return 130
+
+    except Exception:
+
+        logger.exception(
+
+            "Platform execution failed."
+
+        )
+
+        return 1
+
+
+# =========================================================
+# ENTRY POINT
+# =========================================================
 
 if __name__ == "__main__":
 
-    main()
+    sys.exit(
+
+        main()
+
+    )

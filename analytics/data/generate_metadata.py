@@ -16,8 +16,6 @@ data/raw/stock_metadata.csv
 """
 
 from datetime import datetime
-from pathlib import Path
-
 import time
 
 import numpy as np
@@ -25,42 +23,45 @@ import pandas as pd
 
 from orchestration.models.engine_result import EngineResult
 
+from orchestration.models.engine_status import (
+    EngineStatus,
+)
+
+from config.settings import PLATFORM_NAME
+
+from config.settings import DATE_FORMAT
+
+from config.paths import (
+    UPDATED_STOCKS_FILE,
+    STOCK_METADATA_FILE,
+    STOCK_METADATA_HEALTH_FILE,
+)
+
+from config.settings import (
+    DEFAULT_EXCHANGE,
+    DEFAULT_COUNTRY,
+    DEFAULT_CURRENCY,
+    DEFAULT_ASSET_CLASS,
+)
+
+from config.thresholds import (
+    LARGE_CAP_THRESHOLD,
+    MID_CAP_THRESHOLD,
+)
+
+from utils.file_utils import (
+    ensure_parent_directory,
+)
+
+from utils.logger import get_logger
+
+logger = get_logger(__name__)
+
 # =========================================================
 # CONFIG
 # =========================================================
 
 ENGINE_NAME = "StockMetadata"
-
-LARGE_CAP_THRESHOLD = 20_000_000_000
-
-MID_CAP_THRESHOLD = 5_000_000_000
-
-# =========================================================
-# PATHS
-# =========================================================
-
-ROOT = Path(__file__).resolve().parents[2]
-
-INPUT_FILE = (
-    ROOT
-    / "data"
-    / "raw"
-    / "updated_stocks.csv"
-)
-
-OUTPUT_FILE = (
-    ROOT
-    / "data"
-    / "raw"
-    / "stock_metadata.csv"
-)
-
-HEALTH_REPORT = (
-    ROOT
-    / "data"
-    / "logs"
-    / "stock_metadata_health.csv"
-)
 
 # =========================================================
 # MAIN
@@ -79,18 +80,18 @@ def main() -> EngineResult:
         # LOAD
         # =====================================================
 
-        print(
+        logger.info(
             "\n📥 Loading Updated Universe..."
         )
 
-        if not INPUT_FILE.exists():
+        if not UPDATED_STOCKS_FILE.exists():
 
             raise FileNotFoundError(
-                f"Missing file:\n{INPUT_FILE}"
+                f"Missing file:\n{UPDATED_STOCKS_FILE}"
             )
 
         df = pd.read_csv(
-            INPUT_FILE
+            UPDATED_STOCKS_FILE
         )
 
         # =====================================================
@@ -198,21 +199,18 @@ def main() -> EngineResult:
         # STATIC METADATA
         # =====================================================
 
-        df["Exchange"] = "NSE"
+        df["Exchange"] = DEFAULT_EXCHANGE
 
-        df["Country"] = "India"
+        df["Country"] = DEFAULT_COUNTRY
 
-        df["Currency"] = "INR"
+        df["Currency"] = DEFAULT_CURRENCY
 
-        df["Asset_Class"] = "Equity"
-
-        df["Metadata_Source"] = (
-            "Institutional_Quant_Platform"
-        )
+        df["Asset_Class"] = DEFAULT_ASSET_CLASS
+        
+        df["Metadata_Source"] = PLATFORM_NAME
 
         df["Last_Updated"] = (
-            datetime.now()
-            .strftime("%Y-%m-%d")
+            datetime.now().strftime(DATE_FORMAT)
         )
 
         # =====================================================
@@ -354,23 +352,21 @@ def main() -> EngineResult:
         # SAVE
         # =====================================================
 
-        OUTPUT_FILE.parent.mkdir(
-            parents=True,
-            exist_ok=True,
+        ensure_parent_directory(
+            STOCK_METADATA_FILE
         )
 
-        HEALTH_REPORT.parent.mkdir(
-            parents=True,
-            exist_ok=True,
+        ensure_parent_directory(
+            STOCK_METADATA_HEALTH_FILE
         )
 
         df.to_csv(
-            OUTPUT_FILE,
+            STOCK_METADATA_FILE,
             index=False,
         )
 
         health.to_csv(
-            HEALTH_REPORT,
+            STOCK_METADATA_HEALTH_FILE,
             index=False,
         )
 
@@ -422,11 +418,11 @@ def main() -> EngineResult:
         )
 
         print(
-            f"\nSaved:\n{OUTPUT_FILE}"
+            f"\nSaved:\n{STOCK_METADATA_FILE}"
         )
 
         print(
-            f"\nHealth Report:\n{HEALTH_REPORT}"
+            f"\nHealth Report:\n{STOCK_METADATA_HEALTH_FILE}"
         )
 
         print("=" * 70)
@@ -486,10 +482,10 @@ def main() -> EngineResult:
 
         return EngineResult(
             engine=ENGINE_NAME,
-            status="SUCCESS",
+            status=EngineStatus.SUCCESS,
             records=len(df),
-            output=OUTPUT_FILE,
-            report=HEALTH_REPORT,
+            output=STOCK_METADATA_FILE,
+            report=STOCK_METADATA_HEALTH_FILE,
             duration=duration,
             metadata=execution_metadata,
         )
@@ -507,7 +503,7 @@ def main() -> EngineResult:
 
         return EngineResult(
             engine=ENGINE_NAME,
-            status="FAILED",
+            status=EngineStatus.FAILED,
             duration=duration,
             metadata={
                 "error": str(e),
