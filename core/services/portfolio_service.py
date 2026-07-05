@@ -32,6 +32,7 @@ from core.data.repositories.portfolio_repository import (
 )
 
 from core.models.portfolio import Portfolio
+from core.models.portfolio_position import PortfolioPosition
 
 from core.portfolio.statistics import (
     PortfolioStatistics
@@ -67,7 +68,6 @@ class PortfolioService(
     BaseService
 
 ):
-
     """
     Portfolio orchestration service.
     """
@@ -100,10 +100,6 @@ class PortfolioService(
 
     ) -> Portfolio:
 
-        """
-        BaseService execution entrypoint.
-        """
-
         return self.load()
 
     # =====================================================
@@ -118,23 +114,9 @@ class PortfolioService(
 
     ) -> Portfolio:
 
-        """
-        Load portfolio from repository.
-        """
+        if self._portfolio is None or reload:
 
-        if (
-
-            self._portfolio is None
-
-            or reload
-
-        ):
-
-            self._portfolio = (
-
-                self._repository.load()
-
-            )
+            self._portfolio = self._repository.load()
 
         return self._portfolio
 
@@ -144,10 +126,6 @@ class PortfolioService(
 
     ) -> Portfolio:
 
-        """
-        Force reload.
-        """
-
         return self.load(
 
             reload=True
@@ -155,7 +133,7 @@ class PortfolioService(
         )
 
     # =====================================================
-    # ACCESS
+    # PROPERTIES
     # =====================================================
 
     @property
@@ -164,10 +142,6 @@ class PortfolioService(
         self
 
     ) -> Portfolio:
-
-        """
-        Loaded portfolio.
-        """
 
         return self.load()
 
@@ -178,10 +152,6 @@ class PortfolioService(
 
     ) -> int:
 
-        """
-        Portfolio holdings.
-        """
-
         return self.portfolio.holdings
 
     @property
@@ -191,12 +161,68 @@ class PortfolioService(
 
     ) -> float:
 
-        """
-        Portfolio total weight.
-        """
-
         return self.portfolio.total_weight
-    
+
+    # =====================================================
+    # API HELPERS
+    # =====================================================
+
+    def get_portfolio(
+
+        self
+
+    ) -> Portfolio:
+
+        return self.portfolio
+
+    def get_holdings(
+
+        self
+
+    ) -> list[PortfolioPosition]:
+
+        return list(
+
+            self.portfolio
+
+        )
+
+    def get_position(
+
+        self,
+
+        symbol: str
+
+    ) -> PortfolioPosition | None:
+
+        return self.portfolio.get(
+
+            symbol
+
+        )
+
+    def get_top_holdings(
+
+        self,
+
+        n: int = 10
+
+    ) -> list[PortfolioPosition]:
+
+        return self.portfolio.top_holdings(
+
+            n
+
+        )
+
+    def get_sector_weights(
+
+        self
+
+    ) -> dict[str, float]:
+
+        return self.portfolio.sector_weights()
+
     # =====================================================
     # STATISTICS
     # =====================================================
@@ -206,10 +232,6 @@ class PortfolioService(
         self
 
     ) -> dict:
-
-        """
-        Portfolio statistics.
-        """
 
         return PortfolioStatistics.summary(
 
@@ -227,10 +249,6 @@ class PortfolioService(
 
     ) -> dict:
 
-        """
-        Portfolio exposure.
-        """
-
         return PortfolioExposure.summary(
 
             self.portfolio
@@ -246,10 +264,6 @@ class PortfolioService(
         self
 
     ) -> dict:
-
-        """
-        Portfolio diversification.
-        """
 
         return PortfolioDiversification.summary(
 
@@ -267,10 +281,6 @@ class PortfolioService(
 
     ) -> dict[str, bool]:
 
-        """
-        Portfolio constraint checks.
-        """
-
         return PortfolioConstraints.validate(
 
             self.portfolio
@@ -282,10 +292,6 @@ class PortfolioService(
         self
 
     ) -> bool:
-
-        """
-        Overall portfolio validation.
-        """
 
         return PortfolioConstraints.passed(
 
@@ -303,16 +309,12 @@ class PortfolioService(
 
     ) -> dict:
 
-        """
-        Portfolio allocation.
-        """
-
         return PortfolioAllocation.summary(
 
             self.portfolio
 
         )
-    
+
     # =====================================================
     # TURNOVER
     # =====================================================
@@ -324,10 +326,6 @@ class PortfolioService(
         target: Portfolio
 
     ) -> dict:
-
-        """
-        Portfolio turnover summary.
-        """
 
         return PortfolioTurnover.summary(
 
@@ -347,11 +345,27 @@ class PortfolioService(
 
     ):
 
-        """
-        Export portfolio as DataFrame.
-        """
+        return self.portfolio.to_dataframe()
+
+    def to_dataframe(
+
+        self
+
+    ):
 
         return self.portfolio.to_dataframe()
+
+    def to_dict(
+
+        self
+
+    ) -> list[dict]:
+
+        return self.portfolio.to_dataframe().to_dict(
+
+            orient="records"
+
+        )
 
     def symbols(
 
@@ -359,21 +373,13 @@ class PortfolioService(
 
     ) -> list[str]:
 
-        """
-        Portfolio symbols.
-        """
-
         return self.portfolio.symbols()
 
     def positions(
 
         self
 
-    ):
-
-        """
-        Portfolio positions.
-        """
+    ) -> list[PortfolioPosition]:
 
         return list(
 
@@ -390,10 +396,6 @@ class PortfolioService(
         self
 
     ) -> dict:
-
-        """
-        Complete portfolio summary.
-        """
 
         return {
 
@@ -430,10 +432,6 @@ class PortfolioService(
         destination: str | Path
 
     ) -> None:
-
-        """
-        Save portfolio.
-        """
 
         self._repository.save(
 
