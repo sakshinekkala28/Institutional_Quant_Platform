@@ -30,9 +30,13 @@ import time
 import pandas as pd
 import yfinance as yf
 
+from orchestration.models.engine_result import EngineResult
+
 # =========================================================
 # CONFIG
 # =========================================================
+
+ENGINE_NAME = "SymbolMetadata"
 
 MAX_RETRIES = 3
 
@@ -67,161 +71,14 @@ OUTPUT_FILE = (
 )
 
 # =========================================================
-# LOAD STOCKS
+# FETCH METADATA
 # =========================================================
 
-print("\n📥 Loading Valid Stocks...")
-
-stocks = pd.read_excel(
-    INPUT_FILE
-)
-
-possible_columns = [
-    "Symbol",
-    "SYMBOL",
-    "symbol",
-    "Stock",
-    "Ticker",
-]
-
-symbol_col = None
-
-for col in possible_columns:
-
-    if col in stocks.columns:
-
-        symbol_col = col
-
-        break
-
-if symbol_col is None:
-
-    raise ValueError(
-        f"Symbol column not found.\n"
-        f"Available columns: {list(stocks.columns)}"
-    )
-
-symbols = (
-    stocks[symbol_col]
-    .dropna()
-    .astype(str)
-    .str.upper()
-    .str.strip()
-    .str.replace(
-        ".NS",
-        "",
-        regex=False,
-    )
-    .drop_duplicates()
-    .tolist()
-)
-
-print(
-    f"Total Symbols : {len(symbols):,}"
-)
-
-# =========================================================
-# LOAD CACHE
-# =========================================================
-
-metadata = []
-
-if OUTPUT_FILE.exists():
-
-    print(
-        "\n♻️ Loading Existing Cache..."
-    )
-
-    existing = pd.read_csv(
-        OUTPUT_FILE
-    ).fillna("")
-
-    required_cols = [
-        "Symbol",
-        "Yahoo_Symbol",
-        "Company_Name",
-        "Sector",
-        "Industry",
-        "Last_Updated",
-    ]
-
-    for col in required_cols:
-
-        if col not in existing.columns:
-
-            existing[col] = ""
-
-    existing["Symbol"] = (
-        existing["Symbol"]
-        .astype(str)
-        .str.upper()
-        .str.strip()
-    )
-
-    complete_records = existing[
-        (
-            existing["Company_Name"]
-            .astype(str)
-            .str.strip()
-            != ""
-        )
-        &
-        (
-            existing["Sector"]
-            .astype(str)
-            .str.strip()
-            != ""
-        )
-        &
-        (
-            existing["Industry"]
-            .astype(str)
-            .str.strip()
-            != ""
-        )
-    ].copy()
-
-    metadata = (
-        complete_records
-        .to_dict("records")
-    )
-
-    completed_symbols = set(
-        complete_records["Symbol"]
-    )
-
-    symbols = [
-        s
-        for s in symbols
-        if s not in completed_symbols
-    ]
-
-    print(
-        f"Cached Complete Records : "
-        f"{len(complete_records):,}"
-    )
-
-else:
-
-    print(
-        "\n🆕 No Cache Found"
-    )
-
-print(
-    f"Need Fetch : {len(symbols):,}"
-)
-
-# =========================================================
-# FETCHER
-# =========================================================
-
-def fetch_metadata(symbol):
+def fetch_metadata(symbol: str) -> dict:
 
     yahoo_symbol = f"{symbol}.NS"
 
-    for attempt in range(
-        MAX_RETRIES
-    ):
+    for attempt in range(MAX_RETRIES):
 
         try:
 
@@ -241,23 +98,17 @@ def fetch_metadata(symbol):
 
             company_name = (
                 info.get("longName")
-                or info.get(
-                    "shortName"
-                )
+                or info.get("shortName")
                 or ""
             )
 
             sector = (
-                info.get(
-                    "sector"
-                )
+                info.get("sector")
                 or ""
             )
 
             industry = (
-                info.get(
-                    "industry"
-                )
+                info.get("industry")
                 or ""
             )
 
@@ -265,16 +116,11 @@ def fetch_metadata(symbol):
 
                 return {
                     "Symbol": symbol,
-                    "Yahoo_Symbol":
-                        yahoo_symbol,
-                    "Company_Name":
-                        company_name,
-                    "Sector":
-                        sector,
-                    "Industry":
-                        industry,
-                    "Last_Updated":
-                        TODAY,
+                    "Yahoo_Symbol": yahoo_symbol,
+                    "Company_Name": company_name,
+                    "Sector": sector,
+                    "Industry": industry,
+                    "Last_Updated": TODAY,
                 }
 
         except Exception as e:
@@ -283,10 +129,8 @@ def fetch_metadata(symbol):
 
             if (
                 "429" in error
-                or "rate limit"
-                in error
-                or "too many requests"
-                in error
+                or "rate limit" in error
+                or "too many requests" in error
             ):
 
                 wait_time = (
@@ -295,18 +139,14 @@ def fetch_metadata(symbol):
                 )
 
                 print(
-                    f"⚠️ Rate Limit: "
-                    f"{symbol}"
+                    f"⚠️ Rate Limit: {symbol}"
                 )
 
                 print(
-                    f"⏳ Sleeping "
-                    f"{wait_time}s"
+                    f"⏳ Sleeping {wait_time}s"
                 )
 
-                time.sleep(
-                    wait_time
-                )
+                time.sleep(wait_time)
 
             else:
 
@@ -318,17 +158,15 @@ def fetch_metadata(symbol):
 
     return {
         "Symbol": symbol,
-        "Yahoo_Symbol":
-            yahoo_symbol,
+        "Yahoo_Symbol": yahoo_symbol,
         "Company_Name": "",
         "Sector": "",
         "Industry": "",
-        "Last_Updated":
-            TODAY,
+        "Last_Updated": TODAY,
     }
 
 # =========================================================
-# SAVE
+# SAVE CHECKPOINT
 # =========================================================
 
 def save_checkpoint(records):
@@ -376,117 +214,360 @@ def save_checkpoint(records):
         index=False,
     )
 
+
 # =========================================================
-# PROCESS
+# MAIN
 # =========================================================
 
-print(
-    "\n📊 Fetching Metadata..."
-)
+def main():
+    """
+    Symbol Metadata Engine
+    """
 
-total = len(symbols)
+    start_time = time.perf_counter()
 
-for idx, symbol in enumerate(
-    symbols,
-    start=1,
-):
+    try:
 
-    record = fetch_metadata(
-        symbol
-    )
+        # =====================================================
+        # LOAD STOCKS
+        # =====================================================
 
-    metadata.append(
-        record
-    )
+        print(
+            "\n📥 Loading Valid Stocks..."
+        )
 
-    print(
-        f"[{idx:,}/{total:,}] "
-        f"{symbol}"
-    )
+        stocks = pd.read_excel(
+            INPUT_FILE
+        )
 
-    if (
-        idx
-        % SAVE_INTERVAL
-        == 0
-    ):
+        possible_columns = [
+            "Symbol",
+            "SYMBOL",
+            "symbol",
+            "Stock",
+            "Ticker",
+        ]
+
+        symbol_col = None
+
+        for col in possible_columns:
+
+            if col in stocks.columns:
+
+                symbol_col = col
+
+                break
+
+        if symbol_col is None:
+
+            raise ValueError(
+                "Symbol column not found.\n"
+                f"Available columns: {list(stocks.columns)}"
+            )
+
+        symbols = (
+            stocks[symbol_col]
+            .dropna()
+            .astype(str)
+            .str.upper()
+            .str.strip()
+            .str.replace(
+                ".NS",
+                "",
+                regex=False,
+            )
+            .drop_duplicates()
+            .tolist()
+        )
+
+        print(
+            f"Total Symbols : {len(symbols):,}"
+        )
+
+        # =====================================================
+        # LOAD CACHE
+        # =====================================================
+
+        metadata = []
+
+        if OUTPUT_FILE.exists():
+
+            print(
+                "\n♻️ Loading Existing Cache..."
+            )
+
+            existing = pd.read_csv(
+                OUTPUT_FILE
+            ).fillna("")
+
+            required_cols = [
+                "Symbol",
+                "Yahoo_Symbol",
+                "Company_Name",
+                "Sector",
+                "Industry",
+                "Last_Updated",
+            ]
+
+            for col in required_cols:
+
+                if col not in existing.columns:
+
+                    existing[col] = ""
+
+            existing["Symbol"] = (
+                existing["Symbol"]
+                .astype(str)
+                .str.upper()
+                .str.strip()
+            )
+
+            complete_records = existing[
+                (
+                    existing["Company_Name"]
+                    .astype(str)
+                    .str.strip()
+                    != ""
+                )
+                &
+                (
+                    existing["Sector"]
+                    .astype(str)
+                    .str.strip()
+                    != ""
+                )
+                &
+                (
+                    existing["Industry"]
+                    .astype(str)
+                    .str.strip()
+                    != ""
+                )
+            ].copy()
+
+            metadata = (
+                complete_records
+                .to_dict("records")
+            )
+
+            completed_symbols = set(
+                complete_records["Symbol"]
+            )
+
+            symbols = [
+                s
+                for s in symbols
+                if s not in completed_symbols
+            ]
+
+            print(
+                f"Cached Complete Records : "
+                f"{len(complete_records):,}"
+            )
+
+        else:
+
+            print(
+                "\n🆕 No Cache Found"
+            )
+
+        print(
+            f"Need Fetch : {len(symbols):,}"
+        )
+
+        # =====================================================
+        # PROCESS
+        # =====================================================
+
+        print(
+            "\n📊 Fetching Metadata..."
+        )
+
+        total = len(symbols)
+
+        for idx, symbol in enumerate(
+            symbols,
+            start=1,
+        ):
+
+            record = fetch_metadata(
+                symbol
+            )
+
+            metadata.append(
+                record
+            )
+
+            print(
+                f"[{idx:,}/{total:,}] "
+                f"{symbol}"
+            )
+
+            # ================================================
+            # CHECKPOINT
+            # ================================================
+
+            if (
+                idx
+                % SAVE_INTERVAL
+                == 0
+            ):
+
+                save_checkpoint(
+                    metadata
+                )
+
+                print(
+                    f"💾 Checkpoint Saved "
+                    f"({idx:,})"
+                )
+
+            # ================================================
+            # COOLDOWN
+            # ================================================
+
+            if (
+                idx
+                % COOLDOWN_AFTER
+                == 0
+            ):
+
+                print(
+                    "\n🛑 Cooling Yahoo..."
+                )
+
+                time.sleep(
+                    COOLDOWN_SECONDS
+                )
+
+        # =====================================================
+        # FINAL SAVE
+        # =====================================================
+
+        print(
+            "\n💾 Final Save..."
+        )
 
         save_checkpoint(
             metadata
         )
 
+        # =====================================================
+        # REPORT
+        # =====================================================
+
+        final_df = pd.read_csv(
+            OUTPUT_FILE
+        ).fillna("")
+
+        print("\n" + "=" * 60)
+
         print(
-            f"💾 Checkpoint Saved "
-            f"({idx:,})"
+            "📊 METADATA QUALITY REPORT"
         )
 
-    if (
-        idx
-        % COOLDOWN_AFTER
-        == 0
-    ):
+        print("=" * 60)
 
         print(
-            "\n🛑 Cooling Yahoo..."
+            f"Total Symbols      : "
+            f"{len(final_df):,}"
         )
 
-        time.sleep(
-            COOLDOWN_SECONDS
+        print(
+            f"Company Names      : "
+            f"{(final_df['Company_Name'] != '').sum():,}"
         )
 
+        print(
+            f"Sectors Available  : "
+            f"{(final_df['Sector'] != '').sum():,}"
+        )
+
+        print(
+            f"Industries Present : "
+            f"{(final_df['Industry'] != '').sum():,}"
+        )
+
+        print("=" * 60)
+
+        print(
+            f"\nSaved:\n{OUTPUT_FILE}"
+        )
+
+        print(
+            "\n✅ Metadata Build Complete"
+        )
+
+        # =====================================================
+        # BUILD EXECUTION METADATA
+        # =====================================================
+
+        duration = (
+            time.perf_counter()
+            - start_time
+        )
+
+        execution_metadata = {
+            "total_symbols": len(final_df),
+            "symbols_requested": total,
+            "cached_records": len(
+                metadata
+            ),
+            "company_names": (
+                final_df["Company_Name"]
+                != ""
+            ).sum(),
+            "sectors": (
+                final_df["Sector"]
+                != ""
+            ).sum(),
+            "industries": (
+                final_df["Industry"]
+                != ""
+            ).sum(),
+            "checkpoint_interval":
+                SAVE_INTERVAL,
+            "cooldown_after":
+                COOLDOWN_AFTER,
+        }
+
+        # =====================================================
+        # RETURN RESULT
+        # =====================================================
+
+        return EngineResult(
+            engine=ENGINE_NAME,
+            status="SUCCESS",
+            records=len(final_df),
+            output=OUTPUT_FILE,
+            duration=duration,
+            metadata=execution_metadata,
+        )
+
+    # =========================================================
+    # EXCEPTION HANDLING
+    # =========================================================
+
+    except Exception as e:
+
+        duration = (
+            time.perf_counter()
+            - start_time
+        )
+
+        return EngineResult(
+            engine=ENGINE_NAME,
+            status="FAILED",
+            duration=duration,
+            metadata={
+                "error": str(e),
+            },
+        )
+
+
 # =========================================================
-# FINAL SAVE
+# ENTRY POINT
 # =========================================================
 
-print(
-    "\n💾 Final Save..."
-)
-
-save_checkpoint(
-    metadata
-)
-
-# =========================================================
-# REPORT
-# =========================================================
-
-final_df = pd.read_csv(
-    OUTPUT_FILE
-).fillna("")
-
-print("\n" + "=" * 60)
-
-print(
-    "📊 METADATA QUALITY REPORT"
-)
-
-print("=" * 60)
-
-print(
-    f"Total Symbols      : "
-    f"{len(final_df):,}"
-)
-
-print(
-    f"Company Names      : "
-    f"{(final_df['Company_Name'] != '').sum():,}"
-)
-
-print(
-    f"Sectors Available  : "
-    f"{(final_df['Sector'] != '').sum():,}"
-)
-
-print(
-    f"Industries Present : "
-    f"{(final_df['Industry'] != '').sum():,}"
-)
-
-print("=" * 60)
-
-print(
-    f"\nSaved:\n{OUTPUT_FILE}"
-)
-
-print(
-    "\n✅ Metadata Build Complete"
-)
+if __name__ == "__main__":
+    main()

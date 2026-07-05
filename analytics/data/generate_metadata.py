@@ -18,14 +18,21 @@ data/raw/stock_metadata.csv
 from datetime import datetime
 from pathlib import Path
 
+import time
+
 import numpy as np
 import pandas as pd
+
+from orchestration.models.engine_result import EngineResult
 
 # =========================================================
 # CONFIG
 # =========================================================
 
+ENGINE_NAME = "StockMetadata"
+
 LARGE_CAP_THRESHOLD = 20_000_000_000
+
 MID_CAP_THRESHOLD = 5_000_000_000
 
 # =========================================================
@@ -56,329 +63,467 @@ HEALTH_REPORT = (
 )
 
 # =========================================================
-# LOAD
+# MAIN
 # =========================================================
 
-print("\n📥 Loading Updated Universe...")
+def main() -> EngineResult:
+    """
+    Stock Metadata Engine
+    """
 
-if not INPUT_FILE.exists():
+    start_time = time.perf_counter()
 
-    raise FileNotFoundError(
-        f"Missing file:\n{INPUT_FILE}"
-    )
+    try:
 
-df = pd.read_csv(INPUT_FILE)
+        # =====================================================
+        # LOAD
+        # =====================================================
 
-# =========================================================
-# STANDARDIZE COLUMNS
-# =========================================================
-
-rename_map = {
-    "symbol": "Symbol",
-    "company_name": "Company_Name",
-    "sector": "Sector",
-    "industry": "Industry",
-    "market_cap": "Market_Cap",
-    "avg_daily_turnover": "ADV",
-}
-
-df.rename(
-    columns={
-        k: v
-        for k, v in rename_map.items()
-        if k in df.columns
-    },
-    inplace=True,
-)
-
-# =========================================================
-# REQUIRED COLUMNS
-# =========================================================
-
-required_columns = [
-    "Symbol",
-]
-
-for col in required_columns:
-
-    if col not in df.columns:
-
-        raise ValueError(
-            f"Missing required column: {col}"
+        print(
+            "\n📥 Loading Updated Universe..."
         )
 
-# =========================================================
-# DEFAULTS
-# =========================================================
+        if not INPUT_FILE.exists():
 
-defaults = {
-    "Company_Name": "Unknown",
-    "Sector": "Unknown",
-    "Industry": "Unknown",
-    "Market_Cap": 0,
-    "ADV": 0,
-}
+            raise FileNotFoundError(
+                f"Missing file:\n{INPUT_FILE}"
+            )
 
-for col, value in defaults.items():
+        df = pd.read_csv(
+            INPUT_FILE
+        )
 
-    if col not in df.columns:
+        # =====================================================
+        # STANDARDIZE COLUMNS
+        # =====================================================
 
-        df[col] = value
-
-# =========================================================
-# CLEANING
-# =========================================================
-
-df["Symbol"] = (
-    df["Symbol"]
-    .astype(str)
-    .str.upper()
-    .str.strip()
-)
-
-df["Company_Name"] = (
-    df["Company_Name"]
-    .astype(str)
-    .str.strip()
-)
-
-df["Sector"] = (
-    df["Sector"]
-    .astype(str)
-    .str.strip()
-)
-
-df["Industry"] = (
-    df["Industry"]
-    .astype(str)
-    .str.strip()
-)
-
-df["Market_Cap"] = pd.to_numeric(
-    df["Market_Cap"],
-    errors="coerce",
-).fillna(0)
-
-df["ADV"] = pd.to_numeric(
-    df["ADV"],
-    errors="coerce",
-).fillna(0)
-
-# =========================================================
-# STATIC METADATA
-# =========================================================
-
-df["Exchange"] = "NSE"
-
-df["Country"] = "India"
-
-df["Currency"] = "INR"
-
-df["Asset_Class"] = "Equity"
-
-df["Metadata_Source"] = (
-    "Institutional_Quant_Platform"
-)
-
-df["Last_Updated"] = (
-    datetime.now()
-    .strftime("%Y-%m-%d")
-)
-
-# =========================================================
-# MARKET CAP CLASSIFICATION
-# =========================================================
-
-df["Market_Cap_Category"] = np.select(
-    [
-        df["Market_Cap"]
-        >= LARGE_CAP_THRESHOLD,
-
-        (
-            (df["Market_Cap"] >= MID_CAP_THRESHOLD)
-            &
-            (df["Market_Cap"] < LARGE_CAP_THRESHOLD)
-        ),
-    ],
-    [
-        "Large Cap",
-        "Mid Cap",
-    ],
-    default="Small Cap",
-)
-
-# =========================================================
-# LIQUIDITY CLASSIFICATION
-# =========================================================
-
-df["Liquidity_Category"] = np.select(
-    [
-        df["ADV"] >= 100_000_000,
-
-        (
-            (df["ADV"] >= 25_000_000)
-            &
-            (df["ADV"] < 100_000_000)
-        ),
-    ],
-    [
-        "Highly Liquid",
-        "Liquid",
-    ],
-    default="Less Liquid",
-)
-
-# =========================================================
-# SECTOR VALIDATION
-# =========================================================
-
-df["Sector"] = (
-    df["Sector"]
-    .replace(
-        {
-            "nan": "Unknown",
-            "": "Unknown",
+        rename_map = {
+            "symbol": "Symbol",
+            "company_name": "Company_Name",
+            "sector": "Sector",
+            "industry": "Industry",
+            "market_cap": "Market_Cap",
+            "avg_daily_turnover": "ADV",
         }
-    )
-)
 
-df["Industry"] = (
-    df["Industry"]
-    .replace(
-        {
-            "nan": "Unknown",
-            "": "Unknown",
+        df.rename(
+            columns={
+                k: v
+                for k, v in rename_map.items()
+                if k in df.columns
+            },
+            inplace=True,
+        )
+
+        # =====================================================
+        # REQUIRED COLUMNS
+        # =====================================================
+
+        required_columns = [
+            "Symbol",
+        ]
+
+        for col in required_columns:
+
+            if col not in df.columns:
+
+                raise ValueError(
+                    f"Missing required column: {col}"
+                )
+
+        # =====================================================
+        # DEFAULTS
+        # =====================================================
+
+        defaults = {
+            "Company_Name": "Unknown",
+            "Sector": "Unknown",
+            "Industry": "Unknown",
+            "Market_Cap": 0,
+            "ADV": 0,
         }
-    )
-)
 
-# =========================================================
-# DATA HEALTH REPORT
-# =========================================================
+        for col, value in defaults.items():
 
-health = pd.DataFrame(
-    {
-        "Metric": [
-            "Total Stocks",
-            "Missing Sector",
-            "Missing Industry",
-            "Missing Market Cap",
-            "Missing ADV",
-        ],
-        "Value": [
-            len(df),
-            (
-                df["Sector"]
-                == "Unknown"
-            ).sum(),
-            (
-                df["Industry"]
-                == "Unknown"
-            ).sum(),
-            (
+            if col not in df.columns:
+
+                df[col] = value
+
+        # =====================================================
+        # CLEANING
+        # =====================================================
+
+        df["Symbol"] = (
+            df["Symbol"]
+            .astype(str)
+            .str.upper()
+            .str.strip()
+        )
+
+        df["Company_Name"] = (
+            df["Company_Name"]
+            .astype(str)
+            .str.strip()
+        )
+
+        df["Sector"] = (
+            df["Sector"]
+            .astype(str)
+            .str.strip()
+        )
+
+        df["Industry"] = (
+            df["Industry"]
+            .astype(str)
+            .str.strip()
+        )
+
+        df["Market_Cap"] = (
+            pd.to_numeric(
+                df["Market_Cap"],
+                errors="coerce",
+            )
+            .fillna(0)
+        )
+
+        df["ADV"] = (
+            pd.to_numeric(
+                df["ADV"],
+                errors="coerce",
+            )
+            .fillna(0)
+        )
+
+        # =====================================================
+        # STATIC METADATA
+        # =====================================================
+
+        df["Exchange"] = "NSE"
+
+        df["Country"] = "India"
+
+        df["Currency"] = "INR"
+
+        df["Asset_Class"] = "Equity"
+
+        df["Metadata_Source"] = (
+            "Institutional_Quant_Platform"
+        )
+
+        df["Last_Updated"] = (
+            datetime.now()
+            .strftime("%Y-%m-%d")
+        )
+
+        # =====================================================
+        # MARKET CAP CLASSIFICATION
+        # =====================================================
+
+        df["Market_Cap_Category"] = np.select(
+            [
                 df["Market_Cap"]
-                <= 0
-            ).sum(),
-            (
-                df["ADV"]
-                <= 0
-            ).sum(),
-        ],
-    }
-)
+                >= LARGE_CAP_THRESHOLD,
+
+                (
+                    (df["Market_Cap"] >= MID_CAP_THRESHOLD)
+                    &
+                    (
+                        df["Market_Cap"]
+                        < LARGE_CAP_THRESHOLD
+                    )
+                ),
+            ],
+            [
+                "Large Cap",
+                "Mid Cap",
+            ],
+            default="Small Cap",
+        )
+
+        # =====================================================
+        # LIQUIDITY CLASSIFICATION
+        # =====================================================
+
+        df["Liquidity_Category"] = np.select(
+            [
+                df["ADV"] >= 100_000_000,
+
+                (
+                    (df["ADV"] >= 25_000_000)
+                    &
+                    (
+                        df["ADV"]
+                        < 100_000_000
+                    )
+                ),
+            ],
+            [
+                "Highly Liquid",
+                "Liquid",
+            ],
+            default="Less Liquid",
+        )
+
+        # =====================================================
+        # SECTOR VALIDATION
+        # =====================================================
+
+        df["Sector"] = (
+            df["Sector"]
+            .replace(
+                {
+                    "": "Unknown",
+                    "nan": "Unknown",
+                    "None": "Unknown",
+                }
+            )
+        )
+
+        df["Industry"] = (
+            df["Industry"]
+            .replace(
+                {
+                    "": "Unknown",
+                    "nan": "Unknown",
+                    "None": "Unknown",
+                }
+            )
+        )
+
+        # =====================================================
+        # DATA HEALTH REPORT
+        # =====================================================
+
+        health = pd.DataFrame(
+            {
+                "Metric": [
+                    "Total Stocks",
+                    "Missing Sector",
+                    "Missing Industry",
+                    "Missing Market Cap",
+                    "Missing ADV",
+                ],
+                "Value": [
+                    len(df),
+                    (
+                        df["Sector"]
+                        == "Unknown"
+                    ).sum(),
+                    (
+                        df["Industry"]
+                        == "Unknown"
+                    ).sum(),
+                    (
+                        df["Market_Cap"]
+                        <= 0
+                    ).sum(),
+                    (
+                        df["ADV"]
+                        <= 0
+                    ).sum(),
+                ],
+            }
+        )
+
+        # =====================================================
+        # FINAL SORT
+        # =====================================================
+
+        original_rows = len(df)
+
+        df = (
+            df
+            .sort_values(
+                "Market_Cap",
+                ascending=False,
+            )
+            .drop_duplicates(
+                subset=["Symbol"]
+            )
+            .reset_index(
+                drop=True
+            )
+        )
+
+        duplicates_removed = (
+            original_rows
+            - len(df)
+        )
+
+        # =====================================================
+        # SAVE
+        # =====================================================
+
+        OUTPUT_FILE.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        HEALTH_REPORT.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
+
+        df.to_csv(
+            OUTPUT_FILE,
+            index=False,
+        )
+
+        health.to_csv(
+            HEALTH_REPORT,
+            index=False,
+        )
+
+        # =====================================================
+        # REPORT
+        # =====================================================
+
+        print("\n" + "=" * 70)
+
+        print(
+            "🏁 STOCK METADATA ENGINE COMPLETE"
+        )
+
+        print("=" * 70)
+
+        print(
+            f"Stocks              : "
+            f"{len(df):,}"
+        )
+
+        print(
+            f"Large Cap           : "
+            f"{(df['Market_Cap_Category'] == 'Large Cap').sum():,}"
+        )
+
+        print(
+            f"Mid Cap             : "
+            f"{(df['Market_Cap_Category'] == 'Mid Cap').sum():,}"
+        )
+
+        print(
+            f"Small Cap           : "
+            f"{(df['Market_Cap_Category'] == 'Small Cap').sum():,}"
+        )
+
+        print(
+            f"Highly Liquid       : "
+            f"{(df['Liquidity_Category'] == 'Highly Liquid').sum():,}"
+        )
+
+        print(
+            f"Liquid              : "
+            f"{(df['Liquidity_Category'] == 'Liquid').sum():,}"
+        )
+
+        print(
+            f"Less Liquid         : "
+            f"{(df['Liquidity_Category'] == 'Less Liquid').sum():,}"
+        )
+
+        print(
+            f"\nSaved:\n{OUTPUT_FILE}"
+        )
+
+        print(
+            f"\nHealth Report:\n{HEALTH_REPORT}"
+        )
+
+        print("=" * 70)
+
+        # =====================================================
+        # BUILD EXECUTION METADATA
+        # =====================================================
+
+        duration = (
+            time.perf_counter()
+            - start_time
+        )
+
+        execution_metadata = {
+            "total_stocks": len(df),
+            "unique_symbols": (
+                df["Symbol"].nunique()
+            ),
+            "duplicates_removed": (
+                duplicates_removed
+            ),
+            "large_cap": (
+                df["Market_Cap_Category"]
+                .eq("Large Cap")
+                .sum()
+            ),
+            "mid_cap": (
+                df["Market_Cap_Category"]
+                .eq("Mid Cap")
+                .sum()
+            ),
+            "small_cap": (
+                df["Market_Cap_Category"]
+                .eq("Small Cap")
+                .sum()
+            ),
+            "highly_liquid": (
+                df["Liquidity_Category"]
+                .eq("Highly Liquid")
+                .sum()
+            ),
+            "liquid": (
+                df["Liquidity_Category"]
+                .eq("Liquid")
+                .sum()
+            ),
+            "less_liquid": (
+                df["Liquidity_Category"]
+                .eq("Less Liquid")
+                .sum()
+            ),
+        }
+
+        # =====================================================
+        # RETURN RESULT
+        # =====================================================
+
+        return EngineResult(
+            engine=ENGINE_NAME,
+            status="SUCCESS",
+            records=len(df),
+            output=OUTPUT_FILE,
+            report=HEALTH_REPORT,
+            duration=duration,
+            metadata=execution_metadata,
+        )
+
+    # =========================================================
+    # EXCEPTION HANDLING
+    # =========================================================
+
+    except Exception as e:
+
+        duration = (
+            time.perf_counter()
+            - start_time
+        )
+
+        return EngineResult(
+            engine=ENGINE_NAME,
+            status="FAILED",
+            duration=duration,
+            metadata={
+                "error": str(e),
+            },
+        )
+
 
 # =========================================================
-# FINAL SORT
+# ENTRY POINT
 # =========================================================
 
-df = (
-    df
-    .sort_values(
-        "Market_Cap",
-        ascending=False,
+if __name__ == "__main__":
+
+    result = main()
+
+    print(
+        f"\nEngine Status : "
+        f"{result.status}"
     )
-    .drop_duplicates(
-        subset=["Symbol"]
-    )
-    .reset_index(drop=True)
-)
-
-# =========================================================
-# SAVE
-# =========================================================
-
-OUTPUT_FILE.parent.mkdir(
-    parents=True,
-    exist_ok=True,
-)
-
-HEALTH_REPORT.parent.mkdir(
-    parents=True,
-    exist_ok=True,
-)
-
-df.to_csv(
-    OUTPUT_FILE,
-    index=False,
-)
-
-health.to_csv(
-    HEALTH_REPORT,
-    index=False,
-)
-
-# =========================================================
-# REPORT
-# =========================================================
-
-print("\n" + "=" * 70)
-
-print(
-    "🏁 STOCK METADATA ENGINE COMPLETE"
-)
-
-print("=" * 70)
-
-print(
-    f"Stocks              : {len(df):,}"
-)
-
-print(
-    f"Large Cap           : "
-    f"{(df['Market_Cap_Category']=='Large Cap').sum():,}"
-)
-
-print(
-    f"Mid Cap             : "
-    f"{(df['Market_Cap_Category']=='Mid Cap').sum():,}"
-)
-
-print(
-    f"Small Cap           : "
-    f"{(df['Market_Cap_Category']=='Small Cap').sum():,}"
-)
-
-print(
-    f"Highly Liquid       : "
-    f"{(df['Liquidity_Category']=='Highly Liquid').sum():,}"
-)
-
-print(
-    f"Liquid              : "
-    f"{(df['Liquidity_Category']=='Liquid').sum():,}"
-)
-
-print(
-    f"Less Liquid         : "
-    f"{(df['Liquidity_Category']=='Less Liquid').sum():,}"
-)
-
-print(
-    f"\nSaved:\n{OUTPUT_FILE}"
-)
-
-print(
-    f"\nHealth Report:\n{HEALTH_REPORT}"
-)
-
-print("=" * 70)

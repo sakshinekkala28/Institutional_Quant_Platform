@@ -18,15 +18,19 @@
 │   │   ├── __init__.py
 │   │   └── price_history_engine.py
 │   ├── backtest
+│   │   ├── __init__.py
 │   │   ├── backtest_engine.py
 │   │   ├── multi_strategy_backtest_engine.py
 │   │   └── walk_forward_backtest.py
 │   ├── benchmark
+│   │   ├── __init__.py
 │   │   ├── benchmark_constituents_engine.py
 │   │   └── benchmark_engine.py
 │   ├── capacity
+│   │   ├── __init__.py
 │   │   └── capacity_engine.py
 │   ├── data
+│   │   ├── __init__.py
 │   │   ├── build_security_price_history.py
 │   │   ├── generate_metadata.py
 │   │   ├── incremental_price_update.py
@@ -40,16 +44,20 @@
 │   │   ├── execution_quality_engine.py
 │   │   └── transaction_cost_engine.py
 │   ├── factors
+│   │   ├── __init__.py
 │   │   ├── build_fundamental_factor_master.py
 │   │   ├── factor_engine.py
 │   │   ├── factor_rank_engine.py
 │   │   └── factor_snapshot_engine.py
 │   ├── liquidity
+│   │   ├── __init__.py
 │   │   └── liquidity_engine.py
 │   ├── live
+│   │   ├── __init__.py
 │   │   ├── build_factor_expected_returns.py
 │   │   └── live_rebalance_engine.py
 │   ├── performance
+│   │   ├── __init__.py
 │   │   ├── brinson_attribution_engine.py
 │   │   ├── performance_attribution_engine.py
 │   │   └── security_attribution_engine.py
@@ -76,6 +84,7 @@
 │   │   ├── market_regime_engine.py
 │   │   └── regime_engine.py
 │   ├── research
+│   │   ├── __init__.py
 │   │   ├── alpha_decay_engine.py
 │   │   ├── ensemble_engine.py
 │   │   ├── factor_attribution_engine.py
@@ -113,6 +122,7 @@
 │   │   ├── stress_scenario_engine.py
 │   │   └── stress_test_engine.py
 │   ├── signals
+│   │   ├── __init__.py
 │   │   └── signal_engine.py
 │   └── utilities
 │       ├── __init__.py
@@ -552,7 +562,8 @@
 │   │   │   ├── monitor_20260701.csv
 │   │   │   ├── monitor_20260702.csv
 │   │   │   ├── monitor_20260703.csv
-│   │   │   └── monitor_20260704.csv
+│   │   │   ├── monitor_20260704.csv
+│   │   │   └── monitor_20260705.csv
 │   │   ├── monitor_alerts.csv
 │   │   ├── monitor_dashboard.csv
 │   │   ├── monitor_status.csv
@@ -3676,9 +3687,51 @@
 │   ├── __pycache__
 │   │   ├── __init__.cpython-312.pyc
 │   │   └── run_pipeline.cpython-312.pyc
+│   ├── adapter_factory.py
+│   ├── adapters
+│   ├── base_engine.py
+│   ├── config
+│   │   ├── __init__.py
+│   │   └── pipeline_config.py
+│   ├── dependency_graph.py
+│   ├── engine_discovery.py
+│   ├── engine_registry.py
+│   ├── execution_context.py
+│   ├── execution_report.py
+│   ├── master_orchestrator.py
 │   ├── master_rebalance_engine.py
+│   ├── metadata_builder.py
+│   ├── pipeline_builder.py
+│   ├── pipelines
+│   │   ├── __init__.py
+│   │   ├── alpha_pipeline.py
+│   │   ├── data_pipeline.py
+│   │   ├── execution_pipeline.py
+│   │   ├── factor_pipeline.py
+│   │   ├── monitoring_pipeline.py
+│   │   ├── portfolio_pipeline.py
+│   │   ├── reporting_pipeline.py
+│   │   └── risk_pipeline.py
+│   ├── plugins
+│   │   └── __init__.py
 │   ├── run_pipeline.py
-│   └── scheduler.py
+│   ├── scheduler.py
+│   ├── stages
+│   │   ├── __init__.py
+│   │   ├── stage01_data.py
+│   │   ├── stage02_factors.py
+│   │   ├── stage03_alpha.py
+│   │   ├── stage04_risk.py
+│   │   ├── stage05_portfolio.py
+│   │   ├── stage06_execution.py
+│   │   ├── stage07_performance.py
+│   │   ├── stage08_monitoring.py
+│   │   └── stage09_reporting.py
+│   └── utils
+│       ├── __init__.py
+│       ├── discovery.py
+│       ├── file_manager.py
+│       └── runtime.py
 ├── performance
 │   ├── cio_risk_budget_engine.py
 │   ├── final_decision_engine.py
@@ -3699,7 +3752,6 @@
 │   │   └── portfolio_engine.cpython-312.pyc
 │   └── portfolio_engine.py
 ├── project.txt
-├── project_tree.txt
 ├── pyproject.toml
 ├── pytest.ini
 ├── reporting
@@ -3780,4 +3832,4 @@
         ├── test_portfolio_engine.py
         └── test_risk_engine.py
 
-125 directories, 3656 files
+131 directories, 3702 files
