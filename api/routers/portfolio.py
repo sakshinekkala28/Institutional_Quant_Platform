@@ -26,15 +26,30 @@ Provides
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from fastapi import APIRouter
 from fastapi import HTTPException
+
+from core.services.portfolio_service import PortfolioService
 
 router = APIRouter()
 
 # ==========================================================
-# HEALTH
+# CONFIGURATION
 # ==========================================================
 
+PORTFOLIO_SOURCE = Path(
+    "data/portfolios/live_portfolio.csv"
+)
+
+portfolio_service = PortfolioService(
+    PORTFOLIO_SOURCE
+)
+
+# ==========================================================
+# HEALTH
+# ==========================================================
 
 @router.get(
     "/health",
@@ -48,6 +63,10 @@ async def health():
 
         "status": "Healthy",
 
+        "holdings": portfolio_service.holdings,
+
+        "fully_invested": portfolio_service.portfolio.fully_invested,
+
     }
 
 
@@ -55,32 +74,37 @@ async def health():
 # SUMMARY
 # ==========================================================
 
-
 @router.get(
     "/summary",
     summary="Portfolio Summary",
 )
 async def summary():
 
-    return {
+    return portfolio_service.summary()
 
-        "portfolio_value": 0,
 
-        "cash": 0,
+# ==========================================================
+# LIVE PORTFOLIO
+# ==========================================================
 
-        "positions": 0,
+@router.get(
+    "/live",
+    summary="Live Portfolio",
+)
+async def live():
 
-        "turnover": 0,
+    dataframe = portfolio_service.dataframe()
 
-        "status": "Available",
+    return dataframe.to_dict(
 
-    }
+        orient="records"
+
+    )
 
 
 # ==========================================================
 # HOLDINGS
 # ==========================================================
-
 
 @router.get(
     "/holdings",
@@ -90,7 +114,13 @@ async def holdings():
 
     return {
 
-        "holdings": []
+        "holdings":
+
+            portfolio_service.dataframe().to_dict(
+
+                orient="records"
+
+            )
 
     }
 
@@ -98,7 +128,6 @@ async def holdings():
 # ==========================================================
 # POSITION
 # ==========================================================
-
 
 @router.get(
     "/position/{symbol}",
@@ -110,23 +139,28 @@ async def position(
 
 ):
 
-    return {
+    position = portfolio_service.portfolio.get(
 
-        "symbol": symbol.upper(),
+        symbol.upper()
 
-        "shares": 0,
+    )
 
-        "weight": 0,
+    if position is None:
 
-        "market_value": 0,
+        raise HTTPException(
 
-    }
+            status_code=404,
+
+            detail=f"{symbol} not found."
+
+        )
+
+    return position.to_dict()
 
 
 # ==========================================================
 # WEIGHTS
 # ==========================================================
-
 
 @router.get(
     "/weights",
@@ -135,7 +169,23 @@ async def weights():
 
     return {
 
-        "weights": []
+        "weights":
+
+            [
+
+                {
+
+                    "Symbol": p.symbol,
+
+                    "Weight": p.weight,
+
+                }
+
+                for p
+
+                in portfolio_service.positions()
+
+            ]
 
     }
 
@@ -144,23 +194,17 @@ async def weights():
 # SECTOR EXPOSURE
 # ==========================================================
 
-
 @router.get(
     "/sector-exposure",
 )
 async def sector_exposure():
 
-    return {
-
-        "sector_exposure": {}
-
-    }
+    return portfolio_service.sector_weights()
 
 
 # ==========================================================
 # FACTOR EXPOSURE
 # ==========================================================
-
 
 @router.get(
     "/factor-exposure",
@@ -169,7 +213,9 @@ async def factor_exposure():
 
     return {
 
-        "factor_exposure": {}
+        "message":
+
+            "Factor exposure engine not connected."
 
     }
 
@@ -178,7 +224,6 @@ async def factor_exposure():
 # PERFORMANCE
 # ==========================================================
 
-
 @router.get(
     "/performance",
 )
@@ -186,17 +231,9 @@ async def performance():
 
     return {
 
-        "daily_return": 0,
+        "message":
 
-        "monthly_return": 0,
-
-        "annual_return": 0,
-
-        "sharpe": 0,
-
-        "sortino": 0,
-
-        "max_drawdown": 0,
+            "Performance engine not connected."
 
     }
 
@@ -205,7 +242,6 @@ async def performance():
 # ATTRIBUTION
 # ==========================================================
 
-
 @router.get(
     "/attribution",
 )
@@ -213,7 +249,9 @@ async def attribution():
 
     return {
 
-        "attribution": {}
+        "message":
+
+            "Attribution engine not connected."
 
     }
 
@@ -222,7 +260,6 @@ async def attribution():
 # REBALANCE
 # ==========================================================
 
-
 @router.post(
     "/rebalance",
 )
@@ -230,7 +267,9 @@ async def rebalance():
 
     return {
 
-        "status": "Rebalance Started"
+        "status":
+
+            "Rebalance request accepted."
 
     }
 
@@ -239,23 +278,23 @@ async def rebalance():
 # OPTIMIZED PORTFOLIO
 # ==========================================================
 
-
 @router.get(
     "/optimized",
 )
 async def optimized():
 
-    return {
+    dataframe = portfolio_service.dataframe()
 
-        "portfolio": []
+    return dataframe.to_dict(
 
-    }
+        orient="records"
+
+    )
 
 
 # ==========================================================
 # EXPORT
 # ==========================================================
-
 
 @router.get(
     "/export",
@@ -264,7 +303,13 @@ async def export():
 
     return {
 
-        "status": "Export Ready"
+        "rows":
+
+            portfolio_service.holdings,
+
+        "status":
+
+            "Ready"
 
     }
 
@@ -272,7 +317,6 @@ async def export():
 # ==========================================================
 # DELETE POSITION
 # ==========================================================
-
 
 @router.delete(
     "/position/{symbol}",

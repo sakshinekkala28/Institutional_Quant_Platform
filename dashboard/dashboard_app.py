@@ -105,7 +105,7 @@ if portfolio:
             round(
 
                 portfolio_df[
-                    "Target_Weight"
+                    "Weight"
                 ].sum(),
 
                 4
@@ -123,7 +123,7 @@ if portfolio:
             round(
 
                 portfolio_df[
-                    "Target_Weight"
+                    "Weight"
                 ].max(),
 
                 4
@@ -174,7 +174,7 @@ if portfolio:
 
         .groupby("Sector")
 
-        ["Target_Weight"]
+        ["Weight"]
 
         .sum()
 
@@ -188,7 +188,7 @@ if portfolio:
 
         names="Sector",
 
-        values="Target_Weight",
+        values="Weight",
 
         title="Sector Allocation"
 
