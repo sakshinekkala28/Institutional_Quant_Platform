@@ -1,18 +1,19 @@
 .
-├── .github
-│   └── workflows
-│       └── daily_platform_run.yml
-├── .gitignore
 ├── Dockerfile
 ├── Procfile
 ├── README.md
 ├── VERSION
 ├── alpha
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── signal_engine.cpython-312.pyc
 │   ├── model_registry.py
 │   └── signal_engine.py
 ├── analytics
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   └── __init__.cpython-312.pyc
 │   ├── alpha
 │   │   ├── __init__.py
 │   │   └── price_history_engine.py
@@ -54,6 +55,9 @@
 │   │   └── security_attribution_engine.py
 │   ├── portfolio
 │   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   └── portfolio_constraints_engine.cpython-312.pyc
 │   │   ├── factor_optimizer.py
 │   │   ├── optimizer_engine.py
 │   │   ├── optimizer_v2.py
@@ -115,6 +119,9 @@
 │       └── schema_validator.py
 ├── api
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── app.cpython-312.pyc
 │   ├── api_server.py
 │   ├── app.py
 │   ├── config.py
@@ -147,6 +154,15 @@
 │   │   └── security_headers.py
 │   ├── routers
 │   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   ├── backtest.cpython-312.pyc
+│   │   │   ├── execution.cpython-312.pyc
+│   │   │   ├── monitoring.cpython-312.pyc
+│   │   │   ├── optimization.cpython-312.pyc
+│   │   │   ├── portfolio.cpython-312.pyc
+│   │   │   ├── risk.cpython-312.pyc
+│   │   │   └── signals.cpython-312.pyc
 │   │   ├── backtest.py
 │   │   ├── execution.py
 │   │   ├── monitoring.py
@@ -170,6 +186,8 @@
 │   └── daily_reporting_engine.py
 ├── backtesting
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   └── __init__.cpython-312.pyc
 │   ├── backtest_engine.py
 │   ├── backtest_report.py
 │   ├── base_backtest.py
@@ -188,23 +206,42 @@
 │   └── __init__.py
 ├── core
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   ├── exceptions.cpython-312.pyc
+│   │   ├── logging_manager.cpython-312.pyc
+│   │   └── settings.cpython-312.pyc
 │   ├── audit_logger.py
 │   ├── constants.py
 │   ├── data
 │   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   └── __init__.cpython-312.pyc
 │   │   ├── cache
 │   │   │   └── __init__.py
 │   │   ├── loaders
 │   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── base_loader.cpython-312.pyc
+│   │   │   │   └── csv_loader.cpython-312.pyc
 │   │   │   ├── base_loader.py
 │   │   │   ├── csv_loader.py
 │   │   │   └── parquet_loader.py
 │   │   ├── repositories
 │   │   │   ├── __init__.py
+│   │   │   ├── __pycache__
+│   │   │   │   ├── __init__.cpython-312.pyc
+│   │   │   │   ├── base_repository.cpython-312.pyc
+│   │   │   │   └── portfolio_repository.cpython-312.pyc
 │   │   │   ├── base_repository.py
 │   │   │   └── portfolio_repository.py
 │   │   └── validators
 │   │       ├── __init__.py
+│   │       ├── __pycache__
+│   │       │   ├── __init__.cpython-312.pyc
+│   │       │   ├── base_validator.cpython-312.pyc
+│   │       │   └── dataframe_validator.cpython-312.pyc
 │   │       ├── base_validator.py
 │   │       ├── dataframe_validator.py
 │   │       ├── quality_validator.py
@@ -226,6 +263,10 @@
 │   │   └── tail.py
 │   ├── models
 │   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   ├── portfolio.cpython-312.pyc
+│   │   │   └── portfolio_position.cpython-312.pyc
 │   │   ├── asset_returns.py
 │   │   ├── benchmark.py
 │   │   ├── black_litterman_model.py
@@ -243,7 +284,16 @@
 │   │   └── risk_report.py
 │   ├── portfolio
 │   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   ├── allocation.cpython-312.pyc
+│   │   │   ├── constraints.cpython-312.pyc
+│   │   │   ├── diversification.cpython-312.pyc
+│   │   │   ├── exposure.cpython-312.pyc
+│   │   │   ├── statistics.cpython-312.pyc
+│   │   │   └── turnover.cpython-312.pyc
 │   │   ├── allocation.py
+│   │   ├── constraints.py
 │   │   ├── diversification.py
 │   │   ├── exposure.py
 │   │   ├── statistics.py
@@ -259,6 +309,10 @@
 │   │   └── tail_risk.py
 │   ├── services
 │   │   ├── __init__.py
+│   │   ├── __pycache__
+│   │   │   ├── __init__.cpython-312.pyc
+│   │   │   ├── base_service.cpython-312.pyc
+│   │   │   └── portfolio_service.cpython-312.pyc
 │   │   ├── base_service.py
 │   │   ├── optimization_service.py
 │   │   ├── portfolio_service.py
@@ -494,7 +548,11 @@
 │   │   │   ├── monitor_20260627.csv
 │   │   │   ├── monitor_20260628.csv
 │   │   │   ├── monitor_20260629.csv
-│   │   │   └── monitor_20260630.csv
+│   │   │   ├── monitor_20260630.csv
+│   │   │   ├── monitor_20260701.csv
+│   │   │   ├── monitor_20260702.csv
+│   │   │   ├── monitor_20260703.csv
+│   │   │   └── monitor_20260704.csv
 │   │   ├── monitor_alerts.csv
 │   │   ├── monitor_dashboard.csv
 │   │   ├── monitor_status.csv
@@ -3490,9 +3548,6 @@
 │       ├── trade_list.csv
 │       └── turnover_report.csv
 ├── deployment
-│   ├── .github
-│   │   └── workflows
-│   │       └── ci.yml
 │   ├── Dockerfile
 │   ├── __init__.py
 │   ├── docker-compose.yml
@@ -3510,6 +3565,9 @@
 │       └── prometheus.yml
 ├── execution
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── trade_engine.cpython-312.pyc
 │   ├── algorithms
 │   │   ├── __init__.py
 │   │   ├── adaptive.py
@@ -3549,24 +3607,18 @@
 │   └── performance_logger.py
 ├── logs
 │   ├── analytics
-│   │   ├── .gitkeep
 │   │   └── analytics.log
 │   ├── audit
-│   │   ├── .gitkeep
 │   │   └── audit.log
 │   ├── execution
-│   │   ├── .gitkeep
 │   │   └── execution.log
 │   ├── monitoring
-│   │   ├── .gitkeep
 │   │   └── monitoring.log
 │   ├── performance
-│   │   ├── .gitkeep
 │   │   └── performance.log
 │   ├── platform.log
 │   ├── platform_error.log
 │   └── repositories
-│       ├── .gitkeep
 │       └── repositories.log
 ├── market_data
 │   ├── benchmark_repository.py
@@ -3621,6 +3673,9 @@
 │   └── turnover_model.py
 ├── orchestration
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── run_pipeline.cpython-312.pyc
 │   ├── master_rebalance_engine.py
 │   ├── run_pipeline.py
 │   └── scheduler.py
@@ -3639,12 +3694,19 @@
 │   └── stress_testing_engine.py
 ├── portfolio
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── portfolio_engine.cpython-312.pyc
 │   └── portfolio_engine.py
+├── project.txt
 ├── project_tree.txt
 ├── pyproject.toml
 ├── pytest.ini
 ├── reporting
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── reporting_engine.cpython-312.pyc
 │   ├── alert_engine.py
 │   ├── base_report.py
 │   ├── chart_engine.py
@@ -3661,11 +3723,17 @@
 ├── requirements.txt
 ├── research
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── backtest_engine.cpython-312.pyc
 │   ├── backtest_engine.py
 │   ├── performance_engine.py
 │   └── portfolio_return_engine.py
 ├── risk
 │   ├── __init__.py
+│   ├── __pycache__
+│   │   ├── __init__.cpython-312.pyc
+│   │   └── risk_engine.cpython-312.pyc
 │   ├── governance_engine.py
 │   └── risk_engine.py
 ├── run.py
@@ -3712,4 +3780,4 @@
         ├── test_portfolio_engine.py
         └── test_risk_engine.py
 
-109 directories, 3604 files
+125 directories, 3656 files
