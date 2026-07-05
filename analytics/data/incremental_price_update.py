@@ -23,12 +23,18 @@ data/logs/invalid_symbols.csv
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
+import time
+
 import pandas as pd
 import yfinance as yf
+
+from orchestration.models.engine_result import EngineResult
 
 # =========================================================
 # CONFIG
 # =========================================================
+
+ENGINE_NAME = "IncrementalPriceUpdate"
 
 MAX_WORKERS = 2
 
@@ -68,96 +74,17 @@ INVALID_FILE = (
     / "invalid_symbols.csv"
 )
 
-PRICE_DIR.mkdir(
-    parents=True,
-    exist_ok=True,
-)
-
-FAILURE_FILE.parent.mkdir(
-    parents=True,
-    exist_ok=True,
-)
-
 # =========================================================
-# LOAD UNIVERSE
+# DOWNLOAD FULL HISTORY
 # =========================================================
 
-print("\n📥 Loading Investable Universe...")
-
-universe = pd.read_csv(
-    UNIVERSE_FILE
-)
-
-symbols = (
-    universe["Symbol"]
-    .dropna()
-    .astype(str)
-    .str.upper()
-    .str.strip()
-    .unique()
-    .tolist()
-)
-
-# =========================================================
-# INVALID SYMBOL CACHE
-# =========================================================
-
-invalid_symbols = set()
-
-if INVALID_FILE.exists():
-
-    invalid_symbols = set(
-        pd.read_csv(
-            INVALID_FILE
-        )["Symbol"]
-        .astype(str)
-        .str.upper()
-        .str.strip()
-    )
-
-symbols = [
-    s
-    for s in symbols
-    if s not in invalid_symbols
-]
-
-print(
-    f"Universe Size : {len(symbols):,}"
-)
-
-print(
-    f"Blacklisted Symbols : "
-    f"{len(invalid_symbols):,}"
-)
-
-# =========================================================
-# STATS
-# =========================================================
-
-updated_count = 0
-new_count = 0
-skipped_count = 0
-failure_count = 0
-
-failures = []
-new_invalid = []
-
-today = pd.Timestamp.today().normalize()
-
-if today.weekday() == 0:
-    expected_date = (
-        today - pd.Timedelta(days=3)
-    )
-else:
-    expected_date = (
-        today - pd.Timedelta(days=1)
-    )
-
-# =========================================================
-# DOWNLOAD FUNCTION
-# =========================================================
-
-def download_full_history(symbol):
+def download_full_history(
+    symbol: str,
+) -> pd.DataFrame:
+    """
+    Download full historical price data
+    from Yahoo Finance.
+    """
 
     return yf.download(
         f"{symbol}.NS",
@@ -171,18 +98,27 @@ def download_full_history(symbol):
 # UPDATE SYMBOL
 # =========================================================
 
-def update_symbol(symbol):
+def update_symbol(
+    symbol: str,
+    price_dir: Path,
+    expected_date: pd.Timestamp,
+    failures: list,
+    new_invalid: list,
+) -> str:
+    """
+    Update a single symbol's price history.
+    """
 
     output_file = (
-        PRICE_DIR
+        price_dir
         / f"{symbol}.parquet"
     )
 
     try:
 
-        # ==========================================
+        # =====================================================
         # NEW FILE
-        # ==========================================
+        # =====================================================
 
         if not output_file.exists():
 
@@ -221,6 +157,7 @@ def update_symbol(symbol):
                 df.columns,
                 pd.MultiIndex,
             ):
+
                 df.columns = [
                     c[0]
                     for c in df.columns
@@ -229,12 +166,17 @@ def update_symbol(symbol):
             df.columns = [
                 str(c).replace(
                     " ",
-                    "_"
+                    "_",
                 )
                 for c in df.columns
             ]
 
             df["Symbol"] = symbol
+
+            output_file.parent.mkdir(
+                parents=True,
+                exist_ok=True,
+            )
 
             df.to_parquet(
                 output_file,
@@ -243,9 +185,9 @@ def update_symbol(symbol):
 
             return "NEW"
 
-        # ==========================================
+        # =====================================================
         # EXISTING FILE
-        # ==========================================
+        # =====================================================
 
         existing = pd.read_parquet(
             output_file
@@ -266,6 +208,7 @@ def update_symbol(symbol):
             return "INVALID"
 
         if existing.empty:
+
             return "SKIPPED"
 
         last_date = pd.to_datetime(
@@ -276,6 +219,7 @@ def update_symbol(symbol):
             last_date.normalize()
             >= expected_date
         ):
+
             return "SKIPPED"
 
         start_date = (
@@ -294,6 +238,7 @@ def update_symbol(symbol):
         )
 
         if new_data.empty:
+
             return "SKIPPED"
 
         new_data = (
@@ -305,6 +250,7 @@ def update_symbol(symbol):
             new_data.columns,
             pd.MultiIndex,
         ):
+
             new_data.columns = [
                 c[0]
                 for c in new_data.columns
@@ -313,7 +259,7 @@ def update_symbol(symbol):
         new_data.columns = [
             str(c).replace(
                 " ",
-                "_"
+                "_",
             )
             for c in new_data.columns
         ]
@@ -345,6 +291,10 @@ def update_symbol(symbol):
 
         return "UPDATED"
 
+    # =========================================================
+    # EXCEPTION HANDLING
+    # =========================================================
+
     except Exception as e:
 
         failures.append(
@@ -356,163 +306,375 @@ def update_symbol(symbol):
 
         return "FAILED"
 
+
 # =========================================================
-# EXECUTION
+# MAIN
 # =========================================================
 
-print(
-    "\n🚀 Updating Price History..."
-)
+def main() -> EngineResult:
+    """
+    Incremental Price Update Engine
+    """
 
-with ThreadPoolExecutor(
-    max_workers=MAX_WORKERS
-) as executor:
+    start_time = time.perf_counter()
 
-    results = executor.map(
-        update_symbol,
-        symbols,
-    )
+    try:
 
-    total = len(symbols)
+        # =====================================================
+        # PREPARE DIRECTORIES
+        # =====================================================
 
-    for idx, result in enumerate(
-        results,
-        start=1,
-    ):
+        PRICE_DIR.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
-        if result == "NEW":
-            new_count += 1
+        FAILURE_FILE.parent.mkdir(
+            parents=True,
+            exist_ok=True,
+        )
 
-        elif result == "UPDATED":
-            updated_count += 1
+        # =====================================================
+        # LOAD UNIVERSE
+        # =====================================================
 
-        elif result == "SKIPPED":
-            skipped_count += 1
+        print(
+            "\n📥 Loading Investable Universe..."
+        )
 
-        elif result == "FAILED":
-            failure_count += 1
+        universe = pd.read_csv(
+            UNIVERSE_FILE
+        )
 
-        elif result == "INVALID":
-            failure_count += 1
+        symbols = (
+            universe["Symbol"]
+            .dropna()
+            .astype(str)
+            .str.upper()
+            .str.strip()
+            .unique()
+            .tolist()
+        )
 
-        if idx % 50 == 0:
+        # =====================================================
+        # INVALID SYMBOL CACHE
+        # =====================================================
 
-            print(
-                f"{idx:,}/{total:,}"
+        invalid_symbols = set()
+
+        if INVALID_FILE.exists():
+
+            invalid_symbols = set(
+                pd.read_csv(
+                    INVALID_FILE
+                )["Symbol"]
+                .astype(str)
+                .str.upper()
+                .str.strip()
             )
 
-# =========================================================
-# SAVE FAILURE LOG
-# =========================================================
+        symbols = [
+            s
+            for s in symbols
+            if s not in invalid_symbols
+        ]
 
-if failures:
-
-    pd.DataFrame(
-        failures
-    ).to_csv(
-        FAILURE_FILE,
-        index=False,
-    )
-
-# =========================================================
-# SAVE INVALID SYMBOLS
-# =========================================================
-
-if new_invalid:
-
-    invalid_df = pd.DataFrame(
-        new_invalid
-    )
-
-    if INVALID_FILE.exists():
-
-        old = pd.read_csv(
-            INVALID_FILE
+        print(
+            f"Universe Size : {len(symbols):,}"
         )
 
-        invalid_df = pd.concat(
-            [
-                old,
-                invalid_df,
-            ],
-            ignore_index=True,
+        print(
+            f"Blacklisted Symbols : "
+            f"{len(invalid_symbols):,}"
         )
 
-    invalid_df = (
-        invalid_df
-        .drop_duplicates(
-            subset=["Symbol"],
-            keep="last",
-        )
-        .sort_values(
-            "Symbol"
-        )
-    )
+        # =====================================================
+        # EXECUTION STATE
+        # =====================================================
 
-    invalid_df.to_csv(
-        INVALID_FILE,
-        index=False,
-    )
+        updated_count = 0
+        new_count = 0
+        skipped_count = 0
+        failure_count = 0
+
+        failures = []
+        new_invalid = []
+
+        today = (
+            pd.Timestamp.today()
+            .normalize()
+        )
+
+        if today.weekday() == 0:
+
+            expected_date = (
+                today
+                - pd.Timedelta(days=3)
+            )
+
+        else:
+
+            expected_date = (
+                today
+                - pd.Timedelta(days=1)
+            )
+
+        # =====================================================
+        # EXECUTION
+        # =====================================================
+
+        print(
+            "\n🚀 Updating Price History..."
+        )
+
+        with ThreadPoolExecutor(
+            max_workers=MAX_WORKERS,
+        ) as executor:
+
+            results = executor.map(
+                lambda symbol:
+                update_symbol(
+                    symbol=symbol,
+                    price_dir=PRICE_DIR,
+                    expected_date=expected_date,
+                    failures=failures,
+                    new_invalid=new_invalid,
+                ),
+                symbols,
+            )
+
+            total = len(symbols)
+
+            for idx, result in enumerate(
+                results,
+                start=1,
+            ):
+
+                if result == "NEW":
+
+                    new_count += 1
+
+                elif result == "UPDATED":
+
+                    updated_count += 1
+
+                elif result == "SKIPPED":
+
+                    skipped_count += 1
+
+                elif result in (
+                    "FAILED",
+                    "INVALID",
+                ):
+
+                    failure_count += 1
+
+                if idx % 50 == 0:
+
+                    print(
+                        f"{idx:,}/{total:,}"
+                    )
+
+        # =====================================================
+        # SAVE FAILURE LOG
+        # =====================================================
+
+        if failures:
+
+            pd.DataFrame(
+                failures
+            ).to_csv(
+                FAILURE_FILE,
+                index=False,
+            )
+
+        # =====================================================
+        # SAVE INVALID SYMBOLS
+        # =====================================================
+
+        if new_invalid:
+
+            invalid_df = pd.DataFrame(
+                new_invalid
+            )
+
+            if INVALID_FILE.exists():
+
+                old = pd.read_csv(
+                    INVALID_FILE
+                )
+
+                invalid_df = pd.concat(
+                    [
+                        old,
+                        invalid_df,
+                    ],
+                    ignore_index=True,
+                )
+
+            invalid_df = (
+                invalid_df
+                .drop_duplicates(
+                    subset=["Symbol"],
+                    keep="last",
+                )
+                .sort_values(
+                    "Symbol"
+                )
+            )
+
+            invalid_df.to_csv(
+                INVALID_FILE,
+                index=False,
+            )
+
+        # =====================================================
+        # REPORT
+        # =====================================================
+
+        coverage = round(
+            (
+                skipped_count
+                + updated_count
+                + new_count
+            )
+            / max(
+                len(symbols),
+                1,
+            )
+            * 100,
+            2,
+        )
+
+        print(
+            f"Coverage          : "
+            f"{coverage}%"
+        )
+
+        print("\n" + "=" * 70)
+
+        print(
+            "🏁 PRICE UPDATE COMPLETE"
+        )
+
+        print("=" * 70)
+
+        print(
+            f"Universe Size      : "
+            f"{len(symbols):,}"
+        )
+
+        print(
+            f"New Files          : "
+            f"{new_count:,}"
+        )
+
+        print(
+            f"Updated Files      : "
+            f"{updated_count:,}"
+        )
+
+        print(
+            f"Skipped Files      : "
+            f"{skipped_count:,}"
+        )
+
+        print(
+            f"Failures           : "
+            f"{failure_count:,}"
+        )
+
+        print(
+            f"Invalid Symbols    : "
+            f"{len(new_invalid):,}"
+        )
+
+        if failures:
+
+            print(
+                f"\nFailure Log:\n"
+                f"{FAILURE_FILE}"
+            )
+
+        print(
+            f"\nPrice Directory:\n"
+            f"{PRICE_DIR}"
+        )
+
+        print("=" * 70)
+
+        # =====================================================
+        # BUILD EXECUTION METADATA
+        # =====================================================
+
+        duration = (
+            time.perf_counter()
+            - start_time
+        )
+
+        execution_metadata = {
+            "universe_size": len(
+                symbols
+            ),
+            "new_files": new_count,
+            "updated_files": updated_count,
+            "skipped_files": skipped_count,
+            "failed_files": failure_count,
+            "invalid_symbols": len(
+                new_invalid
+            ),
+            "coverage": coverage,
+        }
+
+        # =====================================================
+        # RETURN RESULT
+        # =====================================================
+
+        return EngineResult(
+            engine=ENGINE_NAME,
+            status="SUCCESS",
+            records=(
+                new_count
+                + updated_count
+            ),
+            output=PRICE_DIR,
+            report=FAILURE_FILE
+            if FAILURE_FILE.exists()
+            else None,
+            duration=duration,
+            metadata=execution_metadata,
+        )
+
+    # =========================================================
+    # EXCEPTION HANDLING
+    # =========================================================
+
+    except Exception as e:
+
+        duration = (
+            time.perf_counter()
+            - start_time
+        )
+
+        return EngineResult(
+            engine=ENGINE_NAME,
+            status="FAILED",
+            duration=duration,
+            metadata={
+                "error": str(e),
+            },
+        )
+
 
 # =========================================================
-# REPORT
+# ENTRY POINT
 # =========================================================
 
-coverage = round(
-    (
-        skipped_count
-        + updated_count
-        + new_count
-    )
-    / max(len(symbols), 1)
-    * 100,
-    2,
-)
+if __name__ == "__main__":
 
-print(
-    f"Coverage          : "
-    f"{coverage}%"
-)
-
-print("\n" + "=" * 70)
-print("🏁 PRICE UPDATE COMPLETE")
-print("=" * 70)
-
-print(
-    f"Universe Size      : {len(symbols):,}"
-)
-
-print(
-    f"New Files          : {new_count:,}"
-)
-
-print(
-    f"Updated Files      : {updated_count:,}"
-)
-
-print(
-    f"Skipped Files      : {skipped_count:,}"
-)
-
-print(
-    f"Failures           : {failure_count:,}"
-)
-
-print(
-    f"Invalid Symbols    : "
-    f"{len(new_invalid):,}"
-)
-
-if failures:
+    result = main()
 
     print(
-        f"\nFailure Log:\n"
-        f"{FAILURE_FILE}"
+        f"\nEngine Status : "
+        f"{result.status}"
     )
-
-print(
-    f"\nPrice Directory:\n"
-    f"{PRICE_DIR}"
-)
-
-print("=" * 70)
