@@ -798,7 +798,7 @@ jobs:
 
         if: github.ref == 'refs/heads/main'
 
-        uses: actions/configure-pages@v5
+        uses: actions/configure-pages@v6
 
 ###############################################################################
 # Upload GitHub Pages Artifact
