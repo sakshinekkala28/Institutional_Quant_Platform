@@ -1,324 +1,556 @@
-# Architecture Decision Register
+# Architecture Decision Records (ADR)
 
-> Institutional Quant Platform
-
----
-
-# Document Information
-
-| Field | Value |
-|-------|-------|
-| Document | Architecture Decision Register |
-| Version | 1.0.0 |
-| Status | Approved |
-| Owner | Platform Architecture |
-| Classification | Internal |
-| Last Updated | YYYY-MM-DD |
-| Next Review | Quarterly |
+## Institutional Quant Platform
 
 ---
 
 # Purpose
 
-The Architecture Decision Register (ADR Register) provides a
-centralized index of all architectural decisions affecting the
-Institutional Quant Platform.
+This document records the significant architectural decisions made throughout the development of the Institutional Quant Platform.
 
-Each decision is documented in a dedicated Architecture Decision
-Record (ADR). This register summarizes those decisions, their
-status, and their impact on the platform.
+Each decision includes:
 
-The register acts as the authoritative catalog for architectural
-governance.
+- Context
+- Decision
+- Rationale
+- Consequences
+- Alternatives Considered
 
----
-
-# Objectives
-
-The register provides
-
-- Architectural decision history
-- Decision traceability
-- Current decision status
-- Cross-reference to ADR documents
-- Architecture evolution tracking
+These records help maintain architectural consistency and provide historical context for future contributors.
 
 ---
 
-# Decision Lifecycle
+# ADR-001
 
-Every architectural decision follows the lifecycle below.
+## Repository Architecture
 
-```
-Proposal
+### Status
 
-        │
+Accepted
 
-        ▼
+### Decision
 
-Review
+Use a modular repository organized by business domains.
 
-        │
-
-        ▼
-
-Approval
-
-        │
-
-        ▼
-
-Implementation
-
-        │
-
-        ▼
-
-Documentation
-
-        │
-
-        ▼
-
-Maintenance
-
-        │
-
-        ▼
-
-Superseded (if applicable)
+```text
+analytics/
+portfolio/
+risk/
+execution/
+api/
+dashboard/
+monitoring/
 ```
 
----
+### Rationale
 
-# Decision Status
+- High cohesion
+- Low coupling
+- Independent development
+- Easier testing
+- Better scalability
 
-The following statuses are used.
+### Alternatives
 
-| Status | Description |
-|---------|-------------|
-| Proposed | Draft decision under review |
-| Accepted | Approved and implemented |
-| Rejected | Not approved |
-| Deprecated | Replaced by another decision |
-| Superseded | Replaced by a newer ADR |
+- Monolithic application
+- Service-per-feature repository
+- Microservices from day one
 
----
+### Consequences
 
-# Architecture Decision Register
+Positive
 
-| ADR | Title | Status | Version |
-|-----|-------|--------|---------|
-| ADR-001 | Architecture Freeze | Accepted | 1.0.0 |
-| ADR-002 | Pipeline Architecture | Accepted | 1.0.0 |
-| ADR-003 | Data Architecture | Accepted | 1.0.0 |
-
-Future ADRs shall be added to this table.
+- Clear ownership
+- Easier maintenance
+- Better separation of concerns
 
 ---
 
-# Current Accepted Decisions
+# ADR-002
 
-## ADR-001
+## Programming Language
 
-Architecture Freeze
+### Status
 
-Summary
+Accepted
 
-The repository structure, architectural layers, dependency
-boundaries, and documentation hierarchy are frozen for Version
-1.0.0.
+### Decision
 
-Impact
+Use Python 3.12.
 
-High
+### Rationale
 
----
+- Scientific ecosystem
+- Data engineering support
+- Strong finance libraries
+- Excellent community
+- Long-term support
 
-## ADR-002
+### Alternatives
 
-Pipeline Architecture
-
-Summary
-
-The platform executes business workflows through independent,
-reusable pipelines coordinated by the Master Orchestrator.
-
-Impact
-
-High
+- Java
+- C#
+- C++
+- Rust
 
 ---
 
-## ADR-003
+# ADR-003
 
-Data Architecture
+## Dashboard Framework
 
-Summary
+### Status
 
-The platform adopts a repository-driven data layer separating
-analytics from persistence.
+Accepted
 
-Impact
+### Decision
 
-High
+Use Streamlit.
 
----
+### Rationale
 
-# Future Decision Areas
+- Rapid dashboard development
+- Native Python integration
+- Excellent visualization support
+- Minimal frontend development
 
-Future ADRs may cover
+### Alternatives
 
-- Distributed execution
-- Cloud deployment
-- Event streaming
-- Machine learning integration
-- Multi-region deployment
-- Real-time market data
-- Portfolio optimization enhancements
-- Plugin ecosystem expansion
-- Storage engine migration
+- Dash
+- React
+- Angular
+- Vue
 
 ---
 
-# Decision Rules
+# ADR-004
 
-An ADR is required when introducing
+## REST API
 
-- Architectural changes
-- New platform layers
-- Repository restructuring
-- Dependency rule changes
-- Pipeline framework changes
-- Storage technology changes
-- Execution model changes
-- Public API breaking changes
+### Status
 
-Routine implementation details do not require an ADR.
+Accepted
+
+### Decision
+
+Use FastAPI.
+
+### Rationale
+
+- High performance
+- OpenAPI generation
+- Async support
+- Type hints
+- Validation
+
+### Alternatives
+
+- Flask
+- Django
+- Falcon
 
 ---
 
-# ADR Workflow
+# ADR-005
 
+## Primary Analytical Database
+
+### Status
+
+Accepted
+
+### Decision
+
+Use DuckDB.
+
+### Rationale
+
+- Excellent analytical performance
+- Embedded database
+- Parquet integration
+- SQL support
+- No server required
+
+### Alternatives
+
+- SQLite
+- PostgreSQL
+- ClickHouse
+- Apache Arrow
+
+---
+
+# ADR-006
+
+## Data Storage
+
+### Status
+
+Accepted
+
+### Decision
+
+Store datasets primarily as Parquet files.
+
+### Rationale
+
+- Columnar storage
+- Compression
+- Fast reads
+- Analytics friendly
+
+### Alternatives
+
+- CSV
+- JSON
+- HDF5
+
+---
+
+# ADR-007
+
+## Infrastructure
+
+### Status
+
+Accepted
+
+### Decision
+
+Containerize using Docker.
+
+### Rationale
+
+- Reproducibility
+- Portability
+- Consistency
+- Easy deployment
+
+### Alternatives
+
+- Virtual Machines
+- Native installations
+
+---
+
+# ADR-008
+
+## Container Orchestration
+
+### Status
+
+Accepted
+
+### Decision
+
+Use Kubernetes.
+
+### Rationale
+
+- Auto scaling
+- High availability
+- Self healing
+- Industry standard
+
+### Alternatives
+
+- Docker Compose
+- Nomad
+- ECS
+
+---
+
+# ADR-009
+
+## Infrastructure as Code
+
+### Status
+
+Accepted
+
+### Decision
+
+Use Terraform.
+
+### Rationale
+
+- Declarative infrastructure
+- Multi-cloud support
+- State management
+- Version controlled
+
+### Alternatives
+
+- CloudFormation
+- Pulumi
+- ARM Templates
+
+---
+
+# ADR-010
+
+## CI/CD
+
+### Status
+
+Accepted
+
+### Decision
+
+Use GitHub Actions.
+
+### Rationale
+
+- Native GitHub integration
+- Marketplace ecosystem
+- Hosted runners
+- Simple maintenance
+
+### Alternatives
+
+- Jenkins
+- GitLab CI
+- Azure DevOps
+
+---
+
+# ADR-011
+
+## Documentation
+
+### Status
+
+Accepted
+
+### Decision
+
+Use MkDocs Material.
+
+### Rationale
+
+- Clean navigation
+- Search
+- Markdown support
+- GitHub Pages integration
+
+### Alternatives
+
+- Sphinx
+- Docusaurus
+- GitBook
+
+---
+
+# ADR-012
+
+## Code Quality
+
+### Status
+
+Accepted
+
+### Decision
+
+Adopt automated quality gates.
+
+### Tooling
+
+- Ruff
+- Black
+- MyPy
+- Pytest
+- Coverage
+
+### Rationale
+
+Maintain consistent code quality across contributors.
+
+---
+
+# ADR-013
+
+## Security
+
+### Status
+
+Accepted
+
+### Decision
+
+Adopt Shift-Left Security.
+
+### Tooling
+
+- CodeQL
+- Bandit
+- Semgrep
+- Checkov
+- Trivy
+- Dependabot
+
+### Rationale
+
+Detect vulnerabilities as early as possible.
+
+---
+
+# ADR-014
+
+## Monitoring
+
+### Status
+
+Accepted
+
+### Decision
+
+Centralize logging and metrics.
+
+### Tooling
+
+- Prometheus
+- Grafana
+- Structured Logging
+
+---
+
+# ADR-015
+
+## Versioning
+
+### Status
+
+Accepted
+
+### Decision
+
+Semantic Versioning (SemVer)
+
+### Format
+
+```text
+MAJOR.MINOR.PATCH
 ```
-Identify Change
-
-        │
-
-        ▼
-
-Create ADR
-
-        │
-
-        ▼
-
-Architecture Review
-
-        │
-
-        ▼
-
-Approval
-
-        │
-
-        ▼
-
-Documentation Update
-
-        │
-
-        ▼
-
-Implementation
-
-        │
-
-        ▼
-
-Release
-```
-
-Implementation shall not begin until the ADR is accepted.
-
----
-
-# Naming Convention
-
-ADRs shall follow the naming pattern
-
-```
-ADR-001-Architecture-Freeze.md
-
-ADR-002-Pipeline-Architecture.md
-
-ADR-003-Data-Architecture.md
-```
-
-Future ADRs continue the sequence.
 
 Example
 
-```
-ADR-004-Cloud-Deployment.md
-
-ADR-005-Distributed-Execution.md
-
-ADR-006-Machine-Learning.md
+```text
+2.4.1
 ```
 
 ---
 
-# Repository Location
+# ADR-016
 
-All ADRs are stored under
+## Branch Strategy
 
+### Status
+
+Accepted
+
+### Decision
+
+GitHub Flow.
+
+```text
+main
+
+feature/*
+
+bugfix/*
+
+hotfix/*
+
+release/*
 ```
-docs/
-
-architecture/
-
-ADR/
-```
-
-The ADR directory contains
-
-- Individual ADR documents
-- ADR template
-- ADR README
 
 ---
 
-# Review Policy
+# ADR-017
 
-Architecture decisions shall be reviewed
+## Testing Strategy
 
-- Before major releases
-- After significant architectural changes
-- During quarterly architecture reviews
+### Status
 
-Superseded decisions remain archived for historical reference.
+Accepted
+
+### Decision
+
+Automated testing at multiple levels.
+
+Includes
+
+- Unit Tests
+- Integration Tests
+- Performance Tests
+- Security Tests
+
+---
+
+# ADR-018
+
+## Design Principles
+
+### Status
+
+Accepted
+
+The platform follows
+
+- Clean Architecture
+- SOLID
+- DRY
+- KISS
+- YAGNI
+- Separation of Concerns
+- Domain Driven Design
+
+---
+
+# Future ADRs
+
+Future architectural decisions should follow this template.
+
+## ADR-XXX
+
+### Status
+
+Proposed | Accepted | Deprecated | Superseded
+
+### Context
+
+Describe the problem.
+
+### Decision
+
+Describe the chosen solution.
+
+### Rationale
+
+Explain why.
+
+### Alternatives
+
+List alternatives considered.
+
+### Consequences
+
+Positive
+
+Negative
 
 ---
 
 # Related Documents
 
-- README.md
-- 00_ARCHITECTURE.md
-- GOVERNANCE.md
-- ROADMAP.md
-- VERSIONING.md
-- ADR/README.md
+- Architecture Overview
+- System Design
+- Repository Structure
+- Deployment
+- CI/CD
+- Operations Guide
+- Security Guide
 
 ---
 
-# Revision History
-
-| Version | Date | Description |
-|----------|------|-------------|
-| 1.0.0 | YYYY-MM-DD | Initial Architecture Decision Register |
-
----
-
-**End of Document**
+End of Document
