@@ -1,6 +1,6 @@
 beautifulsoup4>=4.15,<5.0
 
-duckdb>=1.5,<2.0
+duckdb>=1.5.4,<2.0
 
 joblib>=1.5,<2.0
 
