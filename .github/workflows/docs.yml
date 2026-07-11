@@ -45,13 +45,13 @@ jobs:
       # Checkout
       ####################################################################
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       ####################################################################
       # Python
       ####################################################################
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ env.PYTHON_VERSION }}
 
@@ -78,7 +78,7 @@ jobs:
       ####################################################################
 
       - name: Markdown Lint
-        uses: DavidAnson/markdownlint-cli2-action@v18
+        uses: DavidAnson/markdownlint-cli2-action@v24
         with:
           globs: |
             **/*.md
@@ -105,7 +105,7 @@ jobs:
       ####################################################################
 
       - name: Upload Site
-        uses: actions/upload-pages-artifact@v3
+        uses: actions/upload-pages-artifact@v5
         with:
           path: site/
 
@@ -128,7 +128,7 @@ jobs:
 
       - name: Deploy
         id: deployment
-        uses: actions/deploy-pages@v4
+        uses: actions/deploy-pages@v5
 
   summary:
 

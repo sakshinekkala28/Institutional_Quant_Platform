@@ -94,7 +94,7 @@ jobs:
 
       - name: Checkout Repository
 
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
 ###############################################################################
 # Install Helm
@@ -102,7 +102,7 @@ jobs:
 
       - name: Setup Helm
 
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
         with:
 
@@ -124,7 +124,7 @@ jobs:
 
       - name: Cache Helm Repository
 
-        uses: actions/cache@v4
+        uses: actions/cache@v6
 
         with:
 
@@ -398,7 +398,7 @@ jobs:
 
       - name: Upload Rendered Charts
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -635,7 +635,7 @@ jobs:
 
       - name: Upload Helm Package
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -765,7 +765,7 @@ jobs:
 
         if: always()
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 

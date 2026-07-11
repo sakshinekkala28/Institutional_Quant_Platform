@@ -99,7 +99,7 @@ jobs:
 
       - name: Checkout Repository
 
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
         with:
 
@@ -111,7 +111,7 @@ jobs:
 
       - name: Setup Python
 
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
 
         with:
 
@@ -125,7 +125,7 @@ jobs:
 
       - name: Setup Java
 
-        uses: actions/setup-java@v4
+        uses: actions/setup-java@v5
 
         with:
 
@@ -139,7 +139,7 @@ jobs:
 
       - name: Setup Terraform
 
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
 
         with:
 
@@ -151,7 +151,7 @@ jobs:
 
       - name: Setup Helm
 
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
         with:
 
@@ -163,7 +163,7 @@ jobs:
 
       - name: Setup Docker Buildx
 
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
 ###############################################################################
 # Cache Python Packages
@@ -171,7 +171,7 @@ jobs:
 
       - name: Cache Python Dependencies
 
-        uses: actions/cache@v4
+        uses: actions/cache@v6
 
         with:
 
@@ -278,7 +278,7 @@ jobs:
 
       - name: Initialize CodeQL
 
-        uses: github/codeql-action/init@v3
+        uses: github/codeql-action/init@v4
 
         with:
 
@@ -292,7 +292,7 @@ jobs:
 
       - name: CodeQL Autobuild
 
-        uses: github/codeql-action/autobuild@v3
+        uses: github/codeql-action/autobuild@v4
 
 ###############################################################################
 # Analyze CodeQL
@@ -300,7 +300,7 @@ jobs:
 
       - name: Analyze CodeQL
 
-        uses: github/codeql-action/analyze@v3
+        uses: github/codeql-action/analyze@v4
 
         with:
 
@@ -314,7 +314,7 @@ jobs:
 
         if: github.event_name == 'pull_request'
 
-        uses: actions/dependency-review-action@v4
+        uses: actions/dependency-review-action@v5
 
         with:
 
@@ -341,7 +341,7 @@ jobs:
 
       - name: Upload pip-audit Report
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -393,7 +393,7 @@ jobs:
 
       - name: Upload OSV Report
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -474,7 +474,7 @@ jobs:
 
       - name: Trivy Filesystem Scan
 
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
 
         with:
 
@@ -496,7 +496,7 @@ jobs:
 
       - name: Upload Trivy Filesystem SARIF
 
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
 
         with:
 
@@ -510,7 +510,7 @@ jobs:
 
       - name: Build API Image
 
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
 
         with:
 
@@ -532,7 +532,7 @@ jobs:
 
       - name: Scan API Image
 
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
 
         with:
 
@@ -552,7 +552,7 @@ jobs:
 
       - name: Upload API SARIF
 
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
 
         with:
 
@@ -566,7 +566,7 @@ jobs:
 
       - name: Build Analytics Image
 
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
 
         with:
 
@@ -584,7 +584,7 @@ jobs:
 
       - name: Scan Analytics Image
 
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
 
         with:
 
@@ -602,7 +602,7 @@ jobs:
 
       - name: Upload Analytics SARIF
 
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
 
         with:
 
@@ -616,7 +616,7 @@ jobs:
 
       - name: Build Dashboard Image
 
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
 
         with:
 
@@ -634,7 +634,7 @@ jobs:
 
       - name: Scan Dashboard Image
 
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@v0.36.0
 
         with:
 
@@ -652,7 +652,7 @@ jobs:
 
       - name: Upload Dashboard SARIF
 
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
 
         with:
 
@@ -686,7 +686,7 @@ jobs:
 
       - name: Upload Checkov SARIF
 
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
 
         with:
 
@@ -716,7 +716,7 @@ jobs:
 
       - name: Upload tfsec SARIF
 
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
 
         with:
 
@@ -730,7 +730,7 @@ jobs:
 
       - name: Upload Security Reports
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -840,7 +840,7 @@ jobs:
 
       - name: Upload Semgrep SARIF
 
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
 
         with:
 
@@ -854,7 +854,7 @@ jobs:
 
       - name: Secret Detection
 
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
 
         env:
 
@@ -882,7 +882,7 @@ jobs:
 
       - name: Generate CycloneDX SBOM
 
-        uses: CycloneDX/gh-python-generate-sbom@v1
+        uses: CycloneDX/gh-python-generate-sbom@v2
 
         with:
 
@@ -896,7 +896,7 @@ jobs:
 
       - name: Upload SBOM
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -938,7 +938,7 @@ jobs:
 
       - name: Upload License Report
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -968,7 +968,7 @@ jobs:
 
       - name: Upload Bandit Report
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -982,7 +982,7 @@ jobs:
 
       - name: Upload Security Bundle
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -1165,7 +1165,7 @@ jobs:
 
         if: always()
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 

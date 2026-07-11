@@ -75,7 +75,7 @@ jobs:
 
       - name: Checkout Repository
 
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
         with:
 
@@ -87,7 +87,7 @@ jobs:
 
       - name: Setup Python
 
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
 
         with:
 
@@ -101,7 +101,7 @@ jobs:
 
       - name: Setup Terraform
 
-        uses: hashicorp/setup-terraform@v3
+        uses: hashicorp/setup-terraform@v4
 
         with:
 
@@ -113,7 +113,7 @@ jobs:
 
       - name: Setup Helm
 
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
         with:
 
@@ -125,7 +125,7 @@ jobs:
 
       - name: Setup Docker Buildx
 
-        uses: docker/setup-buildx-action@v3
+        uses: docker/setup-buildx-action@v4
 
 ###############################################################################
 # Cache Pip Packages
@@ -133,7 +133,7 @@ jobs:
 
       - name: Cache Python Packages
 
-        uses: actions/cache@v4
+        uses: actions/cache@v6
 
         with:
 
@@ -277,7 +277,7 @@ jobs:
 
       - name: Upload Metadata
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -487,7 +487,7 @@ jobs:
 
       - name: Upload Reports
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -631,7 +631,7 @@ jobs:
 
         if: steps.changes.outputs.changes == 'true'
 
-        uses: peter-evans/create-pull-request@v7
+        uses: peter-evans/create-pull-request@v8
 
         with:
 
@@ -689,7 +689,7 @@ jobs:
 
         if: steps.changes.outputs.changes == 'true'
 
-        uses: actions/github-script@v7
+        uses: actions/github-script@v9
 
         with:
 
@@ -736,7 +736,7 @@ jobs:
 
         if: always()
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 

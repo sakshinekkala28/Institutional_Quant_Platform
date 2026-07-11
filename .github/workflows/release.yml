@@ -98,7 +98,7 @@ jobs:
 
       - name: Checkout Repository
 
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
         with:
 
@@ -110,7 +110,7 @@ jobs:
 
       - name: Setup Python
 
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
 
         with:
 
@@ -124,7 +124,7 @@ jobs:
 
       - name: Setup Helm
 
-        uses: azure/setup-helm@v4
+        uses: azure/setup-helm@v5
 
         with:
 
@@ -279,7 +279,7 @@ jobs:
 
       - name: Upload Metadata
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -392,7 +392,7 @@ jobs:
 
         id: release
 
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
 
         with:
 
@@ -414,7 +414,7 @@ jobs:
 
       - name: Upload Release Documentation
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -496,7 +496,7 @@ jobs:
 
       - name: Login to GHCR
 
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
 
         with:
 
@@ -522,7 +522,7 @@ jobs:
 
         id: meta
 
-        uses: docker/metadata-action@v5
+        uses: docker/metadata-action@v6
 
         with:
 
@@ -546,7 +546,7 @@ jobs:
 
       - name: Build API Release Image
 
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
 
         with:
 
@@ -578,7 +578,7 @@ jobs:
 
       - name: Build Analytics Release Image
 
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
 
         with:
 
@@ -606,7 +606,7 @@ jobs:
 
       - name: Build Dashboard Release Image
 
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@v7
 
         with:
 
@@ -752,7 +752,7 @@ jobs:
 
       - name: Upload Release Assets
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -847,7 +847,7 @@ jobs:
 
       - name: Upload Release Assets
 
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
 
         with:
 
@@ -893,7 +893,7 @@ jobs:
 
       - name: Upload Release Manifest
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 

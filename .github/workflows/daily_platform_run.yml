@@ -22,11 +22,11 @@ jobs:
 
       - name: Checkout Repository
 
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Python
 
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
 
         with:
 
@@ -160,7 +160,7 @@ jobs:
 
       - name: Upload PDF Report
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -170,7 +170,7 @@ jobs:
 
       - name: Upload PowerPoint Report
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
@@ -180,7 +180,7 @@ jobs:
 
       - name: Upload Monitoring Reports
 
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
 
         with:
 
