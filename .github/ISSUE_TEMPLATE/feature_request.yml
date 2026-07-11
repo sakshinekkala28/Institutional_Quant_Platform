@@ -1,0 +1,297 @@
+name: 🚀 Feature Request
+
+description: Suggest a new feature, enhancement, or capability.
+
+title: "[FEATURE]: "
+
+labels:
+
+  - enhancement
+
+  - feature
+
+  - triage
+
+assignees:
+
+  - sakshinekkala28
+
+body:
+
+###############################################################################
+# Introduction
+###############################################################################
+
+  - type: markdown
+
+    attributes:
+
+      value: |
+
+        ## Feature Request
+
+        Thank you for helping improve the Institutional Quant Platform.
+
+        Please describe your idea in as much detail as possible.
+
+###############################################################################
+# Summary
+###############################################################################
+
+  - type: textarea
+
+    id: summary
+
+    attributes:
+
+      label: Feature Summary
+
+      description: Provide a short description of the requested feature.
+
+      placeholder: Briefly describe the feature.
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Problem Statement
+###############################################################################
+
+  - type: textarea
+
+    id: problem
+
+    attributes:
+
+      label: Problem Statement
+
+      description: What problem does this feature solve?
+
+      placeholder: Describe the current limitation or pain point.
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Proposed Solution
+###############################################################################
+
+  - type: textarea
+
+    id: solution
+
+    attributes:
+
+      label: Proposed Solution
+
+      description: Describe the solution you would like to see.
+
+      placeholder: Explain how this feature should work.
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Alternatives
+###############################################################################
+
+  - type: textarea
+
+    id: alternatives
+
+    attributes:
+
+      label: Alternatives Considered
+
+      description: Describe any alternative solutions or workarounds.
+
+###############################################################################
+# Component
+###############################################################################
+
+  - type: dropdown
+
+    id: component
+
+    attributes:
+
+      label: Component
+
+      options:
+
+        - API
+
+        - Analytics
+
+        - Dashboard
+
+        - Alpha Engine
+
+        - Portfolio Engine
+
+        - Risk Engine
+
+        - Execution Engine
+
+        - Data Pipeline
+
+        - Machine Learning
+
+        - Infrastructure
+
+        - Docker
+
+        - Kubernetes
+
+        - Helm
+
+        - Terraform
+
+        - CI/CD
+
+        - Monitoring
+
+        - Documentation
+
+        - Other
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Business Value
+###############################################################################
+
+  - type: dropdown
+
+    id: value
+
+    attributes:
+
+      label: Business Value
+
+      options:
+
+        - Critical
+
+        - High
+
+        - Medium
+
+        - Low
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Priority
+###############################################################################
+
+  - type: dropdown
+
+    id: priority
+
+    attributes:
+
+      label: Requested Priority
+
+      options:
+
+        - Critical
+
+        - High
+
+        - Medium
+
+        - Low
+
+###############################################################################
+# Users Impacted
+###############################################################################
+
+  - type: textarea
+
+    id: users
+
+    attributes:
+
+      label: Who Benefits?
+
+      description: Describe the users or teams that will benefit.
+
+###############################################################################
+# Acceptance Criteria
+###############################################################################
+
+  - type: textarea
+
+    id: acceptance
+
+    attributes:
+
+      label: Acceptance Criteria
+
+      placeholder: |
+
+        - [ ] Requirement 1
+
+        - [ ] Requirement 2
+
+        - [ ] Requirement 3
+
+###############################################################################
+# Implementation Notes
+###############################################################################
+
+  - type: textarea
+
+    id: implementation
+
+    attributes:
+
+      label: Implementation Suggestions
+
+      description: Optional implementation ideas or architecture suggestions.
+
+###############################################################################
+# Additional Context
+###############################################################################
+
+  - type: textarea
+
+    id: context
+
+    attributes:
+
+      label: Additional Context
+
+      description: Add diagrams, screenshots, references, or supporting information.
+
+###############################################################################
+# Checklist
+###############################################################################
+
+  - type: checkboxes
+
+    id: checklist
+
+    attributes:
+
+      label: Checklist
+
+      options:
+
+        - label: I searched existing feature requests.
+
+        - label: This feature aligns with the project goals.
+
+        - label: I described the business value.
+
+        - label: I provided acceptance criteria.
+
+        - label: I understand implementation priority is determined by the maintainers.

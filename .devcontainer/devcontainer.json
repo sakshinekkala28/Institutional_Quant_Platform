@@ -1,0 +1,136 @@
+{
+  "name": "Institutional Quant Platform",
+
+  "image": "mcr.microsoft.com/devcontainers/python:3.12",
+
+  "features": {
+    "ghcr.io/devcontainers/features/docker-in-docker:2": {},
+    "ghcr.io/devcontainers/features/github-cli:1": {},
+    "ghcr.io/devcontainers/features/kubectl-helm-minikube:1": {},
+    "ghcr.io/devcontainers/features/aws-cli:1": {},
+    "ghcr.io/devcontainers/features/terraform:1": {}
+  },
+
+  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+
+  "remoteUser": "vscode",
+
+  "runArgs": [
+    "--init",
+    "--cap-add=SYS_PTRACE",
+    "--shm-size=2g"
+  ],
+
+  "mounts": [
+    "source=${localEnv:HOME}/.cache/pip,target=/home/vscode/.cache/pip,type=bind",
+    "source=${localWorkspaceFolder}/.git,target=/workspaces/${localWorkspaceFolderBasename}/.git,type=bind,consistency=cached"
+  ],
+
+  "forwardPorts": [
+    8501,
+    8000,
+    8080,
+    3000
+  ],
+
+  "portsAttributes": {
+    "8501": {
+      "label": "Streamlit Dashboard",
+      "onAutoForward": "notify"
+    },
+    "8000": {
+      "label": "FastAPI"
+    },
+    "8080": {
+      "label": "Application"
+    },
+    "3000": {
+      "label": "Development Server"
+    }
+  },
+
+  "otherPortsAttributes": {
+    "onAutoForward": "silent"
+  },
+
+  "customizations": {
+    "codespaces": {
+      "openFiles": [
+        "README.md"
+      ]
+    },
+
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.black-formatter",
+        "ms-toolsai.jupyter",
+        "charliermarsh.ruff",
+        "ms-azuretools.vscode-docker",
+        "hashicorp.terraform",
+        "redhat.vscode-yaml",
+        "tamasfe.even-better-toml",
+        "GitHub.copilot",
+        "GitHub.copilot-chat",
+        "GitHub.vscode-github-actions",
+        "eamodio.gitlens",
+        "streetsidesoftware.code-spell-checker",
+        "DavidAnson.vscode-markdownlint",
+        "ms-kubernetes-tools.vscode-kubernetes-tools",
+        "ms-vscode.makefile-tools",
+        "ms-vscode.live-server"
+      ],
+
+      "settings": {
+        "python.defaultInterpreterPath": "/usr/local/bin/python",
+
+        "python.testing.pytestEnabled": true,
+
+        "python.testing.pytestArgs": [
+          "tests"
+        ],
+
+        "python.analysis.typeCheckingMode": "basic",
+
+        "python.analysis.autoImportCompletions": true,
+
+        "python.analysis.inlayHints.variableTypes": true,
+
+        "python.analysis.inlayHints.functionReturnTypes": true,
+
+        "editor.formatOnSave": true,
+
+        "editor.rulers": [
+          88
+        ],
+
+        "editor.codeActionsOnSave": {
+          "source.fixAll": "explicit",
+          "source.organizeImports": "explicit"
+        },
+
+        "files.trimTrailingWhitespace": true,
+
+        "files.insertFinalNewline": true,
+
+        "files.exclude": {
+          "**/__pycache__": true,
+          "**/.pytest_cache": true,
+          "**/.ruff_cache": true,
+          "**/.mypy_cache": true
+        },
+
+        "terminal.integrated.defaultProfile.linux": "bash",
+
+        "terminal.integrated.scrollback": 50000
+      }
+    }
+  },
+
+  "postCreateCommand": "bash .devcontainer/post-create.sh",
+
+  "postStartCommand": "git config --global --add safe.directory ${containerWorkspaceFolder}",
+
+  "shutdownAction": "stopContainer"
+}

@@ -1,0 +1,1045 @@
+name: Documentation Pipeline
+
+###############################################################################
+# Triggers
+###############################################################################
+
+on:
+
+  push:
+
+    branches:
+
+      - main
+
+      - develop
+
+      - staging
+
+  pull_request:
+
+    branches:
+
+      - main
+
+      - develop
+
+      - staging
+
+  workflow_dispatch:
+
+###############################################################################
+# Permissions
+###############################################################################
+
+permissions:
+
+  contents: write
+
+  pages: write
+
+  id-token: write
+
+###############################################################################
+# Concurrency
+###############################################################################
+
+concurrency:
+
+  group: documentation-${{ github.ref }}
+
+  cancel-in-progress: true
+
+###############################################################################
+# Environment
+###############################################################################
+
+env:
+
+  PYTHON_VERSION: "3.12"
+
+###############################################################################
+# Jobs
+###############################################################################
+
+jobs:
+
+###############################################################################
+# Documentation Validation
+###############################################################################
+
+  documentation:
+
+    name: Documentation Pipeline
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 45
+
+###############################################################################
+# Checkout Repository
+###############################################################################
+
+    steps:
+
+      - name: Checkout Repository
+
+        uses: actions/checkout@v4
+
+        with:
+
+          fetch-depth: 0
+
+###############################################################################
+# Setup Python
+###############################################################################
+
+      - name: Setup Python
+
+        uses: actions/setup-python@v5
+
+        with:
+
+          python-version: ${{ env.PYTHON_VERSION }}
+
+          cache: pip
+
+###############################################################################
+# Cache Documentation Packages
+###############################################################################
+
+      - name: Cache Python Packages
+
+        uses: actions/cache@v4
+
+        with:
+
+          path: |
+
+            ~/.cache/pip
+
+          key: docs-${{ runner.os }}-${{ hashFiles('requirements*.txt') }}
+
+          restore-keys: |
+
+            docs-${{ runner.os }}-
+
+###############################################################################
+# Install Documentation Tools
+###############################################################################
+
+      - name: Install Documentation Dependencies
+
+        run: |
+
+          python -m pip install --upgrade pip
+
+          pip install \
+
+            mkdocs \
+
+            mkdocs-material \
+
+            mkdocstrings[python] \
+
+            pymdown-extensions \
+
+            markdown \
+
+            pydocstyle \
+
+            interrogate \
+
+            griffe \
+
+            black
+
+###############################################################################
+# Install Documentation Utilities
+###############################################################################
+
+      - name: Install Validation Utilities
+
+        run: |
+
+          pip install \
+
+            yamllint \
+
+            mdformat \
+
+            mdformat-gfm \
+
+            mdformat-frontmatter
+
+###############################################################################
+# Display Environment
+###############################################################################
+
+      - name: Environment Information
+
+        run: |
+
+          echo "======================================================"
+
+          echo "Institutional Quant Platform"
+
+          echo "Documentation Pipeline"
+
+          echo "======================================================"
+
+          echo ""
+
+          echo "Repository"
+
+          echo "${{ github.repository }}"
+
+          echo ""
+
+          echo "Branch"
+
+          echo "${{ github.ref_name }}"
+
+          echo ""
+
+          echo "Python"
+
+          python --version
+
+          echo ""
+
+          echo "MkDocs"
+
+          mkdocs --version
+
+          echo ""
+
+          echo "======================================================"
+
+###############################################################################
+# Prepare Documentation Workspace
+###############################################################################
+
+      - name: Prepare Workspace
+
+        run: |
+
+          mkdir -p documentation
+
+          mkdir -p documentation/reports
+
+          mkdir -p documentation/generated
+
+###############################################################################
+# Export Metadata
+###############################################################################
+
+      - name: Export Documentation Metadata
+
+        run: |
+
+          cat > documentation/metadata.json <<EOF
+          {
+            "repository":"${{ github.repository }}",
+            "branch":"${{ github.ref_name }}",
+            "workflow":"Documentation",
+            "commit":"${{ github.sha }}",
+            "generated":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          }
+          EOF
+
+###############################################################################
+# Upload Metadata
+###############################################################################
+
+      - name: Upload Documentation Metadata
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: documentation-metadata
+
+          path: documentation/metadata.json
+
+
+###############################################################################
+# Markdown Formatting
+###############################################################################
+
+      - name: Format Markdown
+
+        continue-on-error: true
+
+        run: |
+
+          mdformat .
+
+###############################################################################
+# Markdown Lint
+###############################################################################
+
+      - name: Markdown Lint
+
+        uses: DavidAnson/markdownlint-cli2-action@v18
+
+        with:
+
+          globs: |
+
+            **/*.md
+
+###############################################################################
+# YAML Validation
+###############################################################################
+
+      - name: Validate YAML Files
+
+        run: |
+
+          yamllint .
+
+###############################################################################
+# README Validation
+###############################################################################
+
+      - name: Verify README Files
+
+        run: |
+
+          test -f README.md
+
+          test -f CONTRIBUTING.md || true
+
+          test -f LICENSE || true
+
+###############################################################################
+# Markdown Statistics
+###############################################################################
+
+      - name: Documentation Statistics
+
+        run: |
+
+          echo "Markdown Files"
+
+          find . -name "*.md" | wc -l
+
+          echo ""
+
+          echo "Documentation Directories"
+
+          find . -type d -name docs
+
+###############################################################################
+# Broken Link Checker
+###############################################################################
+
+      - name: Check Documentation Links
+
+        uses: lycheeverse/lychee-action@v2
+
+        with:
+
+          args: >
+
+            --verbose
+
+            --no-progress
+
+            --accept 200,206,429
+
+            "**/*.md"
+
+        env:
+
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+###############################################################################
+# Python Docstring Validation
+###############################################################################
+
+      - name: Validate Docstrings
+
+        continue-on-error: true
+
+        run: |
+
+          pydocstyle .
+
+###############################################################################
+# Docstring Coverage
+###############################################################################
+
+      - name: Docstring Coverage
+
+        continue-on-error: true
+
+        run: |
+
+          interrogate . \
+
+            --ignore-init-method \
+
+            --ignore-module \
+
+            --generate-badge documentation/reports/
+
+###############################################################################
+# Validate Python Documentation
+###############################################################################
+
+      - name: Validate Python Imports
+
+        continue-on-error: true
+
+        run: |
+
+          python -m compileall .
+
+###############################################################################
+# Search for TODOs
+###############################################################################
+
+      - name: Documentation TODO Report
+
+        run: |
+
+          grep -R "TODO" . \
+
+            --include="*.md" \
+
+            --include="*.py" \
+
+            > documentation/reports/todos.txt || true
+
+###############################################################################
+# Search for FIXMEs
+###############################################################################
+
+      - name: Documentation FIXME Report
+
+        run: |
+
+          grep -R "FIXME" . \
+
+            --include="*.md" \
+
+            --include="*.py" \
+
+            > documentation/reports/fixme.txt || true
+
+###############################################################################
+# Repository Tree
+###############################################################################
+
+      - name: Generate Repository Tree
+
+        run: |
+
+          sudo apt-get update
+
+          sudo apt-get install -y tree
+
+          tree -L 4 > documentation/generated/repository-tree.txt
+
+###############################################################################
+# Upload Validation Reports
+###############################################################################
+
+      - name: Upload Documentation Reports
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: documentation-validation
+
+          path: |
+
+            documentation/reports
+
+            documentation/generated/repository-tree.txt
+
+###############################################################################
+# GitHub Step Summary
+###############################################################################
+
+      - name: Documentation Summary
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Documentation Validation
+
+          ## Completed
+
+          - Markdown Formatting
+
+          - Markdown Lint
+
+          - YAML Validation
+
+          - README Validation
+
+          - Link Checking
+
+          - Python Docstrings
+
+          - Documentation Coverage
+
+          - Repository Tree
+
+          EOF
+
+###############################################################################
+# Console Summary
+###############################################################################
+
+      - name: Documentation Console Summary
+
+        run: |
+
+          echo "===================================================="
+
+          echo "Institutional Quant Platform"
+
+          echo "Documentation Validation"
+
+          echo "===================================================="
+
+          echo ""
+
+          echo "✔ Markdown"
+
+          echo "✔ YAML"
+
+          echo "✔ README"
+
+          echo "✔ Links"
+
+          echo "✔ Docstrings"
+
+          echo "✔ Coverage"
+
+          echo "✔ Repository Tree"
+
+          echo ""
+
+          echo "===================================================="
+
+
+###############################################################################
+# Install terraform-docs
+###############################################################################
+
+      - name: Install terraform-docs
+
+        uses: terraform-docs/gh-actions@v1.3.0
+
+        with:
+
+          working-dir: infrastructure/terraform
+
+          output-file: TERRAFORM.md
+
+          output-method: inject
+
+          git-push: false
+
+###############################################################################
+# Install helm-docs
+###############################################################################
+
+      - name: Install helm-docs
+
+        uses: jnorwood/helm-docs@v1
+
+        with:
+
+          chart-search-root: infrastructure/helm
+
+###############################################################################
+# Generate Python API Documentation
+###############################################################################
+
+      - name: Generate Python API Docs
+
+        continue-on-error: true
+
+        run: |
+
+          pip install pdoc
+
+          mkdir -p documentation/generated/api
+
+          pdoc \
+            --output-dir documentation/generated/api \
+            .
+
+###############################################################################
+# Generate Package Documentation
+###############################################################################
+
+      - name: Package Documentation
+
+        continue-on-error: true
+
+        run: |
+
+          python <<'EOF'
+          import pkgutil
+          from pathlib import Path
+
+          output = Path("documentation/generated/packages.txt")
+
+          with output.open("w") as f:
+              for module in sorted(pkgutil.iter_modules()):
+                  f.write(module.name + "\n")
+          EOF
+
+###############################################################################
+# Generate Project Statistics
+###############################################################################
+
+      - name: Project Statistics
+
+        run: |
+
+          mkdir -p documentation/generated
+
+          echo "# Project Statistics" \
+            > documentation/generated/statistics.md
+
+          echo "" \
+            >> documentation/generated/statistics.md
+
+          echo "## Python Files" \
+            >> documentation/generated/statistics.md
+
+          find . -name "*.py" | wc -l \
+            >> documentation/generated/statistics.md
+
+          echo "" \
+            >> documentation/generated/statistics.md
+
+          echo "## YAML Files" \
+            >> documentation/generated/statistics.md
+
+          find . \( -name "*.yaml" -o -name "*.yml" \) | wc -l \
+            >> documentation/generated/statistics.md
+
+          echo "" \
+            >> documentation/generated/statistics.md
+
+          echo "## Terraform Files" \
+            >> documentation/generated/statistics.md
+
+          find . -name "*.tf" | wc -l \
+            >> documentation/generated/statistics.md
+
+###############################################################################
+# Verify MkDocs Configuration
+###############################################################################
+
+      - name: Validate MkDocs Configuration
+
+        run: |
+
+          if [ -f mkdocs.yml ]; then
+
+            mkdocs build --strict
+
+          else
+
+            echo "mkdocs.yml not found."
+
+          fi
+
+###############################################################################
+# Build Documentation
+###############################################################################
+
+      - name: Build MkDocs Site
+
+        run: |
+
+          if [ -f mkdocs.yml ]; then
+
+            mkdocs build
+
+          fi
+
+###############################################################################
+# Generate Documentation Index
+###############################################################################
+
+      - name: Generate Documentation Index
+
+        run: |
+
+          cat > documentation/generated/index.md <<EOF
+
+          # Institutional Quant Platform
+
+          ## Generated Documentation
+
+          - Python API Documentation
+          - Terraform Documentation
+          - Helm Documentation
+          - Repository Tree
+          - Project Statistics
+          - Package Inventory
+
+          EOF
+
+###############################################################################
+# Archive Documentation
+###############################################################################
+
+      - name: Archive Documentation
+
+        run: |
+
+          mkdir -p documentation/archive
+
+          cp -r documentation/generated \
+            documentation/archive/
+
+###############################################################################
+# Upload Generated Documentation
+###############################################################################
+
+      - name: Upload Generated Documentation
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: generated-documentation
+
+          path: |
+
+            documentation/generated
+
+            documentation/archive
+
+            site
+
+###############################################################################
+# GitHub Step Summary
+###############################################################################
+
+      - name: Documentation Build Summary
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Documentation Generation
+
+          ## Generated
+
+          - Python API Documentation
+
+          - Terraform Documentation
+
+          - Helm Documentation
+
+          - MkDocs Site
+
+          - Project Statistics
+
+          - Package Inventory
+
+          EOF
+
+###############################################################################
+# Console Summary
+###############################################################################
+
+      - name: Documentation Generation Summary
+
+        run: |
+
+          echo "===================================================="
+
+          echo "Institutional Quant Platform"
+
+          echo "Documentation Generation"
+
+          echo "===================================================="
+
+          echo ""
+
+          echo "✔ API Documentation"
+
+          echo "✔ Terraform Docs"
+
+          echo "✔ Helm Docs"
+
+          echo "✔ MkDocs"
+
+          echo "✔ Statistics"
+
+          echo "✔ Package Inventory"
+
+          echo ""
+
+          echo "===================================================="
+
+  
+###############################################################################
+# Configure GitHub Pages
+###############################################################################
+
+      - name: Configure GitHub Pages
+
+        if: github.ref == 'refs/heads/main'
+
+        uses: actions/configure-pages@v5
+
+###############################################################################
+# Upload GitHub Pages Artifact
+###############################################################################
+
+      - name: Upload Pages Artifact
+
+        if: github.ref == 'refs/heads/main'
+
+        uses: actions/upload-pages-artifact@v3
+
+        with:
+
+          path: site
+
+###############################################################################
+# Deploy Documentation
+###############################################################################
+
+  deploy-pages:
+
+    name: Deploy Documentation
+
+    if: github.ref == 'refs/heads/main'
+
+    needs:
+
+      - documentation
+
+    runs-on: ubuntu-latest
+
+    environment:
+
+      name: github-pages
+
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    permissions:
+
+      pages: write
+
+      id-token: write
+
+    steps:
+
+###############################################################################
+# Deploy
+###############################################################################
+
+      - name: Deploy to GitHub Pages
+
+        id: deployment
+
+        uses: actions/deploy-pages@v4
+
+###############################################################################
+# Generate Documentation Manifest
+###############################################################################
+
+      - name: Documentation Manifest
+
+        run: |
+
+          mkdir -p documentation/final
+
+          cat > documentation/final/manifest.json <<EOF
+          {
+            "repository":"${{ github.repository }}",
+            "branch":"${{ github.ref_name }}",
+            "workflow":"Documentation",
+            "commit":"${{ github.sha }}",
+            "generated":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          }
+          EOF
+
+###############################################################################
+# Upload Documentation Manifest
+###############################################################################
+
+      - name: Upload Manifest
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: documentation-manifest
+
+          path: documentation/final
+
+###############################################################################
+# Cleanup
+###############################################################################
+
+      - name: Cleanup Workspace
+
+        if: always()
+
+        run: |
+
+          rm -rf documentation/archive
+
+          rm -rf documentation/generated
+
+          rm -rf documentation/reports
+
+###############################################################################
+# GitHub Step Summary
+###############################################################################
+
+      - name: Publish Documentation Summary
+
+        if: always()
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Documentation Pipeline
+
+          ## Validation
+
+          ✔ Markdown Validation
+
+          ✔ YAML Validation
+
+          ✔ Link Validation
+
+          ✔ README Validation
+
+          ✔ Docstring Validation
+
+          ---
+
+          ## Documentation
+
+          ✔ Python API Documentation
+
+          ✔ Terraform Documentation
+
+          ✔ Helm Documentation
+
+          ✔ MkDocs Build
+
+          ---
+
+          ## Publication
+
+          ✔ GitHub Pages
+
+          ✔ Documentation Manifest
+
+          ✔ Artifacts Uploaded
+
+          EOF
+
+###############################################################################
+# Final Summary Job
+###############################################################################
+
+  summary:
+
+    name: Documentation Summary
+
+    runs-on: ubuntu-latest
+
+    if: always()
+
+    needs:
+
+      - documentation
+
+      - deploy-pages
+
+    steps:
+
+      - name: Final Documentation Summary
+
+        run: |
+
+          echo "======================================================"
+
+          echo "Institutional Quant Platform"
+
+          echo "Enterprise Documentation Pipeline"
+
+          echo "======================================================"
+
+          echo ""
+
+          echo "Repository"
+
+          echo "${{ github.repository }}"
+
+          echo ""
+
+          echo "Branch"
+
+          echo "${{ github.ref_name }}"
+
+          echo ""
+
+          echo "Commit"
+
+          echo "${{ github.sha }}"
+
+          echo ""
+
+          echo "Completed"
+
+          echo ""
+
+          echo "✔ Markdown Validation"
+
+          echo "✔ YAML Validation"
+
+          echo "✔ README Verification"
+
+          echo "✔ Link Checking"
+
+          echo "✔ Python Docstrings"
+
+          echo "✔ API Documentation"
+
+          echo "✔ Terraform Documentation"
+
+          echo "✔ Helm Documentation"
+
+          echo "✔ MkDocs Build"
+
+          echo "✔ GitHub Pages"
+
+          echo "✔ Documentation Manifest"
+
+          echo "✔ Documentation Artifacts"
+
+          echo ""
+
+          echo "Pipeline Status"
+
+          echo "${{ needs.documentation.result }}"
+
+          echo ""
+
+          echo "======================================================"

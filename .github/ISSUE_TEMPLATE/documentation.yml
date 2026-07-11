@@ -1,0 +1,285 @@
+name: 📚 Documentation
+
+description: Report documentation issues or suggest documentation improvements.
+
+title: "[DOCS]: "
+
+labels:
+
+  - documentation
+
+  - triage
+
+assignees:
+
+  - sakshinekkala28
+
+body:
+
+###############################################################################
+# Introduction
+###############################################################################
+
+  - type: markdown
+
+    attributes:
+
+      value: |
+
+        ## Documentation Issue
+
+        Thank you for helping improve the Institutional Quant Platform documentation.
+
+        Please provide as much information as possible.
+
+###############################################################################
+# Summary
+###############################################################################
+
+  - type: textarea
+
+    id: summary
+
+    attributes:
+
+      label: Summary
+
+      description: Briefly describe the documentation issue.
+
+      placeholder: Describe the issue.
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Documentation Area
+###############################################################################
+
+  - type: dropdown
+
+    id: area
+
+    attributes:
+
+      label: Documentation Area
+
+      options:
+
+        - README
+
+        - Installation Guide
+
+        - Development Guide
+
+        - Architecture
+
+        - API Documentation
+
+        - Deployment Guide
+
+        - Operations Guide
+
+        - Runbooks
+
+        - Monitoring
+
+        - Security
+
+        - Terraform
+
+        - Kubernetes
+
+        - Helm
+
+        - Docker
+
+        - CI/CD
+
+        - Release Notes
+
+        - User Guide
+
+        - Examples
+
+        - Tutorials
+
+        - Other
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Documentation Type
+###############################################################################
+
+  - type: dropdown
+
+    id: type
+
+    attributes:
+
+      label: Issue Type
+
+      options:
+
+        - Missing Documentation
+
+        - Incorrect Information
+
+        - Outdated Documentation
+
+        - Broken Link
+
+        - Typographical Error
+
+        - Missing Example
+
+        - Formatting Issue
+
+        - Clarification Needed
+
+        - New Documentation Request
+
+        - Other
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Location
+###############################################################################
+
+  - type: input
+
+    id: location
+
+    attributes:
+
+      label: Documentation Location
+
+      description: Provide the file path, URL, or section title.
+
+      placeholder: docs/deployment/kubernetes.md
+
+###############################################################################
+# Description
+###############################################################################
+
+  - type: textarea
+
+    id: description
+
+    attributes:
+
+      label: Detailed Description
+
+      description: Explain what is wrong or missing.
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Suggested Improvement
+###############################################################################
+
+  - type: textarea
+
+    id: suggestion
+
+    attributes:
+
+      label: Suggested Improvement
+
+      description: Describe how the documentation should be improved.
+
+###############################################################################
+# Affected Audience
+###############################################################################
+
+  - type: dropdown
+
+    id: audience
+
+    attributes:
+
+      label: Primary Audience
+
+      options:
+
+        - End Users
+
+        - Developers
+
+        - DevOps Engineers
+
+        - Platform Engineers
+
+        - Data Scientists
+
+        - Quantitative Analysts
+
+        - Contributors
+
+        - All Users
+
+###############################################################################
+# Supporting Material
+###############################################################################
+
+  - type: textarea
+
+    id: supporting
+
+    attributes:
+
+      label: Supporting Material
+
+      description: Include screenshots, references, links, or examples.
+
+###############################################################################
+# Priority
+###############################################################################
+
+  - type: dropdown
+
+    id: priority
+
+    attributes:
+
+      label: Priority
+
+      options:
+
+        - Critical
+
+        - High
+
+        - Medium
+
+        - Low
+
+###############################################################################
+# Checklist
+###############################################################################
+
+  - type: checkboxes
+
+    id: checklist
+
+    attributes:
+
+      label: Checklist
+
+      options:
+
+        - label: I searched existing documentation issues.
+
+        - label: I identified the affected documentation.
+
+        - label: I provided sufficient details.
+
+        - label: I included supporting information where applicable.

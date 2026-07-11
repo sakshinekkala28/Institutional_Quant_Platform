@@ -1,0 +1,349 @@
+name: ⚡ Performance Issue
+
+description: Report a performance, scalability, latency, or resource utilization issue.
+
+title: "[PERFORMANCE]: "
+
+labels:
+
+  - performance
+
+  - optimization
+
+  - triage
+
+assignees:
+
+  - sakshinekkala28
+
+body:
+
+###############################################################################
+# Introduction
+###############################################################################
+
+  - type: markdown
+
+    attributes:
+
+      value: |
+
+        ## Performance Issue
+
+        Thank you for helping improve the performance of the Institutional Quant Platform.
+
+        Please provide as much information as possible.
+
+###############################################################################
+# Summary
+###############################################################################
+
+  - type: textarea
+
+    id: summary
+
+    attributes:
+
+      label: Performance Issue Summary
+
+      description: Briefly describe the issue.
+
+      placeholder: Describe the observed performance problem.
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Component
+###############################################################################
+
+  - type: dropdown
+
+    id: component
+
+    attributes:
+
+      label: Component
+
+      options:
+
+        - API
+
+        - Analytics
+
+        - Dashboard
+
+        - Alpha Engine
+
+        - Portfolio Engine
+
+        - Risk Engine
+
+        - Execution Engine
+
+        - Data Pipeline
+
+        - Machine Learning
+
+        - Database
+
+        - Docker
+
+        - Kubernetes
+
+        - Helm
+
+        - Terraform
+
+        - CI/CD
+
+        - Monitoring
+
+        - Other
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Environment
+###############################################################################
+
+  - type: dropdown
+
+    id: environment
+
+    attributes:
+
+      label: Environment
+
+      options:
+
+        - Local
+
+        - Development
+
+        - Staging
+
+        - Production
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Performance Category
+###############################################################################
+
+  - type: dropdown
+
+    id: category
+
+    attributes:
+
+      label: Performance Category
+
+      options:
+
+        - High CPU Usage
+
+        - High Memory Usage
+
+        - Slow API Response
+
+        - Database Performance
+
+        - Slow Dashboard
+
+        - Long Startup Time
+
+        - High Disk I/O
+
+        - Network Latency
+
+        - Kubernetes Performance
+
+        - Docker Performance
+
+        - Data Processing Delay
+
+        - Other
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Expected Performance
+###############################################################################
+
+  - type: textarea
+
+    id: expected
+
+    attributes:
+
+      label: Expected Performance
+
+      description: Describe the expected performance.
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Actual Performance
+###############################################################################
+
+  - type: textarea
+
+    id: actual
+
+    attributes:
+
+      label: Actual Performance
+
+      description: Describe the observed performance.
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Performance Metrics
+###############################################################################
+
+  - type: textarea
+
+    id: metrics
+
+    attributes:
+
+      label: Performance Metrics
+
+      description: Include any available measurements.
+
+      placeholder: |
+
+        CPU:
+
+        Memory:
+
+        Response Time:
+
+        Throughput:
+
+        Latency:
+
+        Disk I/O:
+
+        Network:
+
+###############################################################################
+# Reproduction Steps
+###############################################################################
+
+  - type: textarea
+
+    id: reproduce
+
+    attributes:
+
+      label: Steps to Reproduce
+
+      placeholder: |
+
+        1.
+
+        2.
+
+        3.
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Impact
+###############################################################################
+
+  - type: dropdown
+
+    id: impact
+
+    attributes:
+
+      label: Business Impact
+
+      options:
+
+        - Critical
+
+        - High
+
+        - Medium
+
+        - Low
+
+###############################################################################
+# Monitoring
+###############################################################################
+
+  - type: textarea
+
+    id: monitoring
+
+    attributes:
+
+      label: Monitoring Evidence
+
+      description: Include dashboards, alerts, logs, Prometheus metrics, Grafana screenshots, etc.
+
+###############################################################################
+# Attachments
+###############################################################################
+
+  - type: textarea
+
+    id: attachments
+
+    attributes:
+
+      label: Logs / Screenshots / Benchmark Results
+
+###############################################################################
+# Additional Context
+###############################################################################
+
+  - type: textarea
+
+    id: context
+
+    attributes:
+
+      label: Additional Context
+
+###############################################################################
+# Checklist
+###############################################################################
+
+  - type: checkboxes
+
+    id: checklist
+
+    attributes:
+
+      label: Checklist
+
+      options:
+
+        - label: I searched existing performance issues.
+
+        - label: I included reproduction steps.
+
+        - label: I attached relevant metrics.
+
+        - label: I included logs or screenshots where applicable.
+
+        - label: I described the business impact.

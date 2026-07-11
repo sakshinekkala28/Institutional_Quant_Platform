@@ -1,0 +1,33 @@
+blank_issues_enabled: false
+
+contact_links:
+
+  - name: 💬 GitHub Discussions
+
+    url: https://github.com/sakshinekkala28/Institutional_Quant_Platform/discussions
+
+    about: Ask questions, discuss ideas, and share knowledge with the community.
+
+  - name: 📖 Documentation
+
+    url: https://github.com/sakshinekkala28/Institutional_Quant_Platform/tree/main/docs
+
+    about: Read the official documentation before opening an issue.
+
+  - name: 🔒 Security Report
+
+    url: https://github.com/sakshinekkala28/Institutional_Quant_Platform/security/policy
+
+    about: Please report security vulnerabilities privately.
+
+  - name: 🚀 Feature Discussions
+
+    url: https://github.com/sakshinekkala28/Institutional_Quant_Platform/discussions/categories/ideas
+
+    about: Discuss feature ideas before creating a feature request.
+
+  - name: ❓ Support
+
+    url: https://github.com/sakshinekkala28/Institutional_Quant_Platform/discussions/categories/q-a
+
+    about: Ask usage or configuration questions.
