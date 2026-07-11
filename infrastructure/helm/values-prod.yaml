@@ -1,0 +1,256 @@
+###############################################################################
+# Institutional Quant Platform
+# Production Values
+###############################################################################
+
+global:
+
+  environment: production
+
+  namespace: institutional-quant
+
+  imagePullPolicy: IfNotPresent
+
+###############################################################################
+# Images
+###############################################################################
+
+images:
+
+  api:
+
+    repository: ghcr.io/sakshinekkala28/institutional_quant_platform
+
+    tag: "1.0.0"
+
+  analytics:
+
+    repository: ghcr.io/sakshinekkala28/institutional_quant_platform_analytics
+
+    tag: "1.0.0"
+
+  dashboard:
+
+    repository: ghcr.io/sakshinekkala28/institutional_quant_platform_dashboard
+
+    tag: "1.0.0"
+
+###############################################################################
+# API
+###############################################################################
+
+api:
+
+  replicas: 4
+
+  resources:
+
+    requests:
+
+      cpu: "1000m"
+
+      memory: "1Gi"
+
+    limits:
+
+      cpu: "4000m"
+
+      memory: "4Gi"
+
+###############################################################################
+# Analytics
+###############################################################################
+
+analytics:
+
+  replicas: 3
+
+  resources:
+
+    requests:
+
+      cpu: "4000m"
+
+      memory: "8Gi"
+
+    limits:
+
+      cpu: "16000m"
+
+      memory: "32Gi"
+
+###############################################################################
+# Dashboard
+###############################################################################
+
+dashboard:
+
+  replicas: 3
+
+  resources:
+
+    requests:
+
+      cpu: "500m"
+
+      memory: "1Gi"
+
+    limits:
+
+      cpu: "2000m"
+
+      memory: "4Gi"
+
+###############################################################################
+# Autoscaling
+###############################################################################
+
+autoscaling:
+
+  enabled: true
+
+  minReplicas: 3
+
+  maxReplicas: 20
+
+  cpuUtilization: 70
+
+  memoryUtilization: 75
+
+###############################################################################
+# Ingress
+###############################################################################
+
+ingress:
+
+  enabled: true
+
+  className: nginx
+
+  hostname: quant.company.com
+
+  tls:
+
+    enabled: true
+
+    secretName: quant-production-tls
+
+###############################################################################
+# Persistence
+###############################################################################
+
+persistence:
+
+  enabled: true
+
+  storageClass: premium-ssd
+
+  data:
+
+    size: 500Gi
+
+  cache:
+
+    size: 100Gi
+
+  logs:
+
+    size: 200Gi
+
+  reports:
+
+    size: 100Gi
+
+  models:
+
+    size: 500Gi
+
+###############################################################################
+# Redis
+###############################################################################
+
+redis:
+
+  enabled: true
+
+  architecture: replication
+
+  replica:
+
+    replicaCount: 2
+
+  auth:
+
+    enabled: true
+
+###############################################################################
+# Monitoring
+###############################################################################
+
+monitoring:
+
+  prometheus:
+
+    enabled: true
+
+  grafana:
+
+    enabled: true
+
+###############################################################################
+# Logging
+###############################################################################
+
+logging:
+
+  level: INFO
+
+###############################################################################
+# Feature Flags
+###############################################################################
+
+features:
+
+  backtesting: true
+
+  liveTrading: false
+
+  portfolioOptimization: true
+
+  riskEngine: true
+
+  monitoring: true
+
+###############################################################################
+# Security
+###############################################################################
+
+security:
+
+  podSecurityContext:
+
+    runAsNonRoot: true
+
+    runAsUser: 1000
+
+    fsGroup: 1000
+
+###############################################################################
+# Environment
+###############################################################################
+
+env:
+
+  PLATFORM_ENV: production
+
+  TZ: Asia/Kolkata
+
+###############################################################################
+# Scheduling
+###############################################################################
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}

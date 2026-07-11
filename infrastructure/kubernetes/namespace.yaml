@@ -1,0 +1,111 @@
+# ==============================================================================
+# Institutional Quant Platform
+# Kubernetes Namespace
+# ==============================================================================
+
+apiVersion: v1
+
+kind: Namespace
+
+metadata:
+
+  name: institutional-quant
+
+  labels:
+
+    app.kubernetes.io/name: institutional-quant-platform
+
+    app.kubernetes.io/component: infrastructure
+
+    app.kubernetes.io/part-of: institutional-quant-platform
+
+    app.kubernetes.io/managed-by: kubectl
+
+    environment: production
+
+  annotations:
+
+    description: >
+      Dedicated namespace for the Institutional Quant Platform.
+
+---
+# ==============================================================================
+# Resource Quota
+# ==============================================================================
+
+apiVersion: v1
+
+kind: ResourceQuota
+
+metadata:
+
+  name: institutional-quant-quota
+
+  namespace: institutional-quant
+
+spec:
+
+  hard:
+
+    requests.cpu: "16"
+
+    requests.memory: 32Gi
+
+    limits.cpu: "32"
+
+    limits.memory: 64Gi
+
+    pods: "50"
+
+    services: "20"
+
+    persistentvolumeclaims: "20"
+
+    configmaps: "50"
+
+    secrets: "50"
+
+---
+# ==============================================================================
+# Limit Range
+# ==============================================================================
+
+apiVersion: v1
+
+kind: LimitRange
+
+metadata:
+
+  name: institutional-quant-limits
+
+  namespace: institutional-quant
+
+spec:
+
+  limits:
+
+    - type: Container
+
+      default:
+
+        cpu: "1000m"
+
+        memory: 1Gi
+
+      defaultRequest:
+
+        cpu: "250m"
+
+        memory: 256Mi
+
+      max:
+
+        cpu: "4000m"
+
+        memory: 8Gi
+
+      min:
+
+        cpu: "100m"
+
+        memory: 128Mi

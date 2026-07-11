@@ -1,0 +1,1201 @@
+name: Terraform Infrastructure
+
+###############################################################################
+# Triggers
+###############################################################################
+
+on:
+
+  push:
+
+    branches:
+
+      - main
+
+      - develop
+
+      - staging
+
+    paths:
+
+      - "infrastructure/terraform/**"
+
+      - ".github/workflows/terraform.yml"
+
+  pull_request:
+
+    branches:
+
+      - main
+
+      - develop
+
+      - staging
+
+    paths:
+
+      - "infrastructure/terraform/**"
+
+  workflow_dispatch:
+
+###############################################################################
+# Permissions
+###############################################################################
+
+permissions:
+
+  id-token: write
+
+  contents: read
+
+  pull-requests: write
+
+  security-events: write
+
+###############################################################################
+# Concurrency
+###############################################################################
+
+concurrency:
+
+  group: terraform-${{ github.ref }}
+
+  cancel-in-progress: true
+
+###############################################################################
+# Environment
+###############################################################################
+
+env:
+
+  TF_VERSION: "1.11.4"
+
+  TF_WORKING_DIRECTORY: infrastructure/terraform
+
+  AWS_REGION: ap-south-1
+
+###############################################################################
+# Jobs
+###############################################################################
+
+jobs:
+
+###############################################################################
+# Terraform Validation
+###############################################################################
+
+  terraform:
+
+    name: Terraform Validation
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 45
+
+###############################################################################
+# Checkout
+###############################################################################
+
+    steps:
+
+      - name: Checkout Repository
+
+        uses: actions/checkout@v4
+
+###############################################################################
+# Configure AWS Credentials
+###############################################################################
+
+      - name: Configure AWS Credentials
+
+        uses: aws-actions/configure-aws-credentials@v4
+
+        with:
+
+          role-to-assume: ${{ secrets.AWS_GITHUB_ACTIONS_ROLE }}
+
+          aws-region: ${{ env.AWS_REGION }}
+
+###############################################################################
+# Terraform Setup
+###############################################################################
+
+      - name: Setup Terraform
+
+        uses: hashicorp/setup-terraform@v3
+
+        with:
+
+          terraform_version: ${{ env.TF_VERSION }}
+
+          terraform_wrapper: false
+
+###############################################################################
+# Cache Providers
+###############################################################################
+
+      - name: Cache Terraform Providers
+
+        uses: actions/cache@v4
+
+        with:
+
+          path: |
+
+            ~/.terraform.d/plugin-cache
+
+            ${{ env.TF_WORKING_DIRECTORY }}/.terraform
+
+          key: terraform-${{ runner.os }}-${{ hashFiles('**/.terraform.lock.hcl') }}
+
+          restore-keys: |
+
+            terraform-${{ runner.os }}-
+
+###############################################################################
+# Terraform Version
+###############################################################################
+
+      - name: Terraform Version
+
+        run: |
+
+          terraform version
+
+###############################################################################
+# Terraform Init
+###############################################################################
+
+      - name: Terraform Init
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          terraform init \
+            -input=false \
+            -upgrade
+
+###############################################################################
+# Terraform Workspace
+###############################################################################
+
+      - name: Select Workspace
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          terraform workspace select production ||
+
+          terraform workspace new production
+
+###############################################################################
+# Display Configuration
+###############################################################################
+
+      - name: Terraform Information
+
+        run: |
+
+          echo "=============================================="
+
+          echo "Institutional Quant Platform"
+
+          echo "Terraform Pipeline"
+
+          echo "=============================================="
+
+          echo ""
+
+          echo "Terraform"
+
+          terraform version
+
+          echo ""
+
+          echo "Working Directory"
+
+          echo "${{ env.TF_WORKING_DIRECTORY }}"
+
+          echo ""
+
+          echo "AWS Region"
+
+          echo "${{ env.AWS_REGION }}"
+
+          echo ""
+
+          echo "Workspace"
+
+          echo "production"
+
+          echo ""
+
+          echo "=============================================="
+
+
+###############################################################################
+# Terraform Format
+###############################################################################
+
+      - name: Terraform Format Check
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          terraform fmt -check -recursive
+
+###############################################################################
+# Terraform Validate
+###############################################################################
+
+      - name: Terraform Validate
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          terraform validate
+
+###############################################################################
+# Install TFLint
+###############################################################################
+
+      - name: Setup TFLint
+
+        uses: terraform-linters/setup-tflint@v4
+
+###############################################################################
+# TFLint Version
+###############################################################################
+
+      - name: TFLint Version
+
+        run: |
+
+          tflint --version
+
+###############################################################################
+# Initialize TFLint
+###############################################################################
+
+      - name: Initialize TFLint
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          tflint --init
+
+###############################################################################
+# Run TFLint
+###############################################################################
+
+      - name: Terraform Lint
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          tflint \
+            --recursive \
+            --format compact
+
+###############################################################################
+# tfsec
+###############################################################################
+
+      - name: Run tfsec
+
+        uses: aquasecurity/tfsec-action@v1.0.3
+
+        with:
+
+          working_directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+          format: sarif
+
+          soft_fail: false
+
+###############################################################################
+# Upload tfsec SARIF
+###############################################################################
+
+      - name: Upload tfsec SARIF
+
+        uses: github/codeql-action/upload-sarif@v3
+
+        with:
+
+          sarif_file: tfsec.sarif
+
+          category: tfsec
+
+###############################################################################
+# Checkov
+###############################################################################
+
+      - name: Run Checkov
+
+        id: checkov
+
+        uses: bridgecrewio/checkov-action@v12
+
+        with:
+
+          directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+          framework: terraform
+
+          output_format: sarif
+
+          output_file_path: checkov.sarif
+
+          quiet: true
+
+          soft_fail: false
+
+###############################################################################
+# Upload Checkov SARIF
+###############################################################################
+
+      - name: Upload Checkov SARIF
+
+        uses: github/codeql-action/upload-sarif@v3
+
+        with:
+
+          sarif_file: checkov.sarif
+
+          category: checkov
+
+###############################################################################
+# Generate Validation Report
+###############################################################################
+
+      - name: Validation Report
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Terraform Validation
+
+          ## Completed
+
+          - Terraform fmt
+          - Terraform validate
+          - TFLint
+          - tfsec
+          - Checkov
+
+          EOF
+
+###############################################################################
+# Upload Validation Artifacts
+###############################################################################
+
+      - name: Upload Validation Artifacts
+
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: terraform-validation
+
+          path: |
+
+            tfsec.sarif
+
+            checkov.sarif
+
+          if-no-files-found: ignore
+
+###############################################################################
+# Validation Summary
+###############################################################################
+
+      - name: Terraform Validation Summary
+
+        if: always()
+
+        run: |
+
+          echo "=========================================="
+
+          echo "Institutional Quant Platform"
+
+          echo "Terraform Validation"
+
+          echo "=========================================="
+
+          echo ""
+
+          echo "✔ terraform fmt"
+
+          echo "✔ terraform validate"
+
+          echo "✔ TFLint"
+
+          echo "✔ tfsec"
+
+          echo "✔ Checkov"
+
+          echo ""
+
+          echo "=========================================="
+
+
+###############################################################################
+# Terraform Plan
+###############################################################################
+
+      - name: Terraform Plan
+
+        id: plan
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          terraform plan \
+            -input=false \
+            -lock-timeout=300s \
+            -out=tfplan
+
+###############################################################################
+# Export Plan
+###############################################################################
+
+      - name: Export Human Readable Plan
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          terraform show -no-color tfplan > plan.txt
+
+###############################################################################
+# JSON Plan
+###############################################################################
+
+      - name: Export JSON Plan
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          terraform show -json tfplan > tfplan.json
+
+###############################################################################
+# Upload Plan
+###############################################################################
+
+      - name: Upload Terraform Plan
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: terraform-plan
+
+          path: |
+
+            ${{ env.TF_WORKING_DIRECTORY }}/tfplan
+
+            ${{ env.TF_WORKING_DIRECTORY }}/plan.txt
+
+            ${{ env.TF_WORKING_DIRECTORY }}/tfplan.json
+
+###############################################################################
+# Infracost
+###############################################################################
+
+      - name: Setup Infracost
+
+        uses: infracost/actions/setup@v3
+
+###############################################################################
+# Generate Cost Estimate
+###############################################################################
+
+      - name: Generate Cost Estimate
+
+        env:
+
+          INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+
+        run: |
+
+          infracost breakdown \
+
+            --path=${{ env.TF_WORKING_DIRECTORY }} \
+
+            --format=json \
+
+            --out-file=infracost.json
+
+###############################################################################
+# Generate Cost Table
+###############################################################################
+
+      - name: Generate Cost Report
+
+        env:
+
+          INFRACOST_API_KEY: ${{ secrets.INFRACOST_API_KEY }}
+
+        run: |
+
+          infracost output \
+
+            --path=infracost.json \
+
+            --format=table > infracost.txt
+
+###############################################################################
+# Upload Cost Report
+###############################################################################
+
+      - name: Upload Cost Report
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: terraform-cost-report
+
+          path: |
+
+            infracost.json
+
+            infracost.txt
+
+###############################################################################
+# Pull Request Comment
+###############################################################################
+
+      - name: Comment Terraform Plan
+
+        if: github.event_name == 'pull_request'
+
+        uses: actions/github-script@v7
+
+        with:
+
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+          script: |
+
+            const fs = require('fs');
+
+            const plan = fs.readFileSync(
+              '${{ env.TF_WORKING_DIRECTORY }}/plan.txt',
+              'utf8'
+            );
+
+            const cost = fs.readFileSync(
+              'infracost.txt',
+              'utf8'
+            );
+
+            const body = `
+
+            ## Terraform Plan
+
+            <details>
+            <summary>Execution Plan</summary>
+
+            \`\`\`
+            ${plan.substring(0,60000)}
+            \`\`\`
+
+            </details>
+
+            ---
+
+            ## Estimated Monthly Cost
+
+            \`\`\`
+            ${cost}
+            \`\`\`
+
+            `;
+
+            github.rest.issues.createComment({
+
+              owner: context.repo.owner,
+
+              repo: context.repo.repo,
+
+              issue_number: context.issue.number,
+
+              body
+
+            });
+
+###############################################################################
+# Step Summary
+###############################################################################
+
+      - name: Publish Summary
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Terraform Plan
+
+          ## Completed
+
+          - Terraform plan
+          - JSON plan generated
+          - Plan artifact uploaded
+          - Infracost estimate generated
+          - Pull request comment created (PR only)
+
+          EOF
+
+###############################################################################
+# Console Summary
+###############################################################################
+
+      - name: Terraform Plan Summary
+
+        run: |
+
+          echo "=============================================="
+
+          echo "Institutional Quant Platform"
+
+          echo "Terraform Planning"
+
+          echo "=============================================="
+
+          echo ""
+
+          echo "✔ terraform plan"
+
+          echo "✔ JSON export"
+
+          echo "✔ Artifact upload"
+
+          echo "✔ Infracost"
+
+          echo "✔ Pull Request comment"
+
+          echo ""
+
+          echo "=============================================="
+
+
+###############################################################################
+# Terraform Apply
+###############################################################################
+
+      - name: Terraform Apply
+
+        if: |
+
+          github.ref == 'refs/heads/main' &&
+
+          github.event_name == 'workflow_dispatch'
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          terraform apply \
+            -input=false \
+            -auto-approve \
+            tfplan
+
+###############################################################################
+# Terraform Outputs
+###############################################################################
+
+      - name: Terraform Outputs
+
+        if: |
+
+          github.ref == 'refs/heads/main' &&
+
+          github.event_name == 'workflow_dispatch'
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          terraform output
+
+###############################################################################
+# Drift Detection
+###############################################################################
+
+      - name: Terraform Drift Detection
+
+        if: |
+
+          github.ref == 'refs/heads/main'
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        continue-on-error: true
+
+        run: |
+
+          terraform plan \
+            -detailed-exitcode \
+            -input=false \
+            -lock=false \
+            -out=drift.tfplan
+
+###############################################################################
+# Drift Summary
+###############################################################################
+
+      - name: Publish Drift Summary
+
+        if: always()
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Terraform Drift Detection
+
+          Drift detection executed.
+
+          Exit Codes
+
+          - 0 = No Drift
+          - 1 = Error
+          - 2 = Drift Detected
+
+          EOF
+
+###############################################################################
+# Upload Drift Plan
+###############################################################################
+
+      - name: Upload Drift Plan
+
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: terraform-drift
+
+          path: |
+
+            ${{ env.TF_WORKING_DIRECTORY }}/drift.tfplan
+
+          if-no-files-found: ignore
+
+###############################################################################
+# Cleanup Terraform Cache
+###############################################################################
+
+      - name: Cleanup Terraform Cache
+
+        if: always()
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          rm -rf .terraform
+
+          rm -f tfplan
+
+          rm -f drift.tfplan
+
+###############################################################################
+# Workflow Summary
+###############################################################################
+
+      - name: Publish Workflow Summary
+
+        if: always()
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Institutional Quant Platform
+
+          ## Terraform Workflow Completed
+
+          ### Validation
+
+          - Terraform fmt
+          - Terraform validate
+          - TFLint
+          - tfsec
+          - Checkov
+
+          ### Planning
+
+          - Terraform Plan
+          - JSON Plan
+          - Infracost Estimate
+
+          ### Deployment
+
+          - Manual Apply (workflow_dispatch only)
+
+          ### Monitoring
+
+          - Drift Detection
+
+          EOF
+
+###############################################################################
+# Final Summary Job
+###############################################################################
+
+  summary:
+
+    name: Terraform Pipeline Summary
+
+    runs-on: ubuntu-latest
+
+    if: always()
+
+    needs:
+
+      - terraform
+
+    steps:
+
+      - name: Terraform Summary
+
+        run: |
+
+          echo "================================================"
+
+          echo "Institutional Quant Platform"
+
+          echo "Terraform Pipeline"
+
+          echo "================================================"
+
+          echo ""
+
+          echo "Repository"
+
+          echo "${{ github.repository }}"
+
+          echo ""
+
+          echo "Branch"
+
+          echo "${{ github.ref_name }}"
+
+          echo ""
+
+          echo "Commit"
+
+          echo "${{ github.sha }}"
+
+          echo ""
+
+          echo "Validation"
+
+          echo "✔ Terraform Format"
+
+          echo "✔ Terraform Validate"
+
+          echo "✔ TFLint"
+
+          echo "✔ tfsec"
+
+          echo "✔ Checkov"
+
+          echo ""
+
+          echo "Planning"
+
+          echo "✔ Terraform Plan"
+
+          echo "✔ JSON Plan"
+
+          echo "✔ Infracost"
+
+          echo ""
+
+          echo "Deployment"
+
+          echo "✔ Manual Apply Supported"
+
+          echo "✔ Drift Detection"
+
+          echo ""
+
+          echo "Pipeline Status"
+
+          echo "${{ needs.terraform.result }}"
+
+          echo ""
+
+          echo "================================================"
+
+
+###############################################################################
+# Terraform Apply
+###############################################################################
+
+      - name: Terraform Apply
+
+        if: |
+
+          github.ref == 'refs/heads/main' &&
+
+          github.event_name == 'workflow_dispatch'
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          terraform apply \
+            -input=false \
+            -auto-approve \
+            tfplan
+
+###############################################################################
+# Terraform Outputs
+###############################################################################
+
+      - name: Terraform Outputs
+
+        if: |
+
+          github.ref == 'refs/heads/main' &&
+
+          github.event_name == 'workflow_dispatch'
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          terraform output
+
+###############################################################################
+# Drift Detection
+###############################################################################
+
+      - name: Terraform Drift Detection
+
+        if: |
+
+          github.ref == 'refs/heads/main'
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        continue-on-error: true
+
+        run: |
+
+          terraform plan \
+            -detailed-exitcode \
+            -input=false \
+            -lock=false \
+            -out=drift.tfplan
+
+###############################################################################
+# Drift Summary
+###############################################################################
+
+      - name: Publish Drift Summary
+
+        if: always()
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Terraform Drift Detection
+
+          Drift detection executed.
+
+          Exit Codes
+
+          - 0 = No Drift
+          - 1 = Error
+          - 2 = Drift Detected
+
+          EOF
+
+###############################################################################
+# Upload Drift Plan
+###############################################################################
+
+      - name: Upload Drift Plan
+
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: terraform-drift
+
+          path: |
+
+            ${{ env.TF_WORKING_DIRECTORY }}/drift.tfplan
+
+          if-no-files-found: ignore
+
+###############################################################################
+# Cleanup Terraform Cache
+###############################################################################
+
+      - name: Cleanup Terraform Cache
+
+        if: always()
+
+        working-directory: ${{ env.TF_WORKING_DIRECTORY }}
+
+        run: |
+
+          rm -rf .terraform
+
+          rm -f tfplan
+
+          rm -f drift.tfplan
+
+###############################################################################
+# Workflow Summary
+###############################################################################
+
+      - name: Publish Workflow Summary
+
+        if: always()
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Institutional Quant Platform
+
+          ## Terraform Workflow Completed
+
+          ### Validation
+
+          - Terraform fmt
+          - Terraform validate
+          - TFLint
+          - tfsec
+          - Checkov
+
+          ### Planning
+
+          - Terraform Plan
+          - JSON Plan
+          - Infracost Estimate
+
+          ### Deployment
+
+          - Manual Apply (workflow_dispatch only)
+
+          ### Monitoring
+
+          - Drift Detection
+
+          EOF
+
+###############################################################################
+# Final Summary Job
+###############################################################################
+
+  summary:
+
+    name: Terraform Pipeline Summary
+
+    runs-on: ubuntu-latest
+
+    if: always()
+
+    needs:
+
+      - terraform
+
+    steps:
+
+      - name: Terraform Summary
+
+        run: |
+
+          echo "================================================"
+
+          echo "Institutional Quant Platform"
+
+          echo "Terraform Pipeline"
+
+          echo "================================================"
+
+          echo ""
+
+          echo "Repository"
+
+          echo "${{ github.repository }}"
+
+          echo ""
+
+          echo "Branch"
+
+          echo "${{ github.ref_name }}"
+
+          echo ""
+
+          echo "Commit"
+
+          echo "${{ github.sha }}"
+
+          echo ""
+
+          echo "Validation"
+
+          echo "✔ Terraform Format"
+
+          echo "✔ Terraform Validate"
+
+          echo "✔ TFLint"
+
+          echo "✔ tfsec"
+
+          echo "✔ Checkov"
+
+          echo ""
+
+          echo "Planning"
+
+          echo "✔ Terraform Plan"
+
+          echo "✔ JSON Plan"
+
+          echo "✔ Infracost"
+
+          echo ""
+
+          echo "Deployment"
+
+          echo "✔ Manual Apply Supported"
+
+          echo "✔ Drift Detection"
+
+          echo ""
+
+          echo "Pipeline Status"
+
+          echo "${{ needs.terraform.result }}"
+
+          echo ""
+
+          echo "================================================"

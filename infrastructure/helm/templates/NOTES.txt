@@ -1,0 +1,192 @@
+===============================================================================
+Institutional Quant Platform
+===============================================================================
+
+Congratulations!
+
+The Institutional Quant Platform has been successfully deployed.
+
+Release Information
+-------------------------------------------------------------------------------
+
+Release Name:
+  {{ .Release.Name }}
+
+Namespace:
+  {{ .Release.Namespace }}
+
+Chart:
+  {{ .Chart.Name }}
+
+Version:
+  {{ .Chart.Version }}
+
+Application Version:
+  {{ .Chart.AppVersion }}
+
+Environment:
+  {{ .Values.global.environment }}
+
+===============================================================================
+Services
+===============================================================================
+
+Dashboard
+
+  http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.hostname }}
+
+API
+
+  http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.hostname }}/api
+
+API Health
+
+  http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.hostname }}/api/health
+
+API Documentation
+
+  http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.hostname }}/api/docs
+
+OpenAPI Specification
+
+  http{{ if .Values.ingress.tls.enabled }}s{{ end }}://{{ .Values.ingress.hostname }}/api/openapi.json
+
+===============================================================================
+Verify Deployment
+===============================================================================
+
+kubectl get all -n {{ .Release.Namespace }}
+
+kubectl get pods -n {{ .Release.Namespace }}
+
+kubectl get svc -n {{ .Release.Namespace }}
+
+kubectl get ingress -n {{ .Release.Namespace }}
+
+kubectl describe pods -n {{ .Release.Namespace }}
+
+===============================================================================
+Check Logs
+===============================================================================
+
+API
+
+kubectl logs deployment/{{ include "institutional-quant.apiName" . }} \
+  -n {{ .Release.Namespace }}
+
+Analytics
+
+kubectl logs deployment/{{ include "institutional-quant.analyticsName" . }} \
+  -n {{ .Release.Namespace }}
+
+Dashboard
+
+kubectl logs deployment/{{ include "institutional-quant.dashboardName" . }} \
+  -n {{ .Release.Namespace }}
+
+===============================================================================
+Scale Deployments
+===============================================================================
+
+kubectl scale deployment {{ include "institutional-quant.apiName" . }} \
+  --replicas=5 \
+  -n {{ .Release.Namespace }}
+
+kubectl scale deployment {{ include "institutional-quant.analyticsName" . }} \
+  --replicas=3 \
+  -n {{ .Release.Namespace }}
+
+kubectl scale deployment {{ include "institutional-quant.dashboardName" . }} \
+  --replicas=3 \
+  -n {{ .Release.Namespace }}
+
+===============================================================================
+Upgrade
+===============================================================================
+
+helm upgrade {{ .Release.Name }} . \
+  -f values-prod.yaml
+
+===============================================================================
+Rollback
+===============================================================================
+
+helm history {{ .Release.Name }}
+
+helm rollback {{ .Release.Name }} REVISION_NUMBER
+
+===============================================================================
+Uninstall
+===============================================================================
+
+helm uninstall {{ .Release.Name }}
+
+===============================================================================
+Useful Commands
+===============================================================================
+
+Watch Pods
+
+kubectl get pods -w -n {{ .Release.Namespace }}
+
+Describe Deployment
+
+kubectl describe deployment {{ include "institutional-quant.apiName" . }} \
+  -n {{ .Release.Namespace }}
+
+Events
+
+kubectl get events -n {{ .Release.Namespace }} \
+  --sort-by=.metadata.creationTimestamp
+
+Port Forward Dashboard
+
+kubectl port-forward svc/{{ include "institutional-quant.dashboardName" . }} \
+  8501:80 \
+  -n {{ .Release.Namespace }}
+
+Port Forward API
+
+kubectl port-forward svc/{{ include "institutional-quant.apiName" . }} \
+  8000:80 \
+  -n {{ .Release.Namespace }}
+
+===============================================================================
+Troubleshooting
+===============================================================================
+
+Check Helm Status
+
+helm status {{ .Release.Name }}
+
+Render Templates
+
+helm template {{ .Release.Name }} .
+
+Validate Chart
+
+helm lint .
+
+===============================================================================
+Documentation
+===============================================================================
+
+GitHub
+
+https://github.com/sakshinekkala28/Institutional_Quant_Platform
+
+Architecture
+
+docs/architecture/
+
+Operations
+
+docs/operations/
+
+Deployment
+
+docs/deployment/
+
+===============================================================================
+Thank you for using the Institutional Quant Platform.
+===============================================================================

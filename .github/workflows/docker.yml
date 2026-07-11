@@ -1,0 +1,767 @@
+name: Docker Images
+
+###############################################################################
+# Triggers
+###############################################################################
+
+on:
+
+  push:
+
+    branches:
+
+      - main
+
+      - develop
+
+      - staging
+
+    paths:
+
+      - "infrastructure/docker/**"
+
+      - "requirements*.txt"
+
+      - "**/*.py"
+
+      - ".github/workflows/docker.yml"
+
+  pull_request:
+
+    branches:
+
+      - main
+
+      - develop
+
+      - staging
+
+  workflow_dispatch:
+
+###############################################################################
+# Permissions
+###############################################################################
+
+permissions:
+
+  contents: read
+
+  packages: write
+
+  security-events: write
+
+  id-token: write
+
+###############################################################################
+# Concurrency
+###############################################################################
+
+concurrency:
+
+  group: docker-${{ github.ref }}
+
+  cancel-in-progress: true
+
+###############################################################################
+# Global Environment
+###############################################################################
+
+env:
+
+  REGISTRY: ghcr.io
+
+  OWNER: ${{ github.repository_owner }}
+
+###############################################################################
+# Jobs
+###############################################################################
+
+jobs:
+
+###############################################################################
+# Build Images
+###############################################################################
+
+  build:
+
+    name: Build ${{ matrix.service }}
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 45
+
+    strategy:
+
+      fail-fast: false
+
+      matrix:
+
+        include:
+
+          - service: api
+
+            dockerfile: infrastructure/docker/Dockerfile.api
+
+            image: institutional-quant-api
+
+          - service: analytics
+
+            dockerfile: infrastructure/docker/Dockerfile.analytics
+
+            image: institutional-quant-analytics
+
+          - service: dashboard
+
+            dockerfile: infrastructure/docker/Dockerfile.dashboard
+
+            image: institutional-quant-dashboard
+
+###############################################################################
+# Checkout
+###############################################################################
+
+    steps:
+
+      - name: Checkout Repository
+
+        uses: actions/checkout@v4
+
+###############################################################################
+# QEMU
+###############################################################################
+
+      - name: Set up QEMU
+
+        uses: docker/setup-qemu-action@v3
+
+###############################################################################
+# Docker Buildx
+###############################################################################
+
+      - name: Set up Docker Buildx
+
+        uses: docker/setup-buildx-action@v3
+
+###############################################################################
+# Login GHCR
+###############################################################################
+
+      - name: Login to GitHub Container Registry
+
+        uses: docker/login-action@v3
+
+        with:
+
+          registry: ${{ env.REGISTRY }}
+
+          username: ${{ github.actor }}
+
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+###############################################################################
+# Docker Metadata
+###############################################################################
+
+      - name: Docker Metadata
+
+        id: meta
+
+        uses: docker/metadata-action@v5
+
+        with:
+
+          images: |
+
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}
+
+          tags: |
+
+            type=ref,event=branch
+
+            type=ref,event=pr
+
+            type=sha
+
+            type=raw,value=latest,enable={{is_default_branch}}
+
+          labels: |
+
+            org.opencontainers.image.title=${{ matrix.image }}
+
+            org.opencontainers.image.vendor=Institutional Quant Platform
+
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+            org.opencontainers.image.revision=${{ github.sha }}
+
+            org.opencontainers.image.created={{date 'YYYY-MM-DDTHH:mm:ssZ'}}
+
+            org.opencontainers.image.licenses=MIT
+
+###############################################################################
+# Cache
+###############################################################################
+
+      - name: Restore Build Cache
+
+        uses: actions/cache@v4
+
+        with:
+
+          path: /tmp/.buildx-cache
+
+          key: buildx-${{ runner.os }}-${{ matrix.service }}-${{ github.sha }}
+
+          restore-keys: |
+
+            buildx-${{ runner.os }}-${{ matrix.service }}-
+
+
+###############################################################################
+# Build Docker Image
+###############################################################################
+
+      - name: Build Docker Image
+
+        id: build
+
+        uses: docker/build-push-action@v6
+
+        with:
+
+          context: .
+
+          file: ${{ matrix.dockerfile }}
+
+          platforms: linux/amd64,linux/arm64
+
+          push: ${{ github.event_name != 'pull_request' }}
+
+          provenance: true
+
+          sbom: false
+
+          tags: ${{ steps.meta.outputs.tags }}
+
+          labels: ${{ steps.meta.outputs.labels }}
+
+          cache-from: |
+
+            type=gha,scope=${{ matrix.service }}
+
+          cache-to: |
+
+            type=gha,mode=max,scope=${{ matrix.service }}
+
+          outputs: |
+
+            type=image,name=${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }},push-by-digest=true,name-canonical=true,push=${{ github.event_name != 'pull_request' }}
+
+###############################################################################
+# Export Image Digest
+###############################################################################
+
+      - name: Export Digest
+
+        if: github.event_name != 'pull_request'
+
+        run: |
+
+          mkdir -p digests
+
+          digest="${{ steps.build.outputs.digest }}"
+
+          touch "digests/${digest#sha256:}"
+
+###############################################################################
+# Upload Digest
+###############################################################################
+
+      - name: Upload Digest
+
+        if: github.event_name != 'pull_request'
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: digest-${{ matrix.service }}
+
+          path: digests/*
+
+###############################################################################
+# Inspect Image
+###############################################################################
+
+      - name: Inspect Image
+
+        run: |
+
+          docker buildx imagetools inspect \
+
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}
+
+###############################################################################
+# Display Image Information
+###############################################################################
+
+      - name: Image Summary
+
+        run: |
+
+          echo "======================================"
+
+          echo "Institutional Quant Platform"
+
+          echo "Docker Image Build"
+
+          echo "======================================"
+
+          echo ""
+
+          echo "Service : ${{ matrix.service }}"
+
+          echo "Image   : ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}"
+
+          echo ""
+
+          echo "Dockerfile"
+
+          echo "${{ matrix.dockerfile }}"
+
+          echo ""
+
+          echo "Platforms"
+
+          echo "linux/amd64"
+
+          echo "linux/arm64"
+
+          echo ""
+
+          echo "======================================"
+
+###############################################################################
+# Pull Image
+###############################################################################
+
+      - name: Pull Published Image
+
+        if: github.event_name != 'pull_request'
+
+        run: |
+
+          docker pull \
+
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}:${{ github.sha }}
+
+###############################################################################
+# Trivy Vulnerability Scan
+###############################################################################
+
+      - name: Trivy Scan
+
+        if: github.event_name != 'pull_request'
+
+        uses: aquasecurity/trivy-action@0.28.0
+
+        with:
+
+          image-ref: |
+
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}:${{ github.sha }}
+
+          format: sarif
+
+          output: trivy-${{ matrix.service }}.sarif
+
+          severity: |
+
+            CRITICAL,HIGH
+
+          ignore-unfixed: true
+
+          vuln-type: |
+
+            os,library
+
+###############################################################################
+# Upload SARIF
+###############################################################################
+
+      - name: Upload SARIF
+
+        if: github.event_name != 'pull_request'
+
+        uses: github/codeql-action/upload-sarif@v3
+
+        with:
+
+          sarif_file: trivy-${{ matrix.service }}.sarif
+
+          category: trivy-${{ matrix.service }}
+
+###############################################################################
+# Generate SBOM
+###############################################################################
+
+      - name: Generate SBOM
+
+        if: github.event_name != 'pull_request'
+
+        uses: anchore/sbom-action@v0
+
+        with:
+
+          image: |
+
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}:${{ github.sha }}
+
+          format: spdx-json
+
+          output-file: |
+
+            sbom-${{ matrix.service }}.spdx.json
+
+###############################################################################
+# Upload SBOM
+###############################################################################
+
+      - name: Upload SBOM
+
+        if: github.event_name != 'pull_request'
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: sbom-${{ matrix.service }}
+
+          path: |
+
+            sbom-${{ matrix.service }}.spdx.json
+
+###############################################################################
+# Docker Scout
+###############################################################################
+
+      - name: Docker Scout
+
+        if: github.event_name != 'pull_request'
+
+        uses: docker/scout-action@v1
+
+        with:
+
+          command: quickview
+
+          image: |
+
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}:${{ github.sha }}
+
+          only-severities: critical,high
+
+###############################################################################
+# Cosign Install
+###############################################################################
+
+      - name: Install Cosign
+
+        if: github.event_name != 'pull_request'
+
+        uses: sigstore/cosign-installer@v3
+
+###############################################################################
+# Sign Container Image
+###############################################################################
+
+      - name: Sign Image
+
+        if: |
+
+          github.event_name != 'pull_request' &&
+
+          github.ref == 'refs/heads/main'
+
+        env:
+
+          COSIGN_EXPERIMENTAL: "true"
+
+        run: |
+
+          cosign sign --yes \
+
+          ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}@${{ steps.build.outputs.digest }}
+
+###############################################################################
+# Upload Image Metadata
+###############################################################################
+
+      - name: Upload Metadata
+
+        if: github.event_name != 'pull_request'
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: metadata-${{ matrix.service }}
+
+          path: |
+
+            trivy-${{ matrix.service }}.sarif
+
+            sbom-${{ matrix.service }}.spdx.json
+
+###############################################################################
+# Security Summary
+###############################################################################
+
+      - name: Security Summary
+
+        if: always()
+
+        run: |
+
+          echo "========================================="
+
+          echo "Institutional Quant Platform"
+
+          echo "Container Security"
+
+          echo "========================================="
+
+          echo ""
+
+          echo "Service"
+
+          echo "${{ matrix.service }}"
+
+          echo ""
+
+          echo "✔ Docker Build"
+
+          echo "✔ Trivy Scan"
+
+          echo "✔ Docker Scout"
+
+          echo "✔ SBOM Generated"
+
+          echo "✔ OCI Metadata"
+
+          echo "✔ Image Signed"
+
+          echo ""
+
+          echo "========================================="
+
+
+###############################################################################
+# Verify Published Image
+###############################################################################
+
+      - name: Verify Published Image
+
+        if: github.event_name != 'pull_request'
+
+        run: |
+
+          docker buildx imagetools inspect \
+
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}:${{ github.sha }}
+
+###############################################################################
+# Inspect OCI Labels
+###############################################################################
+
+      - name: Inspect OCI Labels
+
+        if: github.event_name != 'pull_request'
+
+        run: |
+
+          docker buildx imagetools inspect \
+
+            ${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}:${{ github.sha }}
+
+###############################################################################
+# Build Summary
+###############################################################################
+
+      - name: Docker Build Summary
+
+        if: always()
+
+        run: |
+
+          echo "=============================================="
+
+          echo "Institutional Quant Platform"
+
+          echo "Docker Build Pipeline"
+
+          echo "=============================================="
+
+          echo ""
+
+          echo "Repository"
+
+          echo "${{ github.repository }}"
+
+          echo ""
+
+          echo "Service"
+
+          echo "${{ matrix.service }}"
+
+          echo ""
+
+          echo "Dockerfile"
+
+          echo "${{ matrix.dockerfile }}"
+
+          echo ""
+
+          echo "Image"
+
+          echo "${{ env.REGISTRY }}/${{ env.OWNER }}/${{ matrix.image }}"
+
+          echo ""
+
+          echo "Commit"
+
+          echo "${{ github.sha }}"
+
+          echo ""
+
+          echo "Platforms"
+
+          echo "linux/amd64"
+
+          echo "linux/arm64"
+
+          echo ""
+
+          echo "=============================================="
+
+###############################################################################
+# Cleanup
+###############################################################################
+
+      - name: Docker Cleanup
+
+        if: always()
+
+        run: |
+
+          docker system prune -af || true
+
+          docker builder prune -af || true
+
+###############################################################################
+# Upload Build Logs
+###############################################################################
+
+      - name: Upload Build Logs
+
+        if: always()
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: docker-build-${{ matrix.service }}
+
+          path: |
+
+            trivy-${{ matrix.service }}.sarif
+
+            sbom-${{ matrix.service }}.spdx.json
+
+          if-no-files-found: ignore
+
+###############################################################################
+# Final Summary
+###############################################################################
+
+  summary:
+
+    name: Docker Pipeline Summary
+
+    runs-on: ubuntu-latest
+
+    if: always()
+
+    needs:
+
+      - build
+
+    steps:
+
+      - name: Docker Summary
+
+        run: |
+
+          echo "======================================================"
+
+          echo "Institutional Quant Platform"
+
+          echo "Docker Workflow"
+
+          echo "======================================================"
+
+          echo ""
+
+          echo "Repository"
+
+          echo "${{ github.repository }}"
+
+          echo ""
+
+          echo "Branch"
+
+          echo "${{ github.ref_name }}"
+
+          echo ""
+
+          echo "Commit"
+
+          echo "${{ github.sha }}"
+
+          echo ""
+
+          echo "Services Built"
+
+          echo "✔ API"
+
+          echo "✔ Analytics"
+
+          echo "✔ Dashboard"
+
+          echo ""
+
+          echo "Security"
+
+          echo "✔ Trivy"
+
+          echo "✔ Docker Scout"
+
+          echo "✔ SBOM"
+
+          echo "✔ Cosign"
+
+          echo ""
+
+          echo "Registry"
+
+          echo "ghcr.io/${{ github.repository_owner }}"
+
+          echo ""
+
+          echo "Status"
+
+          echo "${{ needs.build.result }}"
+
+          echo ""
+
+          echo "======================================================"

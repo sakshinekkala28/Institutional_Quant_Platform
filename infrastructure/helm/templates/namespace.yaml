@@ -1,0 +1,106 @@
+{{- if .Values.global.namespace }}
+
+# ==============================================================================
+# Namespace
+# ==============================================================================
+
+apiVersion: v1
+kind: Namespace
+
+metadata:
+
+  name: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+    environment: {{ include "institutional-quant.environment" . }}
+
+  annotations:
+
+    description: Institutional Quant Platform Namespace
+
+---
+
+# ==============================================================================
+# Resource Quota
+# ==============================================================================
+
+apiVersion: v1
+kind: ResourceQuota
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-quota
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+spec:
+
+  hard:
+
+    requests.cpu: "16"
+
+    requests.memory: "32Gi"
+
+    limits.cpu: "32"
+
+    limits.memory: "64Gi"
+
+    pods: "100"
+
+    services: "50"
+
+    persistentvolumeclaims: "20"
+
+    configmaps: "100"
+
+    secrets: "100"
+
+---
+
+# ==============================================================================
+# Limit Range
+# ==============================================================================
+
+apiVersion: v1
+kind: LimitRange
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-limits
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+spec:
+
+  limits:
+
+    - type: Container
+
+      default:
+
+        cpu: "1000m"
+
+        memory: "1Gi"
+
+      defaultRequest:
+
+        cpu: "250m"
+
+        memory: "256Mi"
+
+      max:
+
+        cpu: "4000m"
+
+        memory: "8Gi"
+
+      min:
+
+        cpu: "100m"
+
+        memory: "128Mi"
+
+{{- end }}

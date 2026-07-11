@@ -1,0 +1,41 @@
+apiVersion: v2
+
+name: institutional-quant-platform
+
+description: >
+  Enterprise-grade Institutional Quant Platform for portfolio analytics,
+  risk management, execution, dashboards, and market data processing.
+
+type: application
+
+version: 1.0.0
+
+appVersion: "1.0.0"
+
+kubeVersion: ">=1.29.0"
+
+home: https://github.com/sakshinekkala28/Institutional_Quant_Platform
+
+sources:
+  - https://github.com/sakshinekkala28/Institutional_Quant_Platform
+
+keywords:
+  - quant
+  - finance
+  - portfolio
+  - analytics
+  - trading
+  - institutional
+  - risk
+  - dashboard
+  - python
+  - kubernetes
+
+maintainers:
+  - name: Pavan Sai Nekkala
+    email: sakshinekkala28@gmail.com
+
+icon: https://raw.githubusercontent.com/kubernetes/kubernetes/master/logo/logo.png
+
+annotations:
+  category: Finance

@@ -1,0 +1,90 @@
+{{- if .Values.podDisruptionBudget.enabled }}
+
+# ==============================================================================
+# Institutional Quant Platform
+# Pod Disruption Budgets
+# ==============================================================================
+
+###############################################################################
+# API PDB
+###############################################################################
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+
+  name: {{ include "institutional-quant.apiName" . }}
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  minAvailable: {{ .Values.podDisruptionBudget.api.minAvailable }}
+
+  selector:
+
+    matchLabels:
+{{ include "institutional-quant.selectorLabels" . | indent 6 }}
+      component: api
+
+---
+
+###############################################################################
+# Analytics PDB
+###############################################################################
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+
+  name: {{ include "institutional-quant.analyticsName" . }}
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  minAvailable: {{ .Values.podDisruptionBudget.analytics.minAvailable }}
+
+  selector:
+
+    matchLabels:
+{{ include "institutional-quant.selectorLabels" . | indent 6 }}
+      component: analytics
+
+---
+
+###############################################################################
+# Dashboard PDB
+###############################################################################
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+
+  name: {{ include "institutional-quant.dashboardName" . }}
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  minAvailable: {{ .Values.podDisruptionBudget.dashboard.minAvailable }}
+
+  selector:
+
+    matchLabels:
+{{ include "institutional-quant.selectorLabels" . | indent 6 }}
+      component: dashboard
+
+{{- end }}
