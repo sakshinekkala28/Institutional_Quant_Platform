@@ -1,148 +1,215 @@
-# ==============================================================================
-# Institutional Quant Platform
-# Dependabot Configuration
-# ==============================================================================
-
 version: 2
+
+###############################################################################
+# Updates
+###############################################################################
 
 updates:
 
-  # ============================================================================
-  # Python Dependencies
-  # ============================================================================
+###############################################################################
+# Python
+###############################################################################
 
   - package-ecosystem: "pip"
+
     directory: "/"
+
     schedule:
+
       interval: "weekly"
+
       day: "monday"
-      time: "06:00"
+
+      time: "03:00"
+
       timezone: "UTC"
 
     open-pull-requests-limit: 10
 
-    labels:
-      - dependencies
-      - python
-
     reviewers:
+
       - "sakshinekkala28"
 
     assignees:
+
       - "sakshinekkala28"
 
+    labels:
+
+      - "dependencies"
+
+      - "python"
+
+      - "security"
+
     commit-message:
+
       prefix: "deps"
+
       include: "scope"
 
-    groups:
-      python-dependencies:
-        patterns:
-          - "*"
+    rebase-strategy: "auto"
 
-    ignore:
-      - dependency-name: "numpy"
-        update-types:
-          - "version-update:semver-major"
-
-      - dependency-name: "pandas"
-        update-types:
-          - "version-update:semver-major"
-
-  # ============================================================================
-  # GitHub Actions
-  # ============================================================================
+###############################################################################
+# GitHub Actions
+###############################################################################
 
   - package-ecosystem: "github-actions"
+
     directory: "/"
 
     schedule:
+
       interval: "weekly"
+
       day: "monday"
-      time: "06:30"
+
+      time: "03:15"
+
       timezone: "UTC"
 
-    labels:
-      - github-actions
-
     reviewers:
+
       - "sakshinekkala28"
-
-    assignees:
-      - "sakshinekkala28"
-
-    commit-message:
-      prefix: "ci"
-
-    groups:
-      github-actions:
-        patterns:
-          - "*"
-
-  # ============================================================================
-  # Docker
-  # ============================================================================
-
-  - package-ecosystem: "docker"
-    directory: "/"
-
-    schedule:
-      interval: "weekly"
-      day: "tuesday"
-      time: "06:00"
-      timezone: "UTC"
 
     labels:
-      - docker
 
-    reviewers:
-      - "sakshinekkala28"
+      - "dependencies"
 
-    assignees:
-      - "sakshinekkala28"
+      - "github-actions"
 
-    commit-message:
-      prefix: "docker"
-
-  # ============================================================================
-  # Docker Infrastructure
-  # ============================================================================
+###############################################################################
+# Docker
+###############################################################################
 
   - package-ecosystem: "docker"
+
     directory: "/infrastructure/docker"
 
     schedule:
+
       interval: "weekly"
-      day: "tuesday"
-      time: "06:30"
+
+      day: "monday"
+
+      time: "03:30"
+
       timezone: "UTC"
 
-    labels:
-      - docker
-      - infrastructure
-
     reviewers:
+
       - "sakshinekkala28"
 
-    assignees:
-      - "sakshinekkala28"
+    labels:
 
-  # ============================================================================
-  # GitHub Dev Container
-  # ============================================================================
+      - "docker"
 
-  - package-ecosystem: "docker"
-    directory: "/.devcontainer"
+      - "dependencies"
+
+###############################################################################
+# Terraform
+###############################################################################
+
+  - package-ecosystem: "terraform"
+
+    directory: "/infrastructure/terraform"
 
     schedule:
-      interval: "monthly"
 
-    labels:
-      - devcontainer
+      interval: "weekly"
+
+      day: "monday"
+
+      time: "03:45"
+
+      timezone: "UTC"
 
     reviewers:
+
       - "sakshinekkala28"
 
-# ==============================================================================
-# End of File
-# ==============================================================================
+    labels:
+
+      - "terraform"
+
+      - "dependencies"
+
+###############################################################################
+# Helm
+###############################################################################
+
+  - package-ecosystem: "helm"
+
+    directory: "/infrastructure/helm"
+
+    schedule:
+
+      interval: "weekly"
+
+      day: "monday"
+
+      time: "04:00"
+
+      timezone: "UTC"
+
+    reviewers:
+
+      - "sakshinekkala28"
+
+    labels:
+
+      - "helm"
+
+      - "dependencies"
+
+###############################################################################
+# Dev Container
+###############################################################################
+
+  - package-ecosystem: "devcontainers"
+
+    directory: "/"
+
+    schedule:
+
+      interval: "monthly"
+
+    reviewers:
+
+      - "sakshinekkala28"
+
+    labels:
+
+      - "devcontainer"
+
+###############################################################################
+# Docker (Root)
+###############################################################################
+
+  - package-ecosystem: "docker"
+
+    directory: "/"
+
+    schedule:
+
+      interval: "monthly"
+
+    reviewers:
+
+      - "sakshinekkala28"
+
+    labels:
+
+      - "docker"
+
+###############################################################################
+# Ignore Rules
+###############################################################################
+
+    ignore:
+
+      - dependency-name: "*"
+
+        update-types:
+
+          - "version-update:semver-major"

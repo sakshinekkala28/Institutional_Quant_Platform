@@ -24,6 +24,35 @@ Select all that apply.
 
 ---
 
+# Components Affected
+
+## Core Platform
+
+- [ ] API
+- [ ] Analytics
+- [ ] Dashboard
+- [ ] Alpha Engine
+- [ ] Portfolio Engine
+- [ ] Risk Engine
+- [ ] Execution Engine
+- [ ] Data Pipeline
+
+## Infrastructure
+
+- [ ] Docker
+- [ ] Kubernetes
+- [ ] Helm
+- [ ] Terraform
+
+## Monitoring & Observability
+
+- [ ] Logging
+- [ ] Metrics
+- [ ] Alerting
+- [ ] Dashboards
+
+---
+
 ## Related Issues
 
 Closes #
@@ -44,7 +73,7 @@ What problem does it solve?
 
 Summarize the implementation.
 
-Include
+Include:
 
 - Architecture changes
 - New modules
@@ -52,84 +81,92 @@ Include
 - New engines
 - Database changes
 - API changes
+- Infrastructure changes
 
 ---
 
-## Testing
+# Testing
 
 Select all completed.
 
-### Unit Tests
+## Unit Tests
 
 - [ ] Added
 - [ ] Updated
 - [ ] Passed
 
-### Integration Tests
+## Integration Tests
 
 - [ ] Passed
 
-### Performance Tests
+## Performance Tests
 
 - [ ] Executed
 
-### Security Scan
+## Security Tests
 
 - [ ] Passed
 
-### Manual Testing
+## Smoke Tests
+
+- [ ] Passed
+
+## Manual Testing
 
 - [ ] Completed
 
 ---
 
-## Validation Checklist
+# Performance Impact
 
-- [ ] Code follows project standards
-- [ ] Type hints added
-- [ ] Logging implemented
-- [ ] Exceptions handled
-- [ ] Documentation updated
-- [ ] Tests added
-- [ ] Existing tests pass
-- [ ] CI passes
+Describe any measurable impact.
 
----
+### CPU
 
-## Performance Impact
+### Memory
 
-Describe performance impact.
+### Network
 
-- CPU
-- Memory
-- Database
-- Network
-- Storage
+### Storage
 
-If none
+### Database
 
-```
-No measurable impact.
+If none:
+
+```text
+No measurable performance impact.
 ```
 
 ---
+
+# Security & Compliance
 
 ## Security Considerations
 
-Does this change affect
+Does this change affect:
 
 - Authentication
 - Authorization
-- Secrets
 - Encryption
-- Network
+- Secrets
+- Certificates
+- Network Policies
 - External APIs
 
 If yes, explain.
 
+### Compliance Checklist
+
+- [ ] No hardcoded secrets
+- [ ] Security scans passed
+- [ ] Dependencies verified
+- [ ] License compatible
+- [ ] No sensitive data exposed
+- [ ] SBOM generated (if applicable)
+
 ---
 
-## Database Changes
+# Database Changes
 
 - [ ] None
 - [ ] Schema Updated
@@ -139,11 +176,12 @@ Migration Details
 
 ---
 
-## API Changes
+# API Changes
 
 - [ ] None
 - [ ] New Endpoint
 - [ ] Modified Endpoint
+- [ ] Deprecated Endpoint
 - [ ] Breaking Change
 
 Documentation Updated
@@ -153,104 +191,213 @@ Documentation Updated
 
 ---
 
-## Configuration Changes
+# Configuration Changes
 
-List any
+List any updates to:
 
-- Environment variables
+- Environment Variables
 - YAML
 - TOML
 - JSON
 - Feature Flags
+- Kubernetes Manifests
+- Helm Values
+- Terraform Variables
 
 ---
 
-## Deployment Notes
+# Deployment Notes
 
-Does deployment require
+Does deployment require:
 
-- Downtime
-- Manual steps
-- Configuration update
-- Data migration
+- [ ] Downtime
+- [ ] Manual Steps
+- [ ] Configuration Update
+- [ ] Database Migration
+- [ ] Infrastructure Changes
+- [ ] Helm Upgrade
+- [ ] Terraform Apply
 
 If yes, explain.
 
 ---
 
-## Screenshots
+# Rollback Plan
 
-Include screenshots for
+Describe how this change can be rolled back.
 
-- Dashboard
-- UI
-- Reports
+### Rollback Steps
 
-If applicable.
+### Expected Downtime
+
+### Data Recovery Required
 
 ---
 
-## Reviewer Guidance
+# Migration
 
-Please focus review on
+- [ ] Database Migration
+- [ ] Infrastructure Migration
+- [ ] Configuration Migration
+- [ ] API Migration
+- [ ] No Migration Required
+
+---
+
+# CI/CD Validation
+
+- [ ] CI Workflow
+- [ ] Docker Workflow
+- [ ] Terraform Workflow
+- [ ] Helm Workflow
+- [ ] Kubernetes Workflow
+- [ ] Security Workflow
+- [ ] Release Workflow
+- [ ] Documentation Workflow
+
+---
+
+# Documentation
+
+Updated:
+
+- [ ] README
+- [ ] Architecture Guide
+- [ ] Development Guide
+- [ ] Deployment Guide
+- [ ] Operations Guide
+- [ ] API Documentation
+- [ ] Runbooks
+- [ ] User Guide
+
+---
+
+# Observability
+
+- [ ] Logging Updated
+- [ ] Metrics Updated
+- [ ] Dashboards Updated
+- [ ] Alerts Updated
+- [ ] Tracing Updated
+
+---
+
+# Release Impact
+
+- [ ] Patch Release
+- [ ] Minor Release
+- [ ] Major Release
+- [ ] No Release Required
+
+---
+
+# Risk Assessment
+
+Overall Risk
+
+- [ ] Low
+- [ ] Medium
+- [ ] High
+
+### Reason
+
+Describe the assessed risk and mitigation strategy.
+
+---
+
+# Screenshots / Logs
+
+Attach screenshots, dashboards, logs, or terminal output if applicable.
+
+---
+
+# Reviewer Guidance
+
+Please focus review on:
 
 - Architecture
 - Business Logic
 - Performance
 - Security
+- Infrastructure
 - Testing
+- Documentation
 
 ---
 
-## Breaking Changes
+# Breaking Changes
 
-If applicable
-
-Describe
+If applicable, describe:
 
 - What changed
-- Why
+- Why it changed
 - Migration steps
+- Backward compatibility
 
 ---
 
-## Documentation
-
-Updated
-
-- [ ] README
-- [ ] Architecture
-- [ ] Development Guide
-- [ ] Deployment Guide
-- [ ] Operations Guide
-- [ ] API Documentation
-
----
-
-## Checklist
-
-- [ ] Self-reviewed
-- [ ] CI passes
-- [ ] Tests pass
-- [ ] Documentation updated
-- [ ] No hardcoded secrets
-- [ ] No debug code
-- [ ] No commented-out code
-- [ ] Version updated (if required)
-- [ ] Ready for review
-
----
-
-## Additional Notes
+# Additional Notes
 
 Provide any additional context for reviewers.
 
 ---
 
-**Reviewer Approval**
+# Final Validation Checklist
 
-- [ ] Architecture Review
-- [ ] Code Review
-- [ ] Security Review
-- [ ] QA Review
-- [ ] Ready to Merge
+## Code Quality
+
+- [ ] Self-reviewed
+- [ ] Code follows project standards
+- [ ] Type hints added
+- [ ] Logging implemented
+- [ ] Exceptions handled
+
+## Testing
+
+- [ ] Unit Tests Pass
+- [ ] Integration Tests Pass
+- [ ] Performance Tests Pass
+- [ ] Security Tests Pass
+
+## Documentation
+
+- [ ] Documentation Updated
+- [ ] API Documentation Updated
+- [ ] Architecture Updated
+
+## Security
+
+- [ ] No hardcoded secrets
+- [ ] No debug code
+- [ ] No commented-out code
+- [ ] Security scans passed
+
+## CI/CD
+
+- [ ] All GitHub Actions passed
+- [ ] Docker Build Passed
+- [ ] Helm Validation Passed
+- [ ] Terraform Validation Passed
+- [ ] Kubernetes Validation Passed
+
+## Release
+
+- [ ] Version Updated (if required)
+- [ ] Changelog Updated
+- [ ] Ready for Review
+
+---
+
+# Reviewer Sign-off
+
+| Review Area | Reviewer | Status |
+|--------------|----------|--------|
+| Architecture | | ☐ |
+| Code Quality | | ☐ |
+| Security | | ☐ |
+| Infrastructure | | ☐ |
+| Performance | | ☐ |
+| QA / Testing | | ☐ |
+| Documentation | | ☐ |
+| Release | | ☐ |
+| Ready to Merge | | ☐ |

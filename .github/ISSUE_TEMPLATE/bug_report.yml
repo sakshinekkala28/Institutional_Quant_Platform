@@ -1,0 +1,271 @@
+name: 🐞 Bug Report
+
+description: Report a reproducible defect or unexpected behavior.
+
+title: "[BUG]: "
+
+labels:
+
+  - bug
+
+  - triage
+
+assignees:
+
+  - sakshinekkala28
+
+body:
+
+###############################################################################
+# Introduction
+###############################################################################
+
+  - type: markdown
+
+    attributes:
+
+      value: |
+
+        ## Bug Report
+
+        Thank you for helping improve the Institutional Quant Platform.
+
+        Please provide as much detail as possible.
+
+###############################################################################
+# Summary
+###############################################################################
+
+  - type: textarea
+
+    id: summary
+
+    attributes:
+
+      label: Summary
+
+      description: Briefly describe the issue.
+
+      placeholder: A concise description of the bug.
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Component
+###############################################################################
+
+  - type: dropdown
+
+    id: component
+
+    attributes:
+
+      label: Component
+
+      options:
+
+        - API
+
+        - Analytics
+
+        - Dashboard
+
+        - Alpha Engine
+
+        - Portfolio Engine
+
+        - Risk Engine
+
+        - Execution Engine
+
+        - Data Pipeline
+
+        - Infrastructure
+
+        - Docker
+
+        - Kubernetes
+
+        - Helm
+
+        - Terraform
+
+        - CI/CD
+
+        - Documentation
+
+        - Other
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Severity
+###############################################################################
+
+  - type: dropdown
+
+    id: severity
+
+    attributes:
+
+      label: Severity
+
+      options:
+
+        - Critical
+
+        - High
+
+        - Medium
+
+        - Low
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Environment
+###############################################################################
+
+  - type: dropdown
+
+    id: environment
+
+    attributes:
+
+      label: Environment
+
+      options:
+
+        - Development
+
+        - Staging
+
+        - Production
+
+        - Local
+
+###############################################################################
+# Steps
+###############################################################################
+
+  - type: textarea
+
+    id: reproduce
+
+    attributes:
+
+      label: Steps to Reproduce
+
+      placeholder: |
+
+        1.
+
+        2.
+
+        3.
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Expected
+###############################################################################
+
+  - type: textarea
+
+    id: expected
+
+    attributes:
+
+      label: Expected Behavior
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Actual
+###############################################################################
+
+  - type: textarea
+
+    id: actual
+
+    attributes:
+
+      label: Actual Behavior
+
+    validations:
+
+      required: true
+
+###############################################################################
+# Logs
+###############################################################################
+
+  - type: textarea
+
+    id: logs
+
+    attributes:
+
+      label: Logs / Stack Trace
+
+      render: shell
+
+###############################################################################
+# Screenshots
+###############################################################################
+
+  - type: textarea
+
+    id: screenshots
+
+    attributes:
+
+      label: Screenshots
+
+      description: Drag and drop screenshots if available.
+
+###############################################################################
+# Additional Context
+###############################################################################
+
+  - type: textarea
+
+    id: context
+
+    attributes:
+
+      label: Additional Context
+
+###############################################################################
+# Checklist
+###############################################################################
+
+  - type: checkboxes
+
+    id: checklist
+
+    attributes:
+
+      label: Checklist
+
+      options:
+
+        - label: I searched existing issues.
+
+        - label: I can reproduce this issue.
+
+        - label: I included logs/screenshots where applicable.
+
+        - label: This is not a duplicate.
+
+        - label: I have provided sufficient information for investigation.

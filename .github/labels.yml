@@ -1,0 +1,228 @@
+###############################################################################
+# Institutional Quant Platform
+# Repository Labels
+###############################################################################
+
+###############################################################################
+# Type
+###############################################################################
+
+- name: bug
+  color: "d73a4a"
+  description: Something is not working
+
+- name: feature
+  color: "0e8a16"
+  description: New feature request
+
+- name: enhancement
+  color: "84b6eb"
+  description: Improvement to existing functionality
+
+- name: documentation
+  color: "0075ca"
+  description: Documentation improvements
+
+- name: question
+  color: "d876e3"
+  description: General question
+
+- name: maintenance
+  color: "cfd3d7"
+  description: Repository maintenance
+
+- name: dependencies
+  color: "5319e7"
+  description: Dependency updates
+
+###############################################################################
+# Priority
+###############################################################################
+
+- name: critical
+  color: "b60205"
+  description: Immediate attention required
+
+- name: high-priority
+  color: "d93f0b"
+  description: High priority
+
+- name: medium-priority
+  color: "fbca04"
+  description: Medium priority
+
+- name: low-priority
+  color: "0e8a16"
+  description: Low priority
+
+###############################################################################
+# Status
+###############################################################################
+
+- name: triage
+  color: "ededed"
+  description: Awaiting triage
+
+- name: in-progress
+  color: "0052cc"
+  description: Work in progress
+
+- name: blocked
+  color: "000000"
+  description: Blocked by another task
+
+- name: stale
+  color: "ffffff"
+  description: Inactive issue or pull request
+
+- name: duplicate
+  color: "cfd3d7"
+  description: Duplicate issue
+
+- name: wontfix
+  color: "ffffff"
+  description: Will not be fixed
+
+- name: invalid
+  color: "e4e669"
+  description: Invalid report
+
+###############################################################################
+# Security
+###############################################################################
+
+- name: security
+  color: "b60205"
+  description: Security-related work
+
+- name: vulnerability
+  color: "b60205"
+  description: Security vulnerability
+
+###############################################################################
+# Infrastructure
+###############################################################################
+
+- name: docker
+  color: "2496ED"
+  description: Docker-related
+
+- name: kubernetes
+  color: "326CE5"
+  description: Kubernetes-related
+
+- name: helm
+  color: "0F1689"
+  description: Helm-related
+
+- name: terraform
+  color: "7B42BC"
+  description: Terraform-related
+
+- name: infrastructure
+  color: "6f42c1"
+  description: Infrastructure work
+
+###############################################################################
+# Development
+###############################################################################
+
+- name: api
+  color: "1d76db"
+  description: API changes
+
+- name: analytics
+  color: "5319e7"
+  description: Analytics engine
+
+- name: dashboard
+  color: "0366d6"
+  description: Dashboard/UI
+
+- name: alpha
+  color: "5b4fff"
+  description: Alpha engine
+
+- name: portfolio
+  color: "fbca04"
+  description: Portfolio engine
+
+- name: risk
+  color: "bfe5bf"
+  description: Risk engine
+
+- name: execution
+  color: "e99695"
+  description: Execution engine
+
+- name: monitoring
+  color: "1d76db"
+  description: Monitoring and observability
+
+- name: data
+  color: "006b75"
+  description: Data pipeline
+
+###############################################################################
+# CI/CD
+###############################################################################
+
+- name: ci
+  color: "5319e7"
+  description: Continuous Integration
+
+- name: github-actions
+  color: "2088FF"
+  description: GitHub Actions
+
+- name: release
+  color: "0e8a16"
+  description: Release management
+
+###############################################################################
+# Quality
+###############################################################################
+
+- name: testing
+  color: "f9d0c4"
+  description: Testing
+
+- name: performance
+  color: "ff9800"
+  description: Performance improvements
+
+- name: optimization
+  color: "ffb347"
+  description: Optimization work
+
+- name: refactor
+  color: "c5def5"
+  description: Code refactoring
+
+###############################################################################
+# Community
+###############################################################################
+
+- name: good first issue
+  color: "7057ff"
+  description: Good issue for first-time contributors
+
+- name: help wanted
+  color: "008672"
+  description: Community contributions welcome
+
+- name: roadmap
+  color: "5319e7"
+  description: Future roadmap
+
+###############################################################################
+# Automation
+###############################################################################
+
+- name: automated
+  color: "ededed"
+  description: Created by automation
+
+- name: skip-release
+  color: "ffffff"
+  description: Exclude from release notes

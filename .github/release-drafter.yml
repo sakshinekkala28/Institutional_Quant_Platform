@@ -1,0 +1,321 @@
+###############################################################################
+# Institutional Quant Platform
+# Release Drafter Configuration
+###############################################################################
+
+name-template: "Institutional Quant Platform $RESOLVED_VERSION"
+
+tag-template: "v$RESOLVED_VERSION"
+
+###############################################################################
+# Release Template
+###############################################################################
+
+template: |
+  ## Institutional Quant Platform
+
+  ### Release Version
+
+  $RESOLVED_VERSION
+
+  ---
+
+  ## Highlights
+
+  $CHANGES
+
+  ---
+
+  ## Release Statistics
+
+  - Total Changes: $CHANGES_COUNT
+  - Contributors: $CONTRIBUTORS
+
+  ---
+
+  ## Docker Images
+
+  - API
+  - Analytics
+  - Dashboard
+
+  ---
+
+  ## Infrastructure
+
+  - Terraform
+  - Kubernetes
+  - Helm
+
+  ---
+
+  ## Security
+
+  - SBOM Generated
+  - Cosign Signatures
+  - Trivy Scan
+  - CodeQL Scan
+
+  ---
+
+  ## Documentation
+
+  Updated project documentation.
+
+###############################################################################
+# Version Resolution
+###############################################################################
+
+version-resolver:
+
+  major:
+
+    labels:
+
+      - breaking
+
+      - major
+
+  minor:
+
+    labels:
+
+      - feature
+
+      - enhancement
+
+  patch:
+
+    labels:
+
+      - bug
+
+      - fix
+
+      - documentation
+
+      - dependencies
+
+  default: patch
+
+###############################################################################
+# Categories
+###############################################################################
+
+categories:
+
+  - title: "🚀 Features"
+
+    labels:
+
+      - feature
+
+      - enhancement
+
+  - title: "🐛 Bug Fixes"
+
+    labels:
+
+      - bug
+
+      - fix
+
+  - title: "⚡ Performance"
+
+    labels:
+
+      - performance
+
+      - optimization
+
+  - title: "🔒 Security"
+
+    labels:
+
+      - security
+
+  - title: "🏗 Infrastructure"
+
+    labels:
+
+      - infrastructure
+
+      - terraform
+
+      - kubernetes
+
+      - helm
+
+      - docker
+
+  - title: "📊 Analytics"
+
+    labels:
+
+      - analytics
+
+      - alpha
+
+      - portfolio
+
+      - risk
+
+      - execution
+
+  - title: "🧪 Testing"
+
+    labels:
+
+      - testing
+
+      - ci
+
+      - github-actions
+
+  - title: "📚 Documentation"
+
+    labels:
+
+      - documentation
+
+      - docs
+
+  - title: "♻ Refactoring"
+
+    labels:
+
+      - refactor
+
+  - title: "🔧 Maintenance"
+
+    labels:
+
+      - maintenance
+
+      - dependencies
+
+###############################################################################
+# Exclusions
+###############################################################################
+
+exclude-labels:
+
+  - skip-release
+
+  - invalid
+
+  - duplicate
+
+  - wontfix
+
+###############################################################################
+# Change Formatting
+###############################################################################
+
+change-template: "- $TITLE (@$AUTHOR)"
+
+change-title-escapes: '\<*_&'
+
+###############################################################################
+# Autolabeler
+###############################################################################
+
+autolabeler:
+
+  - label: documentation
+
+    files:
+
+      - "*.md"
+
+      - "docs/**"
+
+  - label: terraform
+
+    files:
+
+      - "infrastructure/terraform/**"
+
+  - label: kubernetes
+
+    files:
+
+      - "infrastructure/kubernetes/**"
+
+  - label: helm
+
+    files:
+
+      - "infrastructure/helm/**"
+
+  - label: docker
+
+    files:
+
+      - "infrastructure/docker/**"
+
+  - label: github-actions
+
+    files:
+
+      - ".github/workflows/**"
+
+  - label: analytics
+
+    files:
+
+      - "analytics/**"
+
+  - label: api
+
+    files:
+
+      - "api/**"
+
+  - label: dashboard
+
+    files:
+
+      - "dashboard/**"
+
+  - label: tests
+
+    files:
+
+      - "tests/**"
+
+###############################################################################
+# Footer
+###############################################################################
+
+footer: |
+
+  ---
+
+  **Institutional Quant Platform**
+
+  Automated release generated using GitHub Release Drafter.
+
+###############################################################################
+# Replacers
+###############################################################################
+
+replacers:
+
+  - search: "/TODO/i"
+
+    replace: ""
+
+  - search: "/FIXME/i"
+
+    replace: ""
+
+###############################################################################
+# Misc
+###############################################################################
+
+sort-by: merged_at
+
+sort-direction: descending
+
+prerelease: false
