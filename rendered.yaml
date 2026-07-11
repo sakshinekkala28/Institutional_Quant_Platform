@@ -2399,7 +2399,7 @@ spec:
 
     - name: connectivity-test
 
-      image: curlimages/curl:8.7.1
+      image: curlimages/curl:8.21.0
 
       imagePullPolicy: IfNotPresent
 
