@@ -38,7 +38,7 @@ scikit-learn>=1.9,<2.0
 
 scipy>=1.18,<2.0
 
-streamlit>=1.40,<2.0
+streamlit>=1.59.1,<2.0
 
 threadpoolctl>=3.6,<4.0
 
