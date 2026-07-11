@@ -44,7 +44,7 @@ threadpoolctl>=3.6,<4.0
 
 tqdm>=4.68,<5.0
 
-tzdata>=2026.0,<2027.0
+tzdata>=2026.3,<2027.0
 
 xlsxwriter>=3.2,<4.0
 
