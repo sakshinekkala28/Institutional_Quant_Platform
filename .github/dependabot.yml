@@ -1,0 +1,148 @@
+# ==============================================================================
+# Institutional Quant Platform
+# Dependabot Configuration
+# ==============================================================================
+
+version: 2
+
+updates:
+
+  # ============================================================================
+  # Python Dependencies
+  # ============================================================================
+
+  - package-ecosystem: "pip"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:00"
+      timezone: "UTC"
+
+    open-pull-requests-limit: 10
+
+    labels:
+      - dependencies
+      - python
+
+    reviewers:
+      - "sakshinekkala28"
+
+    assignees:
+      - "sakshinekkala28"
+
+    commit-message:
+      prefix: "deps"
+      include: "scope"
+
+    groups:
+      python-dependencies:
+        patterns:
+          - "*"
+
+    ignore:
+      - dependency-name: "numpy"
+        update-types:
+          - "version-update:semver-major"
+
+      - dependency-name: "pandas"
+        update-types:
+          - "version-update:semver-major"
+
+  # ============================================================================
+  # GitHub Actions
+  # ============================================================================
+
+  - package-ecosystem: "github-actions"
+    directory: "/"
+
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "06:30"
+      timezone: "UTC"
+
+    labels:
+      - github-actions
+
+    reviewers:
+      - "sakshinekkala28"
+
+    assignees:
+      - "sakshinekkala28"
+
+    commit-message:
+      prefix: "ci"
+
+    groups:
+      github-actions:
+        patterns:
+          - "*"
+
+  # ============================================================================
+  # Docker
+  # ============================================================================
+
+  - package-ecosystem: "docker"
+    directory: "/"
+
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:00"
+      timezone: "UTC"
+
+    labels:
+      - docker
+
+    reviewers:
+      - "sakshinekkala28"
+
+    assignees:
+      - "sakshinekkala28"
+
+    commit-message:
+      prefix: "docker"
+
+  # ============================================================================
+  # Docker Infrastructure
+  # ============================================================================
+
+  - package-ecosystem: "docker"
+    directory: "/infrastructure/docker"
+
+    schedule:
+      interval: "weekly"
+      day: "tuesday"
+      time: "06:30"
+      timezone: "UTC"
+
+    labels:
+      - docker
+      - infrastructure
+
+    reviewers:
+      - "sakshinekkala28"
+
+    assignees:
+      - "sakshinekkala28"
+
+  # ============================================================================
+  # GitHub Dev Container
+  # ============================================================================
+
+  - package-ecosystem: "docker"
+    directory: "/.devcontainer"
+
+    schedule:
+      interval: "monthly"
+
+    labels:
+      - devcontainer
+
+    reviewers:
+      - "sakshinekkala28"
+
+# ==============================================================================
+# End of File
+# ==============================================================================

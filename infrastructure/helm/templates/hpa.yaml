@@ -1,0 +1,180 @@
+{{- if .Values.autoscaling.enabled }}
+
+# ==============================================================================
+# Institutional Quant Platform
+# Horizontal Pod Autoscalers
+# ==============================================================================
+
+###############################################################################
+# API HPA
+###############################################################################
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+
+  name: {{ include "institutional-quant.apiName" . }}
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  scaleTargetRef:
+
+    apiVersion: apps/v1
+
+    kind: Deployment
+
+    name: {{ include "institutional-quant.apiName" . }}
+
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+
+  metrics:
+
+    - type: Resource
+
+      resource:
+
+        name: cpu
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: {{ .Values.autoscaling.cpuUtilization }}
+
+    - type: Resource
+
+      resource:
+
+        name: memory
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: {{ .Values.autoscaling.memoryUtilization }}
+
+---
+
+###############################################################################
+# Analytics HPA
+###############################################################################
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+
+  name: {{ include "institutional-quant.analyticsName" . }}
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  scaleTargetRef:
+
+    apiVersion: apps/v1
+
+    kind: Deployment
+
+    name: {{ include "institutional-quant.analyticsName" . }}
+
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+
+  metrics:
+
+    - type: Resource
+
+      resource:
+
+        name: cpu
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: {{ .Values.autoscaling.cpuUtilization }}
+
+    - type: Resource
+
+      resource:
+
+        name: memory
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: {{ .Values.autoscaling.memoryUtilization }}
+
+---
+
+###############################################################################
+# Dashboard HPA
+###############################################################################
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+
+  name: {{ include "institutional-quant.dashboardName" . }}
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  scaleTargetRef:
+
+    apiVersion: apps/v1
+
+    kind: Deployment
+
+    name: {{ include "institutional-quant.dashboardName" . }}
+
+  minReplicas: {{ .Values.autoscaling.minReplicas }}
+
+  maxReplicas: {{ .Values.autoscaling.maxReplicas }}
+
+  metrics:
+
+    - type: Resource
+
+      resource:
+
+        name: cpu
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: {{ .Values.autoscaling.cpuUtilization }}
+
+    - type: Resource
+
+      resource:
+
+        name: memory
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: {{ .Values.autoscaling.memoryUtilization }}
+
+{{- end }}

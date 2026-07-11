@@ -1,0 +1,97 @@
+# ==============================================================================
+# Institutional Quant Platform
+# Pod Disruption Budgets
+# ==============================================================================
+
+###############################################################################
+# API
+###############################################################################
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+  name: quant-api-pdb
+  namespace: institutional-quant
+
+  labels:
+    app: quant-api
+
+spec:
+
+  minAvailable: 2
+
+  selector:
+    matchLabels:
+      app: quant-api
+
+---
+
+###############################################################################
+# Analytics
+###############################################################################
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+  name: quant-analytics-pdb
+  namespace: institutional-quant
+
+  labels:
+    app: quant-analytics
+
+spec:
+
+  minAvailable: 1
+
+  selector:
+    matchLabels:
+      app: quant-analytics
+
+---
+
+###############################################################################
+# Dashboard
+###############################################################################
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+  name: quant-dashboard-pdb
+  namespace: institutional-quant
+
+  labels:
+    app: quant-dashboard
+
+spec:
+
+  minAvailable: 1
+
+  selector:
+    matchLabels:
+      app: quant-dashboard
+
+---
+
+###############################################################################
+# Redis
+###############################################################################
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+  name: quant-redis-pdb
+  namespace: institutional-quant
+
+spec:
+
+  minAvailable: 1
+
+  selector:
+
+    matchLabels:
+
+      app: redis

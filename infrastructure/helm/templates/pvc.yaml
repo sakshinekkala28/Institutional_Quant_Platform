@@ -1,0 +1,198 @@
+{{- if .Values.persistence.enabled }}
+
+# ==============================================================================
+# Institutional Quant Platform
+# Persistent Volume Claims
+# ==============================================================================
+
+###############################################################################
+# Data
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-data
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: {{ include "institutional-quant.storageClass" . }}
+
+  resources:
+
+    requests:
+
+      storage: {{ .Values.persistence.data.size }}
+
+---
+
+###############################################################################
+# Cache
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-cache
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: {{ include "institutional-quant.storageClass" . }}
+
+  resources:
+
+    requests:
+
+      storage: {{ .Values.persistence.cache.size }}
+
+---
+
+###############################################################################
+# Logs
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-logs
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: {{ include "institutional-quant.storageClass" . }}
+
+  resources:
+
+    requests:
+
+      storage: {{ .Values.persistence.logs.size }}
+
+---
+
+###############################################################################
+# Models
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-models
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: {{ include "institutional-quant.storageClass" . }}
+
+  resources:
+
+    requests:
+
+      storage: {{ .Values.persistence.models.size }}
+
+---
+
+###############################################################################
+# Reports
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-reports
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: {{ include "institutional-quant.storageClass" . }}
+
+  resources:
+
+    requests:
+
+      storage: {{ .Values.persistence.reports.size }}
+
+---
+
+###############################################################################
+# Backups
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-backups
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: {{ include "institutional-quant.storageClass" . }}
+
+  resources:
+
+    requests:
+
+      storage: {{ .Values.persistence.backups.size }}
+
+{{- end }}

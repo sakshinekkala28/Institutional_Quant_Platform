@@ -1,0 +1,92 @@
+apiVersion: v1
+kind: Pod
+
+metadata:
+
+  name: "{{ include "institutional-quant.fullname" . }}-connection-test"
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+  annotations:
+
+    "helm.sh/hook": test
+
+    "helm.sh/hook-weight": "0"
+
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+
+spec:
+
+  restartPolicy: Never
+
+  containers:
+
+    - name: connectivity-test
+
+      image: curlimages/curl:8.7.1
+
+      imagePullPolicy: IfNotPresent
+
+      command:
+
+        - /bin/sh
+
+        - -c
+
+        - |
+
+          set -e
+
+          echo "=========================================="
+          echo "Institutional Quant Platform Helm Test"
+          echo "=========================================="
+
+          echo ""
+          echo "Testing API..."
+
+          curl --fail --silent \
+            http://{{ include "institutional-quant.apiName" . }}:{{ .Values.api.service.port }}/health
+
+          echo ""
+          echo "API OK"
+
+          echo ""
+          echo "Testing Dashboard..."
+
+          curl --fail --silent \
+            http://{{ include "institutional-quant.dashboardName" . }}:{{ .Values.dashboard.service.port }}/
+
+          echo ""
+          echo "Dashboard OK"
+
+          echo ""
+          echo "DNS Resolution..."
+
+          nslookup {{ include "institutional-quant.apiName" . }}
+
+          nslookup {{ include "institutional-quant.dashboardName" . }}
+
+          echo ""
+          echo "DNS OK"
+
+          echo ""
+          echo "All Helm Tests Passed Successfully"
+
+      securityContext:
+
+        allowPrivilegeEscalation: false
+
+        readOnlyRootFilesystem: true
+
+        runAsNonRoot: true
+
+        runAsUser: 1000
+
+        capabilities:
+
+          drop:
+
+            - ALL

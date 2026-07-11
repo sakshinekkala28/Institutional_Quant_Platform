@@ -1,0 +1,1094 @@
+name: Enterprise Release Pipeline
+
+###############################################################################
+# Triggers
+###############################################################################
+
+on:
+
+  push:
+
+    tags:
+
+      - "v*.*.*"
+
+  workflow_dispatch:
+
+    inputs:
+
+      version:
+
+        description: Release Version
+
+        required: true
+
+        default: "v1.0.0"
+
+      prerelease:
+
+        description: Create Prerelease
+
+        required: true
+
+        default: false
+
+        type: boolean
+
+###############################################################################
+# Permissions
+###############################################################################
+
+permissions:
+
+  contents: write
+
+  packages: write
+
+  id-token: write
+
+  attestations: write
+
+###############################################################################
+# Concurrency
+###############################################################################
+
+concurrency:
+
+  group: release-${{ github.ref }}
+
+  cancel-in-progress: false
+
+###############################################################################
+# Environment
+###############################################################################
+
+env:
+
+  PYTHON_VERSION: "3.12"
+
+  HELM_VERSION: "3.18.4"
+
+  REGISTRY: ghcr.io
+
+  IMAGE_NAMESPACE: ${{ github.repository_owner }}
+
+###############################################################################
+# Jobs
+###############################################################################
+
+jobs:
+
+###############################################################################
+# Prepare Release
+###############################################################################
+
+  prepare:
+
+    name: Prepare Release
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 30
+
+###############################################################################
+# Checkout Repository
+###############################################################################
+
+    steps:
+
+      - name: Checkout Repository
+
+        uses: actions/checkout@v4
+
+        with:
+
+          fetch-depth: 0
+
+###############################################################################
+# Setup Python
+###############################################################################
+
+      - name: Setup Python
+
+        uses: actions/setup-python@v5
+
+        with:
+
+          python-version: ${{ env.PYTHON_VERSION }}
+
+          cache: pip
+
+###############################################################################
+# Setup Helm
+###############################################################################
+
+      - name: Setup Helm
+
+        uses: azure/setup-helm@v4
+
+        with:
+
+          version: ${{ env.HELM_VERSION }}
+
+###############################################################################
+# Configure Git
+###############################################################################
+
+      - name: Configure Git
+
+        run: |
+
+          git config --global user.name "github-actions"
+
+          git config --global user.email \
+            "github-actions@users.noreply.github.com"
+
+###############################################################################
+# Determine Release Version
+###############################################################################
+
+      - name: Determine Version
+
+        id: version
+
+        run: |
+
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+
+            VERSION="${{ github.event.inputs.version }}"
+
+          else
+
+            VERSION="${GITHUB_REF#refs/tags/}"
+
+          fi
+
+          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+
+          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+
+###############################################################################
+# Previous Tag
+###############################################################################
+
+      - name: Previous Release
+
+        id: previous
+
+        run: |
+
+          PREVIOUS_TAG=$(git describe \
+            --tags \
+            --abbrev=0 \
+            HEAD^ \
+            2>/dev/null || echo "")
+
+          echo "previous=${PREVIOUS_TAG}" >> $GITHUB_OUTPUT
+
+###############################################################################
+# Release Metadata
+###############################################################################
+
+      - name: Release Metadata
+
+        run: |
+
+          echo "=============================================="
+
+          echo "Institutional Quant Platform"
+
+          echo "Enterprise Release"
+
+          echo "=============================================="
+
+          echo ""
+
+          echo "Repository"
+
+          echo "${{ github.repository }}"
+
+          echo ""
+
+          echo "Version"
+
+          echo "${VERSION}"
+
+          echo ""
+
+          echo "Previous"
+
+          echo "${{ steps.previous.outputs.previous }}"
+
+          echo ""
+
+          echo "Commit"
+
+          echo "${{ github.sha }}"
+
+          echo ""
+
+          echo "Branch"
+
+          echo "${{ github.ref_name }}"
+
+          echo ""
+
+          echo "=============================================="
+
+###############################################################################
+# Verify Release Tag
+###############################################################################
+
+      - name: Verify Version Format
+
+        run: |
+
+          if ! echo "${VERSION}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'
+          then
+
+            echo "Invalid Semantic Version"
+
+            exit 1
+
+          fi
+
+###############################################################################
+# Export Build Metadata
+###############################################################################
+
+      - name: Export Metadata
+
+        run: |
+
+          mkdir release
+
+          cat > release/build-info.json <<EOF
+          {
+            "repository":"${{ github.repository }}",
+            "version":"${VERSION}",
+            "commit":"${{ github.sha }}",
+            "branch":"${{ github.ref_name }}",
+            "workflow":"${{ github.workflow }}",
+            "run":"${{ github.run_number }}"
+          }
+          EOF
+
+###############################################################################
+# Upload Build Metadata
+###############################################################################
+
+      - name: Upload Metadata
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: release-metadata
+
+          path: release/build-info.json
+
+
+###############################################################################
+# Generate Changelog
+###############################################################################
+
+      - name: Generate Changelog
+
+        id: changelog
+
+        run: |
+
+          mkdir -p release
+
+          if [ -n "${{ steps.previous.outputs.previous }}" ]; then
+
+            git log \
+              ${{ steps.previous.outputs.previous }}..HEAD \
+              --pretty=format:"- %s (%an)" \
+              > release/CHANGELOG.md
+
+          else
+
+            git log \
+              --pretty=format:"- %s (%an)" \
+              > release/CHANGELOG.md
+
+          fi
+
+###############################################################################
+# Release Statistics
+###############################################################################
+
+      - name: Generate Release Statistics
+
+        run: |
+
+          COMMITS=$(git rev-list --count HEAD)
+
+          CONTRIBUTORS=$(git shortlog -sn | wc -l)
+
+          FILES=$(git ls-files | wc -l)
+
+          echo "COMMITS=${COMMITS}" >> $GITHUB_ENV
+
+          echo "CONTRIBUTORS=${CONTRIBUTORS}" >> $GITHUB_ENV
+
+          echo "FILES=${FILES}" >> $GITHUB_ENV
+
+###############################################################################
+# Generate Release Notes
+###############################################################################
+
+      - name: Generate Release Notes
+
+        run: |
+
+          cat > release/RELEASE_NOTES.md <<EOF
+
+          # Institutional Quant Platform
+
+          ## Release ${VERSION}
+
+          ### Release Information
+
+          - Version: ${VERSION}
+          - Commit: ${{ github.sha }}
+          - Branch: ${{ github.ref_name }}
+          - Repository: ${{ github.repository }}
+
+          ---
+
+          ## Repository Statistics
+
+          - Total Commits: ${COMMITS}
+          - Contributors: ${CONTRIBUTORS}
+          - Source Files: ${FILES}
+
+          ---
+
+          ## Included Changes
+
+          EOF
+
+          cat release/CHANGELOG.md >> release/RELEASE_NOTES.md
+
+###############################################################################
+# Verify Changelog
+###############################################################################
+
+      - name: Verify Changelog
+
+        run: |
+
+          echo "Release Notes"
+
+          cat release/RELEASE_NOTES.md
+
+###############################################################################
+# Create GitHub Release
+###############################################################################
+
+      - name: Create GitHub Release
+
+        id: release
+
+        uses: softprops/action-gh-release@v2
+
+        with:
+
+          tag_name: ${{ env.VERSION }}
+
+          name: Institutional Quant Platform ${{ env.VERSION }}
+
+          body_path: release/RELEASE_NOTES.md
+
+          draft: false
+
+          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+
+          generate_release_notes: true
+
+###############################################################################
+# Upload Release Notes
+###############################################################################
+
+      - name: Upload Release Documentation
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: release-documents
+
+          path: |
+
+            release/CHANGELOG.md
+
+            release/RELEASE_NOTES.md
+
+###############################################################################
+# Publish GitHub Step Summary
+###############################################################################
+
+      - name: Release Summary
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Enterprise Release
+
+          ## Version
+
+          ${VERSION}
+
+          ## Completed
+
+          - Semantic Version Validation
+          - Changelog Generated
+          - Release Notes Generated
+          - GitHub Release Created
+
+          EOF
+
+###############################################################################
+# Console Summary
+###############################################################################
+
+      - name: Release Console Summary
+
+        run: |
+
+          echo "=================================================="
+
+          echo "Institutional Quant Platform"
+
+          echo "Release Preparation"
+
+          echo "=================================================="
+
+          echo ""
+
+          echo "Version"
+
+          echo "${VERSION}"
+
+          echo ""
+
+          echo "Completed"
+
+          echo "✔ Semantic Version"
+
+          echo "✔ Changelog"
+
+          echo "✔ Release Notes"
+
+          echo "✔ GitHub Release"
+
+          echo ""
+
+          echo "=================================================="
+
+
+###############################################################################
+# Login to GitHub Container Registry
+###############################################################################
+
+      - name: Login to GHCR
+
+        uses: docker/login-action@v3
+
+        with:
+
+          registry: ghcr.io
+
+          username: ${{ github.actor }}
+
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+###############################################################################
+# Setup Cosign
+###############################################################################
+
+      - name: Install Cosign
+
+        uses: sigstore/cosign-installer@v3
+
+###############################################################################
+# Docker Metadata
+###############################################################################
+
+      - name: Docker Metadata
+
+        id: meta
+
+        uses: docker/metadata-action@v5
+
+        with:
+
+          images: |
+
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-api
+
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-analytics
+
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-dashboard
+
+          tags: |
+
+            type=raw,value=${{ env.VERSION }}
+
+            type=raw,value=latest
+
+###############################################################################
+# Build Release Images
+###############################################################################
+
+      - name: Build API Release Image
+
+        uses: docker/build-push-action@v6
+
+        with:
+
+          context: .
+
+          file: infrastructure/docker/Dockerfile.api
+
+          platforms: linux/amd64,linux/arm64
+
+          push: true
+
+          provenance: true
+
+          sbom: true
+
+          tags: |
+
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-api:${{ env.VERSION }}
+
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-api:latest
+
+          cache-from: type=gha
+
+          cache-to: type=gha,mode=max
+
+###############################################################################
+# Analytics Image
+###############################################################################
+
+      - name: Build Analytics Release Image
+
+        uses: docker/build-push-action@v6
+
+        with:
+
+          context: .
+
+          file: infrastructure/docker/Dockerfile.analytics
+
+          platforms: linux/amd64,linux/arm64
+
+          push: true
+
+          provenance: true
+
+          sbom: true
+
+          tags: |
+
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-analytics:${{ env.VERSION }}
+
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-analytics:latest
+
+###############################################################################
+# Dashboard Image
+###############################################################################
+
+      - name: Build Dashboard Release Image
+
+        uses: docker/build-push-action@v6
+
+        with:
+
+          context: .
+
+          file: infrastructure/docker/Dockerfile.dashboard
+
+          platforms: linux/amd64,linux/arm64
+
+          push: true
+
+          provenance: true
+
+          sbom: true
+
+          tags: |
+
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-dashboard:${{ env.VERSION }}
+
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-dashboard:latest
+
+###############################################################################
+# Package Helm Chart
+###############################################################################
+
+      - name: Package Helm Chart
+
+        working-directory: infrastructure/helm
+
+        run: |
+
+          mkdir -p packages
+
+          helm dependency build
+
+          helm package . \
+            --destination packages
+
+###############################################################################
+# Publish Helm Chart to OCI
+###############################################################################
+
+      - name: Publish Helm Chart
+
+        working-directory: infrastructure/helm
+
+        run: |
+
+          echo "${{ secrets.GITHUB_TOKEN }}" | \
+
+          helm registry login ghcr.io \
+
+            --username "${{ github.actor }}" \
+
+            --password-stdin
+
+          helm push \
+
+            packages/*.tgz \
+
+            oci://ghcr.io/${{ github.repository_owner }}/charts
+
+###############################################################################
+# SHA256 Checksums
+###############################################################################
+
+      - name: Generate Checksums
+
+        run: |
+
+          mkdir -p release/checksums
+
+          sha256sum infrastructure/helm/packages/*.tgz \
+            > release/checksums/SHA256SUMS
+
+###############################################################################
+# Sign Helm Package
+###############################################################################
+
+      - name: Sign Helm Package
+
+        env:
+
+          COSIGN_EXPERIMENTAL: "true"
+
+        run: |
+
+          cosign sign --yes \
+
+          ghcr.io/${{ github.repository_owner }}/charts/institutional-quant-platform:${{ env.VERSION }}
+
+###############################################################################
+# Sign API Image
+###############################################################################
+
+      - name: Sign API Image
+
+        env:
+
+          COSIGN_EXPERIMENTAL: "true"
+
+        run: |
+
+          cosign sign --yes \
+
+          ghcr.io/${{ github.repository_owner }}/institutional-quant-api:${{ env.VERSION }}
+
+###############################################################################
+# Sign Analytics Image
+###############################################################################
+
+      - name: Sign Analytics Image
+
+        env:
+
+          COSIGN_EXPERIMENTAL: "true"
+
+        run: |
+
+          cosign sign --yes \
+
+          ghcr.io/${{ github.repository_owner }}/institutional-quant-analytics:${{ env.VERSION }}
+
+###############################################################################
+# Sign Dashboard Image
+###############################################################################
+
+      - name: Sign Dashboard Image
+
+        env:
+
+          COSIGN_EXPERIMENTAL: "true"
+
+        run: |
+
+          cosign sign --yes \
+
+          ghcr.io/${{ github.repository_owner }}/institutional-quant-dashboard:${{ env.VERSION }}
+
+###############################################################################
+# Upload Release Assets
+###############################################################################
+
+      - name: Upload Release Assets
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: release-assets
+
+          path: |
+
+            infrastructure/helm/packages
+
+            release/checksums
+
+###############################################################################
+# Publish GitHub Summary
+###############################################################################
+
+      - name: Release Build Summary
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Release Build
+
+          ## Docker
+
+          - API Image Published
+
+          - Analytics Image Published
+
+          - Dashboard Image Published
+
+          ## Helm
+
+          - Helm Package Built
+
+          - OCI Chart Published
+
+          ## Security
+
+          - Cosign Signatures
+
+          - SBOM
+
+          - Provenance
+
+          - SHA256 Checksums
+
+          EOF
+
+###############################################################################
+# Console Summary
+###############################################################################
+
+      - name: Release Console Summary
+
+        run: |
+
+          echo "==================================================="
+
+          echo "Institutional Quant Platform"
+
+          echo "Release Build"
+
+          echo "==================================================="
+
+          echo ""
+
+          echo "✔ API Image"
+
+          echo "✔ Analytics Image"
+
+          echo "✔ Dashboard Image"
+
+          echo "✔ Helm Chart"
+
+          echo "✔ OCI Publish"
+
+          echo "✔ SHA256"
+
+          echo "✔ Cosign"
+
+          echo "✔ SBOM"
+
+          echo ""
+
+          echo "==================================================="
+
+
+###############################################################################
+# Upload Release Assets to GitHub Release
+###############################################################################
+
+      - name: Upload Release Assets
+
+        uses: softprops/action-gh-release@v2
+
+        with:
+
+          tag_name: ${{ env.VERSION }}
+
+          files: |
+
+            infrastructure/helm/packages/*.tgz
+
+            release/checksums/SHA256SUMS
+
+            release/CHANGELOG.md
+
+            release/RELEASE_NOTES.md
+
+            release/build-info.json
+
+###############################################################################
+# Generate Release Manifest
+###############################################################################
+
+      - name: Generate Release Manifest
+
+        run: |
+
+          mkdir -p release
+
+          cat > release/manifest.json <<EOF
+          {
+            "name":"Institutional Quant Platform",
+            "version":"${VERSION}",
+            "repository":"${{ github.repository }}",
+            "commit":"${{ github.sha }}",
+            "branch":"${{ github.ref_name }}",
+            "release":"${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}",
+            "generated":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+          }
+          EOF
+
+###############################################################################
+# Upload Manifest
+###############################################################################
+
+      - name: Upload Release Manifest
+
+        uses: actions/upload-artifact@v4
+
+        with:
+
+          name: release-manifest
+
+          path: |
+
+            release/manifest.json
+
+###############################################################################
+# Publish GitHub Release Summary
+###############################################################################
+
+      - name: Publish GitHub Summary
+
+        run: |
+
+          cat <<EOF >> $GITHUB_STEP_SUMMARY
+
+          # Enterprise Release
+
+          ## Version
+
+          ${VERSION}
+
+          ---
+
+          ## Release Artifacts
+
+          ✔ Docker Images
+
+          ✔ Helm Chart
+
+          ✔ OCI Registry
+
+          ✔ GitHub Release
+
+          ✔ Release Manifest
+
+          ✔ Release Notes
+
+          ✔ Changelog
+
+          ✔ SHA256 Checksums
+
+          ✔ Build Metadata
+
+          ---
+
+          ## Supply Chain Security
+
+          ✔ SBOM
+
+          ✔ Provenance
+
+          ✔ Cosign Signatures
+
+          EOF
+
+###############################################################################
+# Release Notification
+###############################################################################
+
+      - name: Release Notification
+
+        if: success()
+
+        run: |
+
+          echo "===================================================="
+
+          echo "Institutional Quant Platform"
+
+          echo "Release Successfully Published"
+
+          echo "===================================================="
+
+          echo ""
+
+          echo "Version"
+
+          echo "${VERSION}"
+
+          echo ""
+
+          echo "Repository"
+
+          echo "${{ github.repository }}"
+
+          echo ""
+
+          echo "Release URL"
+
+          echo "${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}"
+
+          echo ""
+
+          echo "===================================================="
+
+###############################################################################
+# Cleanup
+###############################################################################
+
+      - name: Cleanup Workspace
+
+        if: always()
+
+        run: |
+
+          rm -rf release
+
+          rm -rf infrastructure/helm/packages
+
+###############################################################################
+# Final Release Summary Job
+###############################################################################
+
+  summary:
+
+    name: Enterprise Release Summary
+
+    runs-on: ubuntu-latest
+
+    if: always()
+
+    needs:
+
+      - prepare
+
+    steps:
+
+      - name: Release Summary
+
+        run: |
+
+          echo "========================================================"
+
+          echo "Institutional Quant Platform"
+
+          echo "Enterprise Release Pipeline"
+
+          echo "========================================================"
+
+          echo ""
+
+          echo "Repository"
+
+          echo "${{ github.repository }}"
+
+          echo ""
+
+          echo "Version"
+
+          echo "${{ env.VERSION }}"
+
+          echo ""
+
+          echo "Branch"
+
+          echo "${{ github.ref_name }}"
+
+          echo ""
+
+          echo "Completed"
+
+          echo ""
+
+          echo "✔ Version Validation"
+
+          echo "✔ Changelog"
+
+          echo "✔ Release Notes"
+
+          echo "✔ GitHub Release"
+
+          echo "✔ Docker Images"
+
+          echo "✔ Helm OCI"
+
+          echo "✔ Cosign"
+
+          echo "✔ SBOM"
+
+          echo "✔ Provenance"
+
+          echo "✔ Checksums"
+
+          echo "✔ Release Manifest"
+
+          echo ""
+
+          echo "Pipeline Status"
+
+          echo "${{ needs.prepare.result }}"
+
+          echo ""
+
+          echo "========================================================"

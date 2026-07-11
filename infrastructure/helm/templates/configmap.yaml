@@ -1,0 +1,163 @@
+# ==============================================================================
+# Institutional Quant Platform
+# ConfigMaps
+# ==============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-config
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+data:
+
+  ###########################################################################
+  # Platform
+  ###########################################################################
+
+  PLATFORM_NAME: "Institutional Quant Platform"
+
+  PLATFORM_ENV: {{ .Values.global.environment | quote }}
+
+  PLATFORM_VERSION: {{ .Chart.AppVersion | quote }}
+
+  ###########################################################################
+  # API
+  ###########################################################################
+
+  API_HOST: "0.0.0.0"
+
+  API_PORT: "8000"
+
+  ###########################################################################
+  # Dashboard
+  ###########################################################################
+
+  DASHBOARD_HOST: "0.0.0.0"
+
+  DASHBOARD_PORT: "8501"
+
+  ###########################################################################
+  # Analytics
+  ###########################################################################
+
+  ANALYTICS_WORKERS: {{ .Values.analytics.replicas | quote }}
+
+  ###########################################################################
+  # Logging
+  ###########################################################################
+
+  LOG_LEVEL: {{ .Values.logging.level | quote }}
+
+  ###########################################################################
+  # Feature Flags
+  ###########################################################################
+
+  ENABLE_BACKTEST: {{ .Values.features.backtesting | quote }}
+
+  ENABLE_LIVE_TRADING: {{ .Values.features.liveTrading | quote }}
+
+  ENABLE_PORTFOLIO_OPTIMIZATION: {{ .Values.features.portfolioOptimization | quote }}
+
+  ENABLE_RISK_ENGINE: {{ .Values.features.riskEngine | quote }}
+
+  ENABLE_MONITORING: {{ .Values.features.monitoring | quote }}
+
+  ###########################################################################
+  # Storage
+  ###########################################################################
+
+  DATA_DIRECTORY: "/app/data"
+
+  CACHE_DIRECTORY: "/app/cache"
+
+  LOG_DIRECTORY: "/app/logs"
+
+  REPORT_DIRECTORY: "/app/reports"
+
+  MODEL_DIRECTORY: "/app/models"
+
+  ###########################################################################
+  # Scheduler
+  ###########################################################################
+
+  PIPELINE_INTERVAL: "daily"
+
+  ###########################################################################
+  # Monitoring
+  ###########################################################################
+
+  METRICS_ENABLED: "true"
+
+  PROMETHEUS_ENABLED: {{ .Values.monitoring.prometheus.enabled | quote }}
+
+  ###########################################################################
+  # Timezone
+  ###########################################################################
+
+  TZ: {{ .Values.env.TZ | quote }}
+
+---
+# ==============================================================================
+# Streamlit Configuration
+# ==============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-streamlit
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+data:
+
+  config.toml: |
+
+    [server]
+    headless = true
+    address = "0.0.0.0"
+    port = 8501
+    enableCORS = false
+    enableXsrfProtection = true
+
+    [browser]
+    gatherUsageStats = false
+
+    [theme]
+    base = "dark"
+
+---
+# ==============================================================================
+# Uvicorn Configuration
+# ==============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-uvicorn
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+data:
+
+  workers: {{ .Values.api.replicas | quote }}
+
+  timeout: "60"
+
+  keepalive: "5"

@@ -1,0 +1,312 @@
+name: Continuous Integration
+
+###############################################################################
+# Triggers
+###############################################################################
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - staging
+      - "feature/**"
+      - "bugfix/**"
+      - "hotfix/**"
+
+  pull_request:
+    branches:
+      - main
+      - develop
+      - staging
+
+  workflow_dispatch:
+
+###############################################################################
+# Permissions
+###############################################################################
+
+permissions:
+  contents: read
+
+###############################################################################
+# Concurrency
+###############################################################################
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+###############################################################################
+# Environment
+###############################################################################
+
+env:
+  PYTHON_VERSION: "3.12"
+
+###############################################################################
+# Jobs
+###############################################################################
+
+################################################################################
+# Python Validation
+################################################################################
+
+jobs:
+
+  python:
+
+    name: Python Validation
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 30
+
+    steps:
+
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      - name: Install Dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+          pip install \
+            black==25.1.0 \
+            ruff==0.12.5 \
+            mypy==1.17.1 \
+            pytest==8.4.1 \
+            pytest-cov==6.2.1
+
+      - name: Black Format Check
+        run: |
+          black --check .
+
+      - name: Ruff Lint
+        run: |
+          ruff check .
+
+      - name: MyPy
+        run: |
+          mypy .
+
+      - name: Run Unit Tests
+        run: |
+          pytest \
+            tests \
+            --maxfail=1 \
+            --disable-warnings \
+            --cov=. \
+            --cov-report=xml \
+            --cov-report=term \
+            --junitxml=test-results.xml
+
+      - name: Upload Coverage
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage.xml
+
+      - name: Upload Test Results
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: test-results.xml
+
+################################################################################
+# Terraform Validation
+################################################################################
+
+  terraform:
+
+    name: Terraform Validation
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 20
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+
+      - name: Terraform Format
+        working-directory: infrastructure/terraform
+        run: |
+          terraform fmt -check -recursive
+
+      - name: Terraform Init
+        working-directory: infrastructure/terraform
+        run: |
+          terraform init -backend=false
+
+      - name: Terraform Validate
+        working-directory: infrastructure/terraform
+        run: |
+          terraform validate
+
+################################################################################
+# Helm Validation
+################################################################################
+
+  helm:
+
+    name: Helm Validation
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 20
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+
+      - name: Helm Lint
+        run: |
+          helm lint infrastructure/helm
+
+      - name: Helm Template
+        run: |
+          helm template institutional-quant infrastructure/helm > rendered.yaml
+
+      - name: Helm Package
+        run: |
+          helm package infrastructure/helm
+
+      - name: Upload Helm Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: helm-rendered
+          path: |
+            rendered.yaml
+            *.tgz
+
+################################################################################
+# Kubernetes Manifest Validation
+################################################################################
+
+  kubernetes:
+
+    name: Kubernetes Manifest Validation
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 15
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Setup kubectl
+        uses: azure/setup-kubectl@v4
+
+      - name: Client-side Validation
+        run: |
+          kubectl apply \
+            --dry-run=client \
+            -f infrastructure/kubernetes
+
+################################################################################
+# Dockerfile Validation
+################################################################################
+
+  dockerfiles:
+
+    name: Dockerfile Validation
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 10
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Lint API Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: infrastructure/docker/Dockerfile.api
+
+      - name: Lint Analytics Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: infrastructure/docker/Dockerfile.analytics
+
+      - name: Lint Dashboard Dockerfile
+        uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: infrastructure/docker/Dockerfile.dashboard
+
+################################################################################
+# YAML Validation
+################################################################################
+
+  yaml:
+
+    name: YAML Validation
+
+    runs-on: ubuntu-latest
+
+    timeout-minutes: 10
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - name: Lint YAML
+        uses: ibiqlik/action-yamllint@v3
+        with:
+          config_file: .yamllint.yml
+
+################################################################################
+# Summary
+################################################################################
+
+  summary:
+
+    name: CI Summary
+
+    if: always()
+
+    runs-on: ubuntu-latest
+
+    needs:
+      - python
+      - terraform
+      - helm
+      - kubernetes
+      - dockerfiles
+      - yaml
+
+    steps:
+
+      - name: Workflow Summary
+        run: |
+          echo "=============================================="
+          echo "Institutional Quant Platform"
+          echo "Continuous Integration Pipeline"
+          echo "=============================================="
+          echo ""
+          echo "Python      : ${{ needs.python.result }}"
+          echo "Terraform   : ${{ needs.terraform.result }}"
+          echo "Helm        : ${{ needs.helm.result }}"
+          echo "Kubernetes  : ${{ needs.kubernetes.result }}"
+          echo "Dockerfiles : ${{ needs.dockerfiles.result }}"
+          echo "YAML        : ${{ needs.yaml.result }}"
+          echo ""
+          echo "=============================================="

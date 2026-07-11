@@ -1,0 +1,210 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+
+  name: {{ include "institutional-quant.analyticsName" . }}
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  replicas: {{ .Values.analytics.replicas }}
+
+  revisionHistoryLimit: 10
+
+  strategy:
+
+    type: RollingUpdate
+
+    rollingUpdate:
+
+      maxSurge: 25%
+
+      maxUnavailable: 0
+
+  selector:
+
+    matchLabels:
+{{ include "institutional-quant.selectorLabels" . | indent 6 }}
+      component: analytics
+
+  template:
+
+    metadata:
+
+      labels:
+{{ include "institutional-quant.selectorLabels" . | indent 8 }}
+        component: analytics
+
+    spec:
+
+      serviceAccountName: {{ include "institutional-quant.analyticsName" . }}
+
+      terminationGracePeriodSeconds: 60
+
+      securityContext:
+{{ toYaml .Values.security.podSecurityContext | indent 8 }}
+
+      containers:
+
+      - name: analytics
+
+        image: {{ include "institutional-quant.analyticsImage" . }}
+
+        imagePullPolicy: {{ include "institutional-quant.pullPolicy" . }}
+
+        command:
+
+          - python
+
+          - -m
+
+          - orchestration.run_pipeline
+
+        envFrom:
+
+          - configMapRef:
+
+              name: {{ include "institutional-quant.fullname" . }}-config
+
+          - secretRef:
+
+              name: {{ include "institutional-quant.fullname" . }}-secret
+
+        resources:
+{{ toYaml .Values.analytics.resources | indent 10 }}
+
+        securityContext:
+
+          allowPrivilegeEscalation: false
+
+          readOnlyRootFilesystem: false
+
+          capabilities:
+
+            drop:
+
+              - ALL
+
+        livenessProbe:
+
+          exec:
+
+            command:
+
+              - python
+
+              - -c
+
+              - "print('healthy')"
+
+          initialDelaySeconds: 30
+
+          periodSeconds: 30
+
+          timeoutSeconds: 5
+
+          failureThreshold: 3
+
+        readinessProbe:
+
+          exec:
+
+            command:
+
+              - python
+
+              - -c
+
+              - "print('ready')"
+
+          initialDelaySeconds: 20
+
+          periodSeconds: 20
+
+          timeoutSeconds: 5
+
+          failureThreshold: 3
+
+        startupProbe:
+
+          exec:
+
+            command:
+
+              - python
+
+              - -c
+
+              - "print('startup')"
+
+          periodSeconds: 5
+
+          failureThreshold: 30
+
+        volumeMounts:
+
+          - name: data
+
+            mountPath: /app/data
+
+          - name: cache
+
+            mountPath: /app/cache
+
+          - name: reports
+
+            mountPath: /app/reports
+
+          - name: models
+
+            mountPath: /app/models
+
+          - name: logs
+
+            mountPath: /app/logs
+
+      volumes:
+
+        - name: data
+
+          persistentVolumeClaim:
+
+            claimName: {{ include "institutional-quant.fullname" . }}-data
+
+        - name: cache
+
+          persistentVolumeClaim:
+
+            claimName: {{ include "institutional-quant.fullname" . }}-cache
+
+        - name: reports
+
+          persistentVolumeClaim:
+
+            claimName: {{ include "institutional-quant.fullname" . }}-reports
+
+        - name: models
+
+          persistentVolumeClaim:
+
+            claimName: {{ include "institutional-quant.fullname" . }}-models
+
+        - name: logs
+
+          persistentVolumeClaim:
+
+            claimName: {{ include "institutional-quant.fullname" . }}-logs
+
+      affinity:
+{{ toYaml .Values.affinity | indent 8 }}
+
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}

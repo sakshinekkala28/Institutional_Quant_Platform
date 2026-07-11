@@ -1,0 +1,2465 @@
+---
+# Source: institutional-quant-platform/templates/namespace.yaml
+# ==============================================================================
+# Namespace
+# ==============================================================================
+
+apiVersion: v1
+kind: Namespace
+
+metadata:
+
+  name: institutional-quant
+
+  labels:
+
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+    environment: production
+
+  annotations:
+
+    description: Institutional Quant Platform Namespace
+---
+# Source: institutional-quant-platform/templates/networkpolicy.yaml
+# ==============================================================================
+# Institutional Quant Platform
+# Network Policies
+# ==============================================================================
+
+###############################################################################
+# Default Deny
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: quant-institutional-quant-platform-default-deny
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  podSelector: {}
+
+  policyTypes:
+
+    - Ingress
+
+    - Egress
+---
+# Source: institutional-quant-platform/templates/networkpolicy.yaml
+###############################################################################
+# Dashboard -> API
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: quant-institutional-quant-platform-dashboard-api
+
+  namespace: institutional-quant
+
+spec:
+
+  podSelector:
+
+    matchLabels:
+      app.kubernetes.io/name: institutional-quant-platform
+      
+      app.kubernetes.io/instance: quant
+      component: api
+
+  policyTypes:
+
+    - Ingress
+
+  ingress:
+
+    - from:
+
+        - podSelector:
+
+            matchLabels:
+              app.kubernetes.io/name: institutional-quant-platform
+              
+              app.kubernetes.io/instance: quant
+              component: dashboard
+
+      ports:
+
+        - protocol: TCP
+
+          port: 8000
+---
+# Source: institutional-quant-platform/templates/networkpolicy.yaml
+###############################################################################
+# API -> Analytics
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: quant-institutional-quant-platform-api-analytics
+
+  namespace: institutional-quant
+
+spec:
+
+  podSelector:
+
+    matchLabels:
+      app.kubernetes.io/name: institutional-quant-platform
+      
+      app.kubernetes.io/instance: quant
+      component: analytics
+
+  policyTypes:
+
+    - Ingress
+
+  ingress:
+
+    - from:
+
+        - podSelector:
+
+            matchLabels:
+              app.kubernetes.io/name: institutional-quant-platform
+              
+              app.kubernetes.io/instance: quant
+              component: api
+---
+# Source: institutional-quant-platform/templates/networkpolicy.yaml
+###############################################################################
+# DNS Egress
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: quant-institutional-quant-platform-dns
+
+  namespace: institutional-quant
+
+spec:
+
+  podSelector: {}
+
+  policyTypes:
+
+    - Egress
+
+  egress:
+
+    - to:
+
+        - namespaceSelector:
+
+            matchLabels:
+
+              kubernetes.io/metadata.name: kube-system
+
+      ports:
+
+        - protocol: UDP
+
+          port: 53
+
+        - protocol: TCP
+
+          port: 53
+---
+# Source: institutional-quant-platform/templates/networkpolicy.yaml
+###############################################################################
+# External HTTPS (Market Data Providers)
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: quant-institutional-quant-platform-market-data
+
+  namespace: institutional-quant
+
+spec:
+
+  podSelector:
+
+    matchLabels:
+      app.kubernetes.io/name: institutional-quant-platform
+      
+      app.kubernetes.io/instance: quant
+      component: analytics
+
+  policyTypes:
+
+    - Egress
+
+  egress:
+
+    - to:
+
+        - ipBlock:
+
+            cidr: 0.0.0.0/0
+
+      ports:
+
+        - protocol: TCP
+
+          port: 443
+---
+# Source: institutional-quant-platform/templates/networkpolicy.yaml
+###############################################################################
+# Monitoring Access
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: quant-institutional-quant-platform-monitoring
+
+  namespace: institutional-quant
+
+spec:
+
+  podSelector: {}
+
+  policyTypes:
+
+    - Ingress
+
+  ingress:
+
+    - from:
+
+        - namespaceSelector:
+
+            matchLabels:
+
+              kubernetes.io/metadata.name: monitoring
+---
+# Source: institutional-quant-platform/templates/namespace.yaml
+# ==============================================================================
+# Resource Quota
+# ==============================================================================
+
+apiVersion: v1
+kind: ResourceQuota
+
+metadata:
+
+  name: quant-institutional-quant-platform-quota
+
+  namespace: institutional-quant
+
+spec:
+
+  hard:
+
+    requests.cpu: "16"
+
+    requests.memory: "32Gi"
+
+    limits.cpu: "32"
+
+    limits.memory: "64Gi"
+
+    pods: "100"
+
+    services: "50"
+
+    persistentvolumeclaims: "20"
+
+    configmaps: "100"
+
+    secrets: "100"
+---
+# Source: institutional-quant-platform/templates/namespace.yaml
+# ==============================================================================
+# Limit Range
+# ==============================================================================
+
+apiVersion: v1
+kind: LimitRange
+
+metadata:
+
+  name: quant-institutional-quant-platform-limits
+
+  namespace: institutional-quant
+
+spec:
+
+  limits:
+
+    - type: Container
+
+      default:
+
+        cpu: "1000m"
+
+        memory: "1Gi"
+
+      defaultRequest:
+
+        cpu: "250m"
+
+        memory: "256Mi"
+
+      max:
+
+        cpu: "4000m"
+
+        memory: "8Gi"
+
+      min:
+
+        cpu: "100m"
+
+        memory: "128Mi"
+---
+# Source: institutional-quant-platform/templates/pdb.yaml
+# ==============================================================================
+# Institutional Quant Platform
+# Pod Disruption Budgets
+# ==============================================================================
+
+###############################################################################
+# API PDB
+###############################################################################
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+
+  name: quant-institutional-quant-platform-api
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  minAvailable: 2
+
+  selector:
+
+    matchLabels:
+      app.kubernetes.io/name: institutional-quant-platform
+      
+      app.kubernetes.io/instance: quant
+      component: api
+---
+# Source: institutional-quant-platform/templates/pdb.yaml
+###############################################################################
+# Analytics PDB
+###############################################################################
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+
+  name: quant-institutional-quant-platform-analytics
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  minAvailable: 1
+
+  selector:
+
+    matchLabels:
+      app.kubernetes.io/name: institutional-quant-platform
+      
+      app.kubernetes.io/instance: quant
+      component: analytics
+---
+# Source: institutional-quant-platform/templates/pdb.yaml
+###############################################################################
+# Dashboard PDB
+###############################################################################
+
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+
+  name: quant-institutional-quant-platform-dashboard
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  minAvailable: 1
+
+  selector:
+
+    matchLabels:
+      app.kubernetes.io/name: institutional-quant-platform
+      
+      app.kubernetes.io/instance: quant
+      component: dashboard
+---
+# Source: institutional-quant-platform/templates/serviceaccount.yaml
+# ==============================================================================
+# API ServiceAccount
+# ==============================================================================
+
+apiVersion: v1
+kind: ServiceAccount
+
+metadata:
+
+  name: quant-institutional-quant-platform-api
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+automountServiceAccountToken: false
+---
+# Source: institutional-quant-platform/templates/serviceaccount.yaml
+# ==============================================================================
+# Analytics ServiceAccount
+# ==============================================================================
+
+apiVersion: v1
+kind: ServiceAccount
+
+metadata:
+
+  name: quant-institutional-quant-platform-analytics
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+automountServiceAccountToken: false
+---
+# Source: institutional-quant-platform/templates/serviceaccount.yaml
+# ==============================================================================
+# Dashboard ServiceAccount
+# ==============================================================================
+
+apiVersion: v1
+kind: ServiceAccount
+
+metadata:
+
+  name: quant-institutional-quant-platform-dashboard
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+automountServiceAccountToken: false
+---
+# Source: institutional-quant-platform/templates/secret.yaml
+# ==============================================================================
+# Institutional Quant Platform
+# Application Secrets
+# ==============================================================================
+
+apiVersion: v1
+kind: Secret
+
+metadata:
+
+  name: quant-institutional-quant-platform-secret
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+type: Opaque
+
+stringData:
+
+  ###########################################################################
+  # Database
+  ###########################################################################
+
+  POSTGRES_HOST: "postgres"
+
+  POSTGRES_PORT: "5432"
+
+  POSTGRES_DATABASE: "institutional_quant"
+
+  POSTGRES_USERNAME: "CHANGE_ME"
+
+  POSTGRES_PASSWORD: "CHANGE_ME"
+
+  ###########################################################################
+  # Redis
+  ###########################################################################
+
+  REDIS_PASSWORD: "CHANGE_ME"
+
+  ###########################################################################
+  # JWT
+  ###########################################################################
+
+  JWT_SECRET_KEY: "CHANGE_ME"
+
+  JWT_ALGORITHM: "HS256"
+
+  JWT_EXPIRATION_MINUTES: "60"
+
+  ###########################################################################
+  # Encryption
+  ###########################################################################
+
+  ENCRYPTION_KEY: "CHANGE_ME"
+
+  ###########################################################################
+  # Broker APIs
+  ###########################################################################
+
+  ZERODHA_API_KEY: ""
+
+  ZERODHA_API_SECRET: ""
+
+  UPSTOX_API_KEY: ""
+
+  UPSTOX_API_SECRET: ""
+
+  ANGELONE_API_KEY: ""
+
+  ANGELONE_API_SECRET: ""
+
+  IBKR_API_KEY: ""
+
+  IBKR_API_SECRET: ""
+
+  ###########################################################################
+  # Market Data Providers
+  ###########################################################################
+
+  POLYGON_API_KEY: ""
+
+  ALPHAVANTAGE_API_KEY: ""
+
+  FMP_API_KEY: ""
+
+  TWELVEDATA_API_KEY: ""
+
+  ###########################################################################
+  # Notifications
+  ###########################################################################
+
+  SMTP_USERNAME: ""
+
+  SMTP_PASSWORD: ""
+
+  SLACK_WEBHOOK: ""
+
+  TEAMS_WEBHOOK: ""
+
+  ###########################################################################
+  # GitHub
+  ###########################################################################
+
+  GITHUB_TOKEN: ""
+
+  ###########################################################################
+  # Grafana
+  ###########################################################################
+
+  GRAFANA_ADMIN_USER: "admin"
+
+  GRAFANA_ADMIN_PASSWORD: "CHANGE_ME"
+---
+# Source: institutional-quant-platform/templates/secret.yaml
+# ==============================================================================
+# TLS Secret Placeholder
+# ==============================================================================
+
+apiVersion: v1
+kind: Secret
+
+metadata:
+
+  name: institutional-quant-tls
+
+  namespace: institutional-quant
+
+type: kubernetes.io/tls
+
+data:
+
+  tls.crt: ""
+
+  tls.key: ""
+---
+# Source: institutional-quant-platform/templates/configmap.yaml
+# ==============================================================================
+# Institutional Quant Platform
+# ConfigMaps
+# ==============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+
+  name: quant-institutional-quant-platform-config
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+data:
+
+  ###########################################################################
+  # Platform
+  ###########################################################################
+
+  PLATFORM_NAME: "Institutional Quant Platform"
+
+  PLATFORM_ENV: "production"
+
+  PLATFORM_VERSION: "1.0.0"
+
+  ###########################################################################
+  # API
+  ###########################################################################
+
+  API_HOST: "0.0.0.0"
+
+  API_PORT: "8000"
+
+  ###########################################################################
+  # Dashboard
+  ###########################################################################
+
+  DASHBOARD_HOST: "0.0.0.0"
+
+  DASHBOARD_PORT: "8501"
+
+  ###########################################################################
+  # Analytics
+  ###########################################################################
+
+  ANALYTICS_WORKERS: "2"
+
+  ###########################################################################
+  # Logging
+  ###########################################################################
+
+  LOG_LEVEL: "INFO"
+
+  ###########################################################################
+  # Feature Flags
+  ###########################################################################
+
+  ENABLE_BACKTEST: "true"
+
+  ENABLE_LIVE_TRADING: "false"
+
+  ENABLE_PORTFOLIO_OPTIMIZATION: "true"
+
+  ENABLE_RISK_ENGINE: "true"
+
+  ENABLE_MONITORING: "true"
+
+  ###########################################################################
+  # Storage
+  ###########################################################################
+
+  DATA_DIRECTORY: "/app/data"
+
+  CACHE_DIRECTORY: "/app/cache"
+
+  LOG_DIRECTORY: "/app/logs"
+
+  REPORT_DIRECTORY: "/app/reports"
+
+  MODEL_DIRECTORY: "/app/models"
+
+  ###########################################################################
+  # Scheduler
+  ###########################################################################
+
+  PIPELINE_INTERVAL: "daily"
+
+  ###########################################################################
+  # Monitoring
+  ###########################################################################
+
+  METRICS_ENABLED: "true"
+
+  PROMETHEUS_ENABLED: "true"
+
+  ###########################################################################
+  # Timezone
+  ###########################################################################
+
+  TZ: "Asia/Kolkata"
+---
+# Source: institutional-quant-platform/templates/configmap.yaml
+# ==============================================================================
+# Streamlit Configuration
+# ==============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+
+  name: quant-institutional-quant-platform-streamlit
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+data:
+
+  config.toml: |
+
+    [server]
+    headless = true
+    address = "0.0.0.0"
+    port = 8501
+    enableCORS = false
+    enableXsrfProtection = true
+
+    [browser]
+    gatherUsageStats = false
+
+    [theme]
+    base = "dark"
+---
+# Source: institutional-quant-platform/templates/configmap.yaml
+# ==============================================================================
+# Uvicorn Configuration
+# ==============================================================================
+
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+
+  name: quant-institutional-quant-platform-uvicorn
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+data:
+
+  workers: "3"
+
+  timeout: "60"
+
+  keepalive: "5"
+---
+# Source: institutional-quant-platform/templates/pvc.yaml
+# ==============================================================================
+# Institutional Quant Platform
+# Persistent Volume Claims
+# ==============================================================================
+
+###############################################################################
+# Data
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: quant-institutional-quant-platform-data
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: quant-storage
+
+  resources:
+
+    requests:
+
+      storage: 100Gi
+---
+# Source: institutional-quant-platform/templates/pvc.yaml
+###############################################################################
+# Cache
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: quant-institutional-quant-platform-cache
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: quant-storage
+
+  resources:
+
+    requests:
+
+      storage: 20Gi
+---
+# Source: institutional-quant-platform/templates/pvc.yaml
+###############################################################################
+# Logs
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: quant-institutional-quant-platform-logs
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: quant-storage
+
+  resources:
+
+    requests:
+
+      storage: 50Gi
+---
+# Source: institutional-quant-platform/templates/pvc.yaml
+###############################################################################
+# Models
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: quant-institutional-quant-platform-models
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: quant-storage
+
+  resources:
+
+    requests:
+
+      storage: 100Gi
+---
+# Source: institutional-quant-platform/templates/pvc.yaml
+###############################################################################
+# Reports
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: quant-institutional-quant-platform-reports
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: quant-storage
+
+  resources:
+
+    requests:
+
+      storage: 50Gi
+---
+# Source: institutional-quant-platform/templates/pvc.yaml
+###############################################################################
+# Backups
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: quant-institutional-quant-platform-backups
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  accessModes:
+
+    - ReadWriteOnce
+
+  storageClassName: quant-storage
+
+  resources:
+
+    requests:
+
+      storage: 500Gi
+---
+# Source: institutional-quant-platform/templates/serviceaccount.yaml
+# ==============================================================================
+# API Role
+# ==============================================================================
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+
+metadata:
+
+  name: quant-institutional-quant-platform-api
+
+  namespace: institutional-quant
+
+rules:
+
+- apiGroups: [""]
+
+  resources:
+    - configmaps
+    - secrets
+
+  verbs:
+    - get
+    - list
+    - watch
+
+- apiGroups: [""]
+
+  resources:
+    - pods
+
+  verbs:
+    - get
+    - list
+---
+# Source: institutional-quant-platform/templates/serviceaccount.yaml
+# ==============================================================================
+# Analytics Role
+# ==============================================================================
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+
+metadata:
+
+  name: quant-institutional-quant-platform-analytics
+
+  namespace: institutional-quant
+
+rules:
+
+- apiGroups: [""]
+
+  resources:
+    - configmaps
+    - secrets
+    - persistentvolumeclaims
+
+  verbs:
+    - get
+    - list
+    - watch
+
+- apiGroups: [""]
+
+  resources:
+    - pods
+
+  verbs:
+    - get
+    - list
+---
+# Source: institutional-quant-platform/templates/serviceaccount.yaml
+# ==============================================================================
+# Dashboard Role
+# ==============================================================================
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+
+metadata:
+
+  name: quant-institutional-quant-platform-dashboard
+
+  namespace: institutional-quant
+
+rules:
+
+- apiGroups: [""]
+
+  resources:
+    - configmaps
+
+  verbs:
+    - get
+    - list
+---
+# Source: institutional-quant-platform/templates/serviceaccount.yaml
+# ==============================================================================
+# API RoleBinding
+# ==============================================================================
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+
+metadata:
+
+  name: quant-institutional-quant-platform-api
+
+  namespace: institutional-quant
+
+subjects:
+
+- kind: ServiceAccount
+
+  name: quant-institutional-quant-platform-api
+
+roleRef:
+
+  apiGroup: rbac.authorization.k8s.io
+
+  kind: Role
+
+  name: quant-institutional-quant-platform-api
+---
+# Source: institutional-quant-platform/templates/serviceaccount.yaml
+# ==============================================================================
+# Analytics RoleBinding
+# ==============================================================================
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+
+metadata:
+
+  name: quant-institutional-quant-platform-analytics
+
+  namespace: institutional-quant
+
+subjects:
+
+- kind: ServiceAccount
+
+  name: quant-institutional-quant-platform-analytics
+
+roleRef:
+
+  apiGroup: rbac.authorization.k8s.io
+
+  kind: Role
+
+  name: quant-institutional-quant-platform-analytics
+---
+# Source: institutional-quant-platform/templates/serviceaccount.yaml
+# ==============================================================================
+# Dashboard RoleBinding
+# ==============================================================================
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+
+metadata:
+
+  name: quant-institutional-quant-platform-dashboard
+
+  namespace: institutional-quant
+
+subjects:
+
+- kind: ServiceAccount
+
+  name: quant-institutional-quant-platform-dashboard
+
+roleRef:
+
+  apiGroup: rbac.authorization.k8s.io
+
+  kind: Role
+
+  name: quant-institutional-quant-platform-dashboard
+---
+# Source: institutional-quant-platform/templates/service.yaml
+# ==============================================================================
+# Institutional Quant Platform
+# Services
+# ==============================================================================
+
+###############################################################################
+# API Service
+###############################################################################
+
+apiVersion: v1
+kind: Service
+
+metadata:
+
+  name: quant-institutional-quant-platform-api
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  type: ClusterIP
+
+  selector:
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    component: api
+
+  ports:
+
+    - name: http
+
+      protocol: TCP
+
+      port: 80
+
+      targetPort: 8000
+---
+# Source: institutional-quant-platform/templates/service.yaml
+###############################################################################
+# Analytics Service
+###############################################################################
+
+apiVersion: v1
+kind: Service
+
+metadata:
+
+  name: quant-institutional-quant-platform-analytics
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  type: ClusterIP
+
+  selector:
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    component: analytics
+
+  ports:
+
+    - name: metrics
+
+      protocol: TCP
+
+      port: 9091
+
+      targetPort: 9091
+---
+# Source: institutional-quant-platform/templates/service.yaml
+###############################################################################
+# Dashboard Service
+###############################################################################
+
+apiVersion: v1
+kind: Service
+
+metadata:
+
+  name: quant-institutional-quant-platform-dashboard
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  type: ClusterIP
+
+  selector:
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    component: dashboard
+
+  ports:
+
+    - name: http
+
+      protocol: TCP
+
+      port: 80
+
+      targetPort: 8501
+---
+# Source: institutional-quant-platform/templates/analytics-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+
+  name: quant-institutional-quant-platform-analytics
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  replicas: 2
+
+  revisionHistoryLimit: 10
+
+  strategy:
+
+    type: RollingUpdate
+
+    rollingUpdate:
+
+      maxSurge: 25%
+
+      maxUnavailable: 0
+
+  selector:
+
+    matchLabels:
+      app.kubernetes.io/name: institutional-quant-platform
+      
+      app.kubernetes.io/instance: quant
+      component: analytics
+
+  template:
+
+    metadata:
+
+      labels:
+        app.kubernetes.io/name: institutional-quant-platform
+        
+        app.kubernetes.io/instance: quant
+        component: analytics
+
+    spec:
+
+      serviceAccountName: quant-institutional-quant-platform-analytics
+
+      terminationGracePeriodSeconds: 60
+
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+
+      containers:
+
+      - name: analytics
+
+        image: ghcr.io/sakshinekkala28/institutional_quant_platform_analytics:latest
+
+        imagePullPolicy: IfNotPresent
+
+        command:
+
+          - python
+
+          - -m
+
+          - orchestration.run_pipeline
+
+        envFrom:
+
+          - configMapRef:
+
+              name: quant-institutional-quant-platform-config
+
+          - secretRef:
+
+              name: quant-institutional-quant-platform-secret
+
+        resources:
+          limits:
+            cpu: 8
+            memory: 16Gi
+          requests:
+            cpu: 2
+            memory: 4Gi
+
+        securityContext:
+
+          allowPrivilegeEscalation: false
+
+          readOnlyRootFilesystem: false
+
+          capabilities:
+
+            drop:
+
+              - ALL
+
+        livenessProbe:
+
+          exec:
+
+            command:
+
+              - python
+
+              - -c
+
+              - "print('healthy')"
+
+          initialDelaySeconds: 30
+
+          periodSeconds: 30
+
+          timeoutSeconds: 5
+
+          failureThreshold: 3
+
+        readinessProbe:
+
+          exec:
+
+            command:
+
+              - python
+
+              - -c
+
+              - "print('ready')"
+
+          initialDelaySeconds: 20
+
+          periodSeconds: 20
+
+          timeoutSeconds: 5
+
+          failureThreshold: 3
+
+        startupProbe:
+
+          exec:
+
+            command:
+
+              - python
+
+              - -c
+
+              - "print('startup')"
+
+          periodSeconds: 5
+
+          failureThreshold: 30
+
+        volumeMounts:
+
+          - name: data
+
+            mountPath: /app/data
+
+          - name: cache
+
+            mountPath: /app/cache
+
+          - name: reports
+
+            mountPath: /app/reports
+
+          - name: models
+
+            mountPath: /app/models
+
+          - name: logs
+
+            mountPath: /app/logs
+
+      volumes:
+
+        - name: data
+
+          persistentVolumeClaim:
+
+            claimName: quant-institutional-quant-platform-data
+
+        - name: cache
+
+          persistentVolumeClaim:
+
+            claimName: quant-institutional-quant-platform-cache
+
+        - name: reports
+
+          persistentVolumeClaim:
+
+            claimName: quant-institutional-quant-platform-reports
+
+        - name: models
+
+          persistentVolumeClaim:
+
+            claimName: quant-institutional-quant-platform-models
+
+        - name: logs
+
+          persistentVolumeClaim:
+
+            claimName: quant-institutional-quant-platform-logs
+
+      affinity:
+        {}
+
+      nodeSelector:
+        {}
+
+      tolerations:
+        []
+---
+# Source: institutional-quant-platform/templates/api-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: quant-institutional-quant-platform-api
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+  replicas: 3
+
+  revisionHistoryLimit: 10
+
+  strategy:
+    type: RollingUpdate
+
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: institutional-quant-platform
+      
+      app.kubernetes.io/instance: quant
+      component: api
+
+  template:
+
+    metadata:
+
+      labels:
+        app.kubernetes.io/name: institutional-quant-platform
+        
+        app.kubernetes.io/instance: quant
+        component: api
+
+    spec:
+
+      serviceAccountName: quant-institutional-quant-platform-api
+
+      terminationGracePeriodSeconds: 30
+
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+
+      containers:
+
+        - name: api
+
+          image: ghcr.io/sakshinekkala28/institutional_quant_platform:latest
+
+          imagePullPolicy: IfNotPresent
+
+          ports:
+
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+
+          envFrom:
+
+            - configMapRef:
+                name: quant-institutional-quant-platform-config
+
+            - secretRef:
+                name: quant-institutional-quant-platform-secret
+
+          resources:
+            limits:
+              cpu: 2000m
+              memory: 2Gi
+            requests:
+              cpu: 500m
+              memory: 512Mi
+
+          securityContext:
+
+            allowPrivilegeEscalation: false
+
+            readOnlyRootFilesystem: false
+
+            capabilities:
+              drop:
+                - ALL
+
+          readinessProbe:
+
+            httpGet:
+              path: /health
+              port: http
+
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          livenessProbe:
+
+            httpGet:
+              path: /health
+              port: http
+
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          startupProbe:
+
+            httpGet:
+              path: /health
+              port: http
+
+            periodSeconds: 5
+            failureThreshold: 30
+
+          volumeMounts:
+
+            - name: data
+              mountPath: /app/data
+
+            - name: cache
+              mountPath: /app/cache
+
+            - name: logs
+              mountPath: /app/logs
+
+      volumes:
+
+        - name: data
+
+          persistentVolumeClaim:
+            claimName: quant-institutional-quant-platform-data
+
+        - name: cache
+
+          persistentVolumeClaim:
+            claimName: quant-institutional-quant-platform-cache
+
+        - name: logs
+
+          persistentVolumeClaim:
+            claimName: quant-institutional-quant-platform-logs
+
+      affinity:
+        {}
+
+      nodeSelector:
+        {}
+
+      tolerations:
+        []
+---
+# Source: institutional-quant-platform/templates/dashboard-deployment.yaml
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+
+  name: quant-institutional-quant-platform-dashboard
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  replicas: 2
+
+  revisionHistoryLimit: 10
+
+  strategy:
+
+    type: RollingUpdate
+
+    rollingUpdate:
+
+      maxSurge: 25%
+
+      maxUnavailable: 0
+
+  selector:
+
+    matchLabels:
+      app.kubernetes.io/name: institutional-quant-platform
+      
+      app.kubernetes.io/instance: quant
+      component: dashboard
+
+  template:
+
+    metadata:
+
+      labels:
+        app.kubernetes.io/name: institutional-quant-platform
+        
+        app.kubernetes.io/instance: quant
+        component: dashboard
+
+    spec:
+
+      serviceAccountName: quant-institutional-quant-platform-dashboard
+
+      terminationGracePeriodSeconds: 30
+
+      securityContext:
+        fsGroup: 1000
+        runAsNonRoot: true
+        runAsUser: 1000
+
+      containers:
+
+      - name: dashboard
+
+        image: ghcr.io/sakshinekkala28/institutional_quant_platform_dashboard:latest
+
+        imagePullPolicy: IfNotPresent
+
+        ports:
+
+          - name: http
+
+            containerPort: 8501
+
+        envFrom:
+
+          - configMapRef:
+
+              name: quant-institutional-quant-platform-config
+
+          - secretRef:
+
+              name: quant-institutional-quant-platform-secret
+
+        env:
+
+          - name: API_BASE_URL
+
+            value: "http://quant-institutional-quant-platform-api"
+
+        resources:
+          limits:
+            cpu: 2
+            memory: 2Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+
+        securityContext:
+
+          allowPrivilegeEscalation: false
+
+          readOnlyRootFilesystem: false
+
+          capabilities:
+
+            drop:
+              - ALL
+
+        readinessProbe:
+
+          httpGet:
+
+            path: /
+
+            port: http
+
+          initialDelaySeconds: 15
+
+          periodSeconds: 15
+
+          timeoutSeconds: 5
+
+          failureThreshold: 3
+
+        livenessProbe:
+
+          httpGet:
+
+            path: /
+
+            port: http
+
+          initialDelaySeconds: 30
+
+          periodSeconds: 30
+
+          timeoutSeconds: 5
+
+          failureThreshold: 3
+
+        startupProbe:
+
+          httpGet:
+
+            path: /
+
+            port: http
+
+          periodSeconds: 5
+
+          failureThreshold: 30
+
+        volumeMounts:
+
+          - name: streamlit-config
+
+            mountPath: /home/dashboard/.streamlit
+
+            readOnly: true
+
+          - name: cache
+
+            mountPath: /app/cache
+
+          - name: logs
+
+            mountPath: /app/logs
+
+      volumes:
+
+        - name: streamlit-config
+
+          configMap:
+
+            name: quant-institutional-quant-platform-streamlit
+
+        - name: cache
+
+          persistentVolumeClaim:
+
+            claimName: quant-institutional-quant-platform-cache
+
+        - name: logs
+
+          persistentVolumeClaim:
+
+            claimName: quant-institutional-quant-platform-logs
+
+      affinity:
+        {}
+
+      nodeSelector:
+        {}
+
+      tolerations:
+        []
+---
+# Source: institutional-quant-platform/templates/hpa.yaml
+# ==============================================================================
+# Institutional Quant Platform
+# Horizontal Pod Autoscalers
+# ==============================================================================
+
+###############################################################################
+# API HPA
+###############################################################################
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+
+  name: quant-institutional-quant-platform-api
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  scaleTargetRef:
+
+    apiVersion: apps/v1
+
+    kind: Deployment
+
+    name: quant-institutional-quant-platform-api
+
+  minReplicas: 2
+
+  maxReplicas: 10
+
+  metrics:
+
+    - type: Resource
+
+      resource:
+
+        name: cpu
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: 70
+
+    - type: Resource
+
+      resource:
+
+        name: memory
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: 75
+---
+# Source: institutional-quant-platform/templates/hpa.yaml
+###############################################################################
+# Analytics HPA
+###############################################################################
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+
+  name: quant-institutional-quant-platform-analytics
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  scaleTargetRef:
+
+    apiVersion: apps/v1
+
+    kind: Deployment
+
+    name: quant-institutional-quant-platform-analytics
+
+  minReplicas: 2
+
+  maxReplicas: 10
+
+  metrics:
+
+    - type: Resource
+
+      resource:
+
+        name: cpu
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: 70
+
+    - type: Resource
+
+      resource:
+
+        name: memory
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: 75
+---
+# Source: institutional-quant-platform/templates/hpa.yaml
+###############################################################################
+# Dashboard HPA
+###############################################################################
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+
+  name: quant-institutional-quant-platform-dashboard
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+spec:
+
+  scaleTargetRef:
+
+    apiVersion: apps/v1
+
+    kind: Deployment
+
+    name: quant-institutional-quant-platform-dashboard
+
+  minReplicas: 2
+
+  maxReplicas: 10
+
+  metrics:
+
+    - type: Resource
+
+      resource:
+
+        name: cpu
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: 70
+
+    - type: Resource
+
+      resource:
+
+        name: memory
+
+        target:
+
+          type: Utilization
+
+          averageUtilization: 75
+---
+# Source: institutional-quant-platform/templates/ingress.yaml
+# ==============================================================================
+# Institutional Quant Platform
+# Ingress
+# ==============================================================================
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+
+metadata:
+
+  name: quant-institutional-quant-platform
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+  annotations:
+
+    kubernetes.io/ingress.class: nginx
+
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    nginx.ingress.kubernetes.io/backend-protocol: HTTP
+
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+
+    nginx.ingress.kubernetes.io/use-gzip: "true"
+
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,POST,PUT,DELETE,OPTIONS"
+
+    nginx.ingress.kubernetes.io/cors-allow-headers: "*"
+
+    nginx.ingress.kubernetes.io/limit-rps: "20"
+
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "5"
+
+spec:
+
+  ingressClassName: nginx
+
+  tls:
+
+    - hosts:
+
+        - quant.example.com
+
+      secretName: institutional-quant-tls
+
+  rules:
+
+    - host: quant.example.com
+
+      http:
+
+        paths:
+
+###############################################################################
+# Dashboard
+###############################################################################
+
+        - path: /
+
+          pathType: Prefix
+
+          backend:
+
+            service:
+
+              name: quant-institutional-quant-platform-dashboard
+
+              port:
+
+                number: 80
+
+###############################################################################
+# API
+###############################################################################
+
+        - path: /api
+
+          pathType: Prefix
+
+          backend:
+
+            service:
+
+              name: quant-institutional-quant-platform-api
+
+              port:
+
+                number: 80
+---
+# Source: institutional-quant-platform/templates/tests/connection-test.yaml
+apiVersion: v1
+kind: Pod
+
+metadata:
+
+  name: "quant-institutional-quant-platform-connection-test"
+
+  namespace: institutional-quant
+
+  labels:
+    helm.sh/chart: institutional-quant-platform-1.0.0
+    
+    app.kubernetes.io/name: institutional-quant-platform
+    
+    app.kubernetes.io/instance: quant
+    
+    app.kubernetes.io/version: "1.0.0"
+    
+    app.kubernetes.io/managed-by: Helm
+
+  annotations:
+
+    "helm.sh/hook": test
+
+    "helm.sh/hook-weight": "0"
+
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+
+spec:
+
+  restartPolicy: Never
+
+  containers:
+
+    - name: connectivity-test
+
+      image: curlimages/curl:8.7.1
+
+      imagePullPolicy: IfNotPresent
+
+      command:
+
+        - /bin/sh
+
+        - -c
+
+        - |
+
+          set -e
+
+          echo "=========================================="
+          echo "Institutional Quant Platform Helm Test"
+          echo "=========================================="
+
+          echo ""
+          echo "Testing API..."
+
+          curl --fail --silent \
+            http://quant-institutional-quant-platform-api:80/health
+
+          echo ""
+          echo "API OK"
+
+          echo ""
+          echo "Testing Dashboard..."
+
+          curl --fail --silent \
+            http://quant-institutional-quant-platform-dashboard:80/
+
+          echo ""
+          echo "Dashboard OK"
+
+          echo ""
+          echo "DNS Resolution..."
+
+          nslookup quant-institutional-quant-platform-api
+
+          nslookup quant-institutional-quant-platform-dashboard
+
+          echo ""
+          echo "DNS OK"
+
+          echo ""
+          echo "All Helm Tests Passed Successfully"
+
+      securityContext:
+
+        allowPrivilegeEscalation: false
+
+        readOnlyRootFilesystem: true
+
+        runAsNonRoot: true
+
+        runAsUser: 1000
+
+        capabilities:
+
+          drop:
+
+            - ALL

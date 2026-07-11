@@ -1,0 +1,444 @@
+###############################################################################
+# Institutional Quant Platform
+# Default Helm Values
+###############################################################################
+
+###############################################################################
+# Global
+###############################################################################
+
+global:
+
+  environment: production
+
+  namespace: institutional-quant
+
+  imageRegistry: ghcr.io
+
+  imagePullPolicy: IfNotPresent
+
+###############################################################################
+# Images
+###############################################################################
+
+images:
+
+  api:
+
+    repository: sakshinekkala28/institutional_quant_platform
+
+    tag: latest
+
+  analytics:
+
+    repository: sakshinekkala28/institutional_quant_platform_analytics
+
+    tag: latest
+
+  dashboard:
+
+    repository: sakshinekkala28/institutional_quant_platform_dashboard
+
+    tag: latest
+
+###############################################################################
+# API
+###############################################################################
+
+api:
+
+  replicas: 3
+
+  service:
+
+    type: ClusterIP
+
+    port: 80
+
+    targetPort: 8000
+
+  resources:
+
+    requests:
+
+      cpu: 500m
+
+      memory: 512Mi
+
+    limits:
+
+      cpu: 2000m
+
+      memory: 2Gi
+
+###############################################################################
+# Analytics
+###############################################################################
+
+analytics:
+
+  replicas: 2
+
+  service:
+
+    type: ClusterIP
+
+    port: 9091
+
+    targetPort: 9091
+
+  resources:
+
+    requests:
+
+      cpu: 2
+
+      memory: 4Gi
+
+    limits:
+
+      cpu: 8
+
+      memory: 16Gi
+
+###############################################################################
+# Dashboard
+###############################################################################
+
+dashboard:
+
+  replicas: 2
+
+  service:
+
+    type: ClusterIP
+
+    port: 80
+
+    targetPort: 8501
+
+  resources:
+
+    requests:
+
+      cpu: 500m
+
+      memory: 512Mi
+
+    limits:
+
+      cpu: 2
+
+      memory: 2Gi
+
+###############################################################################
+# Autoscaling
+###############################################################################
+
+autoscaling:
+
+  enabled: true
+
+  minReplicas: 2
+
+  maxReplicas: 10
+
+  cpuUtilization: 70
+
+  memoryUtilization: 75
+
+###############################################################################
+# Ingress
+###############################################################################
+
+ingress:
+
+  enabled: true
+
+  className: nginx
+
+  hostname: quant.example.com
+
+  annotations:
+
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
+
+    nginx.ingress.kubernetes.io/proxy-body-size: "100m"
+
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "60"
+
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+
+    nginx.ingress.kubernetes.io/use-gzip: "true"
+
+    nginx.ingress.kubernetes.io/enable-cors: "true"
+
+    nginx.ingress.kubernetes.io/cors-allow-origin: "*"
+
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET,POST,PUT,DELETE,OPTIONS"
+
+    nginx.ingress.kubernetes.io/cors-allow-headers: "*"
+
+    nginx.ingress.kubernetes.io/limit-rps: "20"
+
+    nginx.ingress.kubernetes.io/limit-burst-multiplier: "5"
+
+  tls:
+
+    enabled: true
+
+    secretName: institutional-quant-tls
+
+###############################################################################
+# Persistence
+###############################################################################
+
+persistence:
+
+  enabled: true
+
+  storageClass: quant-storage
+
+  data:
+
+    size: 100Gi
+
+  cache:
+
+    size: 20Gi
+
+  logs:
+
+    size: 50Gi
+
+  reports:
+
+    size: 50Gi
+
+  models:
+
+    size: 100Gi
+
+  backups:
+
+    size: 500Gi
+
+###############################################################################
+# Redis
+###############################################################################
+
+redis:
+
+  enabled: true
+
+  architecture: standalone
+
+  auth:
+
+    enabled: true
+
+###############################################################################
+# Monitoring
+###############################################################################
+
+monitoring:
+
+  prometheus:
+
+    enabled: true
+
+  grafana:
+
+    enabled: true
+
+###############################################################################
+# Logging
+###############################################################################
+
+logging:
+
+  level: INFO
+
+###############################################################################
+# Feature Flags
+###############################################################################
+
+features:
+
+  backtesting: true
+
+  liveTrading: false
+
+  portfolioOptimization: true
+
+  riskEngine: true
+
+  monitoring: true
+
+###############################################################################
+# Security
+###############################################################################
+
+security:
+
+  podSecurityContext:
+
+    runAsNonRoot: true
+
+    runAsUser: 1000
+
+    fsGroup: 1000
+
+###############################################################################
+# Environment Variables
+###############################################################################
+
+env:
+
+  TZ: Asia/Kolkata
+
+  PLATFORM_ENV: production
+
+###############################################################################
+# Scheduling
+###############################################################################
+
+nodeSelector: {}
+
+tolerations: []
+
+affinity: {}
+
+###############################################################################
+# Secrets
+###############################################################################
+
+secrets:
+
+  create: true
+
+  database:
+
+    host: postgres
+
+    port: "5432"
+
+    database: institutional_quant
+
+    username: CHANGE_ME
+
+    password: CHANGE_ME
+
+  redis:
+
+    password: CHANGE_ME
+
+  jwt:
+
+    secret: CHANGE_ME
+
+    algorithm: HS256
+
+    expiration: "60"
+
+  encryption:
+
+    key: CHANGE_ME
+
+  brokers:
+
+    zerodha:
+
+      apiKey: ""
+
+      apiSecret: ""
+
+    upstox:
+
+      apiKey: ""
+
+      apiSecret: ""
+
+    angelone:
+
+      apiKey: ""
+
+      apiSecret: ""
+
+    ibkr:
+
+      apiKey: ""
+
+      apiSecret: ""
+
+  marketData:
+
+    polygon: ""
+
+    alphaVantage: ""
+
+    fmp: ""
+
+    twelveData: ""
+
+  smtp:
+
+    username: ""
+
+    password: ""
+
+  notifications:
+
+    slack: ""
+
+    teams: ""
+
+  github:
+
+    token: ""
+
+  grafana:
+
+    username: admin
+
+    password: CHANGE_ME
+
+###############################################################################
+# RBAC
+###############################################################################
+
+rbac:
+
+  create: true
+
+###############################################################################
+# Network Policy
+###############################################################################
+
+networkPolicy:
+
+  enabled: true
+
+###############################################################################
+# Pod Disruption Budget
+###############################################################################
+
+podDisruptionBudget:
+
+  enabled: true
+
+  api:
+
+    minAvailable: 2
+
+  analytics:
+
+    minAvailable: 1
+
+  dashboard:
+
+    minAvailable: 1

@@ -1,0 +1,183 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+
+  name: {{ include "institutional-quant.dashboardName" . }}
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  replicas: {{ .Values.dashboard.replicas }}
+
+  revisionHistoryLimit: 10
+
+  strategy:
+
+    type: RollingUpdate
+
+    rollingUpdate:
+
+      maxSurge: 25%
+
+      maxUnavailable: 0
+
+  selector:
+
+    matchLabels:
+{{ include "institutional-quant.selectorLabels" . | indent 6 }}
+      component: dashboard
+
+  template:
+
+    metadata:
+
+      labels:
+{{ include "institutional-quant.selectorLabels" . | indent 8 }}
+        component: dashboard
+
+    spec:
+
+      serviceAccountName: {{ include "institutional-quant.dashboardName" . }}
+
+      terminationGracePeriodSeconds: 30
+
+      securityContext:
+{{ toYaml .Values.security.podSecurityContext | indent 8 }}
+
+      containers:
+
+      - name: dashboard
+
+        image: {{ include "institutional-quant.dashboardImage" . }}
+
+        imagePullPolicy: {{ include "institutional-quant.pullPolicy" . }}
+
+        ports:
+
+          - name: http
+
+            containerPort: 8501
+
+        envFrom:
+
+          - configMapRef:
+
+              name: {{ include "institutional-quant.fullname" . }}-config
+
+          - secretRef:
+
+              name: {{ include "institutional-quant.fullname" . }}-secret
+
+        env:
+
+          - name: API_BASE_URL
+
+            value: "http://{{ include "institutional-quant.apiName" . }}"
+
+        resources:
+{{ toYaml .Values.dashboard.resources | indent 10 }}
+
+        securityContext:
+
+          allowPrivilegeEscalation: false
+
+          readOnlyRootFilesystem: false
+
+          capabilities:
+
+            drop:
+              - ALL
+
+        readinessProbe:
+
+          httpGet:
+
+            path: /
+
+            port: http
+
+          initialDelaySeconds: 15
+
+          periodSeconds: 15
+
+          timeoutSeconds: 5
+
+          failureThreshold: 3
+
+        livenessProbe:
+
+          httpGet:
+
+            path: /
+
+            port: http
+
+          initialDelaySeconds: 30
+
+          periodSeconds: 30
+
+          timeoutSeconds: 5
+
+          failureThreshold: 3
+
+        startupProbe:
+
+          httpGet:
+
+            path: /
+
+            port: http
+
+          periodSeconds: 5
+
+          failureThreshold: 30
+
+        volumeMounts:
+
+          - name: streamlit-config
+
+            mountPath: /home/dashboard/.streamlit
+
+            readOnly: true
+
+          - name: cache
+
+            mountPath: /app/cache
+
+          - name: logs
+
+            mountPath: /app/logs
+
+      volumes:
+
+        - name: streamlit-config
+
+          configMap:
+
+            name: {{ include "institutional-quant.fullname" . }}-streamlit
+
+        - name: cache
+
+          persistentVolumeClaim:
+
+            claimName: {{ include "institutional-quant.fullname" . }}-cache
+
+        - name: logs
+
+          persistentVolumeClaim:
+
+            claimName: {{ include "institutional-quant.fullname" . }}-logs
+
+      affinity:
+{{ toYaml .Values.affinity | indent 8 }}
+
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}

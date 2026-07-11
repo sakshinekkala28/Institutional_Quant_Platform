@@ -1,0 +1,110 @@
+# ==============================================================================
+# Institutional Quant Platform
+# Services
+# ==============================================================================
+
+###############################################################################
+# API Service
+###############################################################################
+
+apiVersion: v1
+kind: Service
+
+metadata:
+
+  name: {{ include "institutional-quant.apiName" . }}
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  type: {{ .Values.api.service.type }}
+
+  selector:
+{{ include "institutional-quant.selectorLabels" . | indent 4 }}
+    component: api
+
+  ports:
+
+    - name: http
+
+      protocol: TCP
+
+      port: {{ .Values.api.service.port }}
+
+      targetPort: {{ .Values.api.service.targetPort }}
+
+---
+
+###############################################################################
+# Analytics Service
+###############################################################################
+
+apiVersion: v1
+kind: Service
+
+metadata:
+
+  name: {{ include "institutional-quant.analyticsName" . }}
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  type: ClusterIP
+
+  selector:
+{{ include "institutional-quant.selectorLabels" . | indent 4 }}
+    component: analytics
+
+  ports:
+
+    - name: metrics
+
+      protocol: TCP
+
+      port: 9091
+
+      targetPort: 9091
+
+---
+
+###############################################################################
+# Dashboard Service
+###############################################################################
+
+apiVersion: v1
+kind: Service
+
+metadata:
+
+  name: {{ include "institutional-quant.dashboardName" . }}
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  type: {{ .Values.dashboard.service.type }}
+
+  selector:
+{{ include "institutional-quant.selectorLabels" . | indent 4 }}
+    component: dashboard
+
+  ports:
+
+    - name: http
+
+      protocol: TCP
+
+      port: {{ .Values.dashboard.service.port }}
+
+      targetPort: {{ .Values.dashboard.service.targetPort }}

@@ -1,0 +1,183 @@
+# ==============================================================================
+# Institutional Quant Platform
+# Persistent Volumes & Persistent Volume Claims
+# ==============================================================================
+
+###############################################################################
+# Storage Class (Optional)
+###############################################################################
+
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+
+metadata:
+  name: quant-storage
+
+provisioner: kubernetes.io/no-provisioner
+
+volumeBindingMode: WaitForFirstConsumer
+
+reclaimPolicy: Retain
+
+allowVolumeExpansion: true
+
+---
+
+###############################################################################
+# Data PVC
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+  name: quant-data-pvc
+
+  namespace: institutional-quant
+
+spec:
+
+  storageClassName: quant-storage
+
+  accessModes:
+    - ReadWriteOnce
+
+  resources:
+
+    requests:
+      storage: 100Gi
+
+---
+
+###############################################################################
+# Cache PVC
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: quant-cache-pvc
+
+  namespace: institutional-quant
+
+spec:
+
+  storageClassName: quant-storage
+
+  accessModes:
+    - ReadWriteOnce
+
+  resources:
+
+    requests:
+      storage: 20Gi
+
+---
+
+###############################################################################
+# Logs PVC
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: quant-logs-pvc
+
+  namespace: institutional-quant
+
+spec:
+
+  storageClassName: quant-storage
+
+  accessModes:
+    - ReadWriteOnce
+
+  resources:
+
+    requests:
+      storage: 50Gi
+
+---
+
+###############################################################################
+# Backups PVC
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: quant-backup-pvc
+
+  namespace: institutional-quant
+
+spec:
+
+  storageClassName: quant-storage
+
+  accessModes:
+    - ReadWriteOnce
+
+  resources:
+
+    requests:
+      storage: 500Gi
+
+---
+
+###############################################################################
+# Models PVC
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: quant-models-pvc
+
+  namespace: institutional-quant
+
+spec:
+
+  storageClassName: quant-storage
+
+  accessModes:
+    - ReadWriteOnce
+
+  resources:
+
+    requests:
+      storage: 100Gi
+
+---
+
+###############################################################################
+# Reports PVC
+###############################################################################
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+
+metadata:
+
+  name: quant-reports-pvc
+
+  namespace: institutional-quant
+
+spec:
+
+  storageClassName: quant-storage
+
+  accessModes:
+    - ReadWriteOnce
+
+  resources:
+
+    requests:
+      storage: 50Gi

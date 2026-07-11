@@ -1,0 +1,231 @@
+{{- if .Values.networkPolicy.enabled }}
+
+# ==============================================================================
+# Institutional Quant Platform
+# Network Policies
+# ==============================================================================
+
+###############################################################################
+# Default Deny
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-default-deny
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+
+  podSelector: {}
+
+  policyTypes:
+
+    - Ingress
+
+    - Egress
+
+---
+
+###############################################################################
+# Dashboard -> API
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-dashboard-api
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+spec:
+
+  podSelector:
+
+    matchLabels:
+{{ include "institutional-quant.selectorLabels" . | indent 6 }}
+      component: api
+
+  policyTypes:
+
+    - Ingress
+
+  ingress:
+
+    - from:
+
+        - podSelector:
+
+            matchLabels:
+{{ include "institutional-quant.selectorLabels" . | indent 14 }}
+              component: dashboard
+
+      ports:
+
+        - protocol: TCP
+
+          port: 8000
+
+---
+
+###############################################################################
+# API -> Analytics
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-api-analytics
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+spec:
+
+  podSelector:
+
+    matchLabels:
+{{ include "institutional-quant.selectorLabels" . | indent 6 }}
+      component: analytics
+
+  policyTypes:
+
+    - Ingress
+
+  ingress:
+
+    - from:
+
+        - podSelector:
+
+            matchLabels:
+{{ include "institutional-quant.selectorLabels" . | indent 14 }}
+              component: api
+
+---
+
+###############################################################################
+# DNS Egress
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-dns
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+spec:
+
+  podSelector: {}
+
+  policyTypes:
+
+    - Egress
+
+  egress:
+
+    - to:
+
+        - namespaceSelector:
+
+            matchLabels:
+
+              kubernetes.io/metadata.name: kube-system
+
+      ports:
+
+        - protocol: UDP
+
+          port: 53
+
+        - protocol: TCP
+
+          port: 53
+
+---
+
+###############################################################################
+# External HTTPS (Market Data Providers)
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-market-data
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+spec:
+
+  podSelector:
+
+    matchLabels:
+{{ include "institutional-quant.selectorLabels" . | indent 6 }}
+      component: analytics
+
+  policyTypes:
+
+    - Egress
+
+  egress:
+
+    - to:
+
+        - ipBlock:
+
+            cidr: 0.0.0.0/0
+
+      ports:
+
+        - protocol: TCP
+
+          port: 443
+
+---
+
+###############################################################################
+# Monitoring Access
+###############################################################################
+
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+
+metadata:
+
+  name: {{ include "institutional-quant.fullname" . }}-monitoring
+
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+spec:
+
+  podSelector: {}
+
+  policyTypes:
+
+    - Ingress
+
+  ingress:
+
+    - from:
+
+        - namespaceSelector:
+
+            matchLabels:
+
+              kubernetes.io/metadata.name: monitoring
+
+{{- end }}

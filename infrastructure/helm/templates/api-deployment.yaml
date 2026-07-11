@@ -1,0 +1,146 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: {{ include "institutional-quant.apiName" . }}
+  namespace: {{ include "institutional-quant.namespace" . }}
+
+  labels:
+{{ include "institutional-quant.labels" . | indent 4 }}
+
+spec:
+  replicas: {{ .Values.api.replicas }}
+
+  revisionHistoryLimit: 10
+
+  strategy:
+    type: RollingUpdate
+
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 0
+
+  selector:
+    matchLabels:
+{{ include "institutional-quant.selectorLabels" . | indent 6 }}
+      component: api
+
+  template:
+
+    metadata:
+
+      labels:
+{{ include "institutional-quant.selectorLabels" . | indent 8 }}
+        component: api
+
+    spec:
+
+      serviceAccountName: {{ include "institutional-quant.apiName" . }}
+
+      terminationGracePeriodSeconds: 30
+
+      securityContext:
+{{ toYaml .Values.security.podSecurityContext | indent 8 }}
+
+      containers:
+
+        - name: api
+
+          image: {{ include "institutional-quant.apiImage" . }}
+
+          imagePullPolicy: {{ include "institutional-quant.pullPolicy" . }}
+
+          ports:
+
+            - name: http
+              containerPort: 8000
+              protocol: TCP
+
+          envFrom:
+
+            - configMapRef:
+                name: {{ include "institutional-quant.fullname" . }}-config
+
+            - secretRef:
+                name: {{ include "institutional-quant.fullname" . }}-secret
+
+          resources:
+{{ toYaml .Values.api.resources | indent 12 }}
+
+          securityContext:
+
+            allowPrivilegeEscalation: false
+
+            readOnlyRootFilesystem: false
+
+            capabilities:
+              drop:
+                - ALL
+
+          readinessProbe:
+
+            httpGet:
+              path: /health
+              port: http
+
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 3
+            failureThreshold: 3
+
+          livenessProbe:
+
+            httpGet:
+              path: /health
+              port: http
+
+            initialDelaySeconds: 20
+            periodSeconds: 20
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+          startupProbe:
+
+            httpGet:
+              path: /health
+              port: http
+
+            periodSeconds: 5
+            failureThreshold: 30
+
+          volumeMounts:
+
+            - name: data
+              mountPath: /app/data
+
+            - name: cache
+              mountPath: /app/cache
+
+            - name: logs
+              mountPath: /app/logs
+
+      volumes:
+
+        - name: data
+
+          persistentVolumeClaim:
+            claimName: {{ include "institutional-quant.fullname" . }}-data
+
+        - name: cache
+
+          persistentVolumeClaim:
+            claimName: {{ include "institutional-quant.fullname" . }}-cache
+
+        - name: logs
+
+          persistentVolumeClaim:
+            claimName: {{ include "institutional-quant.fullname" . }}-logs
+
+      affinity:
+{{ toYaml .Values.affinity | indent 8 }}
+
+      nodeSelector:
+{{ toYaml .Values.nodeSelector | indent 8 }}
+
+      tolerations:
+{{ toYaml .Values.tolerations | indent 8 }}
