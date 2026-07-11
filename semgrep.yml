@@ -1,0 +1,246 @@
+###############################################################################
+# Institutional Quant Platform
+# Semgrep Configuration
+###############################################################################
+
+rules:
+
+###############################################################################
+# Python Security
+###############################################################################
+
+- id: python-security
+
+  languages:
+
+    - python
+
+  severity: ERROR
+
+  message: Potential Python security issue detected.
+
+  patterns:
+
+    - pattern-either:
+
+        - pattern: eval(...)
+
+        - pattern: exec(...)
+
+        - pattern: pickle.loads(...)
+
+        - pattern: yaml.load(...)
+
+        - pattern: subprocess.Popen(..., shell=True)
+
+        - pattern: os.system(...)
+
+        - pattern: hashlib.md5(...)
+
+        - pattern: hashlib.sha1(...)
+
+###############################################################################
+# Hardcoded Secrets
+###############################################################################
+
+- id: hardcoded-secret
+
+  languages:
+
+    - python
+
+    - yaml
+
+    - json
+
+    - toml
+
+  severity: ERROR
+
+  message: Possible hardcoded secret.
+
+  patterns:
+
+    - pattern-regex: '(?i)(password|secret|apikey|api_key|token)\s*[:=]\s*["''].*["'']'
+
+###############################################################################
+# Debug Statements
+###############################################################################
+
+- id: debug-print
+
+  languages:
+
+    - python
+
+  severity: WARNING
+
+  message: Remove debug statements before production.
+
+  patterns:
+
+    - pattern-either:
+
+        - pattern: print(...)
+
+        - pattern: breakpoint(...)
+
+###############################################################################
+# SQL Injection
+###############################################################################
+
+- id: sql-injection
+
+  languages:
+
+    - python
+
+  severity: ERROR
+
+  message: Possible SQL Injection.
+
+  patterns:
+
+    - pattern-either:
+
+        - pattern: cursor.execute(... + ...)
+
+        - pattern: cursor.execute(f"...")
+
+        - pattern: pandas.read_sql(f"...")
+
+###############################################################################
+# Requests without Timeout
+###############################################################################
+
+- id: requests-timeout
+
+  languages:
+
+    - python
+
+  severity: WARNING
+
+  message: HTTP requests should specify a timeout.
+
+  patterns:
+
+    - pattern-either:
+
+        - pattern: requests.get(...)
+
+        - pattern: requests.post(...)
+
+        - pattern: requests.put(...)
+
+        - pattern: requests.delete(...)
+
+  pattern-not:
+
+    pattern: requests.$METHOD(..., timeout=...)
+
+###############################################################################
+# Weak Random
+###############################################################################
+
+- id: weak-random
+
+  languages:
+
+    - python
+
+  severity: WARNING
+
+  message: Use secrets module for cryptographic randomness.
+
+  patterns:
+
+    - pattern-either:
+
+        - pattern: random.random(...)
+
+        - pattern: random.randint(...)
+
+        - pattern: random.choice(...)
+
+###############################################################################
+# Docker
+###############################################################################
+
+- id: docker-root-user
+
+  languages:
+
+    - dockerfile
+
+  severity: WARNING
+
+  message: Docker containers should not run as root.
+
+  pattern: |
+      FROM ...
+      ...
+
+###############################################################################
+# Terraform
+###############################################################################
+
+- id: terraform-public
+
+  languages:
+
+    - hcl
+
+  severity: WARNING
+
+  message: Review Terraform resource for public exposure.
+
+  pattern-regex: '0\.0\.0\.0/0'
+
+###############################################################################
+# Kubernetes
+###############################################################################
+
+- id: kubernetes-latest-tag
+
+  languages:
+
+    - yaml
+
+  severity: WARNING
+
+  message: Avoid latest image tags.
+
+  pattern-regex: 'image:.*:latest'
+
+###############################################################################
+# GitHub Actions
+###############################################################################
+
+- id: github-actions-pin
+
+  languages:
+
+    - yaml
+
+  severity: INFO
+
+  message: Consider pinning GitHub Actions by commit SHA.
+
+  pattern-regex: 'uses:\s+[A-Za-z0-9._/-]+@v[0-9]+'
+
+###############################################################################
+# Logging
+###############################################################################
+
+- id: logging-sensitive-data
+
+  languages:
+
+    - python
+
+  severity: WARNING
+
+  message: Avoid logging sensitive information.
+
+  pattern-regex: 'logger\.(info|debug|warning|error).*password|secret|token'
