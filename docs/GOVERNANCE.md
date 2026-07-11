@@ -1,462 +1,431 @@
-# Project Governance
+# Platform Governance
 
 > Institutional Quant Platform
 
 ---
 
-## Document Information
+# Document Information
 
 | Field | Value |
 |-------|-------|
-| Document | Project Governance |
+| Document | Platform Governance |
 | Version | 1.0.0 |
 | Status | Approved |
-| Owner | Platform Architecture |
+| Owner | Platform Architecture Team |
 | Classification | Internal |
 | Last Updated | YYYY-MM-DD |
-| Next Review | YYYY-MM-DD |
+| Next Review | Annually |
 
 ---
 
 # Purpose
 
-This document defines the governance model for the Institutional Quant Platform.
+This document defines the governance framework for the
+Institutional Quant Platform.
 
-Governance ensures that the project evolves in a controlled,
-consistent, maintainable, and auditable manner.
+Governance ensures the platform evolves in a controlled,
+secure, scalable, and maintainable manner.
 
-This document defines
+This document establishes
 
-- Architecture ownership
+- Engineering governance
+- Architecture governance
 - Repository governance
+- Security governance
 - Documentation governance
-- Development governance
 - Release governance
-- Decision making
-- Approval process
+- Operational governance
 
 ---
 
 # Governance Principles
 
-The project follows these principles.
+Every decision should support
 
-- Architecture First
-- Documentation Driven Development
-- Single Source of Truth
-- Separation of Concerns
-- Production Quality
-- Test Before Release
-- Traceable Decisions
-- Continuous Improvement
+- Reliability
+- Simplicity
+- Scalability
+- Security
+- Maintainability
+- Transparency
+- Automation
 
 ---
 
-# Project Ownership
+# Governance Objectives
 
-The platform is governed by the Platform Architecture Team.
+The governance model ensures
 
-Responsibilities include
+- Consistent engineering standards
+- High code quality
+- Secure software development
+- Controlled architecture evolution
+- Predictable releases
+- Long-term maintainability
 
-- Repository Architecture
-- Coding Standards
+---
+
+# Organizational Roles
+
+## Platform Architect
+
+Responsible for
+
+- Architecture decisions
+- Technical direction
+- Design approval
+- Technology selection
+- Architecture reviews
+
+---
+
+## Platform Engineering
+
+Responsible for
+
+- Core framework
+- Infrastructure
+- CI/CD
+- Deployment
+- Reliability
+
+---
+
+## Software Engineering
+
+Responsible for
+
+- Feature development
+- Unit testing
+- Integration testing
 - Documentation
-- Release Management
-- Quality Assurance
-- Security Standards
+- Code quality
 
 ---
 
-# Governance Structure
+## Operations
+
+Responsible for
+
+- Production support
+- Monitoring
+- Incident response
+- Disaster recovery
+- Maintenance
+
+---
+
+## Security
+
+Responsible for
+
+- Security reviews
+- Vulnerability management
+- Compliance
+- Secrets management
+- Security audits
+
+---
+
+# Decision Making
+
+Technical decisions should follow
 
 ```
-Platform Owner
+Problem
 
-        │
+↓
 
-        ▼
+Analysis
 
-Architecture
+↓
 
-        │
+Proposal
 
-        ▼
+↓
 
-Development
+Architecture Review
 
-        │
+↓
 
-        ▼
+Approval
 
-Testing
+↓
 
-        │
+Implementation
 
-        ▼
+↓
 
-Release
-
-        │
-
-        ▼
-
-Operations
+Documentation
 ```
+
+Major decisions shall be recorded as ADRs.
 
 ---
 
 # Repository Governance
 
-The repository structure is governed by
+The repository is the single source of truth.
 
-```
-docs/architecture/
-```
+All production changes must
 
-Changes to repository structure require
+- Use Pull Requests
+- Pass automated validation
+- Be reviewed
+- Be traceable
+- Be version controlled
 
-- Architecture review
-- ADR approval
-- Documentation update
+Direct commits to protected branches are prohibited.
 
-No repository restructuring is permitted without approval.
+---
+
+# Branch Strategy
+
+Protected branches
+
+- main
+- release/*
+
+Working branches
+
+- feature/*
+- bugfix/*
+- hotfix/*
+- docs/*
+- refactor/*
+- research/*
+
+---
+
+# Code Review Policy
+
+Every Pull Request requires
+
+- Automated CI checks
+- At least one technical review
+- Architecture review (when applicable)
+- Security review (for sensitive changes)
+
+Reviews should focus on
+
+- Correctness
+- Performance
+- Security
+- Maintainability
+- Test coverage
 
 ---
 
 # Architecture Governance
 
-Architecture documents are the official reference.
-
-Implementation must comply with
-
-```
-docs/architecture/
-```
-
 Architecture changes require
 
-1. ADR
-2. Review
-3. Approval
-4. Documentation Update
-5. Implementation
+- ADR
+- Design review
+- Approval
+- Documentation updates
+
+Architecture shall remain
+
+- Modular
+- Layered
+- Loosely coupled
+- Highly cohesive
+
+---
+
+# Coding Standards
+
+All code shall comply with
+
+- Development Handbook
+- Coding Standards
+- Security Guide
+- Testing Guide
+
+Style consistency shall be enforced through automated tooling.
+
+---
+
+# Testing Governance
+
+Every change shall pass
+
+- Unit Tests
+- Integration Tests
+- Static Analysis
+- Security Scans
+
+Production deployments require all mandatory quality gates.
 
 ---
 
 # Documentation Governance
 
-Documentation is considered source code.
+Documentation shall
 
-Every feature shall include
+- Be version controlled
+- Be reviewed
+- Be synchronized with implementation
+- Include revision history
 
-- Documentation
-- Tests
-- Code
+Documentation is mandatory for
 
-Documentation shall remain synchronized with implementation.
-
----
-
-# Development Governance
-
-Development shall follow
-
-```
-docs/development/
-```
-
-Including
-
-- Coding Standards
-- Engine Guide
-- Pipeline Guide
-- Testing Guide
-- Security Guide
-
----
-
-# Branching Strategy
-
-Recommended branches
-
-```
-main
-
-develop
-
-feature/*
-
-release/*
-
-hotfix/*
-```
-
----
-
-# Pull Request Policy
-
-Every Pull Request shall include
-
-- Description
-- Motivation
-- Related Issue
-- Testing
-- Documentation Update
-- ADR (if applicable)
-
----
-
-# Code Review
-
-Every Pull Request shall be reviewed for
-
-- Architecture
-- Correctness
-- Maintainability
-- Performance
-- Security
-- Testing
-- Documentation
-
-No direct commits to the protected branch.
-
----
-
-# Architecture Decision Records
-
-Architectural decisions are documented in
-
-```
-docs/architecture/ADR/
-```
-
-Every ADR includes
-
-- Context
-- Decision
-- Consequences
-- Status
-
----
-
-# Decision Categories
-
-Minor
-
-Examples
-
-- Bug Fix
-- Documentation
-
-Major
-
-Examples
-
-- New Pipeline
-- New Analytics Domain
-- Repository Changes
-- New API
-- Infrastructure Changes
-
-Major decisions require an ADR.
-
----
-
-# Version Control
-
-The project follows Semantic Versioning.
-
-```
-Major.Minor.Patch
-```
-
-Example
-
-```
-1.0.0
-```
-
-Major
-
-Architecture Changes
-
-Minor
-
-New Features
-
-Patch
-
-Bug Fixes
-
----
-
-# Release Governance
-
-Every release requires
-
-- Passing Tests
-- Updated Documentation
-- Changelog
-- Version Update
-- Release Notes
-
----
-
-# Quality Standards
-
-Every production feature shall include
-
-- Unit Tests
-- Integration Tests
-- Documentation
-- Logging
-- Error Handling
-- Validation
+- New features
+- APIs
+- Architecture changes
+- Infrastructure changes
 
 ---
 
 # Security Governance
 
-Every release shall undergo
+Security principles
 
-- Dependency Scan
-- Secret Scan
-- Static Analysis
-- Security Review
+- Least Privilege
+- Zero Trust
+- Defense in Depth
+- Secure by Default
 
-No secrets shall exist in the repository.
+Mandatory controls
 
----
-
-# Documentation Review
-
-Architecture
-
-Reviewed when
-
-- Repository changes
-- Pipeline changes
-- New analytics modules
-
-Development Guides
-
-Reviewed
-
-Quarterly
-
-Operations
-
-Reviewed
-
-After incidents
+- Dependency scanning
+- Secret scanning
+- Container scanning
+- Static security analysis
 
 ---
 
-# Deprecation Policy
+# Release Governance
 
-Deprecated functionality shall
+Releases require
 
-- Be documented
-- Be versioned
-- Provide migration guidance
-- Remain supported for an agreed period before removal
+- Approved Pull Requests
+- Passing CI/CD
+- Version tagging
+- Release notes
+- Deployment validation
+
+Emergency releases require post-release review.
+
+---
+
+# Operational Governance
+
+Production systems shall have
+
+- Monitoring
+- Alerting
+- Health checks
+- Backup verification
+- Disaster recovery procedures
+
+Operational standards are defined in the Operations Handbook.
+
+---
+
+# Change Management
+
+Every significant change requires
+
+- Change request
+- Risk assessment
+- Approval
+- Rollback strategy
+- Validation
+
+---
+
+# Risk Management
+
+Technical risks shall be
+
+- Identified
+- Assessed
+- Documented
+- Mitigated
+- Reviewed
+
+High-risk changes require architecture approval.
 
 ---
 
 # Compliance
 
-Every contributor shall comply with
+The platform shall comply with
 
-- Architecture Handbook
-- Development Handbook
-- Deployment Handbook
-- Operations Handbook
+- Internal engineering standards
+- Security standards
+- Documentation standards
+- Release governance
 
-Non-compliant contributions shall not be merged.
-
----
-
-# Governance Workflow
-
-```
-Requirement
-
-        │
-
-        ▼
-
-ADR
-
-        │
-
-        ▼
-
-Architecture Review
-
-        │
-
-        ▼
-
-Documentation
-
-        │
-
-        ▼
-
-Implementation
-
-        │
-
-        ▼
-
-Testing
-
-        │
-
-        ▼
-
-Code Review
-
-        │
-
-        ▼
-
-Release
-
-        │
-
-        ▼
-
-Operations
-```
+Regulatory requirements should be addressed according to deployment context.
 
 ---
 
-# Responsibilities
+# Governance Reviews
 
-| Area | Owner |
-|-------|-------|
-| Architecture | Platform Architecture |
-| Documentation | Platform Architecture |
-| Development | Engineering |
-| Testing | Quality Assurance |
-| Security | Security Review |
-| Deployment | DevOps |
-| Operations | Operations Team |
+Conduct reviews
+
+Monthly
+
+- Engineering standards
+- Documentation status
+
+Quarterly
+
+- Architecture
+- Security
+- Performance
+- Operations
+
+Annually
+
+- Technology roadmap
+- Governance effectiveness
+- Platform maturity
 
 ---
 
-# Governance Checklist
+# Governance Metrics
 
-Before merging a feature
+Track
 
-- Architecture reviewed
-- Documentation updated
-- Tests passing
-- Code reviewed
-- Security reviewed
-- Changelog updated
-- Version updated
+- PR review time
+- Build success rate
+- Deployment success rate
+- Test coverage
+- Documentation coverage
+- Incident count
+- Security findings
+- Technical debt
+
+---
+
+# Exceptions
+
+Governance exceptions require
+
+- Documented justification
+- Architecture approval
+- Risk assessment
+- Time-bound remediation plan
+
+Exceptions shall be reviewed periodically.
+
+---
+
+# Continuous Improvement
+
+Governance evolves through
+
+- Retrospectives
+- Architecture reviews
+- Incident reviews
+- Security assessments
+- Community feedback
+
+Continuous improvement is mandatory.
 
 ---
 
@@ -465,10 +434,10 @@ Before merging a feature
 - README.md
 - ROADMAP.md
 - VERSIONING.md
-- Architecture Handbook
-- Development Handbook
-- Deployment Handbook
-- Operations Handbook
+- architecture/ADR/
+- development/
+- deployment/
+- operations/
 
 ---
 
