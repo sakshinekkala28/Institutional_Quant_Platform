@@ -1,7 +1,7 @@
 Metric,Value
-Total_Alerts,307
-Critical_Alerts,65
+Total_Alerts,317
+Critical_Alerts,67
 Trend_Direction,IMPROVING
-Observation_Count,30
-High_Alerts,65
-Medium_Alerts,120
+Observation_Count,31
+High_Alerts,67
+Medium_Alerts,124
