@@ -1,0 +1,150 @@
+/*
+===============================================================================
+Institutional Quant Platform
+MkDocs Material - Custom Stylesheet
+===============================================================================
+
+This stylesheet extends the default MkDocs Material theme while preserving
+compatibility with future theme updates.
+
+Guidelines
+----------
+- Prefer CSS variables over hard-coded values.
+- Keep selectors scoped to documentation components.
+- Avoid overriding Material styles unless necessary.
+- Organize custom rules by feature.
+===============================================================================
+*/
+
+/* ==========================================================================
+   Root Variables
+   ========================================================================== */
+
+:root {
+  --iqp-border-radius: 8px;
+  --iqp-transition-speed: 0.2s;
+  --iqp-max-content-width: 1400px;
+}
+
+/* ==========================================================================
+   Content Width
+   ========================================================================== */
+
+.md-grid {
+  max-width: var(--iqp-max-content-width);
+}
+
+/* ==========================================================================
+   Smooth Scrolling
+   ========================================================================== */
+
+html {
+  scroll-behavior: smooth;
+}
+
+/* ==========================================================================
+   Images
+   ========================================================================== */
+
+.md-typeset img {
+  border-radius: var(--iqp-border-radius);
+  height: auto;
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
+
+.md-typeset table:not([class]) {
+  border-radius: var(--iqp-border-radius);
+  overflow: hidden;
+}
+
+.md-typeset table:not([class]) th {
+  white-space: nowrap;
+}
+
+/* ==========================================================================
+   Code Blocks
+   ========================================================================== */
+
+.md-typeset pre {
+  border-radius: var(--iqp-border-radius);
+}
+
+.md-typeset code {
+  font-size: 0.92em;
+}
+
+/* ==========================================================================
+   Admonitions
+   ========================================================================== */
+
+.md-typeset .admonition,
+.md-typeset details {
+  border-radius: var(--iqp-border-radius);
+}
+
+/* ==========================================================================
+   Navigation
+   ========================================================================== */
+
+.md-nav__link {
+  transition: color var(--iqp-transition-speed);
+}
+
+/* ==========================================================================
+   Buttons
+   ========================================================================== */
+
+.md-button {
+  border-radius: var(--iqp-border-radius);
+  transition:
+    background-color var(--iqp-transition-speed),
+    color var(--iqp-transition-speed),
+    border-color var(--iqp-transition-speed);
+}
+
+/* ==========================================================================
+   Cards (Material Grid)
+   ========================================================================== */
+
+.md-typeset .grid.cards > ul > li {
+  border-radius: var(--iqp-border-radius);
+}
+
+/* ==========================================================================
+   Mermaid Diagrams
+   ========================================================================== */
+
+.mermaid {
+  text-align: center;
+  overflow-x: auto;
+}
+
+/* ==========================================================================
+   Footer
+   ========================================================================== */
+
+.md-footer {
+  margin-top: 3rem;
+}
+
+/* ==========================================================================
+   Print
+   ========================================================================== */
+
+@media print {
+
+  .md-header,
+  .md-sidebar,
+  .md-tabs,
+  .md-footer {
+    display: none !important;
+  }
+
+  .md-content {
+    margin: 0;
+    width: 100%;
+  }
+}

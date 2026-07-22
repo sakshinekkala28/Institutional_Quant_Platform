@@ -2,16 +2,21 @@
 
 <div align="center">
 
-Enterprise-grade Quantitative Investment Platform
+# Enterprise-Grade Quantitative Investment Platform
 
-Portfolio Construction • Alpha Research • Risk Management • Execution • Analytics
+**Portfolio Construction • Alpha Research • Risk Analytics • Execution • Market Data • Monitoring**
 
 ![Python](https://img.shields.io/badge/Python-3.12-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![CI](https://github.com/sakshinekkala28/Institutional_Quant_Platform/actions/workflows/ci.yml/badge.svg)
-![Docker](https://img.shields.io/badge/Docker-Ready-blue)
-![Terraform](https://img.shields.io/badge/Terraform-IaC-purple)
-![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-blue)
+![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-Ready-326CE5?logo=kubernetes&logoColor=white)
+![Terraform](https://img.shields.io/badge/Terraform-IaC-7B42BC?logo=terraform&logoColor=white)
+![FastAPI](https://img.shields.io/badge/FastAPI-009688?logo=fastapi&logoColor=white)
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?logo=streamlit&logoColor=white)
+![DuckDB](https://img.shields.io/badge/DuckDB-FFF000?logo=duckdb&logoColor=black)
+
+*A cloud-native institutional investment platform for quantitative research, portfolio construction, risk management, execution analytics, and enterprise deployment.*
 
 </div>
 
@@ -19,19 +24,74 @@ Portfolio Construction • Alpha Research • Risk Management • Execution • 
 
 # Overview
 
-Institutional Quant Platform is an enterprise-grade quantitative investment platform designed to support the complete investment lifecycle.
+Institutional Quant Platform is a modular, enterprise-grade quantitative investment platform built for institutional portfolio managers, quantitative researchers, and financial engineering teams.
 
-The platform combines:
+The platform supports the complete investment lifecycle, from market data ingestion through alpha generation, portfolio optimization, risk analysis, execution simulation, reporting, monitoring, and cloud-native deployment.
+
+Core capabilities include:
 
 - Portfolio Construction
 - Alpha Research
+- Factor Investing
 - Risk Analytics
 - Execution Management
-- Market Analytics
+- Performance Attribution
+- Market Regime Detection
 - Data Engineering
 - Infrastructure Automation
+- Enterprise Monitoring
 
-using modern Python engineering practices and cloud-native architecture.
+---
+
+# System Architecture
+
+```text
+                          +----------------------+
+                          | Market Data Sources  |
+                          +----------+-----------+
+                                     |
+                                     v
+                    +-------------------------------+
+                    |      Data Engineering         |
+                    | Cleaning • Validation • ETL  |
+                    +---------------+---------------+
+                                    |
+                                    v
+                    +-------------------------------+
+                    |      Alpha Research           |
+                    | Factors • Ranking • Signals   |
+                    +---------------+---------------+
+                                    |
+                                    v
+                    +-------------------------------+
+                    |    Portfolio Construction     |
+                    | Optimization • Constraints    |
+                    +---------------+---------------+
+                                    |
+                                    v
+                    +-------------------------------+
+                    |        Risk Engine            |
+                    | VaR • ES • Exposure • Stress  |
+                    +---------------+---------------+
+                                    |
+                                    v
+                    +-------------------------------+
+                    |      Execution Engine         |
+                    | Orders • Slippage • TCA       |
+                    +---------------+---------------+
+                                    |
+                    +---------------+---------------+
+                    |                               |
+                    v                               v
+            +---------------+             +----------------+
+            | REST API      |             | Streamlit UI   |
+            +---------------+             +----------------+
+                    |                               |
+                    +---------------+---------------+
+                                    |
+                                    v
+                          Monitoring & Reporting
+```
 
 ---
 
@@ -41,33 +101,45 @@ using modern Python engineering practices and cloud-native architecture.
 
 - Alpha Models
 - Factor Models
-- Ranking Engine
 - Universe Builder
 - Market Regime Detection
+- Ranking Engine
+- Security Selection
+- Capacity Analysis
 
 ## Portfolio
 
-- Portfolio Optimization
-- Position Sizing
-- Constraints
-- Rebalancing
-- Transaction Cost Modeling
+- Equal Weight
+- Market Cap Weighting
+- Factor Weighting
+- Risk Parity
+- Minimum Variance
+- Black-Litterman
+- Hierarchical Risk Parity
+- Portfolio Constraints
+- Transaction Cost Modelling
+- Portfolio Rebalancing
 
 ## Risk
 
 - Value at Risk (VaR)
-- Expected Shortfall (ES)
+- Expected Shortfall
+- Tracking Error
 - Stress Testing
 - Scenario Analysis
 - Factor Exposure
+- Sector Exposure
+- Beta Analytics
 - Performance Attribution
 
 ## Execution
 
 - Order Management
 - Trade Generation
-- Slippage Modeling
 - Execution Analytics
+- Transaction Cost Analysis
+- Slippage Modelling
+- Capacity Analysis
 
 ## Dashboard
 
@@ -75,6 +147,7 @@ using modern Python engineering practices and cloud-native architecture.
 - Portfolio Analytics
 - Risk Dashboard
 - Performance Dashboard
+- Market Dashboard
 
 ## Infrastructure
 
@@ -83,6 +156,25 @@ using modern Python engineering practices and cloud-native architecture.
 - Helm
 - Terraform
 - GitHub Actions
+- Prometheus
+- Grafana
+
+---
+
+# Platform Modules
+
+| Module | Description |
+|----------|------------|
+| Analytics | Alpha generation, factors, rankings |
+| Alpha | Signal generation and research |
+| Portfolio | Portfolio optimization and construction |
+| Risk | Risk analytics and stress testing |
+| Execution | Trade generation and execution modelling |
+| Reporting | Portfolio and risk reports |
+| Dashboard | Interactive Streamlit dashboard |
+| API | FastAPI REST services |
+| Monitoring | Metrics, logging and alerting |
+| Infrastructure | Docker, Kubernetes and Terraform |
 
 ---
 
@@ -91,22 +183,26 @@ using modern Python engineering practices and cloud-native architecture.
 ```text
 Institutional_Quant_Platform/
 
-analytics/
-alpha/
-api/
-dashboard/
-data/
-deployment/
-docs/
-execution/
-infrastructure/
-monitoring/
-portfolio/
-reporting/
-research/
-risk/
-telemetry/
-tests/
+├── alpha/
+├── analytics/
+├── api/
+├── dashboard/
+├── data/
+├── deployment/
+├── docs/
+├── execution/
+├── infrastructure/
+├── monitoring/
+├── orchestration/
+├── portfolio/
+├── reporting/
+├── research/
+├── risk/
+├── services/
+├── streamlit_app/
+├── telemetry/
+├── tests/
+└── utils/
 ```
 
 ---
@@ -114,21 +210,23 @@ tests/
 # Technology Stack
 
 | Category | Technology |
-|----------|------------|
+|-----------|------------|
 | Language | Python 3.12 |
-| Dashboard | Streamlit |
 | API | FastAPI |
+| Dashboard | Streamlit |
 | Database | DuckDB |
 | Analytics | NumPy, Pandas, Polars |
 | Optimization | SciPy |
+| Machine Learning | Scikit-Learn |
 | Visualization | Plotly |
 | Infrastructure | Docker, Kubernetes, Helm, Terraform |
+| Monitoring | Prometheus, Grafana |
 | CI/CD | GitHub Actions |
 | Documentation | MkDocs Material |
 
 ---
 
-# Installation
+# Quick Start
 
 Clone the repository
 
@@ -138,7 +236,7 @@ git clone https://github.com/sakshinekkala28/Institutional_Quant_Platform.git
 cd Institutional_Quant_Platform
 ```
 
-Create virtual environment
+Create a virtual environment
 
 ```bash
 python -m venv .venv
@@ -162,27 +260,61 @@ Install dependencies
 
 ```bash
 pip install -r requirements.txt
-
 pip install -r requirements-dev.txt
 ```
 
 ---
 
+# Running the Platform
+
+## Analytics Pipeline
+
+```bash
+python orchestration/run_pipeline.py
+```
+
+## REST API
+
+```bash
+uvicorn api.main:app --reload
+```
+
+## Dashboard
+
+```bash
+streamlit run streamlit_app/Home.py
+```
+
+---
+
+# API Endpoints
+
+| Endpoint | Description |
+|-----------|-------------|
+| `/health` | Health Check |
+| `/metrics` | Prometheus Metrics |
+| `/version` | Platform Version |
+| `/portfolio` | Portfolio Services |
+| `/risk` | Risk Analytics |
+| `/execution` | Execution Analytics |
+
+---
+
 # Development
 
-Run formatting
+Formatting
 
 ```bash
 make format
 ```
 
-Lint
+Linting
 
 ```bash
 make lint
 ```
 
-Type checking
+Type Checking
 
 ```bash
 make typecheck
@@ -232,17 +364,27 @@ make docker-run
 
 # Documentation
 
-Generate documentation
+Serve locally
 
 ```bash
 mkdocs serve
 ```
 
-Build
+Build documentation
 
 ```bash
 mkdocs build
 ```
+
+Documentation includes:
+
+- Architecture
+- API
+- Deployment
+- Monitoring
+- Tutorials
+- Reference
+- Development Guides
 
 ---
 
@@ -251,20 +393,22 @@ mkdocs build
 Automated workflows include
 
 - Continuous Integration
-- Docker
-- Helm
-- Kubernetes
-- Terraform
+- Unit Testing
+- Integration Testing
+- Docker Image Build
+- Helm Packaging
+- Kubernetes Validation
+- Terraform Validation
 - Security Scanning
 - Dependency Updates
-- Documentation
-- Releases
+- Documentation Build
+- Automated Releases
 
 ---
 
 # Security
 
-The project integrates
+Security tooling includes
 
 - CodeQL
 - Bandit
@@ -279,7 +423,7 @@ Please refer to **SECURITY.md** for responsible disclosure.
 
 # Testing
 
-The project includes
+Supported testing suites
 
 - Unit Tests
 - Integration Tests
@@ -287,17 +431,67 @@ The project includes
 - Regression Tests
 - Security Tests
 
----
-
-# Documentation
-
-Documentation is built using **MkDocs Material**.
-
-Start locally
+Run all tests
 
 ```bash
-mkdocs serve
+make test
 ```
+
+---
+
+# Deployment
+
+Supported deployment targets
+
+- Docker
+- Docker Compose
+- Kubernetes
+- Helm Charts
+- GitHub Actions
+- Terraform
+- Azure
+- AWS
+- Google Cloud Platform
+
+---
+
+# Performance Targets
+
+| Metric | Target |
+|---------|---------|
+| Supported Universe | 3,000+ Securities |
+| Portfolio Size | 500 Holdings |
+| Pipeline Runtime | < 5 Minutes |
+| API Latency | < 200 ms |
+| Test Coverage | > 90% |
+| Platform Availability | 99.9% |
+
+---
+
+# Project Status
+
+| Item | Status |
+|------|--------|
+| Version | 1.0.0 |
+| Status | Active Development |
+| Deployment | Production Ready |
+| Python | 3.12 |
+| License | MIT |
+
+---
+
+# Roadmap
+
+Future enhancements include
+
+- Machine Learning Alpha Models
+- Reinforcement Learning Execution
+- Portfolio Attribution Engine
+- Real-Time Market Data
+- Multi-Asset Portfolio Support
+- Distributed Analytics
+- Cloud-Native Scaling
+- Multi-Broker Connectivity
 
 ---
 
@@ -305,28 +499,12 @@ mkdocs serve
 
 Contributions are welcome.
 
-Please review:
+Please review the following before submitting a pull request:
 
 - CONTRIBUTING.md
 - CODE_OF_CONDUCT.md
 - GOVERNANCE.md
 - SECURITY.md
-
-before submitting a Pull Request.
-
----
-
-# Roadmap
-
-Upcoming areas of development include
-
-- Advanced Factor Models
-- Machine Learning Alpha Models
-- Portfolio Attribution
-- Real-time Execution Engine
-- Multi-Asset Support
-- Cloud Deployment
-- Distributed Analytics
 
 ---
 
@@ -334,7 +512,7 @@ Upcoming areas of development include
 
 This project is licensed under the MIT License.
 
-See the LICENSE file for details.
+See the `LICENSE` file for details.
 
 ---
 
@@ -342,12 +520,10 @@ See the LICENSE file for details.
 
 **Pavan Sai Nekkala**
 
-GitHub:
-
-https://github.com/sakshinekkala28
+GitHub: https://github.com/sakshinekkala28
 
 ---
 
 # Acknowledgements
 
-This project leverages the open-source Python ecosystem and cloud-native tooling to provide a scalable foundation for quantitative investment research and portfolio management.
+This project leverages the open-source Python ecosystem and cloud-native technologies to provide a scalable, modular, and production-ready platform for institutional quantitative investment research, portfolio management, and financial analytics.
