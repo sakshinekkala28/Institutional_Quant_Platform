@@ -1,0 +1,9 @@
+-e .
+
+ruff
+pytest
+pytest-cov
+mypy
+bandit
+pre-commit
+black
