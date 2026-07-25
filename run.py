@@ -1,18 +1,7 @@
-import pandas as pd
+from orchestration.master_orchestrator import MasterOrchestrator
 
-df = pd.read_parquet(
-    "data/risk/factor_expected_returns.parquet"
-)
+orch = MasterOrchestrator()
 
-print(
-    df["Expected_Return"]
-    .describe()
-)
+orch.initialize()
 
-print(
-    df.sort_values(
-        "Expected_Return",
-        ascending=False
-    )
-    .head(20)
-)
+print(orch.pipeline_summary())
