@@ -5,6 +5,7 @@ pytest
 pytest-asyncio
 pytest-cov
 pytest-xdist
+pytest-timeout>=2.3.1
 mypy
 bandit
 pre-commit
