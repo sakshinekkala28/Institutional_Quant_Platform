@@ -101,7 +101,7 @@ class ConnectionManager:
 
             self.connection.close()
 
-    # ==========================================================
+# ==========================================================
 # TABLE MANAGER
 # ==========================================================
 
@@ -109,73 +109,113 @@ class TableManager:
 
     @staticmethod
     def save_dataframe(
-
         connection,
-
         dataframe,
-
-        table_name
-
+        table_name,
     ):
+        """
+        Save a pandas DataFrame into DuckDB with robust dtype normalization.
+        """
+
+        import pandas as pd
+        import numpy as np
+
+        df = dataframe.copy()
+
+        # --------------------------------------------------
+        # Normalize extension dtypes
+        # --------------------------------------------------
+
+        df = df.convert_dtypes()
+
+        for col in df.columns:
+
+            # Category -> string
+            if pd.api.types.is_categorical_dtype(df[col]):
+                df[col] = df[col].astype(str)
+
+            # Pandas StringDtype -> object
+            elif pd.api.types.is_string_dtype(df[col]):
+                df[col] = df[col].astype(object)
+
+            # Timezone-aware datetime -> naive datetime
+            elif pd.api.types.is_datetime64tz_dtype(df[col]):
+                df[col] = df[col].dt.tz_localize(None)
+
+            # Object columns containing NumPy scalar types
+            elif df[col].dtype == object:
+                df[col] = df[col].apply(
+                    lambda x: x.item()
+                    if isinstance(x, np.generic)
+                    else x
+                )
+
+        # Replace infinities with NULL
+        df = df.replace(
+            [np.inf, -np.inf],
+            np.nan,
+        )
 
         connection.register(
-
             "temp_df",
-
-            dataframe
-
+            df,
         )
 
-        connection.execute(
+        try:
 
-            f"""
-            CREATE OR REPLACE TABLE
-            {table_name}
-            AS
-            SELECT *
-            FROM temp_df
-            """
-        )
+            connection.execute(
+                f"""
+                CREATE OR REPLACE TABLE {table_name}
+                AS
+                SELECT *
+                FROM temp_df
+                """
+            )
+
+        finally:
+
+            connection.unregister(
+                "temp_df"
+            )
 
     @staticmethod
     def read_table(
-
         connection,
-
-        table_name
-
+        table_name,
     ):
+        """
+        Read a DuckDB table into a pandas DataFrame.
+        """
 
-        return connection.execute(
-
-            f"""
-            SELECT *
-            FROM {table_name}
-            """
-
-        ).df()
+        return (
+            connection.execute(
+                f"""
+                SELECT *
+                FROM {table_name}
+                """
+            )
+            .fetchdf()
+        )
 
     @staticmethod
     def table_exists(
-
         connection,
-
-        table_name
-
+        table_name,
     ):
+        """
+        Check whether a DuckDB table exists.
+        """
 
         result = connection.execute(
-
-            f"""
+            """
             SELECT COUNT(*)
             FROM information_schema.tables
-            WHERE table_name =
-            '{table_name}'
-            """
+            WHERE table_name = ?
+            """,
+            [table_name],
+        ).fetchone()
 
-        ).fetchone()[0]
-
-        return result > 0
+        return result[0] > 0
     
 # ==========================================================
 # DATABASE MANAGER
