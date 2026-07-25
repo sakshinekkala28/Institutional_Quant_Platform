@@ -1,7 +1,7 @@
 Metric,Value
 Factors_Analyzed,14
-Top_Factor,Volatility_60D
+Top_Factor,Market_Cap
 Best_Regime,SIDEWAYS
-Best_Regime_IC,0.3687407043048262
-Run_Date,2026-06-13
+Best_Regime_IC,0.06810273885441039
+Run_Date,2026-07-25
 Engine_Version,1.0.0

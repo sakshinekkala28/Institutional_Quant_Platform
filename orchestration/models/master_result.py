@@ -3,7 +3,8 @@
 MASTER RESULT
 =========================================================
 
-Purpose:
+Purpose
+-------
 Standard execution result returned by the Master
 Orchestrator.
 
@@ -34,11 +35,11 @@ class MasterResult:
     Master Orchestrator.
     """
 
-    platform: str
+    platform: str = "Institutional Quant Platform"
 
-    status: EngineStatus
+    status: EngineStatus = EngineStatus.RUNNING
 
-    duration: float
+    duration: float = 0.0
 
     pipelines: list[PipelineResult] = field(
         default_factory=list,
@@ -53,41 +54,32 @@ class MasterResult:
     )
 
     # =====================================================
-    # METRICS
+    # PIPELINE METRICS
     # =====================================================
 
     @property
-    def successful_pipelines(self) -> int:
+    def total_pipelines(self) -> int:
+        return len(self.pipelines)
 
+    @property
+    def successful_pipelines(self) -> int:
         return sum(
             1
             for pipeline in self.pipelines
-            if pipeline.status
-            == EngineStatus.SUCCESS
+            if pipeline.status == EngineStatus.SUCCESS
         )
 
     @property
     def failed_pipelines(self) -> int:
-
         return sum(
             1
             for pipeline in self.pipelines
-            if pipeline.status
-            == EngineStatus.FAILED
-        )
-
-    @property
-    def total_pipelines(self) -> int:
-
-        return len(
-            self.pipelines
+            if pipeline.status == EngineStatus.FAILED
         )
 
     @property
     def success_rate(self) -> float:
-
-        if not self.pipelines:
-
+        if self.total_pipelines == 0:
             return 0.0
 
         return round(
@@ -99,9 +91,12 @@ class MasterResult:
             2,
         )
 
+    # =====================================================
+    # ENGINE METRICS
+    # =====================================================
+
     @property
     def total_engines(self) -> int:
-
         return sum(
             pipeline.total_engines
             for pipeline in self.pipelines
@@ -109,7 +104,6 @@ class MasterResult:
 
     @property
     def successful_engines(self) -> int:
-
         return sum(
             pipeline.successful_engines
             for pipeline in self.pipelines
@@ -117,74 +111,91 @@ class MasterResult:
 
     @property
     def failed_engines(self) -> int:
-
         return sum(
             pipeline.failed_engines
             for pipeline in self.pipelines
         )
 
     # =====================================================
-    # HELPERS
+    # MUTATORS
     # =====================================================
 
     def add_pipeline(
         self,
         result: PipelineResult,
     ) -> None:
+        """
+        Register a completed pipeline.
+        """
 
-        self.pipelines.append(
-            result
-        )
+        self.pipelines.append(result)
 
-        self.outputs.extend(
-            result.outputs
-        )
+        self.outputs.extend(result.outputs)
+
+    def add_output(
+        self,
+        output: Path,
+    ) -> None:
+        """
+        Register an output artifact.
+        """
+
+        self.outputs.append(output)
+
+    def update_metadata(
+        self,
+        key: str,
+        value: Any,
+    ) -> None:
+        """
+        Update execution metadata.
+        """
+
+        self.metadata[key] = value
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-        self,
-    ) -> dict[str, Any]:
+    def summary(self) -> dict[str, Any]:
+        """
+        Return execution summary.
+        """
 
         return {
-
-            "platform":
-                self.platform,
-
-            "status":
-                self.status.value,
-
-            "duration":
-                self.duration,
-
-            "pipelines":
-                self.total_pipelines,
-
-            "successful_pipelines":
-                self.successful_pipelines,
-
-            "failed_pipelines":
-                self.failed_pipelines,
-
-            "pipeline_success_rate":
-                self.success_rate,
-
-            "engines":
-                self.total_engines,
-
-            "successful_engines":
-                self.successful_engines,
-
-            "failed_engines":
-                self.failed_engines,
-
+            "platform": self.platform,
+            "status": self.status.value,
+            "duration": round(self.duration, 3),
+            "pipelines": self.total_pipelines,
+            "successful_pipelines": self.successful_pipelines,
+            "failed_pipelines": self.failed_pipelines,
+            "pipeline_success_rate": self.success_rate,
+            "engines": self.total_engines,
+            "successful_engines": self.successful_engines,
+            "failed_engines": self.failed_engines,
             "outputs": [
                 str(path)
                 for path in self.outputs
             ],
-
-            "metadata":
-                self.metadata,
+            "metadata": self.metadata,
         }
+
+    # =====================================================
+    # DUNDER
+    # =====================================================
+
+    def __bool__(self) -> bool:
+        return self.status == EngineStatus.SUCCESS
+
+    def __len__(self) -> int:
+        return self.total_pipelines
+
+    def __repr__(self) -> str:
+        return (
+            f"{self.__class__.__name__}("
+            f"platform='{self.platform}', "
+            f"status='{self.status.value}', "
+            f"pipelines={self.total_pipelines}, "
+            f"engines={self.total_engines}, "
+            f"duration={self.duration:.3f}s)"
+        )

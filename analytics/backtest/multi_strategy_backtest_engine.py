@@ -23,6 +23,8 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
+import traceback
+
 
 # =========================================================
 # CONFIG
@@ -475,14 +477,12 @@ def run_strategy_backtest(
         return metrics
 
     except Exception as e:
-
-        print(
-            strategy_name,
-            str(e)
-        )
-
+        print(f"[ERROR] Strategy: {strategy_name}")
+        print(f"File: {portfolio_file}")
+        print(f"Reason: {e}")
+        traceback.print_exc()
+    
         return None
-
 # =========================================================
 # DISCOVER PORTFOLIOS
 # =========================================================
@@ -491,10 +491,16 @@ print(
     "\n📥 Loading Portfolios..."
 )
 
+VALID_PORTFOLIOS = {
+    "live_portfolio.csv",
+    "optimized_portfolio.csv",
+    "optimized_portfolio_v2.csv",
+}
+
 portfolio_files = sorted(
-    PORTFOLIO_DIR.glob(
-        "*.csv"
-    )
+    file
+    for file in PORTFOLIO_DIR.glob("*.csv")
+    if file.name in VALID_PORTFOLIOS
 )
 
 if not portfolio_files:

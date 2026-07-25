@@ -21,6 +21,10 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
+
+from pandas.errors import EmptyDataError
+
+
 # =========================================================
 # CONFIG
 # =========================================================
@@ -106,17 +110,22 @@ OUTPUT_DIR.mkdir(
 # SAFE LOAD
 # =========================================================
 
-def safe_load(path):
+def safe_load(path: Path) -> pd.DataFrame:
+    """
+    Safely load a CSV file.
 
-    if path.exists():
+    Returns an empty DataFrame if the file is missing or
+    contains only headers/no rows.
+    """
 
-        try:
-            return pd.read_csv(path)
+    if not path.exists():
+        return pd.DataFrame()
 
-        except Exception:
-            return pd.DataFrame()
+    try:
+        return pd.read_csv(path)
 
-    return pd.DataFrame()
+    except EmptyDataError:
+        return pd.DataFrame()
 
 # =========================================================
 # LOAD
@@ -416,9 +425,24 @@ dashboard = pd.DataFrame({
 # REBALANCE FILE
 # =========================================================
 
-rebalance = pd.DataFrame(
-    rebalance_records
-)
+REBALANCE_COLUMNS = [
+    "Symbol",
+    "Action",
+    "Reason",
+]
+
+if rebalance_records:
+
+    rebalance = pd.DataFrame(
+        rebalance_records,
+        columns=REBALANCE_COLUMNS,
+    )
+
+else:
+
+    rebalance = pd.DataFrame(
+        columns=REBALANCE_COLUMNS,
+    )
 
 # =========================================================
 # SAVE
