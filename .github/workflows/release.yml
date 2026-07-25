@@ -335,9 +335,9 @@ jobs:
 
         with:
 
-          tag_name: ${{ env.VERSION }}
+          tag_name: ${{ steps.version.outputs.version }}
 
-          name: Institutional Quant Platform ${{ env.VERSION }}
+          name: Institutional Quant Platform ${{ steps.version.outputs.version }}
 
           body_path: release/RELEASE_NOTES.md
 
@@ -505,7 +505,7 @@ jobs:
 
           tags: |
 
-            type=raw,value=${{ env.VERSION }}
+            type=raw,value=${{ steps.version.outputs.version }}
 
             type=raw,value=latest
 
@@ -537,7 +537,7 @@ jobs:
 
           tags: |
 
-            ghcr.io/${{ github.repository_owner }}/institutional-quant-api:${{ env.VERSION }}
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-api:${{ steps.version.outputs.version }}
 
             ghcr.io/${{ github.repository_owner }}/institutional-quant-api:latest
 
@@ -569,7 +569,7 @@ jobs:
 
           tags: |
 
-            ghcr.io/${{ github.repository_owner }}/institutional-quant-analytics:${{ env.VERSION }}
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-analytics:${{ steps.version.outputs.version }}
 
             ghcr.io/${{ github.repository_owner }}/institutional-quant-analytics:latest
 
@@ -601,7 +601,7 @@ jobs:
 
           tags: |
 
-            ghcr.io/${{ github.repository_owner }}/institutional-quant-dashboard:${{ env.VERSION }}
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-dashboard:${{ steps.version.outputs.version }}
 
             ghcr.io/${{ github.repository_owner }}/institutional-quant-dashboard:latest
 
@@ -745,7 +745,7 @@ jobs:
 
         with:
 
-          tag_name: ${{ env.VERSION }}
+          tag_name: ${{ steps.version.outputs.version }}
 
           files: |
 
