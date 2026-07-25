@@ -22,17 +22,15 @@ on:
 
         required: true
 
-        default: "v1.0.0"
+        default: v1.0.0
 
       prerelease:
 
-        description: Create Prerelease
-
-        required: true
-
-        default: false
+        description: Publish as prerelease
 
         type: boolean
+
+        default: false
 
 ###############################################################################
 # Permissions
@@ -70,8 +68,6 @@ env:
 
   REGISTRY: ghcr.io
 
-  IMAGE_NAMESPACE: ${{ github.repository_owner }}
-
 ###############################################################################
 # Jobs
 ###############################################################################
@@ -79,22 +75,26 @@ env:
 jobs:
 
 ###############################################################################
-# Prepare Release
+# Release Preparation
 ###############################################################################
 
   prepare:
 
-    name: Prepare Release
+    name: Prepare Enterprise Release
 
     runs-on: ubuntu-latest
 
     timeout-minutes: 30
 
-###############################################################################
-# Checkout Repository
-###############################################################################
+    outputs:
+
+      version: ${{ steps.version.outputs.version }}
 
     steps:
+
+###############################################################################
+# Checkout
+###############################################################################
 
       - name: Checkout Repository
 
@@ -105,7 +105,7 @@ jobs:
           fetch-depth: 0
 
 ###############################################################################
-# Setup Python
+# Python
 ###############################################################################
 
       - name: Setup Python
@@ -119,7 +119,7 @@ jobs:
           cache: pip
 
 ###############################################################################
-# Setup Helm
+# Helm
 ###############################################################################
 
       - name: Setup Helm
@@ -131,7 +131,7 @@ jobs:
           version: ${{ env.HELM_VERSION }}
 
 ###############################################################################
-# Configure Git
+# Git
 ###############################################################################
 
       - name: Configure Git
@@ -144,10 +144,10 @@ jobs:
             "github-actions@users.noreply.github.com"
 
 ###############################################################################
-# Determine Release Version
+# Version
 ###############################################################################
 
-      - name: Determine Version
+      - name: Resolve Version
 
         id: version
 
@@ -163,118 +163,68 @@ jobs:
 
           fi
 
-          echo "version=${VERSION}" >> $GITHUB_OUTPUT
+          echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
 
-          echo "VERSION=${VERSION}" >> $GITHUB_ENV
+          echo "VERSION=${VERSION}" >> "$GITHUB_ENV"
 
 ###############################################################################
-# Previous Tag
+# Semantic Version Validation
 ###############################################################################
 
-      - name: Previous Release
-
-        id: previous
+      - name: Validate Semantic Version
 
         run: |
 
-          PREVIOUS_TAG=$(git describe \
-            --tags \
-            --abbrev=0 \
-            HEAD^ \
-            2>/dev/null || echo "")
+          if ! echo "${VERSION}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'; then
 
-          echo "previous=${PREVIOUS_TAG}" >> $GITHUB_OUTPUT
-
-###############################################################################
-# Release Metadata
-###############################################################################
-
-      - name: Release Metadata
-
-        run: |
-
-          echo "=============================================="
-
-          echo "Institutional Quant Platform"
-
-          echo "Enterprise Release"
-
-          echo "=============================================="
-
-          echo ""
-
-          echo "Repository"
-
-          echo "${{ github.repository }}"
-
-          echo ""
-
-          echo "Version"
-
-          echo "${VERSION}"
-
-          echo ""
-
-          echo "Previous"
-
-          echo "${{ steps.previous.outputs.previous }}"
-
-          echo ""
-
-          echo "Commit"
-
-          echo "${{ github.sha }}"
-
-          echo ""
-
-          echo "Branch"
-
-          echo "${{ github.ref_name }}"
-
-          echo ""
-
-          echo "=============================================="
-
-###############################################################################
-# Verify Release Tag
-###############################################################################
-
-      - name: Verify Version Format
-
-        run: |
-
-          if ! echo "${VERSION}" | grep -Eq '^v[0-9]+\.[0-9]+\.[0-9]+$'
-          then
-
-            echo "Invalid Semantic Version"
+            echo "Invalid semantic version."
 
             exit 1
 
           fi
 
 ###############################################################################
-# Export Build Metadata
+# Previous Release
 ###############################################################################
 
-      - name: Export Metadata
+      - name: Detect Previous Tag
+
+        id: previous
 
         run: |
 
-          mkdir release
+          TAG=$(git describe \
+            --tags \
+            --abbrev=0 \
+            HEAD^ \
+            2>/dev/null || true)
+
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+
+###############################################################################
+# Metadata
+###############################################################################
+
+      - name: Generate Build Metadata
+
+        run: |
+
+          mkdir -p release
 
           cat > release/build-info.json <<EOF
           {
             "repository":"${{ github.repository }}",
             "version":"${VERSION}",
-            "commit":"${{ github.sha }}",
             "branch":"${{ github.ref_name }}",
+            "commit":"${{ github.sha }}",
             "workflow":"${{ github.workflow }}",
-            "run":"${{ github.run_number }}"
+            "run":"${{ github.run_number }}",
+            "generated":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           }
           EOF
 
 ###############################################################################
-# Upload Build Metadata
+# Upload Metadata
 ###############################################################################
 
       - name: Upload Metadata
@@ -287,23 +237,20 @@ jobs:
 
           path: release/build-info.json
 
-
 ###############################################################################
 # Generate Changelog
 ###############################################################################
 
       - name: Generate Changelog
 
-        id: changelog
-
         run: |
 
           mkdir -p release
 
-          if [ -n "${{ steps.previous.outputs.previous }}" ]; then
+          if [ -n "${{ steps.previous.outputs.tag }}" ]; then
 
             git log \
-              ${{ steps.previous.outputs.previous }}..HEAD \
+              "${{ steps.previous.outputs.tag }}"..HEAD \
               --pretty=format:"- %s (%an)" \
               > release/CHANGELOG.md
 
@@ -316,27 +263,21 @@ jobs:
           fi
 
 ###############################################################################
-# Release Statistics
+# Repository Statistics
 ###############################################################################
 
-      - name: Generate Release Statistics
+      - name: Repository Statistics
 
         run: |
 
-          COMMITS=$(git rev-list --count HEAD)
+          echo "COMMITS=$(git rev-list --count HEAD)" >> "$GITHUB_ENV"
 
-          CONTRIBUTORS=$(git shortlog -sn | wc -l)
+          echo "CONTRIBUTORS=$(git shortlog -sn | wc -l)" >> "$GITHUB_ENV"
 
-          FILES=$(git ls-files | wc -l)
-
-          echo "COMMITS=${COMMITS}" >> $GITHUB_ENV
-
-          echo "CONTRIBUTORS=${CONTRIBUTORS}" >> $GITHUB_ENV
-
-          echo "FILES=${FILES}" >> $GITHUB_ENV
+          echo "FILES=$(git ls-files | wc -l)" >> "$GITHUB_ENV"
 
 ###############################################################################
-# Generate Release Notes
+# Release Notes
 ###############################################################################
 
       - name: Generate Release Notes
@@ -344,43 +285,41 @@ jobs:
         run: |
 
           cat > release/RELEASE_NOTES.md <<EOF
-
           # Institutional Quant Platform
 
-          ## Release ${VERSION}
+          ## ${VERSION}
 
-          ### Release Information
+          Repository: ${{ github.repository }}
 
-          - Version: ${VERSION}
-          - Commit: ${{ github.sha }}
-          - Branch: ${{ github.ref_name }}
-          - Repository: ${{ github.repository }}
+          Branch: ${{ github.ref_name }}
+
+          Commit: ${{ github.sha }}
 
           ---
 
-          ## Repository Statistics
+          ### Statistics
 
-          - Total Commits: ${COMMITS}
+          - Commits: ${COMMITS}
+
           - Contributors: ${CONTRIBUTORS}
-          - Source Files: ${FILES}
+
+          - Files: ${FILES}
 
           ---
 
-          ## Included Changes
+          ### Changelog
 
           EOF
 
           cat release/CHANGELOG.md >> release/RELEASE_NOTES.md
 
 ###############################################################################
-# Verify Changelog
+# Verify Notes
 ###############################################################################
 
-      - name: Verify Changelog
+      - name: Verify Release Notes
 
         run: |
-
-          echo "Release Notes"
 
           cat release/RELEASE_NOTES.md
 
@@ -404,15 +343,15 @@ jobs:
 
           draft: false
 
-          prerelease: ${{ github.event.inputs.prerelease == 'true' }}
+          prerelease: ${{ github.event.inputs.prerelease == true }}
 
           generate_release_notes: true
 
 ###############################################################################
-# Upload Release Notes
+# Upload Documentation
 ###############################################################################
 
-      - name: Upload Release Documentation
+      - name: Upload Release Documents
 
         uses: actions/upload-artifact@v4
 
@@ -427,14 +366,14 @@ jobs:
             release/RELEASE_NOTES.md
 
 ###############################################################################
-# Publish GitHub Step Summary
+# Job Summary
 ###############################################################################
 
-      - name: Release Summary
+      - name: Publish Summary
 
         run: |
 
-          cat <<EOF >> $GITHUB_STEP_SUMMARY
+          cat <<EOF >> "$GITHUB_STEP_SUMMARY"
 
           # Enterprise Release
 
@@ -445,50 +384,60 @@ jobs:
           ## Completed
 
           - Semantic Version Validation
-          - Changelog Generated
-          - Release Notes Generated
-          - GitHub Release Created
+
+          - Build Metadata
+
+          - Changelog
+
+          - Release Notes
+
+          - GitHub Release
 
           EOF
 
 ###############################################################################
-# Console Summary
+# Build and Publish
 ###############################################################################
 
-      - name: Release Console Summary
+  publish:
 
-        run: |
+    name: Build & Publish Release
 
-          echo "=================================================="
+    runs-on: ubuntu-latest
 
-          echo "Institutional Quant Platform"
+    timeout-minutes: 90
 
-          echo "Release Preparation"
+    needs:
 
-          echo "=================================================="
+      - prepare
 
-          echo ""
+    env:
 
-          echo "Version"
+      VERSION: ${{ needs.prepare.outputs.version }}
 
-          echo "${VERSION}"
+    permissions:
 
-          echo ""
+      contents: read
 
-          echo "Completed"
+      packages: write
 
-          echo "✔ Semantic Version"
+      id-token: write
 
-          echo "✔ Changelog"
+      attestations: write
 
-          echo "✔ Release Notes"
+    steps:
 
-          echo "✔ GitHub Release"
+###############################################################################
+# Checkout Repository
+###############################################################################
 
-          echo ""
+      - name: Checkout Repository
 
-          echo "=================================================="
+        uses: actions/checkout@v4
 
+        with:
+
+          fetch-depth: 0
 
 ###############################################################################
 # Login to GitHub Container Registry
@@ -507,7 +456,27 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
 ###############################################################################
-# Setup Cosign
+# Setup Docker Buildx
+###############################################################################
+
+      - name: Setup Docker Buildx
+
+        uses: docker/setup-buildx-action@v3
+
+###############################################################################
+# Install Helm
+###############################################################################
+
+      - name: Setup Helm
+
+        uses: azure/setup-helm@v4
+
+        with:
+
+          version: "3.18.4"
+
+###############################################################################
+# Install Cosign
 ###############################################################################
 
       - name: Install Cosign
@@ -520,7 +489,7 @@ jobs:
 
       - name: Docker Metadata
 
-        id: meta
+        id: metadata
 
         uses: docker/metadata-action@v5
 
@@ -541,10 +510,10 @@ jobs:
             type=raw,value=latest
 
 ###############################################################################
-# Build Release Images
+# Build API Image
 ###############################################################################
 
-      - name: Build API Release Image
+      - name: Build API Image
 
         uses: docker/build-push-action@v6
 
@@ -562,21 +531,21 @@ jobs:
 
           sbom: true
 
+          cache-from: type=gha
+
+          cache-to: type=gha,mode=max
+
           tags: |
 
             ghcr.io/${{ github.repository_owner }}/institutional-quant-api:${{ env.VERSION }}
 
             ghcr.io/${{ github.repository_owner }}/institutional-quant-api:latest
 
-          cache-from: type=gha
-
-          cache-to: type=gha,mode=max
-
 ###############################################################################
-# Analytics Image
+# Build Analytics Image
 ###############################################################################
 
-      - name: Build Analytics Release Image
+      - name: Build Analytics Image
 
         uses: docker/build-push-action@v6
 
@@ -594,6 +563,10 @@ jobs:
 
           sbom: true
 
+          cache-from: type=gha
+
+          cache-to: type=gha,mode=max
+
           tags: |
 
             ghcr.io/${{ github.repository_owner }}/institutional-quant-analytics:${{ env.VERSION }}
@@ -601,10 +574,10 @@ jobs:
             ghcr.io/${{ github.repository_owner }}/institutional-quant-analytics:latest
 
 ###############################################################################
-# Dashboard Image
+# Build Dashboard Image
 ###############################################################################
 
-      - name: Build Dashboard Release Image
+      - name: Build Dashboard Image
 
         uses: docker/build-push-action@v6
 
@@ -621,6 +594,10 @@ jobs:
           provenance: true
 
           sbom: true
+
+          cache-from: type=gha
+
+          cache-to: type=gha,mode=max
 
           tags: |
 
@@ -643,13 +620,14 @@ jobs:
           helm dependency build
 
           helm package . \
+
             --destination packages
 
 ###############################################################################
-# Publish Helm Chart to OCI
+# Login to Helm OCI Registry
 ###############################################################################
 
-      - name: Publish Helm Chart
+      - name: Login to Helm Registry
 
         working-directory: infrastructure/helm
 
@@ -663,6 +641,16 @@ jobs:
 
             --password-stdin
 
+###############################################################################
+# Publish Helm Chart
+###############################################################################
+
+      - name: Publish Helm Chart
+
+        working-directory: infrastructure/helm
+
+        run: |
+
           helm push \
 
             packages/*.tgz \
@@ -670,7 +658,7 @@ jobs:
             oci://ghcr.io/${{ github.repository_owner }}/charts
 
 ###############################################################################
-# SHA256 Checksums
+# Generate SHA256 Checksums
 ###############################################################################
 
       - name: Generate Checksums
@@ -680,23 +668,8 @@ jobs:
           mkdir -p release/checksums
 
           sha256sum infrastructure/helm/packages/*.tgz \
+
             > release/checksums/SHA256SUMS
-
-###############################################################################
-# Sign Helm Package
-###############################################################################
-
-      - name: Sign Helm Package
-
-        env:
-
-          COSIGN_EXPERIMENTAL: "true"
-
-        run: |
-
-          cosign sign --yes \
-
-          ghcr.io/${{ github.repository_owner }}/charts/institutional-quant-platform:${{ env.VERSION }}
 
 ###############################################################################
 # Sign API Image
@@ -712,7 +685,7 @@ jobs:
 
           cosign sign --yes \
 
-          ghcr.io/${{ github.repository_owner }}/institutional-quant-api:${{ env.VERSION }}
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-api:${VERSION}
 
 ###############################################################################
 # Sign Analytics Image
@@ -728,7 +701,7 @@ jobs:
 
           cosign sign --yes \
 
-          ghcr.io/${{ github.repository_owner }}/institutional-quant-analytics:${{ env.VERSION }}
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-analytics:${VERSION}
 
 ###############################################################################
 # Sign Dashboard Image
@@ -744,105 +717,26 @@ jobs:
 
           cosign sign --yes \
 
-          ghcr.io/${{ github.repository_owner }}/institutional-quant-dashboard:${{ env.VERSION }}
+            ghcr.io/${{ github.repository_owner }}/institutional-quant-dashboard:${VERSION}
+
+###############################################################################
+# Sign Helm Chart
+###############################################################################
+
+      - name: Sign Helm Chart
+
+        env:
+
+          COSIGN_EXPERIMENTAL: "true"
+
+        run: |
+
+          cosign sign --yes \
+
+            ghcr.io/${{ github.repository_owner }}/charts/institutional-quant-platform:${VERSION}
 
 ###############################################################################
 # Upload Release Assets
-###############################################################################
-
-      - name: Upload Release Assets
-
-        uses: actions/upload-artifact@v4
-
-        with:
-
-          name: release-assets
-
-          path: |
-
-            infrastructure/helm/packages
-
-            release/checksums
-
-###############################################################################
-# Publish GitHub Summary
-###############################################################################
-
-      - name: Release Build Summary
-
-        run: |
-
-          cat <<EOF >> $GITHUB_STEP_SUMMARY
-
-          # Release Build
-
-          ## Docker
-
-          - API Image Published
-
-          - Analytics Image Published
-
-          - Dashboard Image Published
-
-          ## Helm
-
-          - Helm Package Built
-
-          - OCI Chart Published
-
-          ## Security
-
-          - Cosign Signatures
-
-          - SBOM
-
-          - Provenance
-
-          - SHA256 Checksums
-
-          EOF
-
-###############################################################################
-# Console Summary
-###############################################################################
-
-      - name: Release Console Summary
-
-        run: |
-
-          echo "==================================================="
-
-          echo "Institutional Quant Platform"
-
-          echo "Release Build"
-
-          echo "==================================================="
-
-          echo ""
-
-          echo "✔ API Image"
-
-          echo "✔ Analytics Image"
-
-          echo "✔ Dashboard Image"
-
-          echo "✔ Helm Chart"
-
-          echo "✔ OCI Publish"
-
-          echo "✔ SHA256"
-
-          echo "✔ Cosign"
-
-          echo "✔ SBOM"
-
-          echo ""
-
-          echo "==================================================="
-
-
-###############################################################################
-# Upload Release Assets to GitHub Release
 ###############################################################################
 
       - name: Upload Release Assets
@@ -882,7 +776,6 @@ jobs:
             "repository":"${{ github.repository }}",
             "commit":"${{ github.sha }}",
             "branch":"${{ github.ref_name }}",
-            "release":"${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}",
             "generated":"$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
           }
           EOF
@@ -899,105 +792,13 @@ jobs:
 
           name: release-manifest
 
-          path: |
-
-            release/manifest.json
-
-###############################################################################
-# Publish GitHub Release Summary
-###############################################################################
-
-      - name: Publish GitHub Summary
-
-        run: |
-
-          cat <<EOF >> $GITHUB_STEP_SUMMARY
-
-          # Enterprise Release
-
-          ## Version
-
-          ${VERSION}
-
-          ---
-
-          ## Release Artifacts
-
-          ✔ Docker Images
-
-          ✔ Helm Chart
-
-          ✔ OCI Registry
-
-          ✔ GitHub Release
-
-          ✔ Release Manifest
-
-          ✔ Release Notes
-
-          ✔ Changelog
-
-          ✔ SHA256 Checksums
-
-          ✔ Build Metadata
-
-          ---
-
-          ## Supply Chain Security
-
-          ✔ SBOM
-
-          ✔ Provenance
-
-          ✔ Cosign Signatures
-
-          EOF
-
-###############################################################################
-# Release Notification
-###############################################################################
-
-      - name: Release Notification
-
-        if: success()
-
-        run: |
-
-          echo "===================================================="
-
-          echo "Institutional Quant Platform"
-
-          echo "Release Successfully Published"
-
-          echo "===================================================="
-
-          echo ""
-
-          echo "Version"
-
-          echo "${VERSION}"
-
-          echo ""
-
-          echo "Repository"
-
-          echo "${{ github.repository }}"
-
-          echo ""
-
-          echo "Release URL"
-
-          echo "${{ github.server_url }}/${{ github.repository }}/releases/tag/${VERSION}"
-
-          echo ""
-
-          echo "===================================================="
+          path: release/manifest.json
 
 ###############################################################################
 # Cleanup
 ###############################################################################
 
-      - name: Cleanup Workspace
+      - name: Cleanup
 
         if: always()
 
@@ -1008,7 +809,7 @@ jobs:
           rm -rf infrastructure/helm/packages
 
 ###############################################################################
-# Final Release Summary Job
+# Final Summary Job
 ###############################################################################
 
   summary:
@@ -1023,72 +824,70 @@ jobs:
 
       - prepare
 
+      - publish
+
     steps:
 
       - name: Release Summary
 
         run: |
 
-          echo "========================================================"
+          echo "===================================================="
 
           echo "Institutional Quant Platform"
 
           echo "Enterprise Release Pipeline"
 
-          echo "========================================================"
+          echo "===================================================="
 
-          echo ""
+          echo
+
+          echo "Version"
+
+          echo "${{ needs.prepare.outputs.version }}"
+
+          echo
 
           echo "Repository"
 
           echo "${{ github.repository }}"
 
-          echo ""
+          echo
 
-          echo "Version"
-
-          echo "${{ env.VERSION }}"
-
-          echo ""
-
-          echo "Branch"
-
-          echo "${{ github.ref_name }}"
-
-          echo ""
-
-          echo "Completed"
-
-          echo ""
-
-          echo "✔ Version Validation"
-
-          echo "✔ Changelog"
-
-          echo "✔ Release Notes"
-
-          echo "✔ GitHub Release"
-
-          echo "✔ Docker Images"
-
-          echo "✔ Helm OCI"
-
-          echo "✔ Cosign"
-
-          echo "✔ SBOM"
-
-          echo "✔ Provenance"
-
-          echo "✔ Checksums"
-
-          echo "✔ Release Manifest"
-
-          echo ""
-
-          echo "Pipeline Status"
+          echo "Prepare Job"
 
           echo "${{ needs.prepare.result }}"
 
-          echo ""
+          echo
 
-          echo "========================================================"
+          echo "Publish Job"
+
+          echo "${{ needs.publish.result }}"
+
+          echo
+
+          echo "Completed"
+
+          echo "✔ Semantic Version Validation"
+
+          echo "✔ GitHub Release"
+
+          echo "✔ Multi-Architecture Docker Images"
+
+          echo "✔ Helm OCI Package"
+
+          echo "✔ SBOM Generation"
+
+          echo "✔ Provenance"
+
+          echo "✔ Cosign Signatures"
+
+          echo "✔ SHA256 Checksums"
+
+          echo "✔ Release Manifest"
+
+          echo "✔ Release Assets"
+
+          echo
+
+          echo "===================================================="
