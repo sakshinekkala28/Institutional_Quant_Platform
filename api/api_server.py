@@ -97,14 +97,17 @@ def dataframe_to_records(
 # ==========================================================
 
 @app.get("/governance")
-
 def governance():
 
     return {
 
-        "message":
+        "engine_version": "1.0.0",
 
-        "Governance endpoint"
+        "database": "institutional_quant.db",
+
+        "api_version": "3.0.0",
+
+        "status": "Production"
 
     }
 
@@ -113,17 +116,23 @@ def governance():
 # ==========================================================
 
 @app.get("/performance")
-
 def performance():
 
-    return {
+    try:
 
-        "message":
+        df = db.load(
+            "performance_report"
+        )
 
-        "Performance endpoint"
+        return JSONResponse(
+            content=dataframe_to_records(df)
+        )
 
-    }
+    except Exception as e:
 
+        return {
+            "error": str(e)
+        }
 
 # ==========================================================
 # TRADE LIST
@@ -154,16 +163,23 @@ def trades():
 # ==========================================================
 
 @app.get("/signals")
-
 def signals():
 
-    return {
+    try:
 
-        "message":
+        df = db.load(
+            "signal_master"
+        )
 
-        "Signal endpoint"
+        return JSONResponse(
+            content=dataframe_to_records(df)
+        )
 
-    }
+    except Exception as e:
+
+        return {
+            "error": str(e)
+        }
 
 # ==========================================================
 # DATABASE ROUTES
@@ -205,6 +221,27 @@ def latest_risk():
 
         return JSONResponse(
             content=dataframe_to_records(df)
+        )
+
+    except Exception as e:
+
+        return {
+            "error": str(e)
+        }
+
+@app.get("/tables")
+def tables():
+
+    try:
+
+        df = db.connection.execute(
+            "SHOW TABLES"
+        ).fetchdf()
+
+        return JSONResponse(
+            content=df.to_dict(
+                orient="records"
+            )
         )
 
     except Exception as e:

@@ -552,13 +552,34 @@ jobs:
 # Install helm-docs
 ###############################################################################
 
-      - name: Install helm-docs
+- name: Install helm-docs
 
-        uses: jnorwood/helm-docs@v1
+  run: |
 
-        with:
+    HELM_DOCS_VERSION="1.14.2"
 
-          chart-search-root: infrastructure/helm
+    curl -L \
+      "https://github.com/norwoodj/helm-docs/releases/download/v${HELM_DOCS_VERSION}/helm-docs_${HELM_DOCS_VERSION}_Linux_x86_64.tar.gz" \
+      -o helm-docs.tar.gz
+
+    tar -xzf helm-docs.tar.gz
+
+    chmod +x helm-docs
+
+    sudo mv helm-docs /usr/local/bin/
+
+    helm-docs --version
+
+###############################################################################
+# Generate Helm Documentation
+###############################################################################
+
+- name: Generate Helm Documentation
+
+  run: |
+
+    helm-docs \
+      --chart-search-root infrastructure/helm
 
 ###############################################################################
 # Generate Python API Documentation
