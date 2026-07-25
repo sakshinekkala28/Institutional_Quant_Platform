@@ -12,6 +12,8 @@ warnings.filterwarnings("ignore")
 import numpy as np
 import pandas as pd
 
+from ingestion.database_manager import DatabaseManager
+
 # =========================================================
 # ENGINE
 # =========================================================
@@ -5387,6 +5389,21 @@ summary.to_csv(
     index=False
 
 )
+
+# =========================================================
+# SAVE TO DUCKDB
+# =========================================================
+
+print("Saving data to DuckDB...")
+
+db = DatabaseManager()
+
+db.save(target, "target_portfolio")
+db.save(trade_list, "trade_list")
+db.save(dashboard, "rebalance_dashboard")
+db.save(summary, "rebalance_summary")
+
+print("✓ DuckDB Updated")
 
 print(
     "✓ Outputs Saved"
