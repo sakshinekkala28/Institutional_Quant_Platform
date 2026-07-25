@@ -1458,6 +1458,28 @@ shrinkage_covariance = (
     )
 )
 
+# ======================================
+# CLEANUP
+# ======================================
+
+covariance_matrix = (
+    covariance_matrix
+    .replace([np.inf, -np.inf], np.nan)
+    .fillna(0.0)
+)
+
+annualized_covariance = (
+    annualized_covariance
+    .replace([np.inf, -np.inf], np.nan)
+    .fillna(0.0)
+)
+
+correlation_matrix = (
+    correlation_matrix
+    .replace([np.inf, -np.inf], np.nan)
+    .fillna(0.0)
+)
+
 # =========================================================
 # EXPORT MATRICES
 # =========================================================
