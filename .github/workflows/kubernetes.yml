@@ -832,10 +832,6 @@ jobs:
 
           github.event_name == 'workflow_dispatch'
 
-        environment:
-
-          name: production
-
         run: |
 
           helm upgrade \
