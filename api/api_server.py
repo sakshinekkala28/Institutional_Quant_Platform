@@ -6,9 +6,17 @@
 from __future__ import annotations
 
 from datetime import datetime
+import numpy as np
+import pandas as pd
+from datetime import datetime, UTC
 
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
+from ingestion.database_manager import (
+    DatabaseManager
+)
+
+db = DatabaseManager()
 
 app = FastAPI(
 
@@ -56,42 +64,33 @@ def root():
 
         "version":
 
-        "1.0.0"
+        "3.0.0"
 
     }
+
 # ==========================================================
 # PORTFOLIO ENDPOINT
 # ==========================================================
 
-@app.get("/portfolio")
+def dataframe_to_records(
+    df: pd.DataFrame,
+):
 
-def portfolio():
-
-    return {
-
-        "message":
-
-        "Portfolio endpoint"
-
-    }
-
-
-# ==========================================================
-# RISK ENDPOINT
-# ==========================================================
-
-@app.get("/risk")
-
-def risk():
-
-    return {
-
-        "message":
-
-        "Risk endpoint"
-
-    }
-
+    return (
+        df
+        .replace(
+            [np.inf, -np.inf],
+            np.nan,
+        )
+        .astype(object)
+        .where(
+            pd.notna(df),
+            None,
+        )
+        .to_dict(
+            orient="records"
+        )
+    )
 
 # ==========================================================
 # GOVERNANCE ENDPOINT
@@ -130,18 +129,25 @@ def performance():
 # TRADE LIST
 # ==========================================================
 
-@app.get("/trades")
 
+@app.get("/trades")
 def trades():
 
-    return {
+    try:
 
-        "message":
+        df = db.load(
+            "trade_list"
+        )
 
-        "Trade endpoint"
+        return JSONResponse(
+            content=dataframe_to_records(df)
+        )
 
-    }
+    except Exception as e:
 
+        return {
+            "error": str(e)
+        }
 
 # ==========================================================
 # SIGNALS
@@ -163,13 +169,6 @@ def signals():
 # DATABASE ROUTES
 # ==========================================================
 
-from ingestion.database_manager import (
-    DatabaseManager
-)
-
-db = DatabaseManager()
-
-
 @app.get("/portfolio/live")
 
 def live_portfolio():
@@ -181,13 +180,9 @@ def live_portfolio():
         )
 
         return JSONResponse(
-
-            content=df.to_dict(
-                orient="records"
-            )
-
+            content=dataframe_to_records(df)
         )
-
+    
     except Exception as e:
 
         return {
@@ -200,29 +195,32 @@ def live_portfolio():
 
 
 @app.get("/risk/latest")
-
 def latest_risk():
 
     try:
 
         df = db.load(
-            "risk_report"
+            "rebalance_dashboard"
         )
 
         return JSONResponse(
-
-            content=df.to_dict(
-                orient="records"
-            )
-
+            content=dataframe_to_records(df)
         )
 
     except Exception as e:
 
         return {
-
-            "error":
-
-            str(e)
-
+            "error": str(e)
         }
+    
+
+if __name__ == "__main__":
+
+    import uvicorn
+
+    uvicorn.run(
+        "api.api_server:app",
+        host="0.0.0.0",
+        port=8000,
+        reload=False,
+    )

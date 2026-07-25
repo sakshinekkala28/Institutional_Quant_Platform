@@ -2922,11 +2922,24 @@ except:
     print(
         "⚠ Covariance Missing"
     )
+
 # =====================================
 # STEP 17 - PSD COVARIANCE REPAIR
 # =====================================
 
 if cov_matrix is not None:
+
+    # Clean invalid values
+    cov_matrix = (
+        cov_matrix
+        .replace([np.inf, -np.inf], np.nan)
+        .fillna(0.0)
+    )
+
+    # Force symmetry
+    cov_matrix = (
+        cov_matrix + cov_matrix.T
+    ) / 2.0
 
     eigvals, eigvecs = np.linalg.eigh(
         cov_matrix.values
@@ -2937,21 +2950,21 @@ if cov_matrix is not None:
         1e-5
     )
 
-    cov_matrix = pd.DataFrame(
+    repaired = (
         eigvecs
         @ np.diag(eigvals)
-        @ eigvecs.T,
+        @ eigvecs.T
+    )
+
+    cov_matrix = pd.DataFrame(
+        repaired,
         index=cov_matrix.index,
-        columns=cov_matrix.columns
+        columns=cov_matrix.columns,
     )
 
     print(
         "PSD Min Eigenvalue:",
-        np.min(
-            np.linalg.eigvals(
-                cov_matrix.values
-            )
-        )
+        eigvals.min()
     )
     
 # =========================================================
@@ -5397,6 +5410,35 @@ summary.to_csv(
 print("Saving data to DuckDB...")
 
 db = DatabaseManager()
+
+print("\n===== COLUMN TYPES =====")
+
+for col in target.columns:
+
+    print(
+        f"{col:<35}",
+        target[col].dtype,
+    )
+
+    bad = target[col].apply(
+        lambda x: isinstance(
+            x,
+            (list, dict, set, tuple),
+        )
+    )
+
+    if bad.any():
+
+        print(
+            f"Unsupported objects in column: {col}"
+        )
+
+        print(
+            target.loc[
+                bad,
+                col,
+            ].head()
+        )
 
 db.save(target, "target_portfolio")
 db.save(trade_list, "trade_list")
