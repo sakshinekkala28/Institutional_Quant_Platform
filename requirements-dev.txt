@@ -2,7 +2,9 @@
 
 ruff
 pytest
+pytest-asyncio
 pytest-cov
+pytest-xdist
 mypy
 bandit
 pre-commit
