@@ -882,7 +882,7 @@ jobs:
 
       - name: Generate CycloneDX SBOM
 
-        uses: CycloneDX/gh-python-generate-sbom@v1
+        uses: CycloneDX/gh-python-generate-sbom@v2
 
         with:
 
