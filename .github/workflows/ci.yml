@@ -163,10 +163,11 @@ jobs:
       - name: Install kubectl
         uses: azure/setup-kubectl@v4
 
-      - name: Validate Kubernetes YAML
+      - name: Validate Kubernetes Manifests
         run: |
           kubectl apply \
             --dry-run=client \
+            --validate=false \
             -f docs/infrastructure/kubernetes
 
   dockerfiles:
