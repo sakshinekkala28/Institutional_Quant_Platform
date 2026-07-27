@@ -354,9 +354,7 @@ Unexpected exceptions shall be logged with stack traces.
 Example
 
 ```python
-logger.exception(
-    "Portfolio optimization failed."
-)
+logger.exception("Portfolio optimization failed.")
 ```
 
 Do not suppress exceptions after logging unless recovery is intentional.
@@ -469,21 +467,13 @@ Avoid
 
 ```python
 logger.info(
-
     "Portfolio optimization completed.",
-
     extra={
-
         "pipeline": "Portfolio",
-
         "engine": "Optimizer",
-
         "records": 50,
-
         "duration": 2.31,
-
     },
-
 )
 ```
 

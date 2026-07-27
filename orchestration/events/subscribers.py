@@ -20,10 +20,8 @@ Responsibilities
 
 from __future__ import annotations
 
+from abc import ABC, abstractmethod
 import logging
-
-from abc import ABC
-from abc import abstractmethod
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -32,6 +30,7 @@ logger = logging.getLogger(__name__)
 # ==========================================================
 # BASE SUBSCRIBER
 # ==========================================================
+
 
 class BaseSubscriber(ABC):
     """
@@ -54,6 +53,7 @@ class BaseSubscriber(ABC):
 # LOGGING SUBSCRIBER
 # ==========================================================
 
+
 class LoggingSubscriber(BaseSubscriber):
     """
     Logs every published event.
@@ -66,19 +66,16 @@ class LoggingSubscriber(BaseSubscriber):
     ) -> None:
 
         logger.info(
-
             "EVENT %-30s %s",
-
             event,
-
             payload,
-
         )
 
 
 # ==========================================================
 # METRICS SUBSCRIBER
 # ==========================================================
+
 
 class MetricsSubscriber(BaseSubscriber):
     """
@@ -95,17 +92,15 @@ class MetricsSubscriber(BaseSubscriber):
     ) -> None:
 
         logger.debug(
-
             "Metrics Event: %s",
-
             event,
-
         )
 
 
 # ==========================================================
 # AUDIT SUBSCRIBER
 # ==========================================================
+
 
 class AuditSubscriber(BaseSubscriber):
     """
@@ -122,17 +117,15 @@ class AuditSubscriber(BaseSubscriber):
     ) -> None:
 
         logger.debug(
-
             "Audit Event: %s",
-
             event,
-
         )
 
 
 # ==========================================================
 # MONITORING SUBSCRIBER
 # ==========================================================
+
 
 class MonitoringSubscriber(BaseSubscriber):
     """
@@ -146,17 +139,15 @@ class MonitoringSubscriber(BaseSubscriber):
     ) -> None:
 
         logger.debug(
-
             "Monitoring Event: %s",
-
             event,
-
         )
 
 
 # ==========================================================
 # NOTIFICATION SUBSCRIBER
 # ==========================================================
+
 
 class NotificationSubscriber(BaseSubscriber):
     """
@@ -171,17 +162,15 @@ class NotificationSubscriber(BaseSubscriber):
     ) -> None:
 
         logger.debug(
-
             "Notification Event: %s",
-
             event,
-
         )
 
 
 # ==========================================================
 # SUBSCRIBER REGISTRY
 # ==========================================================
+
 
 class SubscriberRegistry:
     """
@@ -191,9 +180,7 @@ class SubscriberRegistry:
 
     def __init__(self) -> None:
 
-        self._subscribers: list[
-            BaseSubscriber
-        ] = []
+        self._subscribers: list[BaseSubscriber] = []
 
     # ------------------------------------------------------
 
@@ -202,11 +189,7 @@ class SubscriberRegistry:
         subscriber: BaseSubscriber,
     ) -> None:
 
-        self._subscribers.append(
-
-            subscriber
-
-        )
+        self._subscribers.append(subscriber)
 
     # ------------------------------------------------------
 
@@ -216,12 +199,7 @@ class SubscriberRegistry:
     ) -> None:
 
         if subscriber in self._subscribers:
-
-            self._subscribers.remove(
-
-                subscriber
-
-            )
+            self._subscribers.remove(subscriber)
 
     # ------------------------------------------------------
 
@@ -232,13 +210,9 @@ class SubscriberRegistry:
     ) -> None:
 
         for subscriber in self._subscribers:
-
             subscriber.notify(
-
                 event,
-
                 **payload,
-
             )
 
     # ------------------------------------------------------
@@ -255,11 +229,7 @@ class SubscriberRegistry:
         self,
     ) -> int:
 
-        return len(
-
-            self._subscribers
-
-        )
+        return len(self._subscribers)
 
     # ------------------------------------------------------
 
@@ -267,11 +237,7 @@ class SubscriberRegistry:
         self,
     ):
 
-        return iter(
-
-            self._subscribers
-
-        )
+        return iter(self._subscribers)
 
     # ------------------------------------------------------
 
@@ -279,10 +245,4 @@ class SubscriberRegistry:
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"subscribers={len(self)})"
-
-        )
+        return f"{self.__class__.__name__}(subscribers={len(self)})"

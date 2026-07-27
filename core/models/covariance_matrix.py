@@ -44,19 +44,9 @@ class CovarianceMatrix:
 
     __hash__ = None
 
-    def __post_init__(
+    def __post_init__(self) -> None:
 
-        self
-
-    ) -> None:
-
-        self.matrix = np.asarray(
-
-            self.matrix,
-
-            dtype=np.float64
-
-        )
+        self.matrix = np.asarray(self.matrix, dtype=np.float64)
 
         self.validate()
 
@@ -64,418 +54,160 @@ class CovarianceMatrix:
     # COLLECTION PROTOCOL
     # =====================================================
 
-    def __len__(
-
-        self
-
-    ) -> int:
+    def __len__(self) -> int:
 
         return self.dimension
 
-    def __getitem__(
-
-        self,
-
-        index: int
-
-    ) -> np.ndarray:
+    def __getitem__(self, index: int) -> np.ndarray:
 
         return self.matrix[index]
 
-    def __iter__(
+    def __iter__(self):
 
-        self
-
-    ):
-
-        return iter(
-
-            self.matrix
-
-        )
+        return iter(self.matrix)
 
     # =====================================================
     # BASIC
     # =====================================================
 
     @property
-    def dimension(
-
-        self
-
-    ) -> int:
+    def dimension(self) -> int:
 
         return self.matrix.shape[0]
 
     @property
-    def shape(
-
-        self
-
-    ) -> tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
 
         return self.matrix.shape
 
     @property
-    def is_square(
-
-        self
-
-    ) -> bool:
+    def is_square(self) -> bool:
 
         rows, cols = self.shape
 
         return rows == cols
 
     @property
-    def is_symmetric(
+    def is_symmetric(self) -> bool:
 
-        self
-
-    ) -> bool:
-
-        return np.allclose(
-
-            self.matrix,
-
-            self.matrix.T
-
-        )
+        return np.allclose(self.matrix, self.matrix.T)
 
     @property
-    def diagonal(
+    def diagonal(self) -> np.ndarray:
 
-        self
-
-    ) -> np.ndarray:
-
-        return np.diag(
-
-            self.matrix
-
-        )
+        return np.diag(self.matrix)
 
     # =====================================================
     # VALIDATION
     # =====================================================
 
     @property
-    def is_positive_semidefinite(
+    def is_positive_semidefinite(self) -> bool:
 
-        self
+        eigenvalues = np.linalg.eigvalsh(self.matrix)
 
-    ) -> bool:
+        return np.all(eigenvalues >= -1e-10)
 
-        eigenvalues = np.linalg.eigvalsh(
-
-            self.matrix
-
-        )
-
-        return np.all(
-
-            eigenvalues >= -1e-10
-
-        )
-
-    def validate(
-
-        self
-
-    ) -> None:
+    def validate(self) -> None:
 
         if not self.is_square:
+            raise ValueError("Covariance matrix must be square.")
 
-            raise ValueError(
-
-                "Covariance matrix must be square."
-
-            )
-
-        if len(
-
-            self.assets
-
-        ) != self.dimension:
-
-            raise ValueError(
-
-                "Asset count must equal matrix dimension."
-
-            )
+        if len(self.assets) != self.dimension:
+            raise ValueError("Asset count must equal matrix dimension.")
 
         if not self.is_symmetric:
-
-            raise ValueError(
-
-                "Covariance matrix must be symmetric."
-
-            )
+            raise ValueError("Covariance matrix must be symmetric.")
 
     # =====================================================
     # LOOKUPS
     # =====================================================
 
-    def index(
-
-        self,
-
-        asset: str
-
-    ) -> int:
+    def index(self, asset: str) -> int:
 
         try:
-
-            return self.assets.index(
-
-                asset
-
-            )
+            return self.assets.index(asset)
 
         except ValueError as exc:
+            raise KeyError(f"Unknown asset '{asset}'.") from exc
 
-            raise KeyError(
+    def variance(self, asset: str) -> float:
 
-                f"Unknown asset '{asset}'."
+        idx = self.index(asset)
 
-            ) from exc
+        return float(self.matrix[idx, idx])
 
-    def variance(
+    def covariance(self, asset_a: str, asset_b: str) -> float:
 
-        self,
+        i = self.index(asset_a)
 
-        asset: str
+        j = self.index(asset_b)
 
-    ) -> float:
+        return float(self.matrix[i, j])
 
-        idx = self.index(
+    def correlation(self, asset_a: str, asset_b: str) -> float:
 
-            asset
+        cov = self.covariance(asset_a, asset_b)
 
-        )
+        sigma_a = np.sqrt(self.variance(asset_a))
 
-        return float(
-
-            self.matrix[idx, idx]
-
-        )
-
-    def covariance(
-
-        self,
-
-        asset_a: str,
-
-        asset_b: str
-
-    ) -> float:
-
-        i = self.index(
-
-            asset_a
-
-        )
-
-        j = self.index(
-
-            asset_b
-
-        )
-
-        return float(
-
-            self.matrix[i, j]
-
-        )
-
-    def correlation(
-
-        self,
-
-        asset_a: str,
-
-        asset_b: str
-
-    ) -> float:
-
-        cov = self.covariance(
-
-            asset_a,
-
-            asset_b
-
-        )
-
-        sigma_a = np.sqrt(
-
-            self.variance(
-
-                asset_a
-
-            )
-
-        )
-
-        sigma_b = np.sqrt(
-
-            self.variance(
-
-                asset_b
-
-            )
-
-        )
+        sigma_b = np.sqrt(self.variance(asset_b))
 
         if sigma_a <= 0 or sigma_b <= 0:
-
             return 0.0
 
-        return float(
-
-            cov /
-
-            (sigma_a * sigma_b)
-
-        )
+        return float(cov / (sigma_a * sigma_b))
 
     # =====================================================
     # SUBMATRIX
     # =====================================================
 
-    def submatrix(
+    def submatrix(self, selected_assets: list[str]) -> CovarianceMatrix:
 
-        self,
+        indices = [self.index(asset) for asset in selected_assets]
 
-        selected_assets: list[str]
+        matrix = self.matrix[np.ix_(indices, indices)]
 
-    ) -> "CovarianceMatrix":
-
-        indices = [
-
-            self.index(
-
-                asset
-
-            )
-
-            for asset
-
-            in selected_assets
-
-        ]
-
-        matrix = self.matrix[
-
-            np.ix_(
-
-                indices,
-
-                indices
-
-            )
-
-        ]
-
-        return CovarianceMatrix(
-
-            assets=selected_assets,
-
-            matrix=matrix
-
-        )
+        return CovarianceMatrix(assets=selected_assets, matrix=matrix)
 
     # =====================================================
     # EXPORT
     # =====================================================
 
-    def to_numpy(
-
-        self
-
-    ) -> np.ndarray:
+    def to_numpy(self) -> np.ndarray:
 
         return self.matrix.copy()
 
-    def to_dict(
-
-        self
-
-    ) -> dict[str, dict[str, float]]:
+    def to_dict(self) -> dict[str, dict[str, float]]:
 
         return {
-
             asset_i: {
-
-                asset_j: float(
-
-                    self.matrix[i, j]
-
-                )
-
-                for j, asset_j
-
-                in enumerate(
-
-                    self.assets
-
-                )
-
+                asset_j: float(self.matrix[i, j])
+                for j, asset_j in enumerate(self.assets)
             }
-
-            for i, asset_i
-
-            in enumerate(
-
-                self.assets
-
-            )
-
+            for i, asset_i in enumerate(self.assets)
         }
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         return {
-
             "dimension": self.dimension,
-
             "shape": self.shape,
-
             "is_square": self.is_square,
-
             "is_symmetric": self.is_symmetric,
-
-            "is_positive_semidefinite":
-
-                self.is_positive_semidefinite
-
+            "is_positive_semidefinite": self.is_positive_semidefinite,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
+    def __repr__(self) -> str:
 
-        self
-
-    ) -> str:
-
-        return (
-
-            f"CovarianceMatrix("
-
-            f"dimension={self.dimension}"
-
-            f")"
-
-        )
+        return f"CovarianceMatrix(dimension={self.dimension})"
 
     __str__ = __repr__

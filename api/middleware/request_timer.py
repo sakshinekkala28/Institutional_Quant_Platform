@@ -32,18 +32,15 @@ Used By
 
 from __future__ import annotations
 
+from collections.abc import Callable
 import logging
 import time
-from collections.abc import Callable
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-
 logger = logging.getLogger(
-
     "institutional.timer",
-
 )
 
 
@@ -60,193 +57,84 @@ class RequestTimerMiddleware(
     """
 
     def __init__(
-
         self,
-
         app,
-
         slow_request_ms: float = 1000.0,
-
     ):
 
         super().__init__(
-
             app,
-
         )
 
-        self.slow_request_ms = (
-
-            slow_request_ms
-
-        )
+        self.slow_request_ms = slow_request_ms
 
     # =====================================================
     # DISPATCH
     # =====================================================
 
     async def dispatch(
-
         self,
-
         request: Request,
-
         call_next: Callable,
-
     ):
 
-        start_time = (
+        start_time = time.perf_counter()
 
-            time.perf_counter()
-
-        )
-
-        request.state.start_time = (
-
-            start_time
-
-        )
+        request.state.start_time = start_time
 
         response = await call_next(
-
             request,
-
         )
 
-        end_time = (
+        end_time = time.perf_counter()
 
-            time.perf_counter()
+        elapsed_seconds = end_time - start_time
 
-        )
+        elapsed_ms = elapsed_seconds * 1000
 
-        elapsed_seconds = (
-
-            end_time
-
-            -
-
-            start_time
-
-        )
-
-        elapsed_ms = (
-
-            elapsed_seconds
-
-            * 1000
-
-        )
-
-        request.state.execution_time = (
-
-            elapsed_seconds
-
-        )
+        request.state.execution_time = elapsed_seconds
 
         # =============================================
         # RESPONSE HEADERS
         # =============================================
 
-        response.headers[
+        response.headers["X-Execution-Time"] = f"{elapsed_ms:.2f} ms"
 
-            "X-Execution-Time"
-
-        ] = (
-
-            f"{elapsed_ms:.2f} ms"
-
-        )
-
-        response.headers[
-
-            "Server-Timing"
-
-        ] = (
-
-            f"app;dur={elapsed_ms:.2f}"
-
-        )
+        response.headers["Server-Timing"] = f"app;dur={elapsed_ms:.2f}"
 
         # =============================================
         # PERFORMANCE LOGGING
         # =============================================
 
         logger.info(
-
             "Request Completed",
-
             extra={
-
-                "method":
-
-                    request.method,
-
-                "path":
-
-                    request.url.path,
-
-                "execution_ms":
-
-                    round(
-
-                        elapsed_ms,
-
-                        2,
-
-                    ),
-
-                "status":
-
-                    response.status_code,
-
+                "method": request.method,
+                "path": request.url.path,
+                "execution_ms": round(
+                    elapsed_ms,
+                    2,
+                ),
+                "status": response.status_code,
             },
-
         )
 
         # =============================================
         # SLOW REQUEST
         # =============================================
 
-        if (
-
-            elapsed_ms
-
-            >
-
-            self.slow_request_ms
-
-        ):
-
+        if elapsed_ms > self.slow_request_ms:
             logger.warning(
-
                 "Slow Request",
-
                 extra={
-
-                    "method":
-
-                        request.method,
-
-                    "path":
-
-                        request.url.path,
-
-                    "execution_ms":
-
-                        round(
-
-                            elapsed_ms,
-
-                            2,
-
-                        ),
-
-                    "threshold":
-
-                        self.slow_request_ms,
-
+                    "method": request.method,
+                    "path": request.url.path,
+                    "execution_ms": round(
+                        elapsed_ms,
+                        2,
+                    ),
+                    "threshold": self.slow_request_ms,
                 },
-
             )
 
         return response
@@ -263,60 +151,30 @@ class Timer:
     """
 
     def __init__(
-
         self,
-
     ):
 
-        self.start = (
-
-            time.perf_counter()
-
-        )
+        self.start = time.perf_counter()
 
     @property
     def elapsed_seconds(
-
         self,
-
     ) -> float:
 
-        return (
-
-            time.perf_counter()
-
-            -
-
-            self.start
-
-        )
+        return time.perf_counter() - self.start
 
     @property
     def elapsed_milliseconds(
-
         self,
-
     ) -> float:
 
-        return (
-
-            self.elapsed_seconds
-
-            * 1000
-
-        )
+        return self.elapsed_seconds * 1000
 
     def reset(
-
         self,
-
     ):
 
-        self.start = (
-
-            time.perf_counter()
-
-        )
+        self.start = time.perf_counter()
 
 
 # ==========================================================
@@ -325,63 +183,35 @@ class Timer:
 
 
 def measure_time(
-
     logger_name: str = "institutional.timer",
-
 ):
 
     perf_logger = logging.getLogger(
-
         logger_name,
-
     )
 
     def decorator(
-
         function,
-
     ):
 
         async def wrapper(
-
             *args,
-
             **kwargs,
-
         ):
 
-            start = (
-
-                time.perf_counter()
-
-            )
+            start = time.perf_counter()
 
             result = await function(
-
                 *args,
-
                 **kwargs,
-
             )
 
-            elapsed = (
-
-                time.perf_counter()
-
-                -
-
-                start
-
-            )
+            elapsed = time.perf_counter() - start
 
             perf_logger.info(
-
                 "%s completed in %.3f sec",
-
                 function.__name__,
-
                 elapsed,
-
             )
 
             return result
@@ -397,29 +227,16 @@ def measure_time(
 
 
 def timer_summary(
-
     threshold_ms: float,
-
 ) -> dict:
 
     return {
-
-        "timer":
-
-            "High Precision",
-
-        "slow_request_threshold_ms":
-
-            threshold_ms,
-
+        "timer": "High Precision",
+        "slow_request_threshold_ms": threshold_ms,
         "headers": [
-
             "X-Execution-Time",
-
             "Server-Timing",
-
         ],
-
     }
 
 
@@ -429,13 +246,8 @@ def timer_summary(
 
 
 __all__ = [
-
     "RequestTimerMiddleware",
-
     "Timer",
-
     "measure_time",
-
     "timer_summary",
-
 ]

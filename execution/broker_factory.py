@@ -41,9 +41,7 @@ class BrokerFactory:
     """
 
     _registry: dict[str, type[Broker]] = {
-
         "SIMULATOR": BrokerSimulator,
-
     }
 
     # =====================================================
@@ -52,20 +50,12 @@ class BrokerFactory:
 
     @classmethod
     def register(
-
         cls,
-
         name: str,
-
         broker: type[Broker],
-
     ) -> None:
 
-        cls._registry[
-
-            name.upper()
-
-        ] = broker
+        cls._registry[name.upper()] = broker
 
     # =====================================================
     # REMOVE
@@ -73,19 +63,13 @@ class BrokerFactory:
 
     @classmethod
     def unregister(
-
         cls,
-
         name: str,
-
     ) -> None:
 
         cls._registry.pop(
-
             name.upper(),
-
             None,
-
         )
 
     # =====================================================
@@ -94,50 +78,22 @@ class BrokerFactory:
 
     @classmethod
     def create(
-
         cls,
-
         broker_name: str,
-
         **kwargs,
-
     ) -> Broker:
 
         try:
-
-            broker = cls._registry[
-
-                broker_name.upper()
-
-            ]
+            broker = cls._registry[broker_name.upper()]
 
         except KeyError as exc:
-
-            available = ", ".join(
-
-                sorted(
-
-                    cls._registry.keys()
-
-                )
-
-            )
+            available = ", ".join(sorted(cls._registry.keys()))
 
             raise ValueError(
-
-                f"Unknown broker "
-
-                f"'{broker_name}'. "
-
-                f"Available: {available}"
-
+                f"Unknown broker '{broker_name}'. Available: {available}"
             ) from exc
 
-        return broker(
-
-            **kwargs
-
-        )
+        return broker(**kwargs)
 
     # =====================================================
     # AVAILABLE
@@ -145,16 +101,10 @@ class BrokerFactory:
 
     @classmethod
     def available(
-
         cls,
-
     ) -> list[str]:
 
-        return sorted(
-
-            cls._registry.keys()
-
-        )
+        return sorted(cls._registry.keys())
 
     # =====================================================
     # EXISTS
@@ -162,39 +112,20 @@ class BrokerFactory:
 
     @classmethod
     def exists(
-
         cls,
-
         broker_name: str,
-
     ) -> bool:
 
-        return (
-
-            broker_name.upper()
-
-            in cls._registry
-
-        )
+        return broker_name.upper() in cls._registry
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Brokers={len(self._registry)}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Brokers={len(self._registry)})"
 
     __str__ = __repr__

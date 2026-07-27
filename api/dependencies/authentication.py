@@ -32,13 +32,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from fastapi import Depends
-from fastapi import HTTPException
-from fastapi import Request
-from fastapi.security import APIKeyHeader
-from fastapi.security import HTTPAuthorizationCredentials
-from fastapi.security import HTTPBearer
-
+from fastapi import Depends, HTTPException, Request
+from fastapi.security import APIKeyHeader, HTTPAuthorizationCredentials, HTTPBearer
 
 # ==========================================================
 # SECURITY SCHEMES
@@ -46,17 +41,12 @@ from fastapi.security import HTTPBearer
 
 
 bearer_scheme = HTTPBearer(
-
     auto_error=False,
-
 )
 
 api_key_scheme = APIKeyHeader(
-
     name="X-API-Key",
-
     auto_error=False,
-
 )
 
 
@@ -66,32 +56,22 @@ api_key_scheme = APIKeyHeader(
 
 
 def get_current_user(
-
     request: Request,
-
 ) -> dict[str, Any]:
     """
     Current authenticated user.
     """
 
     user = getattr(
-
         request.state,
-
         "user",
-
         None,
-
     )
 
     if user is None:
-
         raise HTTPException(
-
             status_code=401,
-
             detail="Authentication required.",
-
         )
 
     return user
@@ -103,9 +83,7 @@ def get_current_user(
 
 
 def get_optional_user(
-
     request: Request,
-
 ) -> dict[str, Any] | None:
     """
     Return authenticated user
@@ -113,13 +91,9 @@ def get_optional_user(
     """
 
     return getattr(
-
         request.state,
-
         "user",
-
         None,
-
     )
 
 
@@ -129,21 +103,14 @@ def get_optional_user(
 
 
 def get_username(
-
     user: dict = Depends(
-
         get_current_user,
-
     ),
-
 ) -> str:
 
     return user.get(
-
         "username",
-
         "",
-
     )
 
 
@@ -153,21 +120,14 @@ def get_username(
 
 
 def get_role(
-
     user: dict = Depends(
-
         get_current_user,
-
     ),
-
 ) -> str:
 
     return user.get(
-
         "role",
-
         "",
-
     )
 
 
@@ -177,13 +137,9 @@ def get_role(
 
 
 def get_claims(
-
     user: dict = Depends(
-
         get_current_user,
-
     ),
-
 ) -> dict:
 
     return user
@@ -195,25 +151,16 @@ def get_claims(
 
 
 def is_authenticated(
-
     request: Request,
-
 ) -> bool:
 
     return (
-
         getattr(
-
             request.state,
-
             "user",
-
             None,
-
         )
-
         is not None
-
     )
 
 
@@ -223,13 +170,9 @@ def is_authenticated(
 
 
 def validate_bearer_token(
-
     credentials: HTTPAuthorizationCredentials | None = Depends(
-
         bearer_scheme,
-
     ),
-
 ) -> str | None:
     """
     Placeholder.
@@ -238,19 +181,14 @@ def validate_bearer_token(
     """
 
     if credentials is None:
-
         return None
 
     token = credentials.credentials
 
     if len(token) < 10:
-
         raise HTTPException(
-
             status_code=401,
-
             detail="Invalid bearer token.",
-
         )
 
     return token
@@ -262,13 +200,9 @@ def validate_bearer_token(
 
 
 def validate_api_key(
-
     api_key: str | None = Depends(
-
         api_key_scheme,
-
     ),
-
 ) -> str | None:
     """
     Placeholder.
@@ -277,17 +211,12 @@ def validate_api_key(
     """
 
     if api_key is None:
-
         return None
 
     if len(api_key) < 8:
-
         raise HTTPException(
-
             status_code=401,
-
             detail="Invalid API key.",
-
         )
 
     return api_key
@@ -299,33 +228,18 @@ def validate_api_key(
 
 
 def get_service_account(
-
     api_key: str | None = Depends(
-
         validate_api_key,
-
     ),
-
 ) -> dict | None:
 
     if api_key is None:
-
         return None
 
     return {
-
-        "username":
-
-            "service",
-
-        "role":
-
-            "system",
-
-        "api_key":
-
-            api_key,
-
+        "username": "service",
+        "role": "system",
+        "api_key": api_key,
     }
 
 
@@ -334,24 +248,12 @@ def get_service_account(
 # ==========================================================
 
 
-def anonymous_user(
-
-) -> dict:
+def anonymous_user() -> dict:
 
     return {
-
-        "username":
-
-            "anonymous",
-
-        "role":
-
-            "guest",
-
-        "authenticated":
-
-            False,
-
+        "username": "anonymous",
+        "role": "guest",
+        "authenticated": False,
     }
 
 
@@ -361,59 +263,31 @@ def anonymous_user(
 
 
 def authentication_summary(
-
     request: Request,
-
 ) -> dict:
 
     user = getattr(
-
         request.state,
-
         "user",
-
         None,
-
     )
 
     return {
-
-        "authenticated":
-
-            user is not None,
-
-        "username":
-
-            (
-
-                user.get(
-
-                    "username",
-
-                )
-
-                if user
-
-                else None
-
-            ),
-
-        "role":
-
-            (
-
-                user.get(
-
-                    "role",
-
-                )
-
-                if user
-
-                else None
-
-            ),
-
+        "authenticated": user is not None,
+        "username": (
+            user.get(
+                "username",
+            )
+            if user
+            else None
+        ),
+        "role": (
+            user.get(
+                "role",
+            )
+            if user
+            else None
+        ),
     }
 
 
@@ -423,31 +297,17 @@ def authentication_summary(
 
 
 __all__ = [
-
-    "bearer_scheme",
-
-    "api_key_scheme",
-
-    "get_current_user",
-
-    "get_optional_user",
-
-    "get_username",
-
-    "get_role",
-
-    "get_claims",
-
-    "is_authenticated",
-
-    "validate_bearer_token",
-
-    "validate_api_key",
-
-    "get_service_account",
-
     "anonymous_user",
-
+    "api_key_scheme",
     "authentication_summary",
-
+    "bearer_scheme",
+    "get_claims",
+    "get_current_user",
+    "get_optional_user",
+    "get_role",
+    "get_service_account",
+    "get_username",
+    "is_authenticated",
+    "validate_api_key",
+    "validate_bearer_token",
 ]

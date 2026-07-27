@@ -23,10 +23,10 @@ from orchestration.pipelines.risk_pipeline import (
     main as risk_pipeline,
 )
 
-
 # ==========================================================
 # STAGE
 # ==========================================================
+
 
 class RiskStage:
     """
@@ -37,9 +37,7 @@ class RiskStage:
 
     NAME = "Risk"
 
-    DESCRIPTION = (
-        "Risk validation and constraint analysis."
-    )
+    DESCRIPTION = "Risk validation and constraint analysis."
 
     PIPELINE = risk_pipeline
 
@@ -64,22 +62,11 @@ class RiskStage:
     def metadata(cls) -> dict:
 
         return {
-
-            "stage":
-                cls.STAGE,
-
-            "name":
-                cls.NAME,
-
-            "description":
-                cls.DESCRIPTION,
-
-            "dependencies":
-                cls.DEPENDENCIES,
-
-            "enabled":
-                cls.ENABLED,
-
+            "stage": cls.STAGE,
+            "name": cls.NAME,
+            "description": cls.DESCRIPTION,
+            "dependencies": cls.DEPENDENCIES,
+            "enabled": cls.ENABLED,
         }
 
     # =====================================================
@@ -88,10 +75,4 @@ class RiskStage:
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"stage={self.STAGE})"
-
-        )
+        return f"{self.__class__.__name__}(stage={self.STAGE})"

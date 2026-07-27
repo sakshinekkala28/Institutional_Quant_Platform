@@ -31,55 +31,35 @@ Inherited From
 from __future__ import annotations
 
 import numpy as np
-
 from scipy.optimize import minimize
 
 from core.models.covariance_matrix import CovarianceMatrix
 from core.models.expected_returns import ExpectedReturns
 from core.models.portfolio import Portfolio
-
 from optimization.base_optimizer import BaseOptimizer
 
 
-class MaximumSharpeOptimizer(
-
-    BaseOptimizer
-
-):
+class MaximumSharpeOptimizer(BaseOptimizer):
     """
     Institutional Maximum Sharpe Optimizer.
     """
 
     def __init__(
-
         self,
-
         covariance_matrix: CovarianceMatrix,
-
         expected_returns: ExpectedReturns,
-
         risk_free_rate: float = 0.0,
-
         long_only: bool = True,
-
         fully_invested: bool = True,
-
         min_weight: float = 0.0,
-
         max_weight: float = 1.0,
-
     ) -> None:
 
         super().__init__(
-
             long_only=long_only,
-
             fully_invested=fully_invested,
-
             min_weight=min_weight,
-
             max_weight=max_weight,
-
         )
 
         self.covariance_matrix = covariance_matrix
@@ -93,50 +73,24 @@ class MaximumSharpeOptimizer(
     # =====================================================
 
     def objective(
-
         self,
-
         weights: np.ndarray,
-
     ) -> float:
 
         covariance = self.covariance_matrix.matrix
 
         mu = self.expected_returns.values
 
-        portfolio_return = float(
+        portfolio_return = float(weights @ mu)
 
-            weights @ mu
+        portfolio_variance = float(weights.T @ covariance @ weights)
 
-        )
-
-        portfolio_variance = float(
-
-            weights.T
-
-            @ covariance
-
-            @ weights
-
-        )
-
-        portfolio_volatility = np.sqrt(
-
-            portfolio_variance
-
-        )
+        portfolio_volatility = np.sqrt(portfolio_variance)
 
         if portfolio_volatility <= 0.0:
-
             return 1e9
 
-        sharpe = (
-
-            portfolio_return
-
-            - self.risk_free_rate
-
-        ) / portfolio_volatility
+        sharpe = (portfolio_return - self.risk_free_rate) / portfolio_volatility
 
         return -sharpe
 
@@ -145,101 +99,44 @@ class MaximumSharpeOptimizer(
     # =====================================================
 
     def optimize(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> Portfolio:
 
-        self.validate(
+        self.validate(portfolio)
 
-            portfolio
-
-        )
-
-        holdings = len(
-
-            portfolio
-
-        )
+        holdings = len(portfolio)
 
         initial = np.full(
-
             holdings,
-
             1.0 / holdings,
-
             dtype=np.float64,
-
         )
 
         bounds = [
-
             (
-
                 self.min_weight,
-
                 self.max_weight,
-
             )
-
-            for _ in range(
-
-                holdings
-
-            )
-
+            for _ in range(holdings)
         ]
 
-        constraints = [
-
-            {
-
-                "type": "eq",
-
-                "fun": lambda w:
-
-                    np.sum(
-
-                        w
-
-                    ) - 1.0
-
-            }
-
-        ]
+        constraints = [{"type": "eq", "fun": lambda w: np.sum(w) - 1.0}]
 
         result = minimize(
-
             fun=self.objective,
-
             x0=initial,
-
             method="SLSQP",
-
             bounds=bounds,
-
             constraints=constraints,
-
         )
 
         if not result.success:
-
-            raise RuntimeError(
-
-                f"Optimization failed: "
-
-                f"{result.message}"
-
-            )
+            raise RuntimeError(f"Optimization failed: {result.message}")
 
         return self.build_portfolio(
-
             portfolio,
-
             result.x,
-
         )
 
     # =====================================================
@@ -248,9 +145,7 @@ class MaximumSharpeOptimizer(
 
     @property
     def name(
-
         self,
-
     ) -> str:
 
         return "Maximum Sharpe"
@@ -260,19 +155,9 @@ class MaximumSharpeOptimizer(
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"RiskFree={self.risk_free_rate:.2%}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(RiskFree={self.risk_free_rate:.2%})"
 
     __str__ = __repr__

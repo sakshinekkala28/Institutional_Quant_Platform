@@ -32,23 +32,20 @@ Used By
 
 from __future__ import annotations
 
+from collections.abc import Callable
 import logging
 import time
 import uuid
-from typing import Callable
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-
 
 # ==========================================================
 # LOGGER
 # ==========================================================
 
 logger = logging.getLogger(
-
     "institutional.api",
-
 )
 
 
@@ -65,26 +62,16 @@ class LoggingMiddleware(
     """
 
     async def dispatch(
-
         self,
-
         request: Request,
-
         call_next: Callable,
-
     ):
 
         correlation_id = str(
-
             uuid.uuid4(),
-
         )
 
-        request.state.correlation_id = (
-
-            correlation_id
-
-        )
+        request.state.correlation_id = correlation_id
 
         start = time.perf_counter()
 
@@ -92,194 +79,76 @@ class LoggingMiddleware(
 
         path = request.url.path
 
-        client = (
-
-            request.client.host
-
-            if request.client
-
-            else "Unknown"
-
-        )
+        client = request.client.host if request.client else "Unknown"
 
         user = getattr(
-
             request.state,
-
             "user",
-
             None,
-
         )
 
         username = (
-
             user.get(
-
                 "username",
-
                 "Anonymous",
-
             )
-
             if user
-
             else "Anonymous"
-
         )
 
         logger.info(
-
             "Incoming Request",
-
             extra={
-
-                "correlation_id":
-
-                    correlation_id,
-
-                "method":
-
-                    method,
-
-                "path":
-
-                    path,
-
-                "client":
-
-                    client,
-
-                "user":
-
-                    username,
-
+                "correlation_id": correlation_id,
+                "method": method,
+                "path": path,
+                "client": client,
+                "user": username,
             },
-
         )
 
         try:
-
             response = await call_next(
-
                 request,
-
             )
 
         except Exception:
-
-            elapsed = (
-
-                time.perf_counter()
-
-                -
-
-                start
-
-            )
+            elapsed = time.perf_counter() - start
 
             logger.exception(
-
                 "Unhandled Exception",
-
                 extra={
-
-                    "correlation_id":
-
-                        correlation_id,
-
-                    "method":
-
-                        method,
-
-                    "path":
-
-                        path,
-
-                    "elapsed_ms":
-
-                        round(
-
-                            elapsed
-
-                            * 1000,
-
-                            2,
-
-                        ),
-
+                    "correlation_id": correlation_id,
+                    "method": method,
+                    "path": path,
+                    "elapsed_ms": round(
+                        elapsed * 1000,
+                        2,
+                    ),
                 },
-
             )
 
             raise
 
-        elapsed = (
+        elapsed = time.perf_counter() - start
 
-            time.perf_counter()
+        response.headers["X-Correlation-ID"] = correlation_id
 
-            -
-
-            start
-
-        )
-
-        response.headers[
-
-            "X-Correlation-ID"
-
-        ] = correlation_id
-
-        response.headers[
-
-            "X-Response-Time"
-
-        ] = (
-
-            f"{elapsed:.6f}"
-
-        )
+        response.headers["X-Response-Time"] = f"{elapsed:.6f}"
 
         logger.info(
-
             "Outgoing Response",
-
             extra={
-
-                "correlation_id":
-
-                    correlation_id,
-
-                "status_code":
-
-                    response.status_code,
-
-                "elapsed_ms":
-
-                    round(
-
-                        elapsed
-
-                        * 1000,
-
-                        2,
-
-                    ),
-
-                "method":
-
-                    method,
-
-                "path":
-
-                    path,
-
-                "user":
-
-                    username,
-
+                "correlation_id": correlation_id,
+                "status_code": response.status_code,
+                "elapsed_ms": round(
+                    elapsed * 1000,
+                    2,
+                ),
+                "method": method,
+                "path": path,
+                "user": username,
             },
-
         )
 
         return response
@@ -291,35 +160,16 @@ class LoggingMiddleware(
 
 
 def configure_logging(
-
     level: str = "INFO",
-
 ):
 
     logging.basicConfig(
-
         level=getattr(
-
             logging,
-
             level.upper(),
-
             logging.INFO,
-
         ),
-
-        format=(
-
-            "%(asctime)s "
-
-            "%(levelname)s "
-
-            "%(name)s "
-
-            "%(message)s"
-
-        ),
-
+        format=("%(asctime)s %(levelname)s %(name)s %(message)s"),
     )
 
 
@@ -329,19 +179,13 @@ def configure_logging(
 
 
 def log_request(
-
     request: Request,
-
 ):
 
     logger.info(
-
         "%s %s",
-
         request.method,
-
         request.url.path,
-
     )
 
 
@@ -351,21 +195,14 @@ def log_request(
 
 
 def log_response(
-
     status_code: int,
-
     elapsed_ms: float,
-
 ):
 
     logger.info(
-
         "Status=%s Time=%.2f ms",
-
         status_code,
-
         elapsed_ms,
-
     )
 
 
@@ -375,21 +212,14 @@ def log_response(
 
 
 def log_performance(
-
     operation: str,
-
     execution_time: float,
-
 ):
 
     logger.info(
-
         "%s completed in %.3f sec",
-
         operation,
-
         execution_time,
-
     )
 
 
@@ -399,19 +229,12 @@ def log_performance(
 
 
 def log_audit(
-
     user: str,
-
     action: str,
-
 ):
 
     logger.info(
-
         "AUDIT | %s | %s",
-
         user,
-
         action,
-
     )

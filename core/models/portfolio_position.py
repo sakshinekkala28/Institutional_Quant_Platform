@@ -29,7 +29,6 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class PortfolioPosition:
-
     """
     Represents one portfolio holding.
     """
@@ -64,7 +63,6 @@ class PortfolioPosition:
 
     @property
     def alpha_rank(self) -> float:
-
         """
         Alias for ranking.
         """
@@ -73,20 +71,17 @@ class PortfolioPosition:
 
     @property
     def liquidity_ratio(self) -> float:
-
         """
         ADV relative to market cap.
         """
 
         if self.market_cap <= 0:
-
             return 0.0
 
         return self.adv_20d / self.market_cap
 
     @property
     def is_high_conviction(self) -> bool:
-
         """
         Institutional conviction.
         """
@@ -95,7 +90,6 @@ class PortfolioPosition:
 
     @property
     def market_value(self) -> float:
-
         """
         Portfolio-relative market value.
 
@@ -111,60 +105,29 @@ class PortfolioPosition:
     # EXPORT
     # =====================================================
 
-    def to_dict(
-
-        self
-
-    ) -> dict:
+    def to_dict(self) -> dict:
 
         return {
-
             "Security_ID": self.security_id,
-
             "Symbol": self.symbol,
-
             "Company_Name": self.company_name,
-
             "Sector": self.sector,
-
             "Rank": self.rank,
-
             "Alpha_Adjusted": self.alpha_adjusted,
-
             "Weight": self.weight,
-
             "Last_Close": self.last_close,
-
             "Market_Cap": self.market_cap,
-
             "ADV_20D": self.adv_20d,
-
             "Portfolio_Date": self.portfolio_date,
-
-            "Engine_Version": self.engine_version
-
+            "Engine_Version": self.engine_version,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
+    def __repr__(self) -> str:
 
-        self
-
-    ) -> str:
-
-        return (
-
-            f"PortfolioPosition("
-
-            f"{self.symbol}, "
-
-            f"{self.weight:.2%}"
-
-            ")"
-
-        )
+        return f"PortfolioPosition({self.symbol}, {self.weight:.2%})"
 
     __str__ = __repr__

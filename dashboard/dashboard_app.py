@@ -3,17 +3,12 @@
 # Institutional Quant Platform
 # ==========================================================
 
-import streamlit as st
 import pandas as pd
 import requests
 
-st.set_page_config(
+import streamlit as st
 
-    page_title="Institutional Quant Platform",
-
-    layout="wide"
-
-)
+st.set_page_config(page_title="Institutional Quant Platform", layout="wide")
 
 API_URL = "http://localhost:8000"
 
@@ -22,19 +17,14 @@ API_URL = "http://localhost:8000"
 # API CLIENT
 # ==========================================================
 
-class APIClient:
 
+class APIClient:
     @staticmethod
     def get(endpoint):
 
-        response = requests.get(
-
-            f"{API_URL}/{endpoint}"
-
-        )
+        response = requests.get(f"{API_URL}/{endpoint}")
 
         if response.status_code == 200:
-
             return response.json()
 
         return None
@@ -44,17 +34,9 @@ class APIClient:
 # HEADER
 # ==========================================================
 
-st.title(
+st.title("Institutional Quant Platform")
 
-    "Institutional Quant Platform"
-
-)
-
-st.caption(
-
-    "Portfolio Management System"
-
-)
+st.caption("Portfolio Management System")
 
 # ==========================================================
 # PORTFOLIO DASHBOARD
@@ -62,75 +44,23 @@ st.caption(
 
 st.header("Portfolio")
 
-portfolio = APIClient.get(
-
-    "portfolio/live"
-
-)
+portfolio = APIClient.get("portfolio/live")
 
 if portfolio:
+    portfolio_df = pd.DataFrame(portfolio)
 
-    portfolio_df = pd.DataFrame(
-
-        portfolio
-
-    )
-
-    st.dataframe(
-
-        portfolio_df,
-
-        use_container_width=True
-
-    )
+    st.dataframe(portfolio_df, use_container_width=True)
 
     col1, col2, col3 = st.columns(3)
 
     with col1:
-
-        st.metric(
-
-            "Holdings",
-
-            len(portfolio_df)
-
-        )
+        st.metric("Holdings", len(portfolio_df))
 
     with col2:
-
-        st.metric(
-
-            "Weight Sum",
-
-            round(
-
-                portfolio_df[
-                    "Weight"
-                ].sum(),
-
-                4
-
-            )
-
-        )
+        st.metric("Weight Sum", round(portfolio_df["Weight"].sum(), 4))
 
     with col3:
-
-        st.metric(
-
-            "Max Position",
-
-            round(
-
-                portfolio_df[
-                    "Weight"
-                ].max(),
-
-                4
-
-            )
-
-        )
+        st.metric("Max Position", round(portfolio_df["Weight"].max(), 4))
 
     import plotly.express as px
 
@@ -140,67 +70,25 @@ if portfolio:
 
 st.header("Risk Dashboard")
 
-risk = APIClient.get(
-
-    "risk/latest"
-
-)
+risk = APIClient.get("risk/latest")
 
 if risk:
+    risk_df = pd.DataFrame(risk)
 
-    risk_df = pd.DataFrame(
-
-        risk
-
-    )
-
-    st.dataframe(
-
-        risk_df,
-
-        use_container_width=True
-
-    )
+    st.dataframe(risk_df, use_container_width=True)
 
 # ==========================================================
 # SECTOR EXPOSURE
 # ==========================================================
 
 if portfolio:
-
-    sector_weights = (
-
-        portfolio_df
-
-        .groupby("Sector")
-
-        ["Weight"]
-
-        .sum()
-
-        .reset_index()
-
-    )
+    sector_weights = portfolio_df.groupby("Sector")["Weight"].sum().reset_index()
 
     fig = px.pie(
-
-        sector_weights,
-
-        names="Sector",
-
-        values="Weight",
-
-        title="Sector Allocation"
-
+        sector_weights, names="Sector", values="Weight", title="Sector Allocation"
     )
 
-    st.plotly_chart(
-
-        fig,
-
-        use_container_width=True
-
-    )
+    st.plotly_chart(fig, use_container_width=True)
 
 # ==========================================================
 # PERFORMANCE
@@ -208,14 +96,9 @@ if portfolio:
 
 st.header("Performance Dashboard")
 
-performance = APIClient.get(
-
-    "performance"
-
-)
+performance = APIClient.get("performance")
 
 if performance:
-
     st.json(performance)
 
 # ==========================================================
@@ -224,14 +107,9 @@ if performance:
 
 st.header("Governance")
 
-governance = APIClient.get(
-
-    "governance"
-
-)
+governance = APIClient.get("governance")
 
 if governance:
-
     st.json(governance)
 
 # ==========================================================
@@ -240,8 +118,4 @@ if governance:
 
 st.divider()
 
-st.caption(
-
-    "Institutional Quant Platform v1.0"
-
-)
+st.caption("Institutional Quant Platform v1.0")

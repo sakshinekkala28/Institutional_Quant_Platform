@@ -25,12 +25,8 @@ Inherited By
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
-
-from dataclasses import dataclass
-from dataclasses import field
-
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
 from datetime import datetime
 
 
@@ -40,17 +36,9 @@ class Event(ABC):
     Institutional base event.
     """
 
-    timestamp: datetime = field(
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
-        default_factory=datetime.utcnow
-
-    )
-
-    metadata: dict = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict = field(default_factory=dict)
 
     __hash__ = None
 
@@ -61,9 +49,7 @@ class Event(ABC):
     @property
     @abstractmethod
     def event_type(
-
         self,
-
     ) -> str:
         """
         Event type.
@@ -76,25 +62,13 @@ class Event(ABC):
     # =====================================================
 
     def to_dict(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Event":
-
-                self.event_type,
-
-            "Timestamp":
-
-                self.timestamp.isoformat(),
-
-            "Metadata":
-
-                self.metadata,
-
+            "Event": self.event_type,
+            "Timestamp": self.timestamp.isoformat(),
+            "Metadata": self.metadata,
         }
 
     # =====================================================
@@ -102,9 +76,7 @@ class Event(ABC):
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return self.to_dict()
@@ -114,21 +86,14 @@ class Event(ABC):
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Type={self.event_type}, "
-
             f"Timestamp={self.timestamp.isoformat()}"
-
             f")"
-
         )
 
     __str__ = __repr__

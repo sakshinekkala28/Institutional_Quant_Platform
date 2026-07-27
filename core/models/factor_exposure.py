@@ -27,8 +27,7 @@ Used By
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
 
 @dataclass(slots=True)
@@ -41,17 +40,9 @@ class FactorExposure:
 
     symbol: str
 
-    exposures: dict[str, float] = field(
+    exposures: dict[str, float] = field(default_factory=dict)
 
-        default_factory=dict
-
-    )
-
-    metadata: dict[str, str] = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict[str, str] = field(default_factory=dict)
 
     __hash__ = None
 
@@ -59,155 +50,59 @@ class FactorExposure:
     # COLLECTION PROTOCOL
     # =====================================================
 
-    def __len__(
+    def __len__(self) -> int:
 
-        self
+        return len(self.exposures)
 
-    ) -> int:
+    def __iter__(self):
 
-        return len(
+        return iter(self.exposures.items())
 
-            self.exposures
-
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self.exposures.items()
-
-        )
-
-    def __contains__(
-
-        self,
-
-        factor: str
-
-    ) -> bool:
+    def __contains__(self, factor: str) -> bool:
 
         return factor in self.exposures
 
-    def __getitem__(
-
-        self,
-
-        factor: str
-
-    ) -> float:
+    def __getitem__(self, factor: str) -> float:
 
         try:
-
-            return self.exposures[
-
-                factor
-
-            ]
+            return self.exposures[factor]
 
         except KeyError as exc:
-
-            raise KeyError(
-
-                f"Unknown factor '{factor}'."
-
-            ) from exc
+            raise KeyError(f"Unknown factor '{factor}'.") from exc
 
     # =====================================================
     # BASIC
     # =====================================================
 
     @property
-    def factor_count(
+    def factor_count(self) -> int:
 
-        self
-
-    ) -> int:
-
-        return len(
-
-            self
-
-        )
+        return len(self)
 
     @property
-    def is_empty(
+    def is_empty(self) -> bool:
 
-        self
-
-    ) -> bool:
-
-        return len(
-
-            self
-
-        ) == 0
+        return len(self) == 0
 
     @property
-    def factors(
+    def factors(self) -> list[str]:
 
-        self
-
-    ) -> list[str]:
-
-        return sorted(
-
-            self.exposures.keys()
-
-        )
+        return sorted(self.exposures.keys())
 
     @property
-    def values(
+    def values(self) -> list[float]:
 
-        self
-
-    ) -> list[float]:
-
-        return [
-
-            self.exposures[
-
-                factor
-
-            ]
-
-            for factor
-
-            in self.factors
-
-        ]
+        return [self.exposures[factor] for factor in self.factors]
 
     # =====================================================
     # LOOKUPS
     # =====================================================
 
-    def exposure(
+    def exposure(self, factor: str) -> float:
 
-        self,
+        return self.exposures.get(factor, 0.0)
 
-        factor: str
-
-    ) -> float:
-
-        return self.exposures.get(
-
-            factor,
-
-            0.0
-
-        )
-
-    def exists(
-
-        self,
-
-        factor: str
-
-    ) -> bool:
+    def exists(self, factor: str) -> bool:
 
         return factor in self
 
@@ -215,188 +110,69 @@ class FactorExposure:
     # MODIFICATION
     # =====================================================
 
-    def add(
+    def add(self, factor: str, value: float) -> None:
 
-        self,
+        self.exposures[factor] = value
 
-        factor: str,
+    def remove(self, factor: str) -> None:
 
-        value: float
+        self.exposures.pop(factor, None)
 
-    ) -> None:
-
-        self.exposures[
-
-            factor
-
-        ] = value
-
-    def remove(
-
-        self,
-
-        factor: str
-
-    ) -> None:
-
-        self.exposures.pop(
-
-            factor,
-
-            None
-
-        )
-
-    def update(
-
-        self,
-
-        factor: str,
-
-        value: float
-
-    ) -> None:
+    def update(self, factor: str, value: float) -> None:
 
         if factor not in self:
+            raise KeyError(f"Unknown factor '{factor}'.")
 
-            raise KeyError(
-
-                f"Unknown factor '{factor}'."
-
-            )
-
-        self.exposures[
-
-            factor
-
-        ] = value
+        self.exposures[factor] = value
 
     # =====================================================
     # VALIDATION
     # =====================================================
 
-    def validate(
-
-        self
-
-    ) -> None:
+    def validate(self) -> None:
 
         if not self.security_id:
-
-            raise ValueError(
-
-                "security_id is required."
-
-            )
+            raise ValueError("security_id is required.")
 
         if not self.symbol:
-
-            raise ValueError(
-
-                "symbol is required."
-
-            )
+            raise ValueError("symbol is required.")
 
         for factor, value in self.exposures.items():
-
-            if not isinstance(
-
-                value,
-
-                (int, float)
-
-            ):
-
-                raise TypeError(
-
-                    f"Factor '{factor}' "
-
-                    "must be numeric."
-
-                )
+            if not isinstance(value, (int, float)):
+                raise TypeError(f"Factor '{factor}' must be numeric.")
 
     # =====================================================
     # EXPORT
     # =====================================================
 
-    def to_dict(
-
-        self
-
-    ) -> dict:
+    def to_dict(self) -> dict:
 
         return {
-
-            "security_id":
-
-                self.security_id,
-
-            "symbol":
-
-                self.symbol,
-
-            "factor_count":
-
-                self.factor_count,
-
-            "exposures":
-
-                dict(
-
-                    self.exposures
-
-                )
-
+            "security_id": self.security_id,
+            "symbol": self.symbol,
+            "factor_count": self.factor_count,
+            "exposures": dict(self.exposures),
         }
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         return {
-
-            "security_id":
-
-                self.security_id,
-
-            "symbol":
-
-                self.symbol,
-
-            "factor_count":
-
-                self.factor_count,
-
-            "factors":
-
-                self.factors
-
+            "security_id": self.security_id,
+            "symbol": self.symbol,
+            "factor_count": self.factor_count,
+            "factors": self.factors,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
+    def __repr__(self) -> str:
 
-        self
-
-    ) -> str:
-
-        return (
-
-            f"FactorExposure("
-
-            f"{self.symbol}, "
-
-            f"{self.factor_count} factors)"
-
-        )
+        return f"FactorExposure({self.symbol}, {self.factor_count} factors)"
 
     __str__ = __repr__

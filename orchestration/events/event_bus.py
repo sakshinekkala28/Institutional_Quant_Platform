@@ -21,16 +21,13 @@ Responsibilities
 from __future__ import annotations
 
 from collections import defaultdict
+from collections.abc import Callable
 from typing import Any
-from typing import Callable
-from typing import DefaultDict
-from typing import Dict
-from typing import List
-
 
 # =========================================================
 # EVENT BUS
 # =========================================================
+
 
 class EventBus:
     """
@@ -39,10 +36,7 @@ class EventBus:
 
     def __init__(self) -> None:
 
-        self._listeners: DefaultDict[
-            str,
-            List[Callable[..., Any]]
-        ] = defaultdict(list)
+        self._listeners: defaultdict[str, list[Callable[..., Any]]] = defaultdict(list)
 
     # =====================================================
     # SUBSCRIBE
@@ -58,10 +52,7 @@ class EventBus:
         """
 
         if listener not in self._listeners[event]:
-
-            self._listeners[event].append(
-                listener
-            )
+            self._listeners[event].append(listener)
 
     # -----------------------------------------------------
 
@@ -75,10 +66,7 @@ class EventBus:
         """
 
         if listener in self._listeners[event]:
-
-            self._listeners[event].remove(
-                listener
-            )
+            self._listeners[event].remove(listener)
 
     # =====================================================
     # PUBLISH
@@ -97,10 +85,7 @@ class EventBus:
             event,
             [],
         ):
-
-            listener(
-                **payload
-            )
+            listener(**payload)
 
     # =====================================================
     # MANAGEMENT
@@ -119,28 +104,22 @@ class EventBus:
 
     def events(
         self,
-    ) -> List[str]:
+    ) -> list[str]:
 
-        return sorted(
-
-            self._listeners.keys()
-
-        )
+        return sorted(self._listeners.keys())
 
     # -----------------------------------------------------
 
     def listeners(
         self,
         event: str,
-    ) -> List[Callable[..., Any]]:
+    ) -> list[Callable[..., Any]]:
 
         return list(
-
             self._listeners.get(
                 event,
                 [],
             )
-
         )
 
     # =====================================================
@@ -149,17 +128,9 @@ class EventBus:
 
     def summary(
         self,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
 
-        return {
-
-            event: len(listeners)
-
-            for event, listeners
-
-            in self._listeners.items()
-
-        }
+        return {event: len(listeners) for event, listeners in self._listeners.items()}
 
     # =====================================================
     # DUNDER
@@ -169,15 +140,7 @@ class EventBus:
         self,
     ) -> int:
 
-        return sum(
-
-            len(listeners)
-
-            for listeners
-
-            in self._listeners.values()
-
-        )
+        return sum(len(listeners) for listeners in self._listeners.values())
 
     # -----------------------------------------------------
 
@@ -195,11 +158,7 @@ class EventBus:
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"events={len(self._listeners)}, "
-
             f"listeners={len(self)})"
-
         )

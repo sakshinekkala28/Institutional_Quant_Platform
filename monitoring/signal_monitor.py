@@ -37,7 +37,6 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-
 # ==========================================================
 # SIGNAL MONITOR RESULT
 # ==========================================================
@@ -62,37 +61,16 @@ class SignalMonitorResult:
     metadata: dict
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Metric":
-
-                self.metric,
-
-            "Status":
-
-                self.status,
-
-            "Value":
-
-                self.value,
-
-            "Threshold":
-
-                self.threshold,
-
-            "Timestamp":
-
-                self.timestamp.isoformat(),
-
-            "Metadata":
-
-                self.metadata,
-
+            "Metric": self.metric,
+            "Status": self.status,
+            "Value": self.value,
+            "Threshold": self.threshold,
+            "Timestamp": self.timestamp.isoformat(),
+            "Metadata": self.metadata,
         }
 
 
@@ -112,63 +90,30 @@ class SignalMonitor:
 
     @staticmethod
     def coverage(
-
         signals: pd.DataFrame,
-
         universe_size: int,
-
     ) -> SignalMonitorResult:
 
         coverage = (
-
             len(signals)
-
-            /
-
-            max(
-
+            / max(
                 universe_size,
-
                 1,
-
             )
-
         ) * 100
 
         return SignalMonitorResult(
-
             metric="Signal Coverage",
-
-            status=(
-
-                "OK"
-
-                if coverage >= 90
-
-                else "WARNING"
-
-            ),
-
+            status=("OK" if coverage >= 90 else "WARNING"),
             value=round(
-
                 coverage,
-
                 2,
-
             ),
-
             threshold=90,
-
             timestamp=datetime.utcnow(),
-
             metadata={
-
-                "Signals":
-
-                    len(signals),
-
+                "Signals": len(signals),
             },
-
         )
 
     # =====================================================
@@ -177,57 +122,24 @@ class SignalMonitor:
 
     @staticmethod
     def freshness(
-
         generated_at: datetime,
-
         max_age_hours: int = 24,
-
     ) -> SignalMonitorResult:
 
-        age = (
-
-            datetime.utcnow()
-
-            -
-
-            generated_at
-
-        ).total_seconds() / 3600
+        age = (datetime.utcnow() - generated_at).total_seconds() / 3600
 
         return SignalMonitorResult(
-
             metric="Signal Freshness",
-
-            status=(
-
-                "OK"
-
-                if age <= max_age_hours
-
-                else "WARNING"
-
-            ),
-
+            status=("OK" if age <= max_age_hours else "WARNING"),
             value=round(
-
                 age,
-
                 2,
-
             ),
-
             threshold=max_age_hours,
-
             timestamp=datetime.utcnow(),
-
             metadata={
-
-                "Unit":
-
-                    "Hours",
-
+                "Unit": "Hours",
             },
-
         )
 
     # =====================================================
@@ -236,61 +148,26 @@ class SignalMonitor:
 
     @staticmethod
     def strength(
-
         scores,
-
     ) -> SignalMonitorResult:
 
         values = np.asarray(
-
             scores,
-
             dtype=float,
-
         )
 
-        strength = float(
-
-            np.mean(
-
-                np.abs(
-
-                    values
-
-                )
-
-            )
-
-        )
+        strength = float(np.mean(np.abs(values)))
 
         return SignalMonitorResult(
-
             metric="Signal Strength",
-
-            status=(
-
-                "OK"
-
-                if strength > 0.50
-
-                else "WARNING"
-
-            ),
-
+            status=("OK" if strength > 0.50 else "WARNING"),
             value=round(
-
                 strength,
-
                 4,
-
             ),
-
             threshold=0.50,
-
             timestamp=datetime.utcnow(),
-
             metadata={},
-
         )
 
     # =====================================================
@@ -299,57 +176,26 @@ class SignalMonitor:
 
     @staticmethod
     def confidence(
-
         confidence_scores,
-
     ) -> SignalMonitorResult:
 
         values = np.asarray(
-
             confidence_scores,
-
             dtype=float,
-
         )
 
-        confidence = float(
-
-            np.mean(
-
-                values
-
-            )
-
-        )
+        confidence = float(np.mean(values))
 
         return SignalMonitorResult(
-
             metric="Signal Confidence",
-
-            status=(
-
-                "OK"
-
-                if confidence >= 0.70
-
-                else "WARNING"
-
-            ),
-
+            status=("OK" if confidence >= 0.70 else "WARNING"),
             value=round(
-
                 confidence,
-
                 4,
-
             ),
-
             threshold=0.70,
-
             timestamp=datetime.utcnow(),
-
             metadata={},
-
         )
 
     # =====================================================
@@ -358,85 +204,29 @@ class SignalMonitor:
 
     @staticmethod
     def turnover(
-
         previous_signals,
-
         current_signals,
-
     ) -> SignalMonitorResult:
 
-        previous = set(
+        previous = set(previous_signals)
 
-            previous_signals
+        current = set(current_signals)
 
-        )
-
-        current = set(
-
-            current_signals
-
-        )
-
-        turnover = (
-
-            len(
-
-                previous
-
-                ^
-
-                current
-
-            )
-
-            /
-
-            max(
-
-                len(
-
-                    previous
-
-                    |
-
-                    current
-
-                ),
-
-                1,
-
-            )
-
+        turnover = len(previous ^ current) / max(
+            len(previous | current),
+            1,
         )
 
         return SignalMonitorResult(
-
             metric="Signal Turnover",
-
-            status=(
-
-                "OK"
-
-                if turnover <= 0.40
-
-                else "WARNING"
-
-            ),
-
+            status=("OK" if turnover <= 0.40 else "WARNING"),
             value=round(
-
                 turnover,
-
                 4,
-
             ),
-
             threshold=0.40,
-
             timestamp=datetime.utcnow(),
-
             metadata={},
-
         )
 
     # =====================================================
@@ -445,75 +235,29 @@ class SignalMonitor:
 
     @staticmethod
     def distribution(
-
         scores,
-
     ) -> SignalMonitorResult:
 
         values = np.asarray(
-
             scores,
-
             dtype=float,
-
         )
 
-        std = float(
-
-            np.std(
-
-                values
-
-            )
-
-        )
+        std = float(np.std(values))
 
         return SignalMonitorResult(
-
             metric="Signal Distribution",
-
-            status=(
-
-                "OK"
-
-                if std > 0.10
-
-                else "WARNING"
-
-            ),
-
+            status=("OK" if std > 0.10 else "WARNING"),
             value=round(
-
                 std,
-
                 4,
-
             ),
-
             threshold=0.10,
-
             timestamp=datetime.utcnow(),
-
             metadata={
-
-                "Minimum":
-
-                    float(
-
-                        np.min(values)
-
-                    ),
-
-                "Maximum":
-
-                    float(
-
-                        np.max(values)
-
-                    ),
-
+                "Minimum": float(np.min(values)),
+                "Maximum": float(np.max(values)),
             },
-
         )
 
     # =====================================================
@@ -522,79 +266,37 @@ class SignalMonitor:
 
     @classmethod
     def report(
-
         cls,
-
         signals: pd.DataFrame,
-
         universe_size: int,
-
         generated_at: datetime,
-
         scores,
-
         confidence_scores,
-
         previous_symbols,
-
         current_symbols,
-
     ) -> dict:
 
         return {
-
-            "Coverage":
-
-                cls.coverage(
-
-                    signals,
-
-                    universe_size,
-
-                ).summary(),
-
-            "Freshness":
-
-                cls.freshness(
-
-                    generated_at,
-
-                ).summary(),
-
-            "Strength":
-
-                cls.strength(
-
-                    scores,
-
-                ).summary(),
-
-            "Confidence":
-
-                cls.confidence(
-
-                    confidence_scores,
-
-                ).summary(),
-
-            "Turnover":
-
-                cls.turnover(
-
-                    previous_symbols,
-
-                    current_symbols,
-
-                ).summary(),
-
-            "Distribution":
-
-                cls.distribution(
-
-                    scores,
-
-                ).summary(),
-
+            "Coverage": cls.coverage(
+                signals,
+                universe_size,
+            ).summary(),
+            "Freshness": cls.freshness(
+                generated_at,
+            ).summary(),
+            "Strength": cls.strength(
+                scores,
+            ).summary(),
+            "Confidence": cls.confidence(
+                confidence_scores,
+            ).summary(),
+            "Turnover": cls.turnover(
+                previous_symbols,
+                current_symbols,
+            ).summary(),
+            "Distribution": cls.distribution(
+                scores,
+            ).summary(),
         }
 
     # =====================================================
@@ -602,15 +304,9 @@ class SignalMonitor:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}()"
-
-        )
+        return f"{self.__class__.__name__}()"
 
     __str__ = __repr__

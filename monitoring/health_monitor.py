@@ -32,8 +32,7 @@ Used By
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime
 
 
@@ -43,17 +42,9 @@ class HealthMonitor:
     Institutional platform health monitor.
     """
 
-    components: dict = field(
+    components: dict = field(default_factory=dict)
 
-        default_factory=dict
-
-    )
-
-    timestamp: datetime = field(
-
-        default_factory=datetime.utcnow
-
-    )
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
     __hash__ = None
 
@@ -62,29 +53,16 @@ class HealthMonitor:
     # =====================================================
 
     def register(
-
         self,
-
         component: str,
-
         status: str,
-
         message: str = "",
-
     ) -> None:
 
-        self.components[
-
-            component
-
-        ] = {
-
+        self.components[component] = {
             "status": status.upper(),
-
             "message": message,
-
             "checked": datetime.utcnow(),
-
         }
 
     # =====================================================
@@ -92,25 +70,16 @@ class HealthMonitor:
     # =====================================================
 
     def update(
-
         self,
-
         component: str,
-
         status: str,
-
         message: str = "",
-
     ) -> None:
 
         self.register(
-
             component,
-
             status,
-
             message,
-
         )
 
     # =====================================================
@@ -119,38 +88,15 @@ class HealthMonitor:
 
     @property
     def score(
-
         self,
-
     ) -> float:
 
         if not self.components:
-
             return 0.0
 
-        healthy = sum(
+        healthy = sum(value["status"] == "OK" for value in self.components.values())
 
-            value["status"] == "OK"
-
-            for value
-
-            in self.components.values()
-
-        )
-
-        return (
-
-            healthy
-
-            /
-
-            len(
-
-                self.components
-
-            )
-
-        ) * 100
+        return (healthy / len(self.components)) * 100
 
     # =====================================================
     # FAILED COMPONENTS
@@ -158,21 +104,13 @@ class HealthMonitor:
 
     @property
     def failures(
-
         self,
-
     ) -> dict:
 
         return {
-
             key: value
-
-            for key, value
-
-            in self.components.items()
-
+            for key, value in self.components.items()
             if value["status"] != "OK"
-
         }
 
     # =====================================================
@@ -181,29 +119,16 @@ class HealthMonitor:
 
     @property
     def platform_status(
-
         self,
-
     ) -> str:
 
         if not self.components:
-
             return "UNKNOWN"
 
-        if len(
-
-            self.failures
-
-        ) == 0:
-
+        if len(self.failures) == 0:
             return "HEALTHY"
 
-        if len(
-
-            self.failures
-
-        ) < 3:
-
+        if len(self.failures) < 3:
             return "WARNING"
 
         return "CRITICAL"
@@ -213,47 +138,18 @@ class HealthMonitor:
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "PlatformStatus":
-
-                self.platform_status,
-
-            "HealthScore":
-
-                round(
-
-                    self.score,
-
-                    2,
-
-                ),
-
-            "Components":
-
-                len(
-
-                    self.components
-
-                ),
-
-            "Failures":
-
-                len(
-
-                    self.failures
-
-                ),
-
-            "Timestamp":
-
-                self.timestamp.isoformat(),
-
+            "PlatformStatus": self.platform_status,
+            "HealthScore": round(
+                self.score,
+                2,
+            ),
+            "Components": len(self.components),
+            "Failures": len(self.failures),
+            "Timestamp": self.timestamp.isoformat(),
         }
 
     # =====================================================
@@ -261,9 +157,7 @@ class HealthMonitor:
     # =====================================================
 
     def clear(
-
         self,
-
     ) -> None:
 
         self.components.clear()
@@ -273,19 +167,13 @@ class HealthMonitor:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ):
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Status={self.platform_status}, "
-
             f"Health={self.score:.1f}%)"
-
         )
 
     __str__ = __repr__

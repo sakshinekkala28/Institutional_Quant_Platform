@@ -27,7 +27,6 @@ from __future__ import annotations
 from dataclasses import dataclass
 
 import numpy as np
-
 import pandas as pd
 
 
@@ -45,18 +44,11 @@ class ConfidenceMatrix:
     # INITIALIZATION
     # =====================================================
 
-    def __post_init__(
-
-        self
-
-    ) -> None:
+    def __post_init__(self) -> None:
 
         self.matrix = np.asarray(
-
             self.matrix,
-
             dtype=np.float64,
-
         )
 
         self.validate()
@@ -65,20 +57,13 @@ class ConfidenceMatrix:
     # COLLECTION PROTOCOL
     # =====================================================
 
-    def __len__(
-
-        self
-
-    ) -> int:
+    def __len__(self) -> int:
 
         return self.matrix.shape[0]
 
     def __getitem__(
-
         self,
-
         item,
-
     ):
 
         return self.matrix[item]
@@ -88,196 +73,85 @@ class ConfidenceMatrix:
     # =====================================================
 
     @property
-    def shape(
-
-        self
-
-    ) -> tuple[int, int]:
+    def shape(self) -> tuple[int, int]:
 
         return self.matrix.shape
 
     @property
-    def dimension(
-
-        self
-
-    ) -> int:
+    def dimension(self) -> int:
 
         return self.matrix.shape[0]
 
     @property
-    def diagonal(
+    def diagonal(self) -> np.ndarray:
 
-        self
-
-    ) -> np.ndarray:
-
-        return np.diag(
-
-            self.matrix
-
-        )
+        return np.diag(self.matrix)
 
     @property
-    def determinant(
+    def determinant(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return float(
-
-            np.linalg.det(
-
-                self.matrix
-
-            )
-
-        )
+        return float(np.linalg.det(self.matrix))
 
     @property
-    def inverse(
+    def inverse(self) -> np.ndarray:
 
-        self
-
-    ) -> np.ndarray:
-
-        return np.linalg.inv(
-
-            self.matrix
-
-        )
+        return np.linalg.inv(self.matrix)
 
     # =====================================================
     # VALIDATION
     # =====================================================
 
-    def validate(
-
-        self
-
-    ) -> None:
+    def validate(self) -> None:
 
         if self.matrix.ndim != 2:
-
-            raise ValueError(
-
-                "Confidence matrix must be two-dimensional."
-
-            )
+            raise ValueError("Confidence matrix must be two-dimensional.")
 
         rows, cols = self.matrix.shape
 
         if rows != cols:
+            raise ValueError("Confidence matrix must be square.")
 
-            raise ValueError(
+        if np.isnan(self.matrix).any():
+            raise ValueError("Confidence matrix contains NaN.")
 
-                "Confidence matrix must be square."
-
-            )
-
-        if np.isnan(
-
-            self.matrix
-
-        ).any():
-
-            raise ValueError(
-
-                "Confidence matrix contains NaN."
-
-            )
-
-        if np.isinf(
-
-            self.matrix
-
-        ).any():
-
-            raise ValueError(
-
-                "Confidence matrix contains infinite values."
-
-            )
+        if np.isinf(self.matrix).any():
+            raise ValueError("Confidence matrix contains infinite values.")
 
         if not np.allclose(
-
             self.matrix,
-
             self.matrix.T,
-
         ):
-
-            raise ValueError(
-
-                "Confidence matrix must be symmetric."
-
-            )
+            raise ValueError("Confidence matrix must be symmetric.")
 
     # =====================================================
     # EXPORT
     # =====================================================
 
-    def to_numpy(
-
-        self
-
-    ) -> np.ndarray:
+    def to_numpy(self) -> np.ndarray:
 
         return self.matrix.copy()
 
-    def to_dataframe(
+    def to_dataframe(self) -> pd.DataFrame:
 
-        self
-
-    ) -> pd.DataFrame:
-
-        return pd.DataFrame(
-
-            self.matrix
-
-        )
+        return pd.DataFrame(self.matrix)
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         return {
-
-            "Dimension":
-
-                self.dimension,
-
-            "Determinant":
-
-                self.determinant,
-
+            "Dimension": self.dimension,
+            "Determinant": self.determinant,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
+    def __repr__(self) -> str:
 
-        self
-
-    ) -> str:
-
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Dimension={self.dimension}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Dimension={self.dimension})"
 
     __str__ = __repr__

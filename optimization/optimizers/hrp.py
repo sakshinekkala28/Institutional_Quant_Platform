@@ -33,55 +33,34 @@ Outperform Out-of-Sample
 from __future__ import annotations
 
 import numpy as np
-
-from scipy.cluster.hierarchy import linkage
-from scipy.cluster.hierarchy import leaves_list
-
+from scipy.cluster.hierarchy import leaves_list, linkage
 from scipy.spatial.distance import squareform
 
 from core.models.covariance_matrix import CovarianceMatrix
 from core.models.portfolio import Portfolio
-
 from optimization.base_optimizer import BaseOptimizer
 
 
-class HRPOptimizer(
-
-    BaseOptimizer
-
-):
+class HRPOptimizer(BaseOptimizer):
     """
     Hierarchical Risk Parity Optimizer.
     """
 
     def __init__(
-
         self,
-
         covariance_matrix: CovarianceMatrix,
-
         linkage_method: str = "single",
-
         long_only: bool = True,
-
         fully_invested: bool = True,
-
         min_weight: float = 0.0,
-
         max_weight: float = 1.0,
-
     ) -> None:
 
         super().__init__(
-
             long_only=long_only,
-
             fully_invested=fully_invested,
-
             min_weight=min_weight,
-
             max_weight=max_weight,
-
         )
 
         self.covariance_matrix = covariance_matrix
@@ -93,37 +72,15 @@ class HRPOptimizer(
     # =====================================================
 
     @property
-    def correlation(
-
-        self
-
-    ) -> np.ndarray:
+    def correlation(self) -> np.ndarray:
 
         covariance = self.covariance_matrix.matrix
 
-        volatility = np.sqrt(
+        volatility = np.sqrt(np.diag(covariance))
 
-            np.diag(
+        correlation = covariance / np.outer(volatility, volatility)
 
-                covariance
-
-            )
-
-        )
-
-        correlation = covariance / np.outer(
-
-            volatility,
-
-            volatility
-
-        )
-
-        correlation = np.nan_to_num(
-
-            correlation
-
-        )
+        correlation = np.nan_to_num(correlation)
 
         return correlation
 
@@ -132,89 +89,44 @@ class HRPOptimizer(
     # =====================================================
 
     @property
-    def distance(
-
-        self
-
-    ) -> np.ndarray:
+    def distance(self) -> np.ndarray:
 
         correlation = self.correlation
 
-        return np.sqrt(
-
-            0.5
-
-            *
-
-            (
-
-                1.0
-
-                -
-
-                correlation
-
-            )
-
-        )
+        return np.sqrt(0.5 * (1.0 - correlation))
 
     # =====================================================
     # CLUSTER
     # =====================================================
 
-    def clustered_order(
-
-        self
-
-    ) -> np.ndarray:
+    def clustered_order(self) -> np.ndarray:
 
         condensed = squareform(
-
             self.distance,
-
             checks=False,
-
         )
 
         tree = linkage(
-
             condensed,
-
             method=self.linkage_method,
-
         )
 
-        return leaves_list(
-
-            tree
-
-        )
+        return leaves_list(tree)
 
     # =====================================================
     # OPTIMIZE
     # =====================================================
 
     def optimize(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> Portfolio:
 
-        self.validate(
-
-            portfolio
-
-        )
+        self.validate(portfolio)
 
         order = self.clustered_order()
 
-        n = len(
-
-            order
-
-        )
+        n = len(order)
 
         #
         # Placeholder equal allocation
@@ -225,25 +137,15 @@ class HRPOptimizer(
         #
 
         weights = np.zeros(
-
             n,
-
             dtype=np.float64,
-
         )
 
-        weights[
-
-            order
-
-        ] = 1.0 / n
+        weights[order] = 1.0 / n
 
         return self.build_portfolio(
-
             portfolio,
-
             weights,
-
         )
 
     # =====================================================
@@ -251,11 +153,7 @@ class HRPOptimizer(
     # =====================================================
 
     @property
-    def name(
-
-        self
-
-    ) -> str:
+    def name(self) -> str:
 
         return "Hierarchical Risk Parity"
 
@@ -263,20 +161,8 @@ class HRPOptimizer(
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
+    def __repr__(self) -> str:
 
-        self
-
-    ) -> str:
-
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Method={self.linkage_method}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Method={self.linkage_method})"
 
     __str__ = __repr__

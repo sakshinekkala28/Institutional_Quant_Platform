@@ -34,8 +34,7 @@ Inherited From
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from backtesting.event import Event
@@ -57,17 +56,9 @@ class SignalEvent(Event):
 
     target_weight: float = 0.0
 
-    timestamp: datetime = field(
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
-        default_factory=datetime.utcnow
-
-    )
-
-    metadata: dict = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict = field(default_factory=dict)
 
     __hash__ = None
 
@@ -77,9 +68,7 @@ class SignalEvent(Event):
 
     @property
     def event_type(
-
         self,
-
     ) -> str:
 
         return "SIGNAL"
@@ -89,62 +78,23 @@ class SignalEvent(Event):
     # =====================================================
 
     def __post_init__(
-
         self,
-
     ) -> None:
 
         if not self.symbol:
+            raise ValueError("Symbol cannot be empty.")
 
-            raise ValueError(
-
-                "Symbol cannot be empty."
-
-            )
-
-        self.signal = (
-
-            self.signal
-
-            .upper()
-
-        )
+        self.signal = self.signal.upper()
 
         if self.signal not in {
-
             "BUY",
-
             "SELL",
-
             "HOLD",
-
         }:
+            raise ValueError("Signal must be BUY, SELL or HOLD.")
 
-            raise ValueError(
-
-                "Signal must be BUY, SELL or HOLD."
-
-            )
-
-        if not (
-
-            0.0
-
-            <=
-
-            self.confidence
-
-            <=
-
-            1.0
-
-        ):
-
-            raise ValueError(
-
-                "Confidence must be between 0 and 1."
-
-            )
+        if not (0.0 <= self.confidence <= 1.0):
+            raise ValueError("Confidence must be between 0 and 1.")
 
     # =====================================================
     # PROPERTIES
@@ -152,27 +102,21 @@ class SignalEvent(Event):
 
     @property
     def is_buy(
-
         self,
-
     ) -> bool:
 
         return self.signal == "BUY"
 
     @property
     def is_sell(
-
         self,
-
     ) -> bool:
 
         return self.signal == "SELL"
 
     @property
     def is_hold(
-
         self,
-
     ) -> bool:
 
         return self.signal == "HOLD"
@@ -182,45 +126,18 @@ class SignalEvent(Event):
     # =====================================================
 
     def to_dict(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Event":
-
-                self.event_type,
-
-            "Timestamp":
-
-                self.timestamp.isoformat(),
-
-            "Symbol":
-
-                self.symbol,
-
-            "Signal":
-
-                self.signal,
-
-            "Confidence":
-
-                self.confidence,
-
-            "Expected_Return":
-
-                self.expected_return,
-
-            "Target_Weight":
-
-                self.target_weight,
-
-            "Metadata":
-
-                self.metadata,
-
+            "Event": self.event_type,
+            "Timestamp": self.timestamp.isoformat(),
+            "Symbol": self.symbol,
+            "Signal": self.signal,
+            "Confidence": self.confidence,
+            "Expected_Return": self.expected_return,
+            "Target_Weight": self.target_weight,
+            "Metadata": self.metadata,
         }
 
     # =====================================================
@@ -228,33 +145,15 @@ class SignalEvent(Event):
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Symbol":
-
-                self.symbol,
-
-            "Signal":
-
-                self.signal,
-
-            "Confidence":
-
-                self.confidence,
-
-            "Expected Return":
-
-                self.expected_return,
-
-            "Target Weight":
-
-                self.target_weight,
-
+            "Symbol": self.symbol,
+            "Signal": self.signal,
+            "Confidence": self.confidence,
+            "Expected Return": self.expected_return,
+            "Target Weight": self.target_weight,
         }
 
     # =====================================================
@@ -262,23 +161,15 @@ class SignalEvent(Event):
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"{self.symbol}, "
-
             f"{self.signal}, "
-
             f"{self.confidence:.0%}"
-
             f")"
-
         )
 
     __str__ = __repr__

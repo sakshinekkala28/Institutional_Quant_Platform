@@ -2,28 +2,14 @@
 Institutional API Routers
 """
 
-from . import portfolio
-from . import signals
-from . import execution
-from . import optimization
-from . import risk
-from . import backtest
-from . import monitoring
+from . import backtest, execution, monitoring, optimization, portfolio, risk, signals
 
 __all__ = [
-
-    "portfolio",
-
-    "signals",
-
-    "execution",
-
-    "optimization",
-
-    "risk",
-
     "backtest",
-
+    "execution",
     "monitoring",
-
+    "optimization",
+    "portfolio",
+    "risk",
+    "signals",
 ]

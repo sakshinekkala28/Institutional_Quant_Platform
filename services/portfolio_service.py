@@ -26,24 +26,18 @@ Responsibilities
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
-
-from threading import Lock
-from threading import RLock
-
+from dataclasses import dataclass, field
+from threading import Lock, RLock
 from typing import Any
-from typing import Dict
-from typing import Optional
 
 import pandas as pd
 
 from core.services.base_service import BaseService
 
-
 # ============================================================
 # Exceptions
 # ============================================================
+
 
 class PortfolioError(Exception):
     """Base portfolio exception."""
@@ -57,9 +51,9 @@ class PortfolioNotFound(PortfolioError):
 # Portfolio Model
 # ============================================================
 
+
 @dataclass(slots=True)
 class Portfolio:
-
     name: str
 
     holdings: pd.DataFrame
@@ -70,19 +64,15 @@ class Portfolio:
 
     nav: float = 0.0
 
-    metadata: Dict[str, Any] = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ============================================================
 # Portfolio Service
 # ============================================================
 
-class PortfolioService(BaseService):
 
+class PortfolioService(BaseService):
     """
     Institutional Portfolio Manager.
     """
@@ -91,85 +81,45 @@ class PortfolioService(BaseService):
 
     _instance_lock = Lock()
 
-    def __new__(
-
-        cls,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def __new__(cls, *args, **kwargs):
 
         if cls._instance is None:
-
             with cls._instance_lock:
-
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
 
-    def __init__(
+    def __init__(self):
 
-        self
-
-    ):
-
-        if getattr(
-
-            self,
-
-            "_initialized",
-
-            False
-
-        ):
-
+        if getattr(self, "_initialized", False):
             return
 
         super().__init__()
 
         self._lock = RLock()
 
-        self._portfolios: Dict[str, Portfolio] = {}
+        self._portfolios: dict[str, Portfolio] = {}
 
         self._enabled = True
 
         self._initialized = True
 
-        self._logger.info(
-
-            "PortfolioService initialized."
-
-        )
+        self._logger.info("PortfolioService initialized.")
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def enable(
-
-        self
-
-    ):
+    def enable(self):
 
         self._enabled = True
 
-    def disable(
-
-        self
-
-    ):
+    def disable(self):
 
         self._enabled = False
 
-    def enabled(
-
-        self
-
-    ):
+    def enabled(self):
 
         return self._enabled
 
@@ -178,65 +128,38 @@ class PortfolioService(BaseService):
     # =====================================================
 
     def register(
-
         self,
-
         name: str,
-
         holdings: pd.DataFrame,
-
         benchmark: str = "NIFTY500",
-
         cash: float = 0.0,
-
         nav: float = 0.0,
-
-        metadata: Optional[Dict[str, Any]] = None
-
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Register portfolio.
         """
 
         portfolio = Portfolio(
-
             name=name,
-
             holdings=holdings,
-
             benchmark=benchmark,
-
             cash=cash,
-
             nav=nav,
-
-            metadata=metadata or {}
-
+            metadata=metadata or {},
         )
 
         with self._lock:
-
             self._portfolios[name] = portfolio
 
     # =====================================================
     # Retrieval
     # =====================================================
 
-    def get(
-
-        self,
-
-        name: str
-
-    ) -> Portfolio:
+    def get(self, name: str) -> Portfolio:
 
         if name not in self._portfolios:
-
-            raise PortfolioNotFound(
-
-                name
-
-            )
+            raise PortfolioNotFound(name)
 
         return self._portfolios[name]
 
@@ -244,253 +167,104 @@ class PortfolioService(BaseService):
     # Standard Accessors
     # =====================================================
 
-    def holdings(
+    def holdings(self, portfolio: str) -> pd.DataFrame:
 
-        self,
+        return self.get(portfolio).holdings
 
-        portfolio: str
+    def benchmark(self, portfolio: str) -> str:
 
-    ) -> pd.DataFrame:
+        return self.get(portfolio).benchmark
 
-        return self.get(
+    def cash(self, portfolio: str) -> float:
 
-            portfolio
+        return self.get(portfolio).cash
 
-        ).holdings
+    def nav(self, portfolio: str) -> float:
 
-    def benchmark(
-
-        self,
-
-        portfolio: str
-
-    ) -> str:
-
-        return self.get(
-
-            portfolio
-
-        ).benchmark
-
-    def cash(
-
-        self,
-
-        portfolio: str
-
-    ) -> float:
-
-        return self.get(
-
-            portfolio
-
-        ).cash
-
-    def nav(
-
-        self,
-
-        portfolio: str
-
-    ) -> float:
-
-        return self.get(
-
-            portfolio
-
-        ).nav
+        return self.get(portfolio).nav
 
     # =====================================================
     # BaseService
     # =====================================================
 
-    def run(
-
-        self
-
-    ):
+    def run(self):
 
         return self.statistics()
-    
+
     # =====================================================
     # Position Management
     # =====================================================
 
-    def add_position(
-
-        self,
-
-        portfolio: str,
-
-        position: Dict[str, Any]
-
-    ) -> None:
+    def add_position(self, portfolio: str, position: dict[str, Any]) -> None:
         """
         Add a position.
         """
 
-        instance = self.get(
-
-            portfolio
-
-        )
+        instance = self.get(portfolio)
 
         dataframe = instance.holdings
 
         instance.holdings = pd.concat(
-
-            [
-
-                dataframe,
-
-                pd.DataFrame([position])
-
-            ],
-
-            ignore_index=True
-
+            [dataframe, pd.DataFrame([position])], ignore_index=True
         )
 
     # -----------------------------------------------------
 
     def remove_position(
-
-        self,
-
-        portfolio: str,
-
-        symbol: str,
-
-        symbol_column: str = "symbol"
-
+        self, portfolio: str, symbol: str, symbol_column: str = "symbol"
     ) -> None:
         """
         Remove a position.
         """
 
-        instance = self.get(
+        instance = self.get(portfolio)
 
-            portfolio
-
-        )
-
-        instance.holdings = (
-
-            instance.holdings.loc[
-
-                instance.holdings[symbol_column]
-
-                !=
-
-                symbol
-
-            ]
-
-            .reset_index(
-
-                drop=True
-
-            )
-
-        )
+        instance.holdings = instance.holdings.loc[
+            instance.holdings[symbol_column] != symbol
+        ].reset_index(drop=True)
 
     # -----------------------------------------------------
 
     def update_position(
-
         self,
-
         portfolio: str,
-
         symbol: str,
-
-        updates: Dict[str, Any],
-
-        symbol_column: str = "symbol"
-
+        updates: dict[str, Any],
+        symbol_column: str = "symbol",
     ) -> None:
         """
         Update position.
         """
 
-        instance = self.get(
-
-            portfolio
-
-        )
+        instance = self.get(portfolio)
 
         dataframe = instance.holdings
 
-        mask = (
-
-            dataframe[symbol_column]
-
-            ==
-
-            symbol
-
-        )
+        mask = dataframe[symbol_column] == symbol
 
         if not mask.any():
-
-            raise PortfolioError(
-
-                f"{symbol} not found."
-
-            )
+            raise PortfolioError(f"{symbol} not found.")
 
         for column, value in updates.items():
-
-            dataframe.loc[
-
-                mask,
-
-                column
-
-            ] = value
+            dataframe.loc[mask, column] = value
 
     # =====================================================
     # Position Lookup
     # =====================================================
 
     def position(
-
-        self,
-
-        portfolio: str,
-
-        symbol: str,
-
-        symbol_column: str = "symbol"
-
+        self, portfolio: str, symbol: str, symbol_column: str = "symbol"
     ) -> pd.Series:
         """
         Return a single position.
         """
 
-        dataframe = self.holdings(
+        dataframe = self.holdings(portfolio)
 
-            portfolio
-
-        )
-
-        result = dataframe.loc[
-
-            dataframe[symbol_column]
-
-            ==
-
-            symbol
-
-        ]
+        result = dataframe.loc[dataframe[symbol_column] == symbol]
 
         if result.empty:
-
-            raise PortfolioError(
-
-                symbol
-
-            )
+            raise PortfolioError(symbol)
 
         return result.iloc[0]
 
@@ -498,181 +272,73 @@ class PortfolioService(BaseService):
     # Exposure
     # =====================================================
 
-    def total_weight(
-
-        self,
-
-        portfolio: str,
-
-        weight_column: str = "weight"
-
-    ) -> float:
+    def total_weight(self, portfolio: str, weight_column: str = "weight") -> float:
         """
         Total portfolio weight.
         """
 
-        dataframe = self.holdings(
-
-            portfolio
-
-        )
+        dataframe = self.holdings(portfolio)
 
         if weight_column not in dataframe.columns:
-
             return 0.0
 
-        return float(
-
-            dataframe[weight_column].sum()
-
-        )
+        return float(dataframe[weight_column].sum())
 
     # -----------------------------------------------------
 
-    def long_exposure(
+    def long_exposure(self, portfolio: str, weight_column: str = "weight") -> float:
 
-        self,
+        dataframe = self.holdings(portfolio)
 
-        portfolio: str,
-
-        weight_column: str = "weight"
-
-    ) -> float:
-
-        dataframe = self.holdings(
-
-            portfolio
-
-        )
-
-        return float(
-
-            dataframe.loc[
-
-                dataframe[weight_column] > 0,
-
-                weight_column
-
-            ].sum()
-
-        )
+        return float(dataframe.loc[dataframe[weight_column] > 0, weight_column].sum())
 
     # -----------------------------------------------------
 
-    def short_exposure(
+    def short_exposure(self, portfolio: str, weight_column: str = "weight") -> float:
 
-        self,
+        dataframe = self.holdings(portfolio)
 
-        portfolio: str,
-
-        weight_column: str = "weight"
-
-    ) -> float:
-
-        dataframe = self.holdings(
-
-            portfolio
-
-        )
-
-        return float(
-
-            dataframe.loc[
-
-                dataframe[weight_column] < 0,
-
-                weight_column
-
-            ].sum()
-
-        )
+        return float(dataframe.loc[dataframe[weight_column] < 0, weight_column].sum())
 
     # =====================================================
     # Cash
     # =====================================================
 
-    def update_cash(
-
-        self,
-
-        portfolio: str,
-
-        amount: float
-
-    ) -> None:
+    def update_cash(self, portfolio: str, amount: float) -> None:
         """
         Update available cash.
         """
 
-        self.get(
-
-            portfolio
-
-        ).cash = amount
+        self.get(portfolio).cash = amount
 
     # -----------------------------------------------------
 
-    def update_nav(
-
-        self,
-
-        portfolio: str,
-
-        nav: float
-
-    ) -> None:
+    def update_nav(self, portfolio: str, nav: float) -> None:
         """
         Update portfolio NAV.
         """
 
-        self.get(
-
-            portfolio
-
-        ).nav = nav
+        self.get(portfolio).nav = nav
 
     # =====================================================
     # Validation
     # =====================================================
 
-    def validate(
-
-        self,
-
-        portfolio: str,
-
-        weight_column: str = "weight"
-
-    ) -> bool:
+    def validate(self, portfolio: str, weight_column: str = "weight") -> bool:
         """
         Validate portfolio.
         """
 
-        dataframe = self.holdings(
-
-            portfolio
-
-        )
+        dataframe = self.holdings(portfolio)
 
         if dataframe.empty:
-
-            raise PortfolioError(
-
-                "Portfolio is empty."
-
-            )
+            raise PortfolioError("Portfolio is empty.")
 
         if weight_column in dataframe.columns:
-
             total = dataframe[weight_column].sum()
 
             if abs(total - 1.0) > 0.01:
-
-                raise PortfolioError(
-
-                    f"Portfolio weights sum to {total:.4f}"
-
-                )
+                raise PortfolioError(f"Portfolio weights sum to {total:.4f}")
 
         return True
 
@@ -680,11 +346,7 @@ class PortfolioService(BaseService):
     # Statistics
     # =====================================================
 
-    def statistics(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """
         Portfolio statistics.
         """
@@ -692,271 +354,106 @@ class PortfolioService(BaseService):
         portfolios = {}
 
         for name, portfolio in self._portfolios.items():
-
             portfolios[name] = {
-
-                "holdings":
-
-                    len(
-
-                        portfolio.holdings
-
-                    ),
-
-                "cash":
-
-                    portfolio.cash,
-
-                "nav":
-
-                    portfolio.nav,
-
-                "benchmark":
-
-                    portfolio.benchmark
-
+                "holdings": len(portfolio.holdings),
+                "cash": portfolio.cash,
+                "nav": portfolio.nav,
+                "benchmark": portfolio.benchmark,
             }
 
-        return {
+        return {"portfolio_count": len(self._portfolios), "portfolios": portfolios}
 
-            "portfolio_count":
-
-                len(
-
-                    self._portfolios
-
-                ),
-
-            "portfolios":
-
-                portfolios
-
-        }
-    
     # =====================================================
     # Portfolio Analytics
     # =====================================================
 
     def sector_exposure(
-
         self,
-
         portfolio: str,
-
         sector_column: str = "sector",
-
-        weight_column: str = "weight"
-
+        weight_column: str = "weight",
     ) -> pd.Series:
         """
         Sector exposure.
         """
 
-        dataframe = self.holdings(
+        dataframe = self.holdings(portfolio)
 
-            portfolio
+        self.validate(portfolio, weight_column)
 
-        )
-
-        self.validate(
-
-            portfolio,
-
-            weight_column
-
-        )
-
-        return dataframe.groupby(
-
-            sector_column
-
-        )[weight_column].sum()
+        return dataframe.groupby(sector_column)[weight_column].sum()
 
     # -----------------------------------------------------
 
     def industry_exposure(
-
         self,
-
         portfolio: str,
-
         industry_column: str = "industry",
-
-        weight_column: str = "weight"
-
+        weight_column: str = "weight",
     ) -> pd.Series:
 
-        dataframe = self.holdings(
+        dataframe = self.holdings(portfolio)
 
-            portfolio
-
-        )
-
-        return dataframe.groupby(
-
-            industry_column
-
-        )[weight_column].sum()
+        return dataframe.groupby(industry_column)[weight_column].sum()
 
     # -----------------------------------------------------
 
     def top_holdings(
-
-        self,
-
-        portfolio: str,
-
-        n: int = 10,
-
-        weight_column: str = "weight"
-
+        self, portfolio: str, n: int = 10, weight_column: str = "weight"
     ) -> pd.DataFrame:
         """
         Largest portfolio holdings.
         """
 
-        dataframe = self.holdings(
+        dataframe = self.holdings(portfolio)
 
-            portfolio
-
-        )
-
-        return dataframe.sort_values(
-
-            weight_column,
-
-            ascending=False
-
-        ).head(
-
-            n
-
-        )
+        return dataframe.sort_values(weight_column, ascending=False).head(n)
 
     # -----------------------------------------------------
 
-    def concentration(
-
-        self,
-
-        portfolio: str,
-
-        weight_column: str = "weight"
-
-    ) -> float:
+    def concentration(self, portfolio: str, weight_column: str = "weight") -> float:
         """
         Herfindahl-Hirschman Index.
         """
 
-        dataframe = self.holdings(
+        dataframe = self.holdings(portfolio)
 
-            portfolio
+        weights = dataframe[weight_column]
 
-        )
-
-        weights = dataframe[
-
-            weight_column
-
-        ]
-
-        return float(
-
-            (weights ** 2).sum()
-
-        )
+        return float((weights**2).sum())
 
     # =====================================================
     # Portfolio Metadata
     # =====================================================
 
-    def metadata(
+    def metadata(self, portfolio: str) -> dict[str, Any]:
 
-        self,
+        return dict(self.get(portfolio).metadata)
 
-        portfolio: str
+    def update_metadata(self, portfolio: str, **kwargs) -> None:
 
-    ) -> Dict[str, Any]:
-
-        return dict(
-
-            self.get(
-
-                portfolio
-
-            ).metadata
-
-        )
-
-    def update_metadata(
-
-        self,
-
-        portfolio: str,
-
-        **kwargs
-
-    ) -> None:
-
-        self.get(
-
-            portfolio
-
-        ).metadata.update(
-
-            kwargs
-
-        )
+        self.get(portfolio).metadata.update(kwargs)
 
     # =====================================================
     # Portfolio Registry
     # =====================================================
 
-    def exists(
-
-        self,
-
-        portfolio: str
-
-    ) -> bool:
+    def exists(self, portfolio: str) -> bool:
 
         return portfolio in self._portfolios
 
-    def names(
+    def names(self) -> list[str]:
 
-        self
+        return sorted(self._portfolios.keys())
 
-    ) -> list[str]:
-
-        return sorted(
-
-            self._portfolios.keys()
-
-        )
-
-    def remove(
-
-        self,
-
-        portfolio: str
-
-    ) -> None:
+    def remove(self, portfolio: str) -> None:
 
         if portfolio not in self._portfolios:
-
-            raise PortfolioNotFound(
-
-                portfolio
-
-            )
+            raise PortfolioNotFound(portfolio)
 
         del self._portfolios[portfolio]
 
-    def clear(
-
-        self
-
-    ) -> None:
+    def clear(self) -> None:
 
         self._portfolios.clear()
 
@@ -964,186 +461,77 @@ class PortfolioService(BaseService):
     # Snapshot
     # =====================================================
 
-    def snapshot(
-
-        self,
-
-        portfolio: str
-
-    ) -> Dict[str, Any]:
+    def snapshot(self, portfolio: str) -> dict[str, Any]:
         """
         Portfolio snapshot.
         """
 
-        instance = self.get(
-
-            portfolio
-
-        )
+        instance = self.get(portfolio)
 
         return {
-
-            "name":
-
-                instance.name,
-
-            "benchmark":
-
-                instance.benchmark,
-
-            "cash":
-
-                instance.cash,
-
-            "nav":
-
-                instance.nav,
-
-            "holdings":
-
-                len(
-
-                    instance.holdings
-
-                ),
-
-            "metadata":
-
-                dict(
-
-                    instance.metadata
-
-                )
-
+            "name": instance.name,
+            "benchmark": instance.benchmark,
+            "cash": instance.cash,
+            "nav": instance.nav,
+            "holdings": len(instance.holdings),
+            "metadata": dict(instance.metadata),
         }
 
     # =====================================================
     # Health
     # =====================================================
 
-    def health(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """
         Portfolio service health.
         """
 
         return {
-
-            "status":
-
-                "HEALTHY"
-
-                if self._enabled
-
-                else "DISABLED",
-
-            "enabled":
-
-                self._enabled,
-
-            "portfolio_count":
-
-                len(
-
-                    self._portfolios
-
-                )
-
+            "status": "HEALTHY" if self._enabled else "DISABLED",
+            "enabled": self._enabled,
+            "portfolio_count": len(self._portfolios),
         }
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def startup(
-
-        self
-
-    ) -> None:
+    def startup(self) -> None:
 
         self.enable()
 
-        self._logger.info(
+        self._logger.info("PortfolioService started.")
 
-            "PortfolioService started."
-
-        )
-
-    def shutdown(
-
-        self
-
-    ) -> None:
+    def shutdown(self) -> None:
 
         self.clear()
 
         self.disable()
 
-        self._logger.info(
-
-            "PortfolioService shutdown."
-
-        )
+        self._logger.info("PortfolioService shutdown.")
 
     # =====================================================
     # Magic Methods
     # =====================================================
 
-    def __contains__(
+    def __contains__(self, portfolio: str) -> bool:
 
-        self,
+        return self.exists(portfolio)
 
-        portfolio: str
+    def __len__(self) -> int:
 
-    ) -> bool:
+        return len(self._portfolios)
 
-        return self.exists(
+    def __iter__(self):
 
-            portfolio
+        return iter(self._portfolios.items())
 
-        )
-
-    def __len__(
-
-        self
-
-    ) -> int:
-
-        return len(
-
-            self._portfolios
-
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self._portfolios.items()
-
-        )
-
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}"
-
             f"(portfolios={len(self)}, "
-
             f"enabled={self._enabled})"
-
         )
 
 

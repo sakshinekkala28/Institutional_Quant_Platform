@@ -22,10 +22,10 @@ from orchestration.pipelines.data_pipeline import (
     main as data_pipeline,
 )
 
-
 # ==========================================================
 # STAGE
 # ==========================================================
+
 
 class DataStage:
     """
@@ -36,9 +36,7 @@ class DataStage:
 
     NAME = "Data"
 
-    DESCRIPTION = (
-        "Data acquisition and preprocessing."
-    )
+    DESCRIPTION = "Data acquisition and preprocessing."
 
     PIPELINE = data_pipeline
 
@@ -63,17 +61,11 @@ class DataStage:
     def metadata(cls) -> dict:
 
         return {
-
             "stage": cls.STAGE,
-
             "name": cls.NAME,
-
             "description": cls.DESCRIPTION,
-
             "dependencies": cls.DEPENDENCIES,
-
             "enabled": cls.ENABLED,
-
         }
 
     # =====================================================
@@ -82,10 +74,4 @@ class DataStage:
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"stage={self.STAGE})"
-
-        )
+        return f"{self.__class__.__name__}(stage={self.STAGE})"

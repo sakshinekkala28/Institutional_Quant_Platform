@@ -32,8 +32,7 @@ Inherited By
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from execution.execution_report import ExecutionReport
 from execution.order import Order
@@ -45,11 +44,8 @@ class ExecutionAlgorithm(ABC):
     """
 
     def __init__(
-
         self,
-
         name: str,
-
     ) -> None:
 
         self.name = name
@@ -59,11 +55,8 @@ class ExecutionAlgorithm(ABC):
     # =====================================================
 
     def validate(
-
         self,
-
         order: Order,
-
     ) -> None:
 
         order.validate()
@@ -73,34 +66,24 @@ class ExecutionAlgorithm(ABC):
     # =====================================================
 
     def pre_execute(
-
         self,
-
         order: Order,
-
     ) -> None:
         """
         Hook before execution.
         """
-
-        pass
 
     # =====================================================
     # POST EXECUTION
     # =====================================================
 
     def post_execute(
-
         self,
-
         report: ExecutionReport,
-
     ) -> None:
         """
         Hook after execution.
         """
-
-        pass
 
     # =====================================================
     # EXECUTION CONTRACT
@@ -108,11 +91,8 @@ class ExecutionAlgorithm(ABC):
 
     @abstractmethod
     def execute(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
         """
         Execute order using algorithm.
@@ -125,36 +105,17 @@ class ExecutionAlgorithm(ABC):
     # =====================================================
 
     def __call__(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
 
-        self.validate(
+        self.validate(order)
 
-            order
+        self.pre_execute(order)
 
-        )
+        report = self.execute(order)
 
-        self.pre_execute(
-
-            order
-
-        )
-
-        report = self.execute(
-
-            order
-
-        )
-
-        self.post_execute(
-
-            report
-
-        )
+        self.post_execute(report)
 
         return report
 
@@ -163,19 +124,9 @@ class ExecutionAlgorithm(ABC):
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Name='{self.name}'"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Name='{self.name}')"
 
     __str__ = __repr__

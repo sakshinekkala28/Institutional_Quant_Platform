@@ -36,7 +36,6 @@ from datetime import datetime
 
 import pandas as pd
 
-
 # ==========================================================
 # DATA MONITOR RESULT
 # ==========================================================
@@ -61,37 +60,16 @@ class DataMonitorResult:
     metadata: dict
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Metric":
-
-                self.metric,
-
-            "Status":
-
-                self.status,
-
-            "Value":
-
-                self.value,
-
-            "Threshold":
-
-                self.threshold,
-
-            "Timestamp":
-
-                self.timestamp.isoformat(),
-
-            "Metadata":
-
-                self.metadata,
-
+            "Metric": self.metric,
+            "Status": self.status,
+            "Value": self.value,
+            "Threshold": self.threshold,
+            "Timestamp": self.timestamp.isoformat(),
+            "Metadata": self.metadata,
         }
 
 
@@ -111,57 +89,24 @@ class DataMonitor:
 
     @staticmethod
     def check_freshness(
-
         last_updated: datetime,
-
         max_age_hours: int = 24,
-
     ) -> DataMonitorResult:
 
-        age = (
-
-            datetime.utcnow()
-
-            -
-
-            last_updated
-
-        ).total_seconds() / 3600
+        age = (datetime.utcnow() - last_updated).total_seconds() / 3600
 
         return DataMonitorResult(
-
             metric="Data Freshness",
-
-            status=(
-
-                "OK"
-
-                if age <= max_age_hours
-
-                else "WARNING"
-
-            ),
-
+            status=("OK" if age <= max_age_hours else "WARNING"),
             value=round(
-
                 age,
-
                 2,
-
             ),
-
             threshold=max_age_hours,
-
             timestamp=datetime.utcnow(),
-
             metadata={
-
-                "Unit":
-
-                    "Hours",
-
+                "Unit": "Hours",
             },
-
         )
 
     # =====================================================
@@ -170,51 +115,20 @@ class DataMonitor:
 
     @staticmethod
     def check_missing(
-
         dataframe: pd.DataFrame,
-
     ) -> DataMonitorResult:
 
-        missing = int(
-
-            dataframe
-
-            .isna()
-
-            .sum()
-
-            .sum()
-
-        )
+        missing = int(dataframe.isna().sum().sum())
 
         return DataMonitorResult(
-
             metric="Missing Values",
-
-            status=(
-
-                "OK"
-
-                if missing == 0
-
-                else "WARNING"
-
-            ),
-
+            status=("OK" if missing == 0 else "WARNING"),
             value=missing,
-
             threshold=0,
-
             timestamp=datetime.utcnow(),
-
             metadata={
-
-                "Rows":
-
-                    len(dataframe),
-
+                "Rows": len(dataframe),
             },
-
         )
 
     # =====================================================
@@ -223,49 +137,20 @@ class DataMonitor:
 
     @staticmethod
     def check_duplicates(
-
         dataframe: pd.DataFrame,
-
     ) -> DataMonitorResult:
 
-        duplicates = int(
-
-            dataframe
-
-            .duplicated()
-
-            .sum()
-
-        )
+        duplicates = int(dataframe.duplicated().sum())
 
         return DataMonitorResult(
-
             metric="Duplicate Records",
-
-            status=(
-
-                "OK"
-
-                if duplicates == 0
-
-                else "WARNING"
-
-            ),
-
+            status=("OK" if duplicates == 0 else "WARNING"),
             value=duplicates,
-
             threshold=0,
-
             timestamp=datetime.utcnow(),
-
             metadata={
-
-                "Rows":
-
-                    len(dataframe),
-
+                "Rows": len(dataframe),
             },
-
         )
 
     # =====================================================
@@ -274,59 +159,23 @@ class DataMonitor:
 
     @staticmethod
     def validate_schema(
-
         dataframe: pd.DataFrame,
-
         required_columns: list[str],
-
     ) -> DataMonitorResult:
 
         missing = [
-
-            column
-
-            for column
-
-            in required_columns
-
-            if column
-
-            not in dataframe.columns
-
+            column for column in required_columns if column not in dataframe.columns
         ]
 
         return DataMonitorResult(
-
             metric="Schema Validation",
-
-            status=(
-
-                "OK"
-
-                if not missing
-
-                else "CRITICAL"
-
-            ),
-
-            value=len(
-
-                missing
-
-            ),
-
+            status=("OK" if not missing else "CRITICAL"),
+            value=len(missing),
             threshold=0,
-
             timestamp=datetime.utcnow(),
-
             metadata={
-
-                "MissingColumns":
-
-                    missing,
-
+                "MissingColumns": missing,
             },
-
         )
 
     # =====================================================
@@ -335,73 +184,25 @@ class DataMonitor:
 
     @staticmethod
     def completeness(
-
         dataframe: pd.DataFrame,
-
     ) -> DataMonitorResult:
 
-        total = (
+        total = dataframe.shape[0] * dataframe.shape[1]
 
-            dataframe.shape[0]
+        filled = int(dataframe.count().sum())
 
-            *
-
-            dataframe.shape[1]
-
-        )
-
-        filled = int(
-
-            dataframe.count().sum()
-
-        )
-
-        percentage = (
-
-            100
-
-            *
-
-            filled
-
-            /
-
-            total
-
-            if total
-
-            else 0
-
-        )
+        percentage = 100 * filled / total if total else 0
 
         return DataMonitorResult(
-
             metric="Completeness",
-
-            status=(
-
-                "OK"
-
-                if percentage >= 99
-
-                else "WARNING"
-
-            ),
-
+            status=("OK" if percentage >= 99 else "WARNING"),
             value=round(
-
                 percentage,
-
                 2,
-
             ),
-
             threshold=99,
-
             timestamp=datetime.utcnow(),
-
             metadata={},
-
         )
 
     # =====================================================
@@ -410,41 +211,19 @@ class DataMonitor:
 
     @staticmethod
     def volume(
-
         dataframe: pd.DataFrame,
-
         minimum_rows: int,
-
     ) -> DataMonitorResult:
 
-        rows = len(
-
-            dataframe
-
-        )
+        rows = len(dataframe)
 
         return DataMonitorResult(
-
             metric="Data Volume",
-
-            status=(
-
-                "OK"
-
-                if rows >= minimum_rows
-
-                else "WARNING"
-
-            ),
-
+            status=("OK" if rows >= minimum_rows else "WARNING"),
             value=rows,
-
             threshold=minimum_rows,
-
             timestamp=datetime.utcnow(),
-
             metadata={},
-
         )
 
     # =====================================================
@@ -453,73 +232,34 @@ class DataMonitor:
 
     @classmethod
     def report(
-
         cls,
-
         dataframe: pd.DataFrame,
-
         required_columns: list[str],
-
         last_updated: datetime,
-
         minimum_rows: int,
-
     ) -> dict:
 
         return {
-
-            "Freshness":
-
-                cls.check_freshness(
-
-                    last_updated,
-
-                ).summary(),
-
-            "Missing":
-
-                cls.check_missing(
-
-                    dataframe,
-
-                ).summary(),
-
-            "Duplicates":
-
-                cls.check_duplicates(
-
-                    dataframe,
-
-                ).summary(),
-
-            "Schema":
-
-                cls.validate_schema(
-
-                    dataframe,
-
-                    required_columns,
-
-                ).summary(),
-
-            "Completeness":
-
-                cls.completeness(
-
-                    dataframe,
-
-                ).summary(),
-
-            "Volume":
-
-                cls.volume(
-
-                    dataframe,
-
-                    minimum_rows,
-
-                ).summary(),
-
+            "Freshness": cls.check_freshness(
+                last_updated,
+            ).summary(),
+            "Missing": cls.check_missing(
+                dataframe,
+            ).summary(),
+            "Duplicates": cls.check_duplicates(
+                dataframe,
+            ).summary(),
+            "Schema": cls.validate_schema(
+                dataframe,
+                required_columns,
+            ).summary(),
+            "Completeness": cls.completeness(
+                dataframe,
+            ).summary(),
+            "Volume": cls.volume(
+                dataframe,
+                minimum_rows,
+            ).summary(),
         }
 
     # =====================================================
@@ -527,15 +267,9 @@ class DataMonitor:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}()"
-
-        )
+        return f"{self.__class__.__name__}()"
 
     __str__ = __repr__

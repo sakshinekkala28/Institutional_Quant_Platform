@@ -281,10 +281,7 @@ Example
 ```python
 logger.info(
     "Portfolio optimization completed",
-    extra={
-        "portfolio_size": 50,
-        "duration_seconds": 2.35
-    }
+    extra={"portfolio_size": 50, "duration_seconds": 2.35},
 )
 ```
 

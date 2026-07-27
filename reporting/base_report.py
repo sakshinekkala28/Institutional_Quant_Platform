@@ -30,48 +30,29 @@ Inherited By
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
-
+from abc import ABC, abstractmethod
 from datetime import datetime
 
 
-class BaseReport(
-    ABC
-):
+class BaseReport(ABC):
     """
     Institutional base report.
     """
 
     def __init__(
-
         self,
-
         title: str,
-
         author: str = "Institutional Quant Platform",
-
     ) -> None:
 
         if not title:
-
-            raise ValueError(
-
-                "Report title "
-
-                "cannot be empty."
-
-            )
+            raise ValueError("Report title cannot be empty.")
 
         self._title = title
 
         self._author = author
 
-        self._created_at = (
-
-            datetime.utcnow()
-
-        )
+        self._created_at = datetime.utcnow()
 
         self._metadata: dict = {}
 
@@ -81,36 +62,28 @@ class BaseReport(
 
     @property
     def title(
-
         self,
-
     ) -> str:
 
         return self._title
 
     @property
     def author(
-
         self,
-
     ) -> str:
 
         return self._author
 
     @property
     def created_at(
-
         self,
-
     ) -> datetime:
 
         return self._created_at
 
     @property
     def metadata(
-
         self,
-
     ) -> dict:
 
         return self._metadata
@@ -120,49 +93,26 @@ class BaseReport(
     # =====================================================
 
     def add_metadata(
-
         self,
-
         key: str,
-
         value,
-
     ) -> None:
 
-        self._metadata[
-
-            key
-
-        ] = value
+        self._metadata[key] = value
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Title":
-
-                self.title,
-
-            "Author":
-
-                self.author,
-
-            "Created":
-
-                self.created_at.isoformat(),
-
-            "Metadata":
-
-                self.metadata,
-
+            "Title": self.title,
+            "Author": self.author,
+            "Created": self.created_at.isoformat(),
+            "Metadata": self.metadata,
         }
 
     # =====================================================
@@ -171,11 +121,8 @@ class BaseReport(
 
     @abstractmethod
     def export(
-
         self,
-
         destination: str,
-
     ) -> None:
         """
         Export report.
@@ -188,19 +135,9 @@ class BaseReport(
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Title='{self.title}'"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Title='{self.title}')"
 
     __str__ = __repr__

@@ -57,11 +57,8 @@ class SlippageEngine:
     # =====================================================
 
     def spread_cost(
-
         self,
-
         order: Order,
-
     ) -> float:
 
         return self.spread_bps
@@ -71,11 +68,8 @@ class SlippageEngine:
     # =====================================================
 
     def volatility_cost(
-
         self,
-
         order: Order,
-
     ) -> float:
 
         return self.volatility_bps
@@ -85,11 +79,8 @@ class SlippageEngine:
     # =====================================================
 
     def delay_cost(
-
         self,
-
         order: Order,
-
     ) -> float:
 
         return self.delay_bps
@@ -99,11 +90,8 @@ class SlippageEngine:
     # =====================================================
 
     def algorithm_cost(
-
         self,
-
         order: Order,
-
     ) -> float:
 
         return self.algorithm_penalty_bps
@@ -113,75 +101,30 @@ class SlippageEngine:
     # =====================================================
 
     def impact_cost(
-
         self,
-
         order: Order,
-
     ) -> float:
 
         if self.market_impact is None:
-
             return 0.0
 
-        return self.market_impact.calculate(
-
-            order
-
-        )
+        return self.market_impact.calculate(order)
 
     # =====================================================
     # TOTAL SLIPPAGE (BPS)
     # =====================================================
 
     def calculate(
-
         self,
-
         order: Order,
-
     ) -> float:
 
         return (
-
-            self.spread_cost(
-
-                order
-
-            )
-
-            +
-
-            self.volatility_cost(
-
-                order
-
-            )
-
-            +
-
-            self.delay_cost(
-
-                order
-
-            )
-
-            +
-
-            self.algorithm_cost(
-
-                order
-
-            )
-
-            +
-
-            self.impact_cost(
-
-                order
-
-            )
-
+            self.spread_cost(order)
+            + self.volatility_cost(order)
+            + self.delay_cost(order)
+            + self.algorithm_cost(order)
+            + self.impact_cost(order)
         )
 
     # =====================================================
@@ -189,151 +132,51 @@ class SlippageEngine:
     # =====================================================
 
     def execution_price(
-
         self,
-
         order: Order,
-
     ) -> float:
 
         if order.price is None:
-
             return 0.0
 
-        slippage = self.calculate(
+        slippage = self.calculate(order)
 
-            order
-
-        )
-
-        multiplier = (
-
-            1.0
-
-            +
-
-            slippage
-
-            / 10_000.0
-
-        )
+        multiplier = 1.0 + slippage / 10_000.0
 
         if order.is_buy:
+            return order.price * multiplier
 
-            return (
-
-                order.price
-
-                * multiplier
-
-            )
-
-        return (
-
-            order.price
-
-            / multiplier
-
-        )
+        return order.price / multiplier
 
     # =====================================================
     # BREAKDOWN
     # =====================================================
 
     def breakdown(
-
         self,
-
         order: Order,
-
     ) -> dict:
 
-        spread = self.spread_cost(
+        spread = self.spread_cost(order)
 
-            order
+        volatility = self.volatility_cost(order)
 
-        )
+        delay = self.delay_cost(order)
 
-        volatility = self.volatility_cost(
+        algorithm = self.algorithm_cost(order)
 
-            order
+        impact = self.impact_cost(order)
 
-        )
-
-        delay = self.delay_cost(
-
-            order
-
-        )
-
-        algorithm = self.algorithm_cost(
-
-            order
-
-        )
-
-        impact = self.impact_cost(
-
-            order
-
-        )
-
-        total = (
-
-            spread
-
-            +
-
-            volatility
-
-            +
-
-            delay
-
-            +
-
-            algorithm
-
-            +
-
-            impact
-
-        )
+        total = spread + volatility + delay + algorithm + impact
 
         return {
-
-            "Spread_bps":
-
-                spread,
-
-            "Volatility_bps":
-
-                volatility,
-
-            "Delay_bps":
-
-                delay,
-
-            "Algorithm_bps":
-
-                algorithm,
-
-            "Market_Impact_bps":
-
-                impact,
-
-            "Total_bps":
-
-                total,
-
-            "Execution_Price":
-
-                self.execution_price(
-
-                    order
-
-                ),
-
+            "Spread_bps": spread,
+            "Volatility_bps": volatility,
+            "Delay_bps": delay,
+            "Algorithm_bps": algorithm,
+            "Market_Impact_bps": impact,
+            "Total_bps": total,
+            "Execution_Price": self.execution_price(order),
         }
 
     # =====================================================
@@ -341,35 +184,20 @@ class SlippageEngine:
     # =====================================================
 
     def summary(
-
         self,
-
         order: Order,
-
     ) -> dict:
 
-        return self.breakdown(
-
-            order
-
-        )
+        return self.breakdown(order)
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Spread={self.spread_bps:.2f}bps)"
-
-        )
+        return f"{self.__class__.__name__}(Spread={self.spread_bps:.2f}bps)"
 
     __str__ = __repr__

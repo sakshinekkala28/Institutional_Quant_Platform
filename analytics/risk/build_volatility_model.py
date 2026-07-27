@@ -1,6 +1,7 @@
 from pathlib import Path
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -23,9 +24,7 @@ print(prices.head())
 results = []
 
 for symbol, df in prices.groupby("Symbol"):
-
     try:
-
         df = df.sort_values("Date")
 
         returns = df["Daily_Return"].dropna()
@@ -33,29 +32,17 @@ for symbol, df in prices.groupby("Symbol"):
         if len(returns) < 100:
             continue
 
-        vol_252 = (
-            returns.std()
-            * np.sqrt(252)
-        )
+        vol_252 = returns.std() * np.sqrt(252)
 
-        vol_252 = np.clip(
-            vol_252,
-            0.05,
-            3.00
-        )
+        vol_252 = np.clip(vol_252, 0.05, 3.00)
 
-        atr_pct = (
-            returns.abs()
-            .rolling(14)
-            .mean()
-            .iloc[-1]
-        )
+        atr_pct = returns.abs().rolling(14).mean().iloc[-1]
 
         results.append(
             {
                 "Symbol": symbol.replace(".NS", ""),
                 "Volatility_252D": round(vol_252, 4),
-                "ATR_Pct": round(atr_pct, 4)
+                "ATR_Pct": round(atr_pct, 4),
             }
         )
 
@@ -73,10 +60,7 @@ print(vol_df["ATR_Pct"].describe())
 print("\nTotal Symbols")
 print(len(vol_df))
 
-vol_df.to_csv(
-    OUTPUT_FILE,
-    index=False
-)
+vol_df.to_csv(OUTPUT_FILE, index=False)
 
 print(f"Saved {len(vol_df)} symbols")
 print(OUTPUT_FILE)

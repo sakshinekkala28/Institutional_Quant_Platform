@@ -1,16 +1,10 @@
+import logging
 from pathlib import Path
 
 import pandas as pd
 
-import logging
-
-
 logging.basicConfig(
-
-    level=logging.INFO,
-
-    format="%(asctime)s | %(levelname)s | %(message)s"
-
+    level=logging.INFO, format="%(asctime)s | %(levelname)s | %(message)s"
 )
 
 logger = logging.getLogger(__name__)
@@ -18,504 +12,147 @@ logger = logging.getLogger(__name__)
 
 DATA_DIR = Path("data")
 
-MONITORING_DIR = (
+MONITORING_DIR = DATA_DIR / "monitoring"
 
-    DATA_DIR
+ALERT_DASHBOARD_FILE = MONITORING_DIR / "alert_dashboard.csv"
 
-    / "monitoring"
+ALERT_TREND_FILE = MONITORING_DIR / "alert_trend_dashboard.csv"
 
-)
+GOVERNANCE_FILE = MONITORING_DIR / "alert_governance.csv"
 
-ALERT_DASHBOARD_FILE = (
-
-    MONITORING_DIR
-
-    / "alert_dashboard.csv"
-
-)
-
-ALERT_TREND_FILE = (
-
-    MONITORING_DIR
-
-    / "alert_trend_dashboard.csv"
-
-)
-
-GOVERNANCE_FILE = (
-
-    MONITORING_DIR
-
-    / "alert_governance.csv"
-
-)
 
 class AlertGovernanceValidator:
-
     @staticmethod
     def validate():
 
         if not ALERT_DASHBOARD_FILE.exists():
-
-            raise FileNotFoundError(
-
-                ALERT_DASHBOARD_FILE
-
-            )
+            raise FileNotFoundError(ALERT_DASHBOARD_FILE)
 
         if not ALERT_TREND_FILE.exists():
+            raise FileNotFoundError(ALERT_TREND_FILE)
 
-            raise FileNotFoundError(
-
-                ALERT_TREND_FILE
-
-            )
-
-        logger.info(
-
-            "Alert Governance Validation Passed"
-
-        )
+        logger.info("Alert Governance Validation Passed")
 
 
 class AlertGovernanceLoader:
-
     @staticmethod
     def load():
 
-        logger.info(
+        logger.info("Loading Alert Dashboard")
 
-            "Loading Alert Dashboard"
+        dashboard = pd.read_csv(ALERT_DASHBOARD_FILE)
 
-        )
+        logger.info("Loading Alert Trends")
 
-        dashboard = pd.read_csv(
+        trend = pd.read_csv(ALERT_TREND_FILE)
 
-            ALERT_DASHBOARD_FILE
+        return (dashboard, trend)
 
-        )
 
-        logger.info(
-
-            "Loading Alert Trends"
-
-        )
-
-        trend = pd.read_csv(
-
-            ALERT_TREND_FILE
-
-        )
-
-        return (
-
-            dashboard,
-
-            trend
-
-        )
-    
 class AlertGovernanceEngine:
-
     @staticmethod
-    def calculate(
+    def calculate(dashboard, trend):
 
-        dashboard,
+        logger.info("Calculating Alert Governance")
 
-        trend
+        metrics = dict(zip(dashboard["Metric"], dashboard["Value"]))
 
-    ):
+        total_alerts = int(metrics.get("Total_Alerts", 0))
 
-        logger.info(
+        critical_alerts = int(metrics.get("Critical_Alerts", 0))
 
-            "Calculating Alert Governance"
+        high_alerts = int(metrics.get("High_Alerts", 0))
 
-        )
+        medium_alerts = int(metrics.get("Medium_Alerts", 0))
 
-        metrics = dict(
-
-            zip(
-
-                dashboard["Metric"],
-
-                dashboard["Value"]
-
-            )
-
-        )
-
-        total_alerts = int(
-
-            metrics.get(
-
-                "Total_Alerts",
-
-                0
-
-            )
-
-        )
-
-        critical_alerts = int(
-
-            metrics.get(
-
-                "Critical_Alerts",
-
-                0
-
-            )
-
-        )
-
-        high_alerts = int(
-
-            metrics.get(
-
-                "High_Alerts",
-
-                0
-
-            )
-
-        )
-
-        medium_alerts = int(
-
-            metrics.get(
-
-                "Medium_Alerts",
-
-                0
-
-            )
-
-        )
-
-        top_category = str(
-
-            metrics.get(
-
-                "Top_Category",
-
-                "UNKNOWN"
-
-            )
-
-        )
+        top_category = str(metrics.get("Top_Category", "UNKNOWN"))
 
         if total_alerts == 0:
-
             health_score = 100
 
         else:
+            critical_ratio = critical_alerts / total_alerts
 
-            critical_ratio = (
+            high_ratio = high_alerts / total_alerts
 
-                critical_alerts
-
-                / total_alerts
-
-            )
-
-            high_ratio = (
-
-                high_alerts
-
-                / total_alerts
-
-            )
-
-            medium_ratio = (
-
-                medium_alerts
-
-                / total_alerts
-
-            )
+            medium_ratio = medium_alerts / total_alerts
 
             health_score = (
-
-                100
-
-                -
-
-                critical_ratio * 60
-
-                -
-
-                high_ratio * 25
-
-                -
-
-                medium_ratio * 10
-
+                100 - critical_ratio * 60 - high_ratio * 25 - medium_ratio * 10
             )
 
-            health_score = round(
+            health_score = round(max(health_score, 0), 2)
 
-                max(
-
-                    health_score,
-
-                    0
-
-                ),
-
-                2
-
-            )
-
-        trend_direction = (
-
-            trend.loc[
-
-                trend["Metric"]
-
-                ==
-
-                "Trend_Direction",
-
-                "Value"
-
-            ]
-
-            .iloc[0]
-
-        )
+        trend_direction = trend.loc[trend["Metric"] == "Trend_Direction", "Value"].iloc[
+            0
+        ]
 
         if trend_direction == "UP":
-
-            escalation = (
-
-                "ESCALATING"
-
-            )
+            escalation = "ESCALATING"
 
         elif trend_direction == "DOWN":
-
-            escalation = (
-
-                "IMPROVING"
-
-            )
+            escalation = "IMPROVING"
 
         else:
-
-            escalation = (
-
-                "STABLE"
-
-            )
+            escalation = "STABLE"
 
         if health_score >= 80:
-
-            governance_view = (
-
-                "HEALTHY"
-
-            )
+            governance_view = "HEALTHY"
 
         elif health_score >= 60:
-
-            governance_view = (
-
-                "WATCH"
-
-            )
+            governance_view = "WATCH"
 
         elif health_score >= 40:
-
-            governance_view = (
-
-                "WARNING"
-
-            )
+            governance_view = "WARNING"
 
         else:
-
-            governance_view = (
-
-                "CRITICAL"
-
-            )
-
+            governance_view = "CRITICAL"
 
         return pd.DataFrame(
-
             [
-
-                {
-
-                    "Metric":
-
-                        "Alert_Health_Score",
-
-                    "Value":
-
-                        health_score
-
-                },
-
-                {
-
-                    "Metric":
-
-                        "Alert_Escalation",
-
-                    "Value":
-
-                        escalation
-
-                },
-
-                {
-
-                    "Metric":
-
-                        "Governance_View",
-
-                    "Value":
-
-                        governance_view
-
-                },
-
-                {
-
-                    "Metric":
-
-                        "Trend_Direction",
-
-                    "Value":
-
-                        trend_direction
-
-                },
-
-                {
-
-                    "Metric":
-
-                        "Top_Category",
-
-                    "Value":
-
-                        top_category
-
-                },
-
-                {
-
-                    "Metric":
-
-                        "Total_Alerts",
-
-                    "Value":
-
-                        total_alerts
-
-                }
-
+                {"Metric": "Alert_Health_Score", "Value": health_score},
+                {"Metric": "Alert_Escalation", "Value": escalation},
+                {"Metric": "Governance_View", "Value": governance_view},
+                {"Metric": "Trend_Direction", "Value": trend_direction},
+                {"Metric": "Top_Category", "Value": top_category},
+                {"Metric": "Total_Alerts", "Value": total_alerts},
             ]
-
         )
-    
+
+
 class AlertGovernanceExporter:
-
     @staticmethod
-    def export(
+    def export(governance):
 
-        governance
+        logger.info("Exporting Alert Governance")
 
-    ):
-
-        logger.info(
-
-            "Exporting Alert Governance"
-
-        )
-
-        governance.to_csv(
-
-            GOVERNANCE_FILE,
-
-            index=False
-
-        )
+        governance.to_csv(GOVERNANCE_FILE, index=False)
 
 
 def run_example():
 
-    logger.info(
-
-        "Starting Alert Governance"
-
-    )
+    logger.info("Starting Alert Governance")
 
     AlertGovernanceValidator.validate()
 
-    dashboard, trend = (
+    dashboard, trend = AlertGovernanceLoader.load()
 
-        AlertGovernanceLoader
+    governance = AlertGovernanceEngine.calculate(dashboard, trend)
 
-        .load()
-
-    )
-
-    governance = (
-
-        AlertGovernanceEngine
-
-        .calculate(
-
-            dashboard,
-
-            trend
-
-        )
-
-    )
-
-    AlertGovernanceExporter.export(
-
-        governance
-
-    )
+    AlertGovernanceExporter.export(governance)
 
     print()
 
-    print(
+    print("=" * 80)
 
-        "=" * 80
+    print("ALERT GOVERNANCE")
 
-    )
+    print("=" * 80)
 
-    print(
+    print(governance)
 
-        "ALERT GOVERNANCE"
-
-    )
-
-    print(
-
-        "=" * 80
-
-    )
-
-    print(
-
-        governance
-
-    )
-
-    print(
-
-        "=" * 80
-
-    )
+    print("=" * 80)
 
 
 if __name__ == "__main__":
-
     run_example()

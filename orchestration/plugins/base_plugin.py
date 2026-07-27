@@ -31,14 +31,13 @@ Implemented By
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Any
-
 
 # =========================================================
 # BASE PLUGIN
 # =========================================================
+
 
 class BasePlugin(ABC):
     """
@@ -184,15 +183,10 @@ class BasePlugin(ABC):
     ) -> dict:
 
         return {
-
             "name": cls.NAME,
-
             "version": cls.VERSION,
-
             "description": cls.DESCRIPTION,
-
             "enabled": cls.ENABLED,
-
         }
 
     # =====================================================
@@ -203,12 +197,4 @@ class BasePlugin(ABC):
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"name='{self.NAME}', "
-
-            f"started={self.started})"
-
-        )
+        return f"{self.__class__.__name__}(name='{self.NAME}', started={self.started})"

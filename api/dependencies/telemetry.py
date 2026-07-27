@@ -34,28 +34,23 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from monitoring.telemetry import (
-    Telemetry,
-    Metric,
-    Event,
-)
-
-from monitoring.metrics_registry import (
-    MetricsRegistry,
-)
-
-from execution.transaction_cost_engine import (
-    CostTelemetry,
-)
-
-from core.logging_manager import (
-    LoggingManager,
-)
-
 from core.audit_logger import (
     AuditLogger,
 )
-
+from core.logging_manager import (
+    LoggingManager,
+)
+from execution.transaction_cost_engine import (
+    CostTelemetry,
+)
+from monitoring.metrics_registry import (
+    MetricsRegistry,
+)
+from monitoring.telemetry import (
+    Event,
+    Metric,
+    Telemetry,
+)
 
 # ==========================================================
 # TELEMETRY
@@ -166,13 +161,9 @@ def telemetry_health() -> dict:
     """
 
     return {
-
         "engine": "Telemetry",
-
         "status": "healthy",
-
         "singleton": True,
-
     }
 
 
@@ -187,27 +178,16 @@ def telemetry_summary() -> dict:
     """
 
     return {
-
         "services": [
-
             "Telemetry",
-
             "MetricsRegistry",
-
             "Metric",
-
             "Event",
-
             "CostTelemetry",
-
             "LoggingManager",
-
             "AuditLogger",
-
         ],
-
         "count": 7,
-
     }
 
 
@@ -217,23 +197,13 @@ def telemetry_summary() -> dict:
 
 
 __all__ = [
-
-    "get_telemetry",
-
-    "get_metrics_registry",
-
-    "get_metric",
-
-    "get_event",
-
-    "get_cost_telemetry",
-
-    "get_logging_manager",
-
     "get_audit_logger",
-
+    "get_cost_telemetry",
+    "get_event",
+    "get_logging_manager",
+    "get_metric",
+    "get_metrics_registry",
+    "get_telemetry",
     "telemetry_health",
-
     "telemetry_summary",
-
 ]

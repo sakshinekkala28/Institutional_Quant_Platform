@@ -31,9 +31,7 @@ from execution.order import Order
 
 
 @dataclass(slots=True)
-class TWAPAlgorithm(
-    ExecutionAlgorithm
-):
+class TWAPAlgorithm(ExecutionAlgorithm):
     """
     Institutional TWAP execution algorithm.
     """
@@ -41,146 +39,62 @@ class TWAPAlgorithm(
     intervals: int = 10
 
     def __post_init__(
-
         self,
-
     ) -> None:
 
-        super().__init__(
-
-            name="TWAP"
-
-        )
+        super().__init__(name="TWAP")
 
     # =====================================================
     # ORDER SCHEDULE
     # =====================================================
 
     def schedule(
-
         self,
-
         order: Order,
-
     ) -> list[float]:
 
         if self.intervals <= 0:
+            raise ValueError("Intervals must be positive.")
 
-            raise ValueError(
+        quantity = order.quantity / self.intervals
 
-                "Intervals must be positive."
-
-            )
-
-        quantity = (
-
-            order.quantity
-
-            / self.intervals
-
-        )
-
-        return [
-
-            quantity
-
-            for _
-
-            in range(
-
-                self.intervals
-
-            )
-
-        ]
+        return [quantity for _ in range(self.intervals)]
 
     # =====================================================
     # EXECUTE
     # =====================================================
 
     def execute(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
 
-        schedule = self.schedule(
-
-            order
-
-        )
+        schedule = self.schedule(order)
 
         report = ExecutionReport()
 
         report.order = order
 
-        report.executed_quantity = sum(
-
-            schedule
-
-        )
+        report.executed_quantity = sum(schedule)
 
         report.remaining_quantity = max(
-
             0.0,
-
-            order.quantity
-
-            -
-
-            report.executed_quantity,
-
+            order.quantity - report.executed_quantity,
         )
 
-        report.average_price = (
+        report.average_price = order.price if order.price is not None else 0.0
 
-            order.price
+        report.execution_value = report.executed_quantity * report.average_price
 
-            if order.price is not None
-
-            else 0.0
-
-        )
-
-        report.execution_value = (
-
-            report.executed_quantity
-
-            *
-
-            report.average_price
-
-        )
-
-        report.fill_ratio = (
-
-            report.executed_quantity
-
-            /
-
-            order.quantity
-
-        )
+        report.fill_ratio = report.executed_quantity / order.quantity
 
         report.algorithm = self.name
 
         report.status = "FILLED"
 
-        report.message = (
+        report.message = f"TWAP executed {self.intervals} slices."
 
-            f"TWAP executed "
-
-            f"{self.intervals} slices."
-
-        )
-
-        report.metadata[
-
-            "Slices"
-
-        ] = schedule
+        report.metadata["Slices"] = schedule
 
         return report
 
@@ -189,19 +103,9 @@ class TWAPAlgorithm(
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Intervals={self.intervals}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Intervals={self.intervals})"
 
     __str__ = __repr__

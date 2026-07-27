@@ -14,10 +14,10 @@ from __future__ import annotations
 
 from pathlib import Path
 
-
 # =========================================================
 # DIRECTORY HELPERS
 # =========================================================
+
 
 def ensure_directory(
     directory: Path,
@@ -49,6 +49,7 @@ def ensure_parent_directory(
 # FILE HELPERS
 # =========================================================
 
+
 def file_exists(
     file_path: Path,
 ) -> bool:
@@ -73,6 +74,7 @@ def directory_exists(
 # FILE INFORMATION
 # =========================================================
 
+
 def file_size(
     file_path: Path,
 ) -> int:
@@ -80,11 +82,7 @@ def file_size(
     Return file size in bytes.
     """
 
-    return (
-        file_path.stat().st_size
-        if file_path.exists()
-        else 0
-    )
+    return file_path.stat().st_size if file_path.exists() else 0
 
 
 def touch(
@@ -94,10 +92,6 @@ def touch(
     Create an empty file if it does not exist.
     """
 
-    ensure_parent_directory(
-        file_path
-    )
+    ensure_parent_directory(file_path)
 
-    file_path.touch(
-        exist_ok=True
-    )
+    file_path.touch(exist_ok=True)

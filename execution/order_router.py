@@ -45,39 +45,25 @@ class OrderRouter:
 
     venue: str = "NSE"
 
-    routing_rules: dict = field(
-
-        default_factory=dict
-
-    )
+    routing_rules: dict = field(default_factory=dict)
 
     # =====================================================
     # ROUTE
     # =====================================================
 
     def route(
-
         self,
-
         order: Order,
-
     ) -> Order:
 
         broker = self.routing_rules.get(
-
             order.symbol,
-
             self.default_broker,
-
         )
 
         order.broker = broker
 
-        order.metadata["venue"] = (
-
-            self.venue
-
-        )
+        order.metadata["venue"] = self.venue
 
         return order
 
@@ -86,39 +72,25 @@ class OrderRouter:
     # =====================================================
 
     def register(
-
         self,
-
         symbol: str,
-
         broker: str,
-
     ) -> None:
 
-        self.routing_rules[
-
-            symbol
-
-        ] = broker
+        self.routing_rules[symbol] = broker
 
     # =====================================================
     # REMOVE
     # =====================================================
 
     def unregister(
-
         self,
-
         symbol: str,
-
     ) -> None:
 
         self.routing_rules.pop(
-
             symbol,
-
             None,
-
         )
 
     # =====================================================
@@ -126,9 +98,7 @@ class OrderRouter:
     # =====================================================
 
     def clear(
-
         self,
-
     ) -> None:
 
         self.routing_rules.clear()
@@ -138,19 +108,13 @@ class OrderRouter:
     # =====================================================
 
     def broker_for(
-
         self,
-
         symbol: str,
-
     ) -> str:
 
         return self.routing_rules.get(
-
             symbol,
-
             self.default_broker,
-
         )
 
     # =====================================================
@@ -158,29 +122,13 @@ class OrderRouter:
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Default_Broker":
-
-                self.default_broker,
-
-            "Venue":
-
-                self.venue,
-
-            "Rules":
-
-                len(
-
-                    self.routing_rules
-
-                ),
-
+            "Default_Broker": self.default_broker,
+            "Venue": self.venue,
+            "Rules": len(self.routing_rules),
         }
 
     # =====================================================
@@ -188,21 +136,14 @@ class OrderRouter:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Venue={self.venue}, "
-
             f"Broker={self.default_broker}"
-
             f")"
-
         )
 
     __str__ = __repr__

@@ -30,11 +30,9 @@ Used By
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
 from backtesting.fill_event import FillEvent
-
 
 # =====================================================
 # POSITION
@@ -63,37 +61,17 @@ class Position:
 
     @property
     def market_value(
-
         self,
-
     ) -> float:
 
-        return (
-
-            self.quantity
-
-            *
-
-            self.market_price
-
-        )
+        return self.quantity * self.market_price
 
     @property
     def unrealized_pnl(
-
         self,
-
     ) -> float:
 
-        return (
-
-            self.market_price
-
-            -
-
-            self.average_cost
-
-        ) * self.quantity
+        return (self.market_price - self.average_cost) * self.quantity
 
 
 # =====================================================
@@ -107,94 +85,42 @@ class PositionManager:
     Institutional position manager.
     """
 
-    positions: dict[str, Position] = field(
-
-        default_factory=dict
-
-    )
+    positions: dict[str, Position] = field(default_factory=dict)
 
     # =====================================================
     # APPLY FILL
     # =====================================================
 
     def apply_fill(
-
         self,
-
         fill: FillEvent,
-
     ) -> None:
 
         position = self.positions.setdefault(
-
             fill.symbol,
-
-            Position(
-
-                symbol=fill.symbol
-
-            ),
-
+            Position(symbol=fill.symbol),
         )
 
         if fill.side == "BUY":
-
-            total_cost = (
-
-                position.average_cost
-
-                * position.quantity
-
-            ) + (
-
-                fill.execution_price
-
-                * fill.executed_quantity
-
+            total_cost = (position.average_cost * position.quantity) + (
+                fill.execution_price * fill.executed_quantity
             )
 
-            position.quantity += (
-
-                fill.executed_quantity
-
-            )
+            position.quantity += fill.executed_quantity
 
             if position.quantity > 0:
-
-                position.average_cost = (
-
-                    total_cost
-
-                    / position.quantity
-
-                )
+                position.average_cost = total_cost / position.quantity
 
         else:
-
             realized = (
-
-                fill.execution_price
-
-                -
-
-                position.average_cost
-
+                fill.execution_price - position.average_cost
             ) * fill.executed_quantity
 
-            position.realized_pnl += (
+            position.realized_pnl += realized
 
-                realized
-
-            )
-
-            position.quantity -= (
-
-                fill.executed_quantity
-
-            )
+            position.quantity -= fill.executed_quantity
 
             if position.quantity <= 0:
-
                 position.quantity = 0.0
 
                 position.average_cost = 0.0
@@ -204,42 +130,26 @@ class PositionManager:
     # =====================================================
 
     def update_price(
-
         self,
-
         symbol: str,
-
         price: float,
-
     ) -> None:
 
         if symbol not in self.positions:
-
             return
 
-        self.positions[
-
-            symbol
-
-        ].market_price = price
+        self.positions[symbol].market_price = price
 
     # =====================================================
     # GET POSITION
     # =====================================================
 
     def position(
-
         self,
-
         symbol: str,
-
     ) -> Position | None:
 
-        return self.positions.get(
-
-            symbol
-
-        )
+        return self.positions.get(symbol)
 
     # =====================================================
     # TOTAL MARKET VALUE
@@ -247,20 +157,10 @@ class PositionManager:
 
     @property
     def market_value(
-
         self,
-
     ) -> float:
 
-        return sum(
-
-            position.market_value
-
-            for position
-
-            in self.positions.values()
-
-        )
+        return sum(position.market_value for position in self.positions.values())
 
     # =====================================================
     # REALIZED PNL
@@ -268,20 +168,10 @@ class PositionManager:
 
     @property
     def realized_pnl(
-
         self,
-
     ) -> float:
 
-        return sum(
-
-            position.realized_pnl
-
-            for position
-
-            in self.positions.values()
-
-        )
+        return sum(position.realized_pnl for position in self.positions.values())
 
     # =====================================================
     # UNREALIZED PNL
@@ -289,20 +179,10 @@ class PositionManager:
 
     @property
     def unrealized_pnl(
-
         self,
-
     ) -> float:
 
-        return sum(
-
-            position.unrealized_pnl
-
-            for position
-
-            in self.positions.values()
-
-        )
+        return sum(position.unrealized_pnl for position in self.positions.values())
 
     # =====================================================
     # PORTFOLIO PNL
@@ -310,29 +190,17 @@ class PositionManager:
 
     @property
     def total_pnl(
-
         self,
-
     ) -> float:
 
-        return (
-
-            self.realized_pnl
-
-            +
-
-            self.unrealized_pnl
-
-        )
+        return self.realized_pnl + self.unrealized_pnl
 
     # =====================================================
     # RESET
     # =====================================================
 
     def reset(
-
         self,
-
     ) -> None:
 
         self.positions.clear()
@@ -342,37 +210,15 @@ class PositionManager:
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Positions":
-
-                len(
-
-                    self.positions
-
-                ),
-
-            "MarketValue":
-
-                self.market_value,
-
-            "RealizedPnL":
-
-                self.realized_pnl,
-
-            "UnrealizedPnL":
-
-                self.unrealized_pnl,
-
-            "TotalPnL":
-
-                self.total_pnl,
-
+            "Positions": len(self.positions),
+            "MarketValue": self.market_value,
+            "RealizedPnL": self.realized_pnl,
+            "UnrealizedPnL": self.unrealized_pnl,
+            "TotalPnL": self.total_pnl,
         }
 
     # =====================================================
@@ -380,19 +226,9 @@ class PositionManager:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Positions={len(self.positions)}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Positions={len(self.positions)})"
 
     __str__ = __repr__

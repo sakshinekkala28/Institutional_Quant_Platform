@@ -213,15 +213,10 @@ Engines are registered using
 
 ```python
 ENGINES = [
-
     (
-
         "Factor Engine",
-
         factor_engine,
-
     ),
-
 ]
 ```
 
@@ -488,30 +483,20 @@ Recommended
 
 ```python
 class FactorPipeline(BasePipeline):
-
     NAME = "FactorPipeline"
 
     EXECUTOR = "parallel"
 
     ENGINES = [
-
         (
-
             "Factor Engine",
-
             factor_engine,
-
         ),
-
     ]
 
-    def before_run(self):
+    def before_run(self): ...
 
-        ...
-
-    def after_run(self, result):
-
-        ...
+    def after_run(self, result): ...
 
     @classmethod
     def main(cls):

@@ -42,18 +42,12 @@ class PortfolioAllocation:
     # =====================================================
 
     @staticmethod
-    def equal_weight(
-
-        portfolio: Portfolio
-
-    ) -> float:
-
+    def equal_weight(portfolio: Portfolio) -> float:
         """
         Equal weight allocation.
         """
 
         if portfolio.is_empty:
-
             return 0.0
 
         return 1.0 / portfolio.position_count
@@ -63,122 +57,55 @@ class PortfolioAllocation:
     # =====================================================
 
     @staticmethod
-    def target_weights(
-
-        portfolio: Portfolio
-
-    ) -> dict[str, float]:
-
+    def target_weights(portfolio: Portfolio) -> dict[str, float]:
         """
         Equal-weight target allocation.
         """
 
-        target = PortfolioAllocation.equal_weight(
+        target = PortfolioAllocation.equal_weight(portfolio)
 
-            portfolio
-
-        )
-
-        return {
-
-            position.symbol:
-
-            target
-
-            for position
-
-            in portfolio
-
-        }
+        return {position.symbol: target for position in portfolio}
 
     # =====================================================
     # CURRENT WEIGHTS
     # =====================================================
 
     @staticmethod
-    def current_weights(
-
-        portfolio: Portfolio
-
-    ) -> dict[str, float]:
-
+    def current_weights(portfolio: Portfolio) -> dict[str, float]:
         """
         Current portfolio weights.
         """
 
-        return {
-
-            position.symbol:
-
-            position.weight
-
-            for position
-
-            in portfolio
-
-        }
+        return {position.symbol: position.weight for position in portfolio}
 
     # =====================================================
     # ACTIVE WEIGHTS
     # =====================================================
 
     @staticmethod
-    def active_weights(
-
-        portfolio: Portfolio
-
-    ) -> dict[str, float]:
-
+    def active_weights(portfolio: Portfolio) -> dict[str, float]:
         """
         Difference between current
         and equal-weight allocation.
         """
 
-        target = PortfolioAllocation.equal_weight(
+        target = PortfolioAllocation.equal_weight(portfolio)
 
-            portfolio
-
-        )
-
-        return {
-
-            position.symbol:
-
-            position.weight - target
-
-            for position
-
-            in portfolio
-
-        }
+        return {position.symbol: position.weight - target for position in portfolio}
 
     # =====================================================
     # DRIFT
     # =====================================================
 
     @staticmethod
-    def allocation_drift(
-
-        portfolio: Portfolio
-
-    ) -> float:
-
+    def allocation_drift(portfolio: Portfolio) -> float:
         """
         Total allocation drift.
         """
 
         return sum(
-
             abs(weight)
-
-            for weight
-
-            in PortfolioAllocation.active_weights(
-
-                portfolio
-
-            ).values()
-
+            for weight in PortfolioAllocation.active_weights(portfolio).values()
         )
 
     # =====================================================
@@ -186,12 +113,7 @@ class PortfolioAllocation:
     # =====================================================
 
     @staticmethod
-    def normalized_weights(
-
-        portfolio: Portfolio
-
-    ) -> dict[str, float]:
-
+    def normalized_weights(portfolio: Portfolio) -> dict[str, float]:
         """
         Normalize weights to 100%.
         """
@@ -199,32 +121,16 @@ class PortfolioAllocation:
         total = portfolio.total_weight
 
         if total <= 0:
-
             return {}
 
-        return {
-
-            position.symbol:
-
-            position.weight / total
-
-            for position
-
-            in portfolio
-
-        }
+        return {position.symbol: position.weight / total for position in portfolio}
 
     # =====================================================
     # SECTOR ALLOCATION
     # =====================================================
 
     @staticmethod
-    def sector_allocation(
-
-        portfolio: Portfolio
-
-    ) -> dict[str, float]:
-
+    def sector_allocation(portfolio: Portfolio) -> dict[str, float]:
         """
         Sector allocation.
         """
@@ -236,18 +142,12 @@ class PortfolioAllocation:
     # =====================================================
 
     @staticmethod
-    def largest_weight(
-
-        portfolio: Portfolio
-
-    ) -> float:
-
+    def largest_weight(portfolio: Portfolio) -> float:
         """
         Largest portfolio weight.
         """
 
         if portfolio.is_empty:
-
             return 0.0
 
         return portfolio.largest_position.weight
@@ -257,85 +157,30 @@ class PortfolioAllocation:
     # =====================================================
 
     @staticmethod
-    def smallest_weight(
-
-        portfolio: Portfolio
-
-    ) -> float:
-
+    def smallest_weight(portfolio: Portfolio) -> float:
         """
         Smallest portfolio weight.
         """
 
         if portfolio.is_empty:
-
             return 0.0
 
-        return min(
-
-            position.weight
-
-            for position
-
-            in portfolio
-
-        )
+        return min(position.weight for position in portfolio)
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
     @staticmethod
-    def summary(
-
-        portfolio: Portfolio
-
-    ) -> dict:
-
+    def summary(portfolio: Portfolio) -> dict:
         """
         Allocation summary.
         """
 
         return {
-
-            "equal_weight":
-
-                PortfolioAllocation.equal_weight(
-
-                    portfolio
-
-                ),
-
-            "allocation_drift":
-
-                PortfolioAllocation.allocation_drift(
-
-                    portfolio
-
-                ),
-
-            "largest_weight":
-
-                PortfolioAllocation.largest_weight(
-
-                    portfolio
-
-                ),
-
-            "smallest_weight":
-
-                PortfolioAllocation.smallest_weight(
-
-                    portfolio
-
-                ),
-
-            "sector_allocation":
-
-                PortfolioAllocation.sector_allocation(
-
-                    portfolio
-
-                )
-
+            "equal_weight": PortfolioAllocation.equal_weight(portfolio),
+            "allocation_drift": PortfolioAllocation.allocation_drift(portfolio),
+            "largest_weight": PortfolioAllocation.largest_weight(portfolio),
+            "smallest_weight": PortfolioAllocation.smallest_weight(portfolio),
+            "sector_allocation": PortfolioAllocation.sector_allocation(portfolio),
         }

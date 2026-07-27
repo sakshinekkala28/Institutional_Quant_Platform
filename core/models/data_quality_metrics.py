@@ -22,13 +22,11 @@ Standardized data quality metrics used across
 
 from __future__ import annotations
 
-from dataclasses import asdict
-from dataclasses import dataclass
+from dataclasses import asdict, dataclass
 
 
 @dataclass(slots=True)
 class DataQualityMetrics:
-
     """
     Standard data quality metrics.
     """
@@ -49,51 +47,30 @@ class DataQualityMetrics:
     # EXPORT
     # =====================================================
 
-    def to_dict(
-
-        self
-
-    ) -> dict:
-
+    def to_dict(self) -> dict:
         """
         Convert metrics
         to dictionary.
         """
 
-        return asdict(
-
-            self
-
-        )
+        return asdict(self)
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> str:
-
+    def summary(self) -> str:
         """
         Human-readable summary.
         """
 
         return (
-
             f"Rows={self.row_count:,} | "
-
             f"Columns={self.column_count} | "
-
             f"Duplicates={self.duplicate_percentage:.2f}% | "
-
             f"Nulls={self.null_percentage:.2f}% | "
-
             f"Completeness={self.completeness_score:.2f}% | "
-
             f"Memory={self.memory_usage_mb:.2f} MB"
-
         )
 
     # =====================================================
@@ -101,13 +78,7 @@ class DataQualityMetrics:
     # =====================================================
 
     @property
-
-    def health_score(
-
-        self
-
-    ) -> float:
-
+    def health_score(self) -> float:
         """
         Overall data quality score.
 
@@ -118,130 +89,48 @@ class DataQualityMetrics:
 
         score = 100.0
 
-        score -= min(
+        score -= min(self.duplicate_percentage, 100.0) * 0.30
 
-            self.duplicate_percentage,
+        score -= min(self.null_percentage, 100.0) * 0.50
 
-            100.0
+        score -= max(0.0, 100.0 - self.completeness_score) * 0.20
 
-        ) * 0.30
-
-        score -= min(
-
-            self.null_percentage,
-
-            100.0
-
-        ) * 0.50
-
-        score -= max(
-
-            0.0,
-
-            100.0
-
-            - self.completeness_score
-
-        ) * 0.20
-
-        return round(
-
-            max(
-
-                score,
-
-                0.0
-
-            ),
-
-            2
-
-        )
+        return round(max(score, 0.0), 2)
 
     # =====================================================
     # FLAGS
     # =====================================================
 
     @property
-
-    def is_healthy(
-
-        self
-
-    ) -> bool:
-
+    def is_healthy(self) -> bool:
         """
         Dataset health.
         """
 
-        return (
-
-            self.health_score >= 90.0
-
-        )
+        return self.health_score >= 90.0
 
     @property
-
-    def is_warning(
-
-        self
-
-    ) -> bool:
-
+    def is_warning(self) -> bool:
         """
         Warning threshold.
         """
 
-        return (
-
-            75.0
-
-            <= self.health_score
-
-            < 90.0
-
-        )
+        return 75.0 <= self.health_score < 90.0
 
     @property
-
-    def is_critical(
-
-        self
-
-    ) -> bool:
-
+    def is_critical(self) -> bool:
         """
         Critical threshold.
         """
 
-        return (
-
-            self.health_score
-
-            < 75.0
-
-        )
+        return self.health_score < 75.0
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
+    def __repr__(self) -> str:
 
-        self
-
-    ) -> str:
-
-        return (
-
-            f"{self.__class__.__name__}"
-
-            "("
-
-            f"{self.summary()}"
-
-            ")"
-
-        )
+        return f"{self.__class__.__name__}({self.summary()})"
 
     __str__ = __repr__

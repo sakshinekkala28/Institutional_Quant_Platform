@@ -20,11 +20,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
 import logging
-
 from typing import Any
-from typing import Callable
-from typing import Dict
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +31,7 @@ logger = logging.getLogger(__name__)
 # SERVICE CONTAINER
 # =========================================================
 
+
 class ServiceContainer:
     """
     Central dependency injection container.
@@ -40,12 +39,12 @@ class ServiceContainer:
 
     def __init__(self) -> None:
 
-        self._factories: Dict[
+        self._factories: dict[
             str,
             Callable[[], Any],
         ] = {}
 
-        self._instances: Dict[
+        self._instances: dict[
             str,
             Any,
         ] = {}
@@ -64,12 +63,7 @@ class ServiceContainer:
         """
 
         if name in self._factories:
-
-            raise ValueError(
-
-                f"Service '{name}' already registered."
-
-            )
+            raise ValueError(f"Service '{name}' already registered.")
 
         self._factories[name] = factory
 
@@ -99,16 +93,10 @@ class ServiceContainer:
         """
 
         if name in self._instances:
-
             return self._instances[name]
 
         if name not in self._factories:
-
-            raise KeyError(
-
-                f"Unknown service '{name}'."
-
-            )
+            raise KeyError(f"Unknown service '{name}'.")
 
         instance = self._factories[name]()
 
@@ -125,15 +113,7 @@ class ServiceContainer:
         name: str,
     ) -> bool:
 
-        return (
-
-            name in self._instances
-
-            or
-
-            name in self._factories
-
-        )
+        return name in self._instances or name in self._factories
 
     # -----------------------------------------------------
 
@@ -141,11 +121,7 @@ class ServiceContainer:
         self,
     ) -> list[str]:
 
-        return sorted(
-
-            self._factories.keys()
-
-        )
+        return sorted(self._factories.keys())
 
     # -----------------------------------------------------
 
@@ -153,11 +129,7 @@ class ServiceContainer:
         self,
     ) -> list[str]:
 
-        return sorted(
-
-            self._instances.keys()
-
-        )
+        return sorted(self._instances.keys())
 
     # =====================================================
     # REMOVAL
@@ -169,19 +141,13 @@ class ServiceContainer:
     ) -> None:
 
         self._instances.pop(
-
             name,
-
             None,
-
         )
 
         self._factories.pop(
-
             name,
-
             None,
-
         )
 
     # =====================================================
@@ -205,27 +171,13 @@ class ServiceContainer:
     ) -> dict:
 
         return {
-
-            "registered":
-
-                len(
-
-                    self._factories,
-
-                ),
-
-            "active":
-
-                len(
-
-                    self._instances,
-
-                ),
-
-            "services":
-
-                self.registered_services(),
-
+            "registered": len(
+                self._factories,
+            ),
+            "active": len(
+                self._instances,
+            ),
+            "services": self.registered_services(),
         }
 
     # =====================================================
@@ -237,11 +189,7 @@ class ServiceContainer:
         name: str,
     ) -> bool:
 
-        return self.exists(
-
-            name
-
-        )
+        return self.exists(name)
 
     # -----------------------------------------------------
 
@@ -249,11 +197,7 @@ class ServiceContainer:
         self,
     ) -> int:
 
-        return len(
-
-            self._factories
-
-        )
+        return len(self._factories)
 
     # -----------------------------------------------------
 
@@ -262,11 +206,7 @@ class ServiceContainer:
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"registered={len(self._factories)}, "
-
             f"active={len(self._instances)})"
-
         )

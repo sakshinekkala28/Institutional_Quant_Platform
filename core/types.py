@@ -8,16 +8,13 @@ from __future__ import annotations
 from dataclasses import dataclass
 from datetime import datetime
 
-from typing import Optional
-
-
 # ==========================================================
 # SIGNAL MODEL
 # ==========================================================
 
+
 @dataclass(slots=True)
 class Signal:
-
     symbol: str
 
     signal_score: float
@@ -37,9 +34,9 @@ class Signal:
 # ALPHA MODEL
 # ==========================================================
 
+
 @dataclass(slots=True)
 class AlphaModelResult:
-
     model_name: str
 
     model_version: str
@@ -50,13 +47,14 @@ class AlphaModelResult:
 
     generated_at: datetime
 
+
 # ==========================================================
 # PORTFOLIO POSITION
 # ==========================================================
 
+
 @dataclass(slots=True)
 class PortfolioPosition:
-
     symbol: str
 
     weight: float
@@ -74,9 +72,9 @@ class PortfolioPosition:
 # PORTFOLIO
 # ==========================================================
 
+
 @dataclass(slots=True)
 class Portfolio:
-
     portfolio_id: str
 
     holdings: int
@@ -87,13 +85,14 @@ class Portfolio:
 
     model_version: str
 
+
 # ==========================================================
 # TRADE
 # ==========================================================
 
+
 @dataclass(slots=True)
 class Trade:
-
     symbol: str
 
     action: str
@@ -109,9 +108,9 @@ class Trade:
 # EXECUTION REPORT
 # ==========================================================
 
+
 @dataclass(slots=True)
 class ExecutionReport:
-
     total_trades: int
 
     turnover: float
@@ -122,13 +121,14 @@ class ExecutionReport:
 
     execution_timestamp: datetime
 
+
 # ==========================================================
 # RISK REPORT
 # ==========================================================
 
+
 @dataclass(slots=True)
 class RiskReport:
-
     portfolio_beta: float
 
     tracking_error: float
@@ -144,9 +144,9 @@ class RiskReport:
 # GOVERNANCE REPORT
 # ==========================================================
 
+
 @dataclass(slots=True)
 class GovernanceReport:
-
     approved: bool
 
     position_limit_pass: bool
@@ -164,9 +164,9 @@ class GovernanceReport:
 # PLATFORM RUN
 # ==========================================================
 
+
 @dataclass(slots=True)
 class PlatformRun:
-
     run_id: str
 
     model_version: str
@@ -175,7 +175,6 @@ class PlatformRun:
 
     start_time: datetime
 
-    end_time: Optional[datetime]
+    end_time: datetime | None
 
     status: str
-

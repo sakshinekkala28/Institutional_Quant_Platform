@@ -16,34 +16,30 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.models.pipeline_result import (
-    PipelineResult,
+from analytics.alpha.price_history_engine import (
+    main as price_history_engine,
 )
-
-from orchestration.pipelines.base_pipeline import (
-    BasePipeline,
+from analytics.live.build_factor_expected_returns import (
+    main as expected_returns_engine,
 )
 
 # ==========================================================
 # SIGNAL ENGINES
 # ==========================================================
-
 from analytics.signals.signal_engine import (
     main as signal_engine,
 )
-
-from analytics.alpha.price_history_engine import (
-    main as price_history_engine,
+from orchestration.models.pipeline_result import (
+    PipelineResult,
 )
-
-from analytics.live.build_factor_expected_returns import (
-    main as expected_returns_engine,
+from orchestration.pipelines.base_pipeline import (
+    BasePipeline,
 )
-
 
 # ==========================================================
 # SIGNAL PIPELINE
 # ==========================================================
+
 
 class SignalPipeline(BasePipeline):
     """
@@ -58,22 +54,18 @@ class SignalPipeline(BasePipeline):
     EXECUTOR = "sequential"
 
     ENGINES = [
-
         (
             "Signal Engine",
             signal_engine,
         ),
-
         (
             "Price History Engine",
             price_history_engine,
         ),
-
         (
             "Expected Returns",
             expected_returns_engine,
         ),
-
     ]
 
     # =====================================================
@@ -82,9 +74,7 @@ class SignalPipeline(BasePipeline):
 
     def before_run(self) -> None:
 
-        print(
-            "\nStarting Signal Pipeline..."
-        )
+        print("\nStarting Signal Pipeline...")
 
     # -----------------------------------------------------
 
@@ -93,17 +83,11 @@ class SignalPipeline(BasePipeline):
         result: PipelineResult,
     ) -> None:
 
-        print(
-            f"\nCompleted {self.NAME}"
-        )
+        print(f"\nCompleted {self.NAME}")
 
-        print(
-            f"Status   : {result.status.value}"
-        )
+        print(f"Status   : {result.status.value}")
 
-        print(
-            f"Duration : {result.duration:.2f}s"
-        )
+        print(f"Duration : {result.duration:.2f}s")
 
     # =====================================================
     # ENTRY POINT
@@ -121,6 +105,7 @@ class SignalPipeline(BasePipeline):
 # MODULE ENTRY
 # ==========================================================
 
+
 def main() -> PipelineResult:
 
     return SignalPipeline.main()
@@ -131,7 +116,6 @@ def main() -> PipelineResult:
 # ==========================================================
 
 if __name__ == "__main__":
-
     result = main()
 
     print(result)

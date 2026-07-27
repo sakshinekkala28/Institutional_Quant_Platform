@@ -33,9 +33,8 @@ Used By
 
 from __future__ import annotations
 
-import logging
 from functools import lru_cache
-
+import logging
 
 # ==========================================================
 # ROOT LOGGER
@@ -43,17 +42,13 @@ from functools import lru_cache
 
 
 @lru_cache
-def get_logger(
-
-) -> logging.Logger:
+def get_logger() -> logging.Logger:
     """
     Root application logger.
     """
 
     return logging.getLogger(
-
         "institutional",
-
     )
 
 
@@ -63,17 +58,13 @@ def get_logger(
 
 
 @lru_cache
-def get_api_logger(
-
-) -> logging.Logger:
+def get_api_logger() -> logging.Logger:
     """
     API logger.
     """
 
     return logging.getLogger(
-
         "institutional.api",
-
     )
 
 
@@ -83,17 +74,13 @@ def get_api_logger(
 
 
 @lru_cache
-def get_audit_logger(
-
-) -> logging.Logger:
+def get_audit_logger() -> logging.Logger:
     """
     Audit logger.
     """
 
     return logging.getLogger(
-
         "institutional.audit",
-
     )
 
 
@@ -103,17 +90,13 @@ def get_audit_logger(
 
 
 @lru_cache
-def get_performance_logger(
-
-) -> logging.Logger:
+def get_performance_logger() -> logging.Logger:
     """
     Performance logger.
     """
 
     return logging.getLogger(
-
         "institutional.performance",
-
     )
 
 
@@ -123,17 +106,13 @@ def get_performance_logger(
 
 
 @lru_cache
-def get_event_logger(
-
-) -> logging.Logger:
+def get_event_logger() -> logging.Logger:
     """
     Event logger.
     """
 
     return logging.getLogger(
-
         "institutional.events",
-
     )
 
 
@@ -143,17 +122,13 @@ def get_event_logger(
 
 
 @lru_cache
-def get_security_logger(
-
-) -> logging.Logger:
+def get_security_logger() -> logging.Logger:
     """
     Security logger.
     """
 
     return logging.getLogger(
-
         "institutional.security",
-
     )
 
 
@@ -163,17 +138,13 @@ def get_security_logger(
 
 
 @lru_cache
-def get_request_logger(
-
-) -> logging.Logger:
+def get_request_logger() -> logging.Logger:
     """
     Request logger.
     """
 
     return logging.getLogger(
-
         "institutional.request",
-
     )
 
 
@@ -183,38 +154,19 @@ def get_request_logger(
 
 
 def configure_logging(
-
     level: str = "INFO",
-
 ) -> None:
     """
     Configure application logging.
     """
 
     logging.basicConfig(
-
         level=getattr(
-
             logging,
-
             level.upper(),
-
             logging.INFO,
-
         ),
-
-        format=(
-
-            "%(asctime)s | "
-
-            "%(levelname)s | "
-
-            "%(name)s | "
-
-            "%(message)s"
-
-        ),
-
+        format=("%(asctime)s | %(levelname)s | %(name)s | %(message)s"),
     )
 
 
@@ -223,35 +175,22 @@ def configure_logging(
 # ==========================================================
 
 
-def logger_summary(
-
-) -> dict:
+def logger_summary() -> dict:
     """
     Logging services summary.
     """
 
     return {
-
         "loggers": [
-
             "institutional",
-
             "institutional.api",
-
             "institutional.audit",
-
             "institutional.performance",
-
             "institutional.events",
-
             "institutional.security",
-
             "institutional.request",
-
         ],
-
         "count": 7,
-
     }
 
 
@@ -260,21 +199,15 @@ def logger_summary(
 # ==========================================================
 
 
-def logger_health(
-
-) -> dict:
+def logger_health() -> dict:
     """
     Logging dependency health.
     """
 
     return {
-
         "service": "Logging",
-
         "status": "healthy",
-
         "configured": True,
-
     }
 
 
@@ -284,25 +217,14 @@ def logger_health(
 
 
 __all__ = [
-
-    "get_logger",
-
-    "get_api_logger",
-
-    "get_audit_logger",
-
-    "get_performance_logger",
-
-    "get_event_logger",
-
-    "get_security_logger",
-
-    "get_request_logger",
-
     "configure_logging",
-
-    "logger_summary",
-
+    "get_api_logger",
+    "get_audit_logger",
+    "get_event_logger",
+    "get_logger",
+    "get_performance_logger",
+    "get_request_logger",
+    "get_security_logger",
     "logger_health",
-
+    "logger_summary",
 ]

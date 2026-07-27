@@ -30,9 +30,6 @@ Supported Backends
 
 from __future__ import annotations
 
-from typing import Dict
-from typing import Type
-
 from orchestration.adapters.base_adapter import (
     BaseAdapter,
 )
@@ -41,14 +38,15 @@ from orchestration.adapters.base_adapter import (
 # ADAPTER FACTORY
 # =========================================================
 
+
 class AdapterFactory:
     """
     Factory for platform adapters.
     """
 
-    _registry: Dict[
+    _registry: dict[
         str,
-        Type[BaseAdapter],
+        type[BaseAdapter],
     ] = {}
 
     # =====================================================
@@ -59,12 +57,10 @@ class AdapterFactory:
     def register(
         cls,
         name: str,
-        adapter: Type[BaseAdapter],
+        adapter: type[BaseAdapter],
     ) -> None:
 
-        cls._registry[
-            name.lower()
-        ] = adapter
+        cls._registry[name.lower()] = adapter
 
     # =====================================================
     # CREATE
@@ -80,16 +76,9 @@ class AdapterFactory:
         key = name.lower()
 
         if key not in cls._registry:
+            raise KeyError(f"Unknown adapter '{name}'.")
 
-            raise KeyError(
-
-                f"Unknown adapter '{name}'."
-
-            )
-
-        return cls._registry[
-            key
-        ](**kwargs)
+        return cls._registry[key](**kwargs)
 
     # =====================================================
     # DISCOVERY
@@ -100,11 +89,7 @@ class AdapterFactory:
         cls,
     ) -> list[str]:
 
-        return sorted(
-
-            cls._registry.keys()
-
-        )
+        return sorted(cls._registry.keys())
 
     # =====================================================
     # EXISTS
@@ -116,13 +101,7 @@ class AdapterFactory:
         name: str,
     ) -> bool:
 
-        return (
-
-            name.lower()
-
-            in cls._registry
-
-        )
+        return name.lower() in cls._registry
 
     # =====================================================
     # REMOVE
@@ -135,11 +114,8 @@ class AdapterFactory:
     ) -> None:
 
         cls._registry.pop(
-
             name.lower(),
-
             None,
-
         )
 
     # =====================================================
@@ -163,19 +139,8 @@ class AdapterFactory:
     ) -> dict:
 
         return {
-
-            "registered":
-
-                len(
-
-                    cls._registry
-
-                ),
-
-            "adapters":
-
-                cls.registered(),
-
+            "registered": len(cls._registry),
+            "adapters": cls.registered(),
         }
 
     # =====================================================
@@ -186,10 +151,4 @@ class AdapterFactory:
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"registered={len(self._registry)})"
-
-        )
+        return f"{self.__class__.__name__}(registered={len(self._registry)})"

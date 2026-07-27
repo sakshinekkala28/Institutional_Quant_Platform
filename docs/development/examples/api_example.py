@@ -14,8 +14,8 @@ Repository
 
 from __future__ import annotations
 
-import logging
 from dataclasses import dataclass
+import logging
 from typing import Protocol
 
 from fastapi import Depends, FastAPI, HTTPException
@@ -76,12 +76,9 @@ class APIResponse(BaseModel):
 
 
 class SecurityRepository(Protocol):
+    def get(self, symbol: str) -> Security | None: ...
 
-    def get(self, symbol: str) -> Security | None:
-        ...
-
-    def save(self, security: Security) -> None:
-        ...
+    def save(self, security: Security) -> None: ...
 
 
 # =====================================================================
@@ -90,7 +87,6 @@ class SecurityRepository(Protocol):
 
 
 class InMemoryRepository:
-
     def __init__(self):
 
         self._storage: dict[str, Security] = {}
@@ -113,7 +109,6 @@ repository = InMemoryRepository()
 
 
 class SecurityService:
-
     def __init__(
         self,
         repository: SecurityRepository,
@@ -142,10 +137,7 @@ class SecurityService:
         security = self.repository.get(symbol)
 
         if security is None:
-
-            raise ValueError(
-                f"{symbol} not found."
-            )
+            raise ValueError(f"{symbol} not found.")
 
         return security
 
@@ -211,11 +203,9 @@ def get_security(
 ):
 
     try:
-
         security = service.find(symbol)
 
     except ValueError as exc:
-
         raise HTTPException(
             status_code=404,
             detail=str(exc),

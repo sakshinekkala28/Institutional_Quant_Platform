@@ -64,17 +64,13 @@ class MasterResult:
     @property
     def successful_pipelines(self) -> int:
         return sum(
-            1
-            for pipeline in self.pipelines
-            if pipeline.status == EngineStatus.SUCCESS
+            1 for pipeline in self.pipelines if pipeline.status == EngineStatus.SUCCESS
         )
 
     @property
     def failed_pipelines(self) -> int:
         return sum(
-            1
-            for pipeline in self.pipelines
-            if pipeline.status == EngineStatus.FAILED
+            1 for pipeline in self.pipelines if pipeline.status == EngineStatus.FAILED
         )
 
     @property
@@ -83,11 +79,7 @@ class MasterResult:
             return 0.0
 
         return round(
-            (
-                self.successful_pipelines
-                / self.total_pipelines
-            )
-            * 100,
+            (self.successful_pipelines / self.total_pipelines) * 100,
             2,
         )
 
@@ -97,24 +89,15 @@ class MasterResult:
 
     @property
     def total_engines(self) -> int:
-        return sum(
-            pipeline.total_engines
-            for pipeline in self.pipelines
-        )
+        return sum(pipeline.total_engines for pipeline in self.pipelines)
 
     @property
     def successful_engines(self) -> int:
-        return sum(
-            pipeline.successful_engines
-            for pipeline in self.pipelines
-        )
+        return sum(pipeline.successful_engines for pipeline in self.pipelines)
 
     @property
     def failed_engines(self) -> int:
-        return sum(
-            pipeline.failed_engines
-            for pipeline in self.pipelines
-        )
+        return sum(pipeline.failed_engines for pipeline in self.pipelines)
 
     # =====================================================
     # MUTATORS
@@ -173,10 +156,7 @@ class MasterResult:
             "engines": self.total_engines,
             "successful_engines": self.successful_engines,
             "failed_engines": self.failed_engines,
-            "outputs": [
-                str(path)
-                for path in self.outputs
-            ],
+            "outputs": [str(path) for path in self.outputs],
             "metadata": self.metadata,
         }
 

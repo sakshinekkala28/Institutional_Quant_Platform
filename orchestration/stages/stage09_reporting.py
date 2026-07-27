@@ -24,10 +24,10 @@ from orchestration.pipelines.reporting_pipeline import (
     main as reporting_pipeline,
 )
 
-
 # ==========================================================
 # REPORTING STAGE
 # ==========================================================
+
 
 class ReportingStage:
     """
@@ -38,9 +38,7 @@ class ReportingStage:
 
     NAME = "Reporting"
 
-    DESCRIPTION = (
-        "Execution reporting and artifact generation."
-    )
+    DESCRIPTION = "Execution reporting and artifact generation."
 
     PIPELINE = reporting_pipeline
 
@@ -64,15 +62,7 @@ class ReportingStage:
     @classmethod
     def validate(cls) -> bool:
 
-        return (
-
-            cls.ENABLED
-
-            and
-
-            callable(cls.PIPELINE)
-
-        )
+        return cls.ENABLED and callable(cls.PIPELINE)
 
     # =====================================================
     # METADATA
@@ -82,27 +72,11 @@ class ReportingStage:
     def metadata(cls) -> dict:
 
         return {
-
-            "stage":
-
-                cls.STAGE,
-
-            "name":
-
-                cls.NAME,
-
-            "description":
-
-                cls.DESCRIPTION,
-
-            "dependencies":
-
-                cls.DEPENDENCIES,
-
-            "enabled":
-
-                cls.ENABLED,
-
+            "stage": cls.STAGE,
+            "name": cls.NAME,
+            "description": cls.DESCRIPTION,
+            "dependencies": cls.DEPENDENCIES,
+            "enabled": cls.ENABLED,
         }
 
     # =====================================================
@@ -113,19 +87,9 @@ class ReportingStage:
     def summary(cls) -> dict:
 
         return {
-
-            "stage":
-
-                cls.STAGE,
-
-            "pipeline":
-
-                cls.PIPELINE.__name__,
-
-            "enabled":
-
-                cls.ENABLED,
-
+            "stage": cls.STAGE,
+            "pipeline": cls.PIPELINE.__name__,
+            "enabled": cls.ENABLED,
         }
 
     # =====================================================
@@ -134,12 +98,4 @@ class ReportingStage:
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"stage={self.STAGE}, "
-
-            f"name='{self.NAME}')"
-
-        )
+        return f"{self.__class__.__name__}(stage={self.STAGE}, name='{self.NAME}')"

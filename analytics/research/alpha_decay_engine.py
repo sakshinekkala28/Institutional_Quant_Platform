@@ -23,11 +23,12 @@ alpha_decay_rankings.csv
 =========================================================
 """
 
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
+
 
 def spearmanr(x, y):
     x = pd.Series(x).rank()
@@ -51,25 +52,11 @@ FORWARD_HORIZONS = [1, 3, 6, 12]
 
 ROOT = Path(__file__).resolve().parents[2]
 
-INPUT_FILE = (
-    ROOT
-    / "data"
-    / "factors"
-    / "factor_snapshot_master.csv"
-)
+INPUT_FILE = ROOT / "data" / "factors" / "factor_snapshot_master.csv"
 
-OUTPUT_DIR = (
-    ROOT
-    / "data"
-    / "research"
-)
+OUTPUT_DIR = ROOT / "data" / "research"
 
-REPORT_FILE = (
-    ROOT
-    / "data"
-    / "logs"
-    / "alpha_decay_report.csv"
-)
+REPORT_FILE = ROOT / "data" / "logs" / "alpha_decay_report.csv"
 
 OUTPUT_DIR.mkdir(
     parents=True,
@@ -80,19 +67,12 @@ OUTPUT_DIR.mkdir(
 # LOAD
 # =========================================================
 
-print(
-    "\n📥 Loading Factor Snapshots..."
-)
+print("\n📥 Loading Factor Snapshots...")
 
-df = pd.read_csv(
-    INPUT_FILE
-)
+df = pd.read_csv(INPUT_FILE)
 
 if df.empty:
-
-    raise ValueError(
-        "factor_snapshot_master.csv empty"
-    )
+    raise ValueError("factor_snapshot_master.csv empty")
 
 required = [
     "Snapshot_Date",
@@ -100,25 +80,16 @@ required = [
     "Last_Close",
 ]
 
-missing = [
-    c
-    for c in required
-    if c not in df.columns
-]
+missing = [c for c in required if c not in df.columns]
 
 if missing:
-
-    raise ValueError(
-        f"Missing Columns: {missing}"
-    )
+    raise ValueError(f"Missing Columns: {missing}")
 
 # =========================================================
 # DATE
 # =========================================================
 
-df["Snapshot_Date"] = pd.to_datetime(
-    df["Snapshot_Date"]
-)
+df["Snapshot_Date"] = pd.to_datetime(df["Snapshot_Date"])
 
 df = df.sort_values(
     [
@@ -132,249 +103,138 @@ df = df.sort_values(
 # =========================================================
 
 candidate_factors = [
-
     "Momentum_1M",
     "Momentum_3M",
     "Momentum_6M",
     "Momentum_12M",
-
     "Volatility_20D",
     "Volatility_60D",
-
     "ATR_14",
-
     "Max_Drawdown_252D",
-
     "Distance_SMA50",
     "Distance_SMA200",
-
     "Distance_52W_High",
-
     "ADV_20D",
-
     "Dollar_Volume",
-
     "Market_Cap",
 ]
 
-factors = [
-
-    f
-
-    for f in candidate_factors
-
-    if f in df.columns
-]
+factors = [f for f in candidate_factors if f in df.columns]
 
 if not factors:
-
-    raise ValueError(
-        "No factor columns found"
-    )
+    raise ValueError("No factor columns found")
 
 # =========================================================
 # FORWARD RETURNS
 # =========================================================
 
-print(
-    "\n📊 Building Forward Returns..."
-)
+print("\n📊 Building Forward Returns...")
 
 for horizon in FORWARD_HORIZONS:
-
-    df[
-        f"Forward_Return_{horizon}M"
-    ] = (
-
-        df.groupby("Symbol")[
-            "Last_Close"
-        ]
-
-        .shift(-horizon)
-
-        / df["Last_Close"]
-
-        - 1
+    df[f"Forward_Return_{horizon}M"] = (
+        df.groupby("Symbol")["Last_Close"].shift(-horizon) / df["Last_Close"] - 1
     )
 
 # =========================================================
 # DECAY CALCULATION
 # =========================================================
 
-print(
-    "\n📈 Calculating Alpha Decay..."
-)
+print("\n📈 Calculating Alpha Decay...")
 
 records = []
 
-dates = sorted(
-    df["Snapshot_Date"]
-    .dropna()
-    .unique()
-)
+dates = sorted(df["Snapshot_Date"].dropna().unique())
 
 for factor in factors:
-
     for horizon in FORWARD_HORIZONS:
-
-        future_col = (
-            f"Forward_Return_{horizon}M"
-        )
+        future_col = f"Forward_Return_{horizon}M"
 
         for date in dates:
-
-            tmp = df[
-
-                df["Snapshot_Date"]
-                == date
-
-            ][
-
+            tmp = df[df["Snapshot_Date"] == date][
                 [
                     factor,
                     future_col,
                 ]
-
             ].dropna()
 
             if len(tmp) < MIN_CROSS_SECTION:
-
                 continue
 
             try:
+                ic = spearmanr(tmp[factor], tmp[future_col])[0]
 
-                ic = spearmanr(
-
-                    tmp[factor],
-
-                    tmp[future_col]
-
-                )[0]
-
-                records.append({
-
-                    "Date":
-                    date,
-
-                    "Factor":
-                    factor,
-
-                    "Horizon_Months":
-                    horizon,
-
-                    "IC":
-                    ic,
-                })
+                records.append(
+                    {
+                        "Date": date,
+                        "Factor": factor,
+                        "Horizon_Months": horizon,
+                        "IC": ic,
+                    }
+                )
 
             except Exception:
-
                 continue
 
 # =========================================================
 # MASTER DATA
 # =========================================================
 
-decay_df = pd.DataFrame(
-    records
-)
+decay_df = pd.DataFrame(records)
 
 if decay_df.empty:
-
-    raise ValueError(
-        "No alpha decay observations"
-    )
+    raise ValueError("No alpha decay observations")
 
 # =========================================================
 # SUMMARY
 # =========================================================
 
 summary = (
-
-    decay_df
-
-    .groupby(
+    decay_df.groupby(
         [
             "Factor",
             "Horizon_Months",
         ]
-    )
-
-    ["IC"]
-
+    )["IC"]
     .agg(
-
         Avg_IC="mean",
-
         IC_Std="std",
-
-        Positive_Months=
-        lambda x:
-        (
-            x > 0
-        ).mean(),
+        Positive_Months=lambda x: (x > 0).mean(),
     )
-
     .reset_index()
 )
 
-summary["ICIR"] = (
-
-    summary["Avg_IC"]
-
-    / summary["IC_Std"]
-
-    .replace(
-        0,
-        np.nan,
-    )
+summary["ICIR"] = summary["Avg_IC"] / summary["IC_Std"].replace(
+    0,
+    np.nan,
 )
 
-summary["Abs_IC"] = (
-    summary["Avg_IC"]
-    .abs()
-)
+summary["Abs_IC"] = summary["Avg_IC"].abs()
 
 # =========================================================
 # DECAY SCORE
 # =========================================================
 
-decay_score = (
-
-    summary
-
-    .pivot_table(
-
-        index="Factor",
-
-        columns="Horizon_Months",
-
-        values="Avg_IC",
-    )
-
-    .reset_index()
-)
+decay_score = summary.pivot_table(
+    index="Factor",
+    columns="Horizon_Months",
+    values="Avg_IC",
+).reset_index()
 
 for h in FORWARD_HORIZONS:
-
     if h not in decay_score.columns:
-
         decay_score[h] = np.nan
 
 decay_score["Persistence_Score"] = (
-
-      decay_score[1].fillna(0)
-
+    decay_score[1].fillna(0)
     + decay_score[3].fillna(0)
-
     + decay_score[6].fillna(0)
-
     + decay_score[12].fillna(0)
-
 )
 
 # =========================================================
 # GRADING
 # =========================================================
+
 
 def grade(score):
 
@@ -394,102 +254,59 @@ def grade(score):
 
     return "Weak"
 
-decay_score["Grade"] = (
-    decay_score[
-        "Persistence_Score"
-    ]
-    .apply(grade)
-)
+
+decay_score["Grade"] = decay_score["Persistence_Score"].apply(grade)
 
 # =========================================================
 # RANKINGS
 # =========================================================
 
-rankings = (
+rankings = decay_score.sort_values(
+    "Persistence_Score",
+    ascending=False,
+).reset_index(drop=True)
 
-    decay_score
-
-    .sort_values(
-        "Persistence_Score",
-        ascending=False,
-    )
-
-    .reset_index(
-        drop=True
-    )
-)
-
-rankings["Rank"] = (
-    rankings.index + 1
-)
+rankings["Rank"] = rankings.index + 1
 
 # =========================================================
 # SAVE
 # =========================================================
 
 decay_df.to_csv(
-
-    OUTPUT_DIR
-    / "alpha_decay.csv",
-
+    OUTPUT_DIR / "alpha_decay.csv",
     index=False,
 )
 
 summary.to_csv(
-
-    OUTPUT_DIR
-    / "alpha_decay_summary.csv",
-
+    OUTPUT_DIR / "alpha_decay_summary.csv",
     index=False,
 )
 
 rankings.to_csv(
-
-    OUTPUT_DIR
-    / "alpha_decay_rankings.csv",
-
+    OUTPUT_DIR / "alpha_decay_rankings.csv",
     index=False,
 )
 
-report = pd.DataFrame({
-
-    "Metric": [
-
-        "Factors_Analyzed",
-
-        "Decay_Observations",
-
-        "Best_Factor",
-
-        "Persistence_Score",
-
-        "Run_Date",
-
-        "Engine_Version",
-    ],
-
-    "Value": [
-
-        len(rankings),
-
-        len(decay_df),
-
-        rankings.iloc[0][
-            "Factor"
+report = pd.DataFrame(
+    {
+        "Metric": [
+            "Factors_Analyzed",
+            "Decay_Observations",
+            "Best_Factor",
+            "Persistence_Score",
+            "Run_Date",
+            "Engine_Version",
         ],
-
-        rankings.iloc[0][
-            "Persistence_Score"
+        "Value": [
+            len(rankings),
+            len(decay_df),
+            rankings.iloc[0]["Factor"],
+            rankings.iloc[0]["Persistence_Score"],
+            datetime.now().strftime("%Y-%m-%d"),
+            ENGINE_VERSION,
         ],
-
-        datetime.now()
-        .strftime(
-            "%Y-%m-%d"
-        ),
-
-        ENGINE_VERSION,
-    ]
-})
+    }
+)
 
 report.to_csv(
     REPORT_FILE,
@@ -504,35 +321,18 @@ best = rankings.iloc[0]
 
 print("\n" + "=" * 70)
 
-print(
-    "🏁 ALPHA DECAY ENGINE COMPLETE"
-)
+print("🏁 ALPHA DECAY ENGINE COMPLETE")
 
 print("=" * 70)
 
-print(
-    f"Factors Analyzed : "
-    f"{len(rankings)}"
-)
+print(f"Factors Analyzed : {len(rankings)}")
 
-print(
-    f"Best Factor      : "
-    f"{best['Factor']}"
-)
+print(f"Best Factor      : {best['Factor']}")
 
-print(
-    f"Persistence Score: "
-    f"{best['Persistence_Score']:.4f}"
-)
+print(f"Persistence Score: {best['Persistence_Score']:.4f}")
 
-print(
-    f"Grade            : "
-    f"{best['Grade']}"
-)
+print(f"Grade            : {best['Grade']}")
 
-print(
-    f"\nOutput Directory:\n"
-    f"{OUTPUT_DIR}"
-)
+print(f"\nOutput Directory:\n{OUTPUT_DIR}")
 
 print("=" * 70)

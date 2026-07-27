@@ -42,7 +42,6 @@ import time
 
 import psutil
 
-
 # ==========================================================
 # PERFORMANCE RECORD
 # ==========================================================
@@ -69,41 +68,17 @@ class PerformanceRecord:
     metadata: dict
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Timestamp":
-
-                self.timestamp.isoformat(),
-
-            "Component":
-
-                self.component,
-
-            "Operation":
-
-                self.operation,
-
-            "ExecutionTime":
-
-                self.execution_time,
-
-            "CPUPercent":
-
-                self.cpu_percent,
-
-            "MemoryMB":
-
-                self.memory_mb,
-
-            "Metadata":
-
-                self.metadata,
-
+            "Timestamp": self.timestamp.isoformat(),
+            "Component": self.component,
+            "Operation": self.operation,
+            "ExecutionTime": self.execution_time,
+            "CPUPercent": self.cpu_percent,
+            "MemoryMB": self.memory_mb,
+            "Metadata": self.metadata,
         }
 
 
@@ -118,9 +93,7 @@ class PerformanceLogger:
     """
 
     def __init__(
-
         self,
-
     ) -> None:
 
         self._records: list[PerformanceRecord] = []
@@ -132,49 +105,23 @@ class PerformanceLogger:
     # =====================================================
 
     def log(
-
         self,
-
         component: str,
-
         operation: str,
-
         execution_time: float,
-
         **metadata,
-
     ) -> None:
 
         self._records.append(
-
             PerformanceRecord(
-
                 timestamp=datetime.utcnow(),
-
                 component=component,
-
                 operation=operation,
-
                 execution_time=execution_time,
-
                 cpu_percent=psutil.cpu_percent(),
-
-                memory_mb=(
-
-                    self._process
-
-                    .memory_info()
-
-                    .rss
-
-                    / 1024**2
-
-                ),
-
+                memory_mb=(self._process.memory_info().rss / 1024**2),
                 metadata=metadata,
-
             )
-
         )
 
     # =====================================================
@@ -182,67 +129,34 @@ class PerformanceLogger:
     # =====================================================
 
     def measure(
-
         self,
-
         component: str,
-
         operation: str,
-
     ):
 
         def decorator(
-
             function,
-
         ):
 
-            @wraps(
-
-                function
-
-            )
-
+            @wraps(function)
             def wrapper(
-
                 *args,
-
                 **kwargs,
-
             ):
 
-                start = (
-
-                    time.perf_counter()
-
-                )
+                start = time.perf_counter()
 
                 result = function(
-
                     *args,
-
                     **kwargs,
-
                 )
 
-                elapsed = (
-
-                    time.perf_counter()
-
-                    -
-
-                    start
-
-                )
+                elapsed = time.perf_counter() - start
 
                 self.log(
-
                     component,
-
                     operation,
-
                     elapsed,
-
                 )
 
                 return result
@@ -256,155 +170,48 @@ class PerformanceLogger:
     # =====================================================
 
     def by_component(
-
         self,
-
         component: str,
-
     ) -> list[PerformanceRecord]:
 
-        return [
-
-            record
-
-            for record
-
-            in self._records
-
-            if record.component
-
-            == component
-
-        ]
+        return [record for record in self._records if record.component == component]
 
     # =====================================================
     # FILTER OPERATION
     # =====================================================
 
     def by_operation(
-
         self,
-
         operation: str,
-
     ) -> list[PerformanceRecord]:
 
-        return [
-
-            record
-
-            for record
-
-            in self._records
-
-            if record.operation
-
-            == operation
-
-        ]
+        return [record for record in self._records if record.operation == operation]
 
     # =====================================================
     # STATISTICS
     # =====================================================
 
     def statistics(
-
         self,
-
     ) -> dict:
 
         if not self._records:
-
             return {}
 
-        runtimes = [
+        runtimes = [record.execution_time for record in self._records]
 
-            record.execution_time
+        cpu = [record.cpu_percent for record in self._records]
 
-            for record
-
-            in self._records
-
-        ]
-
-        cpu = [
-
-            record.cpu_percent
-
-            for record
-
-            in self._records
-
-        ]
-
-        memory = [
-
-            record.memory_mb
-
-            for record
-
-            in self._records
-
-        ]
+        memory = [record.memory_mb for record in self._records]
 
         return {
-
-            "Executions":
-
-                len(
-
-                    self._records
-
-                ),
-
-            "AverageRuntime":
-
-                statistics.mean(
-
-                    runtimes
-
-                ),
-
-            "MedianRuntime":
-
-                statistics.median(
-
-                    runtimes
-
-                ),
-
-            "MaximumRuntime":
-
-                max(
-
-                    runtimes
-
-                ),
-
-            "MinimumRuntime":
-
-                min(
-
-                    runtimes
-
-                ),
-
-            "AverageCPU":
-
-                statistics.mean(
-
-                    cpu
-
-                ),
-
-            "AverageMemory":
-
-                statistics.mean(
-
-                    memory
-
-                ),
-
+            "Executions": len(self._records),
+            "AverageRuntime": statistics.mean(runtimes),
+            "MedianRuntime": statistics.median(runtimes),
+            "MaximumRuntime": max(runtimes),
+            "MinimumRuntime": min(runtimes),
+            "AverageCPU": statistics.mean(cpu),
+            "AverageMemory": statistics.mean(memory),
         }
 
     # =====================================================
@@ -412,43 +219,20 @@ class PerformanceLogger:
     # =====================================================
 
     def export(
-
         self,
-
         filename: str | Path,
-
     ) -> None:
 
-        payload = [
+        payload = [record.summary() for record in self._records]
 
-            record.summary()
-
-            for record
-
-            in self._records
-
-        ]
-
-        with Path(
-
-            filename
-
-        ).open(
-
+        with Path(filename).open(
             "w",
-
             encoding="utf-8",
-
         ) as file:
-
             json.dump(
-
                 payload,
-
                 file,
-
                 indent=4,
-
             )
 
     # =====================================================
@@ -456,9 +240,7 @@ class PerformanceLogger:
     # =====================================================
 
     def clear(
-
         self,
-
     ) -> None:
 
         self._records.clear()
@@ -469,48 +251,29 @@ class PerformanceLogger:
 
     @property
     def records(
-
         self,
-
     ) -> list[PerformanceRecord]:
 
-        return list(
-
-            self._records
-
-        )
+        return list(self._records)
 
     @property
     def count(
-
         self,
-
     ) -> int:
 
-        return len(
-
-            self._records
-
-        )
+        return len(self._records)
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Records":
-
-                self.count,
-
+            "Records": self.count,
             **self.statistics(),
-
         }
 
     # =====================================================
@@ -518,17 +281,9 @@ class PerformanceLogger:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Records={self.count})"
-
-        )
+        return f"{self.__class__.__name__}(Records={self.count})"
 
     __str__ = __repr__

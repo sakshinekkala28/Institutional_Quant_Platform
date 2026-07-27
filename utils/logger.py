@@ -13,22 +13,17 @@ Institutional Quant Platform.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
 from config.paths import (
     LOG_DIR,
 )
 from config.settings import (
-    LOG_LEVEL,
     ENABLE_CONSOLE_LOGGING,
     ENABLE_FILE_LOGGING,
+    LOG_LEVEL,
 )
 
-
-LOG_FILE = (
-    LOG_DIR
-    / "platform.log"
-)
+LOG_FILE = LOG_DIR / "platform.log"
 
 
 def get_logger(
@@ -38,12 +33,9 @@ def get_logger(
     Return a configured logger.
     """
 
-    logger = logging.getLogger(
-        name
-    )
+    logger = logging.getLogger(name)
 
     if logger.handlers:
-
         return logger
 
     logger.setLevel(
@@ -54,32 +46,18 @@ def get_logger(
     )
 
     formatter = logging.Formatter(
-
-        "%(asctime)s | "
-
-        "%(levelname)-8s | "
-
-        "%(name)s | "
-
-        "%(message)s",
-
+        "%(asctime)s | %(levelname)-8s | %(name)s | %(message)s",
         "%Y-%m-%d %H:%M:%S",
     )
 
     if ENABLE_CONSOLE_LOGGING:
-
         console = logging.StreamHandler()
 
-        console.setFormatter(
-            formatter
-        )
+        console.setFormatter(formatter)
 
-        logger.addHandler(
-            console
-        )
+        logger.addHandler(console)
 
     if ENABLE_FILE_LOGGING:
-
         LOG_DIR.mkdir(
             parents=True,
             exist_ok=True,
@@ -90,13 +68,9 @@ def get_logger(
             encoding="utf-8",
         )
 
-        file_handler.setFormatter(
-            formatter
-        )
+        file_handler.setFormatter(formatter)
 
-        logger.addHandler(
-            file_handler
-        )
+        logger.addHandler(file_handler)
 
     logger.propagate = False
 

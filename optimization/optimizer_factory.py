@@ -27,34 +27,13 @@ Supports
 from __future__ import annotations
 
 from optimization.base_optimizer import BaseOptimizer
-
-from optimization.optimizers.equal_weight import (
-    EqualWeightOptimizer
-)
-
-from optimization.optimizers.minimum_variance import (
-    MinimumVarianceOptimizer
-)
-
-from optimization.optimizers.max_sharpe import (
-    MaximumSharpeOptimizer
-)
-
-from optimization.optimizers.mean_variance import (
-    MeanVarianceOptimizer
-)
-
-from optimization.optimizers.risk_parity import (
-    RiskParityOptimizer
-)
-
-from optimization.optimizers.hrp import (
-    HRPOptimizer
-)
-
-from optimization.optimizers.black_litterman import (
-    BlackLittermanOptimizer
-)
+from optimization.optimizers.black_litterman import BlackLittermanOptimizer
+from optimization.optimizers.equal_weight import EqualWeightOptimizer
+from optimization.optimizers.hrp import HRPOptimizer
+from optimization.optimizers.max_sharpe import MaximumSharpeOptimizer
+from optimization.optimizers.mean_variance import MeanVarianceOptimizer
+from optimization.optimizers.minimum_variance import MinimumVarianceOptimizer
+from optimization.optimizers.risk_parity import RiskParityOptimizer
 
 
 class OptimizerFactory:
@@ -63,28 +42,13 @@ class OptimizerFactory:
     """
 
     _OPTIMIZERS = {
-
-        "equal_weight":
-            EqualWeightOptimizer,
-
-        "minimum_variance":
-            MinimumVarianceOptimizer,
-
-        "max_sharpe":
-            MaximumSharpeOptimizer,
-
-        "mean_variance":
-            MeanVarianceOptimizer,
-
-        "risk_parity":
-            RiskParityOptimizer,
-
-        "hrp":
-            HRPOptimizer,
-
-        "black_litterman":
-            BlackLittermanOptimizer,
-
+        "equal_weight": EqualWeightOptimizer,
+        "minimum_variance": MinimumVarianceOptimizer,
+        "max_sharpe": MaximumSharpeOptimizer,
+        "mean_variance": MeanVarianceOptimizer,
+        "risk_parity": RiskParityOptimizer,
+        "hrp": HRPOptimizer,
+        "black_litterman": BlackLittermanOptimizer,
     }
 
     # =====================================================
@@ -92,71 +56,22 @@ class OptimizerFactory:
     # =====================================================
 
     @classmethod
-    def create(
+    def create(cls, optimizer: str, **kwargs) -> BaseOptimizer:
 
-        cls,
-
-        optimizer: str,
-
-        **kwargs
-
-    ) -> BaseOptimizer:
-
-        optimizer = (
-
-            optimizer
-
-            .strip()
-
-            .lower()
-
-        )
+        optimizer = optimizer.strip().lower()
 
         if optimizer not in cls._OPTIMIZERS:
+            supported = ", ".join(sorted(cls._OPTIMIZERS))
 
-            supported = ", ".join(
+            raise ValueError(f"Unknown optimizer '{optimizer}'. Supported: {supported}")
 
-                sorted(
-
-                    cls._OPTIMIZERS
-
-                )
-
-            )
-
-            raise ValueError(
-
-                f"Unknown optimizer "
-
-                f"'{optimizer}'. "
-
-                f"Supported: {supported}"
-
-            )
-
-        return cls._OPTIMIZERS[
-
-            optimizer
-
-        ](
-
-            **kwargs
-
-        )
+        return cls._OPTIMIZERS[optimizer](**kwargs)
 
     # =====================================================
     # AVAILABLE
     # =====================================================
 
     @classmethod
-    def available(
+    def available(cls) -> list[str]:
 
-        cls
-
-    ) -> list[str]:
-
-        return sorted(
-
-            cls._OPTIMIZERS.keys()
-
-        )
+        return sorted(cls._OPTIMIZERS.keys())

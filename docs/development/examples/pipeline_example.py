@@ -11,10 +11,10 @@ independent of engine implementations.
 
 from __future__ import annotations
 
-import logging
-import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
+import logging
+import time
 from typing import Any, Protocol
 
 logger = logging.getLogger(__name__)
@@ -82,8 +82,7 @@ class BasePipeline(ABC):
         self.config = config
 
     @abstractmethod
-    def run(self) -> PipelineResult:
-        ...
+    def run(self) -> PipelineResult: ...
 
 
 # ----------------------------------------------------------------------
@@ -141,11 +140,9 @@ class ExamplePipeline(BasePipeline):
         stage_results: list[StageResult] = []
 
         for engine in self.engines:
-
             stage_start = time.perf_counter()
 
             try:
-
                 logger.info(
                     "Running engine: %s",
                     engine.name,
@@ -153,9 +150,7 @@ class ExamplePipeline(BasePipeline):
 
                 payload = engine.execute()
 
-                elapsed = (
-                    time.perf_counter() - stage_start
-                )
+                elapsed = time.perf_counter() - stage_start
 
                 stage_results.append(
                     StageResult(
@@ -167,10 +162,7 @@ class ExamplePipeline(BasePipeline):
                 )
 
             except Exception as exc:
-
-                elapsed = (
-                    time.perf_counter() - stage_start
-                )
+                elapsed = time.perf_counter() - stage_start
 
                 logger.exception(exc)
 
@@ -186,13 +178,9 @@ class ExamplePipeline(BasePipeline):
                 if self.config.stop_on_failure:
                     break
 
-        pipeline_elapsed = (
-            time.perf_counter() - pipeline_start
-        )
+        pipeline_elapsed = time.perf_counter() - pipeline_start
 
-        success = all(
-            stage.success for stage in stage_results
-        )
+        success = all(stage.success for stage in stage_results)
 
         logger.info(
             "Pipeline completed in %.3f sec",

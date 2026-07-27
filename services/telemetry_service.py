@@ -29,25 +29,17 @@ Responsibilities
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from threading import Lock, RLock
 import time
-
-from dataclasses import dataclass
-from dataclasses import field
-
-from threading import Lock
-from threading import RLock
-
 from typing import Any
-from typing import Dict
-from typing import Optional
-from typing import List
 
 from core.services.base_service import BaseService
-
 
 # ============================================================
 # Exceptions
 # ============================================================
+
 
 class TelemetryError(Exception):
     """Base telemetry exception."""
@@ -65,104 +57,66 @@ class MetricNotFound(TelemetryError):
 # Metric Models
 # ============================================================
 
+
 @dataclass(slots=True)
 class CounterMetric:
-
     name: str
 
     value: int = 0
 
     description: str = ""
 
-    labels: Dict[str, str] = field(
+    labels: dict[str, str] = field(default_factory=dict)
 
-        default_factory=dict
-
-    )
-
-    def increment(
-
-        self,
-
-        amount: int = 1
-
-    ):
+    def increment(self, amount: int = 1):
 
         self.value += amount
 
 
 # ------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class GaugeMetric:
-
     name: str
 
     value: float = 0.0
 
     description: str = ""
 
-    labels: Dict[str, str] = field(
+    labels: dict[str, str] = field(default_factory=dict)
 
-        default_factory=dict
-
-    )
-
-    def set(
-
-        self,
-
-        value: float
-
-    ):
+    def set(self, value: float):
 
         self.value = value
 
 
 # ------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class HistogramMetric:
-
     name: str
 
-    values: List[float] = field(
-
-        default_factory=list
-
-    )
+    values: list[float] = field(default_factory=list)
 
     description: str = ""
 
-    labels: Dict[str, str] = field(
+    labels: dict[str, str] = field(default_factory=dict)
 
-        default_factory=dict
-
-    )
-
-    def observe(
-
-        self,
-
-        value: float
-
-    ):
+    def observe(self, value: float):
 
         self.values.append(value)
 
 
 # ------------------------------------------------------------
 
+
 @dataclass(slots=True)
 class TimerMetric:
-
     name: str
 
-    started: float = field(
-
-        default_factory=time.perf_counter
-
-    )
+    started: float = field(default_factory=time.perf_counter)
 
     elapsed: float = 0.0
 
@@ -171,14 +125,7 @@ class TimerMetric:
     def stop(self):
 
         if self.running:
-
-            self.elapsed = (
-
-                time.perf_counter()
-
-                - self.started
-
-            )
+            self.elapsed = time.perf_counter() - self.started
 
             self.running = False
 
@@ -189,8 +136,8 @@ class TimerMetric:
 # Telemetry Service
 # ============================================================
 
-class TelemetryService(BaseService):
 
+class TelemetryService(BaseService):
     """
     Enterprise telemetry manager.
 
@@ -212,95 +159,55 @@ class TelemetryService(BaseService):
 
     # --------------------------------------------------------
 
-    def __new__(
-
-        cls,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def __new__(cls, *args, **kwargs):
 
         if cls._instance is None:
-
             with cls._instance_lock:
-
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
 
     # --------------------------------------------------------
 
-    def __init__(
+    def __init__(self):
 
-        self
-
-    ):
-
-        if getattr(
-
-            self,
-
-            "_initialized",
-
-            False
-
-        ):
-
+        if getattr(self, "_initialized", False):
             return
 
         super().__init__()
 
         self._lock = RLock()
 
-        self._counters: Dict[str, CounterMetric] = {}
+        self._counters: dict[str, CounterMetric] = {}
 
-        self._gauges: Dict[str, GaugeMetric] = {}
+        self._gauges: dict[str, GaugeMetric] = {}
 
-        self._histograms: Dict[str, HistogramMetric] = {}
+        self._histograms: dict[str, HistogramMetric] = {}
 
-        self._timers: Dict[str, TimerMetric] = {}
+        self._timers: dict[str, TimerMetric] = {}
 
-        self._service_metadata: Dict[str, Any] = {}
+        self._service_metadata: dict[str, Any] = {}
 
         self._enabled = True
 
         self._initialized = True
 
-        self._logger.info(
-
-            "TelemetryService initialized."
-
-        )
+        self._logger.info("TelemetryService initialized.")
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def enable(
-
-        self
-
-    ):
+    def enable(self):
 
         self._enabled = True
 
-    def disable(
-
-        self
-
-    ):
+    def disable(self):
 
         self._enabled = False
 
-    def enabled(
-
-        self
-
-    ) -> bool:
+    def enabled(self) -> bool:
 
         return self._enabled
 
@@ -308,123 +215,49 @@ class TelemetryService(BaseService):
     # Registry
     # =====================================================
 
-    def register_counter(
-
-        self,
-
-        name: str,
-
-        description: str = ""
-
-    ):
+    def register_counter(self, name: str, description: str = ""):
 
         with self._lock:
-
             if name in self._counters:
+                raise MetricAlreadyExists(name)
 
-                raise MetricAlreadyExists(
+            self._counters[name] = CounterMetric(name=name, description=description)
 
-                    name
-
-                )
-
-            self._counters[name] = CounterMetric(
-
-                name=name,
-
-                description=description
-
-            )
-
-    def register_gauge(
-
-        self,
-
-        name: str,
-
-        description: str = ""
-
-    ):
+    def register_gauge(self, name: str, description: str = ""):
 
         with self._lock:
-
             if name in self._gauges:
+                raise MetricAlreadyExists(name)
 
-                raise MetricAlreadyExists(
+            self._gauges[name] = GaugeMetric(name=name, description=description)
 
-                    name
-
-                )
-
-            self._gauges[name] = GaugeMetric(
-
-                name=name,
-
-                description=description
-
-            )
-
-    def register_histogram(
-
-        self,
-
-        name: str,
-
-        description: str = ""
-
-    ):
+    def register_histogram(self, name: str, description: str = ""):
 
         with self._lock:
-
             if name in self._histograms:
+                raise MetricAlreadyExists(name)
 
-                raise MetricAlreadyExists(
-
-                    name
-
-                )
-
-            self._histograms[name] = HistogramMetric(
-
-                name=name,
-
-                description=description
-
-            )
+            self._histograms[name] = HistogramMetric(name=name, description=description)
 
     # =====================================================
     # BaseService
     # =====================================================
 
-    def run(
-
-        self
-
-    ):
+    def run(self):
 
         return self.statistics()
-    
+
     # =====================================================
     # Counter Operations
     # =====================================================
 
-    def increment_counter(
-
-        self,
-
-        name: str,
-
-        amount: int = 1
-
-    ) -> int:
+    def increment_counter(self, name: str, amount: int = 1) -> int:
         """
         Increment a counter.
         """
 
         with self._lock:
-
             if name not in self._counters:
-
                 self.register_counter(name)
 
             counter = self._counters[name]
@@ -433,40 +266,19 @@ class TelemetryService(BaseService):
 
             return counter.value
 
-    def decrement_counter(
-
-        self,
-
-        name: str,
-
-        amount: int = 1
-
-    ) -> int:
+    def decrement_counter(self, name: str, amount: int = 1) -> int:
         """
         Decrement a counter.
         """
 
-        return self.increment_counter(
+        return self.increment_counter(name, -amount)
 
-            name,
-
-            -amount
-
-        )
-
-    def counter_value(
-
-        self,
-
-        name: str
-
-    ) -> int:
+    def counter_value(self, name: str) -> int:
         """
         Return counter value.
         """
 
         if name not in self._counters:
-
             raise MetricNotFound(name)
 
         return self._counters[name].value
@@ -475,44 +287,24 @@ class TelemetryService(BaseService):
     # Gauge Operations
     # =====================================================
 
-    def set_gauge(
-
-        self,
-
-        name: str,
-
-        value: float
-
-    ) -> None:
+    def set_gauge(self, name: str, value: float) -> None:
         """
         Set gauge value.
         """
 
         with self._lock:
-
             if name not in self._gauges:
-
                 self.register_gauge(name)
 
             self._gauges[name].set(value)
 
-    def increment_gauge(
-
-        self,
-
-        name: str,
-
-        amount: float = 1.0
-
-    ) -> float:
+    def increment_gauge(self, name: str, amount: float = 1.0) -> float:
         """
         Increment gauge.
         """
 
         with self._lock:
-
             if name not in self._gauges:
-
                 self.register_gauge(name)
 
             gauge = self._gauges[name]
@@ -521,16 +313,9 @@ class TelemetryService(BaseService):
 
             return gauge.value
 
-    def gauge_value(
-
-        self,
-
-        name: str
-
-    ) -> float:
+    def gauge_value(self, name: str) -> float:
 
         if name not in self._gauges:
-
             raise MetricNotFound(name)
 
         return self._gauges[name].value
@@ -539,122 +324,62 @@ class TelemetryService(BaseService):
     # Histogram Operations
     # =====================================================
 
-    def observe(
-
-        self,
-
-        name: str,
-
-        value: float
-
-    ) -> None:
+    def observe(self, name: str, value: float) -> None:
         """
         Record histogram observation.
         """
 
         with self._lock:
-
             if name not in self._histograms:
-
                 self.register_histogram(name)
 
             self._histograms[name].observe(value)
 
-    def histogram_values(
-
-        self,
-
-        name: str
-
-    ) -> List[float]:
+    def histogram_values(self, name: str) -> list[float]:
 
         if name not in self._histograms:
-
             raise MetricNotFound(name)
 
-        return list(
-
-            self._histograms[name].values
-
-        )
+        return list(self._histograms[name].values)
 
     # =====================================================
     # Timer Operations
     # =====================================================
 
-    def start_timer(
-
-        self,
-
-        name: str
-
-    ) -> None:
+    def start_timer(self, name: str) -> None:
         """
         Start execution timer.
         """
 
         with self._lock:
+            self._timers[name] = TimerMetric(name=name)
 
-            self._timers[name] = TimerMetric(
-
-                name=name
-
-            )
-
-    def stop_timer(
-
-        self,
-
-        name: str
-
-    ) -> float:
+    def stop_timer(self, name: str) -> float:
         """
         Stop execution timer.
         """
 
         with self._lock:
-
             timer = self._timers.get(name)
 
             if timer is None:
-
                 raise MetricNotFound(name)
 
             elapsed = timer.stop()
 
-            self.observe(
-
-                f"{name}_duration",
-
-                elapsed
-
-            )
+            self.observe(f"{name}_duration", elapsed)
 
             return elapsed
 
-    def timer_elapsed(
-
-        self,
-
-        name: str
-
-    ) -> float:
+    def timer_elapsed(self, name: str) -> float:
 
         timer = self._timers.get(name)
 
         if timer is None:
-
             raise MetricNotFound(name)
 
         if timer.running:
-
-            return (
-
-                time.perf_counter()
-
-                - timer.started
-
-            )
+            return time.perf_counter() - timer.started
 
         return timer.elapsed
 
@@ -662,114 +387,53 @@ class TelemetryService(BaseService):
     # Metadata
     # =====================================================
 
-    def register_metadata(
-
-        self,
-
-        key: str,
-
-        value: Any
-
-    ) -> None:
+    def register_metadata(self, key: str, value: Any) -> None:
         """
         Register service metadata.
         """
 
         with self._lock:
-
             self._service_metadata[key] = value
 
-    def metadata(
+    def metadata(self) -> dict[str, Any]:
 
-        self
-
-    ) -> Dict[str, Any]:
-
-        return dict(
-
-            self._service_metadata
-
-        )
+        return dict(self._service_metadata)
 
     # =====================================================
     # Retrieval
     # =====================================================
 
-    def counters(
+    def counters(self) -> dict[str, CounterMetric]:
 
-        self
+        return dict(self._counters)
 
-    ) -> Dict[str, CounterMetric]:
+    def gauges(self) -> dict[str, GaugeMetric]:
 
-        return dict(
+        return dict(self._gauges)
 
-            self._counters
+    def histograms(self) -> dict[str, HistogramMetric]:
 
-        )
+        return dict(self._histograms)
 
-    def gauges(
+    def timers(self) -> dict[str, TimerMetric]:
 
-        self
-
-    ) -> Dict[str, GaugeMetric]:
-
-        return dict(
-
-            self._gauges
-
-        )
-
-    def histograms(
-
-        self
-
-    ) -> Dict[str, HistogramMetric]:
-
-        return dict(
-
-            self._histograms
-
-        )
-
-    def timers(
-
-        self
-
-    ) -> Dict[str, TimerMetric]:
-
-        return dict(
-
-            self._timers
-
-        )
+        return dict(self._timers)
 
     # =====================================================
     # Reset
     # =====================================================
 
-    def reset_counter(
-
-        self,
-
-        name: str
-
-    ) -> None:
+    def reset_counter(self, name: str) -> None:
 
         if name in self._counters:
-
             self._counters[name].value = 0
 
-    def reset_all(
-
-        self
-
-    ) -> None:
+    def reset_all(self) -> None:
         """
         Reset all metrics.
         """
 
         with self._lock:
-
             self._counters.clear()
 
             self._gauges.clear()
@@ -779,83 +443,52 @@ class TelemetryService(BaseService):
             self._timers.clear()
 
             self._service_metadata.clear()
-        
+
     # =====================================================
     # Histogram Analytics
     # =====================================================
 
-    def histogram_count(
-
-        self,
-
-        name: str
-
-    ) -> int:
+    def histogram_count(self, name: str) -> int:
 
         histogram = self._histograms.get(name)
 
         if histogram is None:
-
             raise MetricNotFound(name)
 
         return len(histogram.values)
 
-    def histogram_min(
-
-        self,
-
-        name: str
-
-    ) -> float:
+    def histogram_min(self, name: str) -> float:
 
         histogram = self._histograms.get(name)
 
         if histogram is None:
-
             raise MetricNotFound(name)
 
         if not histogram.values:
-
             return 0.0
 
         return min(histogram.values)
 
-    def histogram_max(
-
-        self,
-
-        name: str
-
-    ) -> float:
+    def histogram_max(self, name: str) -> float:
 
         histogram = self._histograms.get(name)
 
         if histogram is None:
-
             raise MetricNotFound(name)
 
         if not histogram.values:
-
             return 0.0
 
         return max(histogram.values)
 
-    def histogram_mean(
-
-        self,
-
-        name: str
-
-    ) -> float:
+    def histogram_mean(self, name: str) -> float:
 
         histogram = self._histograms.get(name)
 
         if histogram is None:
-
             raise MetricNotFound(name)
 
         if not histogram.values:
-
             return 0.0
 
         return sum(histogram.values) / len(histogram.values)
@@ -864,15 +497,7 @@ class TelemetryService(BaseService):
     # Percentiles
     # =====================================================
 
-    def percentile(
-
-        self,
-
-        name: str,
-
-        percentile: float
-
-    ) -> float:
+    def percentile(self, name: str, percentile: float) -> float:
         """
         Compute percentile.
         """
@@ -880,104 +505,39 @@ class TelemetryService(BaseService):
         histogram = self._histograms.get(name)
 
         if histogram is None:
-
             raise MetricNotFound(name)
 
         if not histogram.values:
-
             return 0.0
 
         values = sorted(histogram.values)
 
-        index = int(
-
-            (len(values) - 1)
-
-            * percentile
-
-        )
+        index = int((len(values) - 1) * percentile)
 
         return values[index]
 
-    def p50(
+    def p50(self, name: str) -> float:
 
-        self,
+        return self.percentile(name, 0.50)
 
-        name: str
+    def p90(self, name: str) -> float:
 
-    ) -> float:
+        return self.percentile(name, 0.90)
 
-        return self.percentile(
+    def p95(self, name: str) -> float:
 
-            name,
+        return self.percentile(name, 0.95)
 
-            0.50
+    def p99(self, name: str) -> float:
 
-        )
-
-    def p90(
-
-        self,
-
-        name: str
-
-    ) -> float:
-
-        return self.percentile(
-
-            name,
-
-            0.90
-
-        )
-
-    def p95(
-
-        self,
-
-        name: str
-
-    ) -> float:
-
-        return self.percentile(
-
-            name,
-
-            0.95
-
-        )
-
-    def p99(
-
-        self,
-
-        name: str
-
-    ) -> float:
-
-        return self.percentile(
-
-            name,
-
-            0.99
-
-        )
+        return self.percentile(name, 0.99)
 
     # =====================================================
     # Timing Context
     # =====================================================
 
     class TimerContext:
-
-        def __init__(
-
-            self,
-
-            telemetry,
-
-            metric_name: str
-
-        ):
+        def __init__(self, telemetry, metric_name: str):
 
             self.telemetry = telemetry
 
@@ -991,44 +551,13 @@ class TelemetryService(BaseService):
 
             return self
 
-        def __exit__(
+        def __exit__(self, exc_type, exc, tb):
 
-            self,
+            elapsed = time.perf_counter() - self.started
 
-            exc_type,
+            self.telemetry.observe(self.metric_name, elapsed)
 
-            exc,
-
-            tb
-
-        ):
-
-            elapsed = (
-
-                time.perf_counter()
-
-                -
-
-                self.started
-
-            )
-
-            self.telemetry.observe(
-
-                self.metric_name,
-
-                elapsed
-
-            )
-
-    def timer(
-
-        self,
-
-        metric_name: str
-
-    ):
-
+    def timer(self, metric_name: str):
         """
         Usage
 
@@ -1036,262 +565,113 @@ class TelemetryService(BaseService):
             ...
         """
 
-        return self.TimerContext(
-
-            self,
-
-            metric_name
-
-        )
+        return self.TimerContext(self, metric_name)
 
     # =====================================================
     # Trace Events
     # =====================================================
 
-    def trace(
+    def trace(self, operation: str, duration: float, success: bool = True) -> None:
 
-        self,
+        self.observe(f"{operation}_duration", duration)
 
-        operation: str,
-
-        duration: float,
-
-        success: bool = True
-
-    ) -> None:
-
-        self.observe(
-
-            f"{operation}_duration",
-
-            duration
-
-        )
-
-        self.increment_counter(
-
-            f"{operation}_calls"
-
-        )
+        self.increment_counter(f"{operation}_calls")
 
         if success:
-
-            self.increment_counter(
-
-                f"{operation}_success"
-
-            )
+            self.increment_counter(f"{operation}_success")
 
         else:
-
-            self.increment_counter(
-
-                f"{operation}_failure"
-
-            )
+            self.increment_counter(f"{operation}_failure")
 
     # =====================================================
     # Service Metrics
     # =====================================================
 
-    def record_service_runtime(
+    def record_service_runtime(self, service_name: str, elapsed: float) -> None:
 
-        self,
+        self.observe(f"{service_name}_runtime", elapsed)
 
-        service_name: str,
+    def record_exception(self, service_name: str) -> None:
 
-        elapsed: float
+        self.increment_counter(f"{service_name}_exceptions")
 
-    ) -> None:
+    def record_request(self, service_name: str) -> None:
 
-        self.observe(
-
-            f"{service_name}_runtime",
-
-            elapsed
-
-        )
-
-    def record_exception(
-
-        self,
-
-        service_name: str
-
-    ) -> None:
-
-        self.increment_counter(
-
-            f"{service_name}_exceptions"
-
-        )
-
-    def record_request(
-
-        self,
-
-        service_name: str
-
-    ) -> None:
-
-        self.increment_counter(
-
-            f"{service_name}_requests"
-
-        )
+        self.increment_counter(f"{service_name}_requests")
 
     # =====================================================
     # Export
     # =====================================================
 
-    def snapshot(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """
         Export all telemetry.
         """
 
         return {
-
-            "counters": {
-
-                key: metric.value
-
-                for key, metric
-
-                in self._counters.items()
-
-            },
-
-            "gauges": {
-
-                key: metric.value
-
-                for key, metric
-
-                in self._gauges.items()
-
-            },
-
+            "counters": {key: metric.value for key, metric in self._counters.items()},
+            "gauges": {key: metric.value for key, metric in self._gauges.items()},
             "histograms": {
-
                 key: {
-
                     "count": len(metric.values),
-
-                    "min": min(metric.values)
-
-                    if metric.values else 0,
-
-                    "max": max(metric.values)
-
-                    if metric.values else 0,
-
-                    "mean": (
-
-                        sum(metric.values)
-
-                        /
-
-                        len(metric.values)
-
-                    )
-
-                    if metric.values else 0,
-
-                    "p95": self.p95(key)
-
-                    if metric.values else 0
-
+                    "min": min(metric.values) if metric.values else 0,
+                    "max": max(metric.values) if metric.values else 0,
+                    "mean": (sum(metric.values) / len(metric.values))
+                    if metric.values
+                    else 0,
+                    "p95": self.p95(key) if metric.values else 0,
                 }
-
-                for key, metric
-
-                in self._histograms.items()
-
+                for key, metric in self._histograms.items()
             },
-
-            "metadata": self.metadata()
-
+            "metadata": self.metadata(),
         }
-    
+
     # =====================================================
     # Health
     # =====================================================
 
-    def health(
-        self
-    ) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """
         Telemetry health report.
         """
 
         return {
-
             "status": "HEALTHY",
-
             "enabled": self._enabled,
-
             "counters": len(self._counters),
-
             "gauges": len(self._gauges),
-
             "histograms": len(self._histograms),
-
-            "timers": len(self._timers)
-
+            "timers": len(self._timers),
         }
 
     # =====================================================
     # Diagnostics
     # =====================================================
 
-    def statistics(
-        self
-    ) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """
         Telemetry statistics.
         """
 
         histogram_samples = sum(
-
-            len(metric.values)
-
-            for metric in self._histograms.values()
-
+            len(metric.values) for metric in self._histograms.values()
         )
 
         return {
-
             "enabled": self._enabled,
-
             "counter_count": len(self._counters),
-
             "gauge_count": len(self._gauges),
-
             "histogram_count": len(self._histograms),
-
             "timer_count": len(self._timers),
-
             "histogram_samples": histogram_samples,
-
-            "metadata_entries": len(
-
-                self._service_metadata
-
-            )
-
+            "metadata_entries": len(self._service_metadata),
         }
 
     # =====================================================
     # Prometheus Export
     # =====================================================
 
-    def prometheus_export(
-        self
-    ) -> str:
+    def prometheus_export(self) -> str:
         """
         Export metrics using the Prometheus text exposition format.
         """
@@ -1303,82 +683,38 @@ class TelemetryService(BaseService):
         # -------------------------------
 
         for metric in self._counters.values():
+            lines.append(f"# TYPE {metric.name} counter")
 
-            lines.append(
-
-                f"# TYPE {metric.name} counter"
-
-            )
-
-            lines.append(
-
-                f"{metric.name} {metric.value}"
-
-            )
+            lines.append(f"{metric.name} {metric.value}")
 
         # -------------------------------
         # Gauges
         # -------------------------------
 
         for metric in self._gauges.values():
+            lines.append(f"# TYPE {metric.name} gauge")
 
-            lines.append(
-
-                f"# TYPE {metric.name} gauge"
-
-            )
-
-            lines.append(
-
-                f"{metric.name} {metric.value}"
-
-            )
+            lines.append(f"{metric.name} {metric.value}")
 
         # -------------------------------
         # Histograms (summary)
         # -------------------------------
 
         for metric in self._histograms.values():
-
             if not metric.values:
-
                 continue
 
-            lines.append(
+            lines.append(f"# TYPE {metric.name} summary")
 
-                f"# TYPE {metric.name} summary"
+            lines.append(f"{metric.name}_count {len(metric.values)}")
 
-            )
+            lines.append(f"{metric.name}_sum {sum(metric.values)}")
 
-            lines.append(
+            lines.append(f"{metric.name}_p50 {self.p50(metric.name)}")
 
-                f"{metric.name}_count {len(metric.values)}"
+            lines.append(f"{metric.name}_p95 {self.p95(metric.name)}")
 
-            )
-
-            lines.append(
-
-                f"{metric.name}_sum {sum(metric.values)}"
-
-            )
-
-            lines.append(
-
-                f"{metric.name}_p50 {self.p50(metric.name)}"
-
-            )
-
-            lines.append(
-
-                f"{metric.name}_p95 {self.p95(metric.name)}"
-
-            )
-
-            lines.append(
-
-                f"{metric.name}_p99 {self.p99(metric.name)}"
-
-            )
+            lines.append(f"{metric.name}_p99 {self.p99(metric.name)}")
 
         return "\n".join(lines)
 
@@ -1386,20 +722,14 @@ class TelemetryService(BaseService):
     # OpenTelemetry Hooks
     # =====================================================
 
-    def begin_span(
-        self,
-        span_name: str
-    ) -> None:
+    def begin_span(self, span_name: str) -> None:
         """
         Placeholder for future OpenTelemetry span support.
         """
 
         self.start_timer(span_name)
 
-    def end_span(
-        self,
-        span_name: str
-    ) -> float:
+    def end_span(self, span_name: str) -> float:
         """
         Finish a telemetry span.
         """
@@ -1410,23 +740,16 @@ class TelemetryService(BaseService):
     # Maintenance
     # =====================================================
 
-    def clear_histograms(
-        self
-    ) -> None:
+    def clear_histograms(self) -> None:
 
         for histogram in self._histograms.values():
-
             histogram.values.clear()
 
-    def clear_timers(
-        self
-    ) -> None:
+    def clear_timers(self) -> None:
 
         self._timers.clear()
 
-    def cleanup(
-        self
-    ) -> None:
+    def cleanup(self) -> None:
         """
         Cleanup transient metrics.
         """
@@ -1437,85 +760,40 @@ class TelemetryService(BaseService):
     # Lifecycle
     # =====================================================
 
-    def startup(
-        self
-    ) -> None:
+    def startup(self) -> None:
 
         self.enable()
 
-        self._logger.info(
+        self._logger.info("Telemetry service started.")
 
-            "Telemetry service started."
-
-        )
-
-    def shutdown(
-        self
-    ) -> None:
+    def shutdown(self) -> None:
 
         self.cleanup()
 
         self.disable()
 
-        self._logger.info(
-
-            "Telemetry service shutdown."
-
-        )
+        self._logger.info("Telemetry service shutdown.")
 
     # =====================================================
     # Magic Methods
     # =====================================================
 
-    def __contains__(
-        self,
-        metric: str
-    ) -> bool:
+    def __contains__(self, metric: str) -> bool:
 
         return (
-
             metric in self._counters
-
-            or
-
-            metric in self._gauges
-
-            or
-
-            metric in self._histograms
-
+            or metric in self._gauges
+            or metric in self._histograms
         )
 
-    def __len__(
-        self
-    ) -> int:
+    def __len__(self) -> int:
+
+        return len(self._counters) + len(self._gauges) + len(self._histograms)
+
+    def __repr__(self) -> str:
 
         return (
-
-            len(self._counters)
-
-            +
-
-            len(self._gauges)
-
-            +
-
-            len(self._histograms)
-
-        )
-
-    def __repr__(
-        self
-    ) -> str:
-
-        return (
-
-            f"{self.__class__.__name__}"
-
-            f"(metrics={len(self)}, "
-
-            f"enabled={self._enabled})"
-
+            f"{self.__class__.__name__}(metrics={len(self)}, enabled={self._enabled})"
         )
 
 

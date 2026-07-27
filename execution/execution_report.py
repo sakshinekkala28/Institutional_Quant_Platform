@@ -31,8 +31,7 @@ Consumed By
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
 
 @dataclass(slots=True)
@@ -75,11 +74,7 @@ class ExecutionReport:
 
     message: str = ""
 
-    metadata: dict = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict = field(default_factory=dict)
 
     __hash__ = None
 
@@ -88,180 +83,67 @@ class ExecutionReport:
     # =====================================================
 
     @property
-    def total_cost(
-
-        self
-
-    ) -> float:
+    def total_cost(self) -> float:
 
         return (
-
             self.commission
-
-            +
-
-            self.fees
-
-            +
-
-            self.taxes
-
-            +
-
-            self.slippage
-
-            +
-
-            self.market_impact
-
+            + self.fees
+            + self.taxes
+            + self.slippage
+            + self.market_impact
         )
 
     @property
-    def is_complete(
+    def is_complete(self) -> bool:
 
-        self
-
-    ) -> bool:
-
-        return (
-
-            self.remaining_quantity
-
-            <= 0.0
-
-        )
+        return self.remaining_quantity <= 0.0
 
     @property
-    def is_partial(
+    def is_partial(self) -> bool:
 
-        self
-
-    ) -> bool:
-
-        return (
-
-            0.0
-
-            <
-
-            self.fill_ratio
-
-            <
-
-            1.0
-
-        )
+        return 0.0 < self.fill_ratio < 1.0
 
     @property
-    def is_rejected(
+    def is_rejected(self) -> bool:
 
-        self
-
-    ) -> bool:
-
-        return (
-
-            self.status.upper()
-
-            ==
-
-            "REJECTED"
-
-        )
+        return self.status.upper() == "REJECTED"
 
     @property
-    def is_filled(
+    def is_filled(self) -> bool:
 
-        self
-
-    ) -> bool:
-
-        return (
-
-            self.status.upper()
-
-            ==
-
-            "FILLED"
-
-        )
+        return self.status.upper() == "FILLED"
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         return {
-
-            "Status":
-
-                self.status,
-
-            "Executed":
-
-                self.executed_quantity,
-
-            "Remaining":
-
-                self.remaining_quantity,
-
-            "Average_Price":
-
-                self.average_price,
-
-            "Fill_Ratio":
-
-                self.fill_ratio,
-
-            "Execution_Value":
-
-                self.execution_value,
-
-            "Total_Cost":
-
-                self.total_cost,
-
-            "Venue":
-
-                self.venue,
-
-            "Broker":
-
-                self.broker,
-
-            "Algorithm":
-
-                self.algorithm,
-
+            "Status": self.status,
+            "Executed": self.executed_quantity,
+            "Remaining": self.remaining_quantity,
+            "Average_Price": self.average_price,
+            "Fill_Ratio": self.fill_ratio,
+            "Execution_Value": self.execution_value,
+            "Total_Cost": self.total_cost,
+            "Venue": self.venue,
+            "Broker": self.broker,
+            "Algorithm": self.algorithm,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Status={self.status}, "
-
             f"Fill={self.fill_ratio:.2%}, "
-
             f"Price={self.average_price:.2f}"
-
             f")"
-
         )
 
     __str__ = __repr__

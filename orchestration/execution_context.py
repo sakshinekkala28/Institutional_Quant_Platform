@@ -24,24 +24,16 @@ executor and orchestrator.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
-
+from dataclasses import dataclass, field
 from datetime import datetime
-
 from pathlib import Path
-
 from threading import RLock
-
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Set
 
 # =========================================================
 # EXECUTION CONTEXT
 # =========================================================
+
 
 @dataclass(slots=True)
 class ExecutionContext:
@@ -53,97 +45,69 @@ class ExecutionContext:
     # Runtime Metadata
     # -----------------------------------------------------
 
-    metadata: Dict[
+    metadata: dict[
         str,
         Any,
-    ] = field(
-        default_factory=dict
-    )
+    ] = field(default_factory=dict)
 
     # -----------------------------------------------------
     # Engine Outputs
     # -----------------------------------------------------
 
-    outputs: Dict[
+    outputs: dict[
         str,
         Any,
-    ] = field(
-        default_factory=dict
-    )
+    ] = field(default_factory=dict)
 
     # -----------------------------------------------------
     # Runtime Variables
     # -----------------------------------------------------
 
-    variables: Dict[
+    variables: dict[
         str,
         Any,
-    ] = field(
-        default_factory=dict
-    )
+    ] = field(default_factory=dict)
 
     # -----------------------------------------------------
     # Execution Cache
     # -----------------------------------------------------
 
-    cache: Dict[
+    cache: dict[
         str,
         Any,
-    ] = field(
-        default_factory=dict
-    )
+    ] = field(default_factory=dict)
 
     # -----------------------------------------------------
     # Artifacts
     # -----------------------------------------------------
 
-    artifacts: Set[
-        str,
-    ] = field(
-        default_factory=set
-    )
+    artifacts: set[str,] = field(default_factory=set)
 
     # -----------------------------------------------------
     # Generated Files
     # -----------------------------------------------------
 
-    files: List[
-        Path,
-    ] = field(
-        default_factory=list
-    )
+    files: list[Path,] = field(default_factory=list)
 
     # -----------------------------------------------------
     # Warnings
     # -----------------------------------------------------
 
-    warnings: List[
-        str,
-    ] = field(
-        default_factory=list
-    )
+    warnings: list[str,] = field(default_factory=list)
 
     # -----------------------------------------------------
     # Errors
     # -----------------------------------------------------
 
-    errors: List[
-        str,
-    ] = field(
-        default_factory=list
-    )
+    errors: list[str,] = field(default_factory=list)
 
     # -----------------------------------------------------
     # Runtime
     # -----------------------------------------------------
 
-    started_at: datetime = field(
-        default_factory=datetime.utcnow
-    )
+    started_at: datetime = field(default_factory=datetime.utcnow)
 
-    finished_at: Optional[
-        datetime
-    ] = None
+    finished_at: datetime | None = None
 
     # -----------------------------------------------------
     # Synchronization
@@ -165,22 +129,9 @@ class ExecutionContext:
     ) -> float:
 
         if self.finished_at is None:
+            return (datetime.utcnow() - self.started_at).total_seconds()
 
-            return (
-
-                datetime.utcnow()
-
-                - self.started_at
-
-            ).total_seconds()
-
-        return (
-
-            self.finished_at
-
-            - self.started_at
-
-        ).total_seconds()
+        return (self.finished_at - self.started_at).total_seconds()
 
     # -----------------------------------------------------
 
@@ -189,9 +140,7 @@ class ExecutionContext:
         self,
     ) -> int:
 
-        return len(
-            self.artifacts
-        )
+        return len(self.artifacts)
 
     # -----------------------------------------------------
 
@@ -200,9 +149,7 @@ class ExecutionContext:
         self,
     ) -> int:
 
-        return len(
-            self.outputs
-        )
+        return len(self.outputs)
 
     # -----------------------------------------------------
 
@@ -211,9 +158,7 @@ class ExecutionContext:
         self,
     ) -> int:
 
-        return len(
-            self.warnings
-        )
+        return len(self.warnings)
 
     # -----------------------------------------------------
 
@@ -222,10 +167,8 @@ class ExecutionContext:
         self,
     ) -> int:
 
-        return len(
-            self.errors
-        )
-    
+        return len(self.errors)
+
     # =====================================================
     # RUNTIME
     # =====================================================
@@ -243,9 +186,7 @@ class ExecutionContext:
         self,
     ) -> None:
 
-        self.finished_at = (
-            datetime.utcnow()
-        )
+        self.finished_at = datetime.utcnow()
 
     # =====================================================
     # SUMMARY
@@ -253,33 +194,17 @@ class ExecutionContext:
 
     def summary(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         return {
-
-            "runtime":
-
-                round(
-                    self.runtime_seconds,
-                    3,
-                ),
-
-            "outputs":
-
-                self.output_count,
-
-            "artifacts":
-
-                self.artifact_count,
-
-            "warnings":
-
-                self.warning_count,
-
-            "errors":
-
-                self.error_count,
-
+            "runtime": round(
+                self.runtime_seconds,
+                3,
+            ),
+            "outputs": self.output_count,
+            "artifacts": self.artifact_count,
+            "warnings": self.warning_count,
+            "errors": self.error_count,
         }
 
     # =====================================================
@@ -291,15 +216,11 @@ class ExecutionContext:
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"outputs={self.output_count}, "
-
             f"artifacts={self.artifact_count})"
-
         )
-    
+
     # =====================================================
     # METADATA
     # =====================================================
@@ -314,7 +235,6 @@ class ExecutionContext:
         """
 
         with self._lock:
-
             self.metadata[key] = value
 
     # -----------------------------------------------------
@@ -322,14 +242,13 @@ class ExecutionContext:
     def get_metadata(
         self,
         key: str,
-        default: Optional[Any] = None,
+        default: Any | None = None,
     ) -> Any:
         """
         Retrieve metadata.
         """
 
         with self._lock:
-
             return self.metadata.get(
                 key,
                 default,
@@ -343,7 +262,6 @@ class ExecutionContext:
     ) -> bool:
 
         with self._lock:
-
             return key in self.metadata
 
     # =====================================================
@@ -360,7 +278,6 @@ class ExecutionContext:
         """
 
         with self._lock:
-
             self.variables[key] = value
 
     # -----------------------------------------------------
@@ -368,14 +285,13 @@ class ExecutionContext:
     def get_variable(
         self,
         key: str,
-        default: Optional[Any] = None,
+        default: Any | None = None,
     ) -> Any:
         """
         Retrieve runtime variable.
         """
 
         with self._lock:
-
             return self.variables.get(
                 key,
                 default,
@@ -389,11 +305,11 @@ class ExecutionContext:
     ) -> None:
 
         with self._lock:
-
             self.variables.pop(
                 key,
                 None,
             )
+
     # =====================================================
     # OUTPUTS
     # =====================================================
@@ -408,24 +324,20 @@ class ExecutionContext:
         """
 
         with self._lock:
-
-            self.outputs[
-                engine
-            ] = output
+            self.outputs[engine] = output
 
     # -----------------------------------------------------
 
     def get_output(
         self,
         engine: str,
-        default: Optional[Any] = None,
+        default: Any | None = None,
     ) -> Any:
         """
         Retrieve engine output.
         """
 
         with self._lock:
-
             return self.outputs.get(
                 engine,
                 default,
@@ -439,9 +351,8 @@ class ExecutionContext:
     ) -> bool:
 
         with self._lock:
-
             return engine in self.outputs
-        
+
     # =====================================================
     # CACHE
     # =====================================================
@@ -453,7 +364,6 @@ class ExecutionContext:
     ) -> None:
 
         with self._lock:
-
             self.cache[key] = value
 
     # -----------------------------------------------------
@@ -461,11 +371,10 @@ class ExecutionContext:
     def cache_get(
         self,
         key: str,
-        default: Optional[Any] = None,
+        default: Any | None = None,
     ) -> Any:
 
         with self._lock:
-
             return self.cache.get(
                 key,
                 default,
@@ -479,7 +388,6 @@ class ExecutionContext:
     ) -> None:
 
         with self._lock:
-
             self.cache.pop(
                 key,
                 None,
@@ -492,7 +400,6 @@ class ExecutionContext:
     ) -> None:
 
         with self._lock:
-
             self.cache.clear()
 
     # =====================================================
@@ -505,10 +412,7 @@ class ExecutionContext:
     ) -> None:
 
         with self._lock:
-
-            self.artifacts.add(
-                artifact
-            )
+            self.artifacts.add(artifact)
 
     # -----------------------------------------------------
 
@@ -518,11 +422,7 @@ class ExecutionContext:
     ) -> bool:
 
         with self._lock:
-
-            return (
-                artifact
-                in self.artifacts
-            )
+            return artifact in self.artifacts
 
     # -----------------------------------------------------
 
@@ -532,10 +432,7 @@ class ExecutionContext:
     ) -> None:
 
         with self._lock:
-
-            self.artifacts.discard(
-                artifact
-            )
+            self.artifacts.discard(artifact)
 
     # =====================================================
     # FILES
@@ -547,10 +444,7 @@ class ExecutionContext:
     ) -> None:
 
         with self._lock:
-
-            self.files.append(
-                path
-            )
+            self.files.append(path)
 
     # -----------------------------------------------------
 
@@ -560,12 +454,8 @@ class ExecutionContext:
     ) -> None:
 
         with self._lock:
-
             if path in self.files:
-
-                self.files.remove(
-                    path
-                )
+                self.files.remove(path)
 
     # =====================================================
     # WARNINGS
@@ -577,10 +467,7 @@ class ExecutionContext:
     ) -> None:
 
         with self._lock:
-
-            self.warnings.append(
-                warning
-            )
+            self.warnings.append(warning)
 
     # -----------------------------------------------------
 
@@ -590,10 +477,7 @@ class ExecutionContext:
     ) -> None:
 
         with self._lock:
-
-            self.errors.append(
-                error
-            )
+            self.errors.append(error)
 
     # -----------------------------------------------------
 
@@ -602,7 +486,6 @@ class ExecutionContext:
     ) -> None:
 
         with self._lock:
-
             self.warnings.clear()
 
             self.errors.clear()
@@ -620,23 +503,14 @@ class ExecutionContext:
         """
 
         with self._lock:
-
             return any(
-
                 key in container
-
                 for container in (
-
                     self.metadata,
-
                     self.outputs,
-
                     self.variables,
-
                     self.cache,
-
                 )
-
             )
 
     # -----------------------------------------------------
@@ -650,7 +524,6 @@ class ExecutionContext:
         """
 
         with self._lock:
-
             self.metadata.pop(
                 key,
                 None,
@@ -677,7 +550,7 @@ class ExecutionContext:
 
     def snapshot(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create an immutable snapshot of the current
         execution context.
@@ -688,65 +561,19 @@ class ExecutionContext:
         """
 
         with self._lock:
-
             return {
-
-                "metadata":
-
-                    dict(self.metadata),
-
-                "outputs":
-
-                    dict(self.outputs),
-
-                "variables":
-
-                    dict(self.variables),
-
-                "cache":
-
-                    dict(self.cache),
-
-                "artifacts":
-
-                    sorted(self.artifacts),
-
-                "files":
-
-                    [
-
-                        str(path)
-
-                        for path
-
-                        in self.files
-
-                    ],
-
-                "warnings":
-
-                    list(self.warnings),
-
-                "errors":
-
-                    list(self.errors),
-
-                "started_at":
-
-                    self.started_at.isoformat(),
-
-                "finished_at":
-
-                    (
-
-                        self.finished_at.isoformat()
-
-                        if self.finished_at
-
-                        else None
-
-                    ),
-
+                "metadata": dict(self.metadata),
+                "outputs": dict(self.outputs),
+                "variables": dict(self.variables),
+                "cache": dict(self.cache),
+                "artifacts": sorted(self.artifacts),
+                "files": [str(path) for path in self.files],
+                "warnings": list(self.warnings),
+                "errors": list(self.errors),
+                "started_at": self.started_at.isoformat(),
+                "finished_at": (
+                    self.finished_at.isoformat() if self.finished_at else None
+                ),
             }
 
     # =====================================================
@@ -755,7 +582,7 @@ class ExecutionContext:
 
     def clone(
         self,
-    ) -> "ExecutionContext":
+    ) -> ExecutionContext:
         """
         Deep copy of the execution context.
         """
@@ -763,130 +590,56 @@ class ExecutionContext:
         clone = ExecutionContext()
 
         with self._lock:
+            clone.metadata.update(self.metadata)
 
-            clone.metadata.update(
+            clone.outputs.update(self.outputs)
 
-                self.metadata
+            clone.variables.update(self.variables)
 
-            )
+            clone.cache.update(self.cache)
 
-            clone.outputs.update(
+            clone.artifacts.update(self.artifacts)
 
-                self.outputs
+            clone.files.extend(self.files)
 
-            )
+            clone.warnings.extend(self.warnings)
 
-            clone.variables.update(
+            clone.errors.extend(self.errors)
 
-                self.variables
+            clone.started_at = self.started_at
 
-            )
-
-            clone.cache.update(
-
-                self.cache
-
-            )
-
-            clone.artifacts.update(
-
-                self.artifacts
-
-            )
-
-            clone.files.extend(
-
-                self.files
-
-            )
-
-            clone.warnings.extend(
-
-                self.warnings
-
-            )
-
-            clone.errors.extend(
-
-                self.errors
-
-            )
-
-            clone.started_at = (
-
-                self.started_at
-
-            )
-
-            clone.finished_at = (
-
-                self.finished_at
-
-            )
+            clone.finished_at = self.finished_at
 
         return clone
-    
+
     # =====================================================
     # MERGE
     # =====================================================
 
     def merge(
         self,
-        other: "ExecutionContext",
+        other: ExecutionContext,
     ) -> None:
         """
         Merge another execution context.
         """
 
         with self._lock:
+            self.metadata.update(other.metadata)
 
-            self.metadata.update(
+            self.outputs.update(other.outputs)
 
-                other.metadata
+            self.variables.update(other.variables)
 
-            )
+            self.cache.update(other.cache)
 
-            self.outputs.update(
+            self.artifacts.update(other.artifacts)
 
-                other.outputs
+            self.files.extend(other.files)
 
-            )
+            self.warnings.extend(other.warnings)
 
-            self.variables.update(
-
-                other.variables
-
-            )
-
-            self.cache.update(
-
-                other.cache
-
-            )
-
-            self.artifacts.update(
-
-                other.artifacts
-
-            )
-
-            self.files.extend(
-
-                other.files
-
-            )
-
-            self.warnings.extend(
-
-                other.warnings
-
-            )
-
-            self.errors.extend(
-
-                other.errors
-
-            )
+            self.errors.extend(other.errors)
 
     # =====================================================
     # EXPORT
@@ -894,7 +647,7 @@ class ExecutionContext:
 
     def to_dict(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Export execution context.
         """
@@ -915,13 +668,9 @@ class ExecutionContext:
         import json
 
         return json.dumps(
-
             self.to_dict(),
-
             indent=indent,
-
             default=str,
-
         )
 
     # =====================================================
@@ -931,8 +680,8 @@ class ExecutionContext:
     @classmethod
     def from_dict(
         cls,
-        data: Dict[str, Any],
-    ) -> "ExecutionContext":
+        data: dict[str, Any],
+    ) -> ExecutionContext:
         """
         Restore execution context.
         """
@@ -940,152 +689,84 @@ class ExecutionContext:
         context = cls()
 
         context.metadata.update(
-
             data.get(
-
                 "metadata",
-
                 {},
-
             )
-
         )
 
         context.outputs.update(
-
             data.get(
-
                 "outputs",
-
                 {},
-
             )
-
         )
 
         context.variables.update(
-
             data.get(
-
                 "variables",
-
                 {},
-
             )
-
         )
 
         context.cache.update(
-
             data.get(
-
                 "cache",
-
                 {},
-
             )
-
         )
 
         context.artifacts.update(
-
             data.get(
-
                 "artifacts",
-
                 [],
-
             )
-
         )
 
         context.files.extend(
-
             Path(path)
-
-            for path
-
-            in data.get(
-
+            for path in data.get(
                 "files",
-
                 [],
-
             )
-
         )
 
         context.warnings.extend(
-
             data.get(
-
                 "warnings",
-
                 [],
-
             )
-
         )
 
         context.errors.extend(
-
             data.get(
-
                 "errors",
-
                 [],
-
             )
-
         )
 
         return context
-    
+
     # =====================================================
     # STATISTICS
     # =====================================================
 
     def statistics(
         self,
-    ) -> Dict[str, int]:
+    ) -> dict[str, int]:
         """
         Execution statistics.
         """
 
         return {
-
-            "metadata":
-
-                len(self.metadata),
-
-            "variables":
-
-                len(self.variables),
-
-            "outputs":
-
-                len(self.outputs),
-
-            "cache":
-
-                len(self.cache),
-
-            "artifacts":
-
-                len(self.artifacts),
-
-            "files":
-
-                len(self.files),
-
-            "warnings":
-
-                len(self.warnings),
-
-            "errors":
-
-                len(self.errors),
-
+            "metadata": len(self.metadata),
+            "variables": len(self.variables),
+            "outputs": len(self.outputs),
+            "cache": len(self.cache),
+            "artifacts": len(self.artifacts),
+            "files": len(self.files),
+            "warnings": len(self.warnings),
+            "errors": len(self.errors),
         }
 
     # =====================================================
@@ -1099,13 +780,7 @@ class ExecutionContext:
         Validate execution context.
         """
 
-        return (
-
-            self.started_at
-
-            is not None
-
-        )
+        return self.started_at is not None
 
     # =====================================================
     # CHECKPOINT
@@ -1113,7 +788,7 @@ class ExecutionContext:
 
     def checkpoint(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Create a checkpoint of the current execution state.
         """
@@ -1124,18 +799,15 @@ class ExecutionContext:
 
     def restore(
         self,
-        checkpoint: Dict[str, Any],
+        checkpoint: dict[str, Any],
     ) -> None:
         """
         Restore execution state from a checkpoint.
         """
 
-        restored = self.from_dict(
-            checkpoint
-        )
+        restored = self.from_dict(checkpoint)
 
         with self._lock:
-
             self.metadata = restored.metadata
 
             self.outputs = restored.outputs
@@ -1179,17 +851,11 @@ class ExecutionContext:
             "w",
             encoding="utf-8",
         ) as fp:
-
             json.dump(
-
                 self.to_dict(),
-
                 fp,
-
                 indent=4,
-
                 default=str,
-
             )
 
     # -----------------------------------------------------
@@ -1198,7 +864,7 @@ class ExecutionContext:
     def load(
         cls,
         path: Path,
-    ) -> "ExecutionContext":
+    ) -> ExecutionContext:
         """
         Load execution context.
         """
@@ -1209,13 +875,10 @@ class ExecutionContext:
             "r",
             encoding="utf-8",
         ) as fp:
-
             data = json.load(fp)
 
-        return cls.from_dict(
-            data
-        )
-    
+        return cls.from_dict(data)
+
     # =====================================================
     # CLEANUP
     # =====================================================
@@ -1228,11 +891,9 @@ class ExecutionContext:
         """
 
         with self._lock:
-
             self.cache.clear()
 
             self.variables.clear()
-
 
     # -----------------------------------------------------
 
@@ -1244,7 +905,6 @@ class ExecutionContext:
         """
 
         with self._lock:
-
             self.outputs.clear()
 
     # =====================================================
@@ -1253,46 +913,17 @@ class ExecutionContext:
 
     def diff(
         self,
-        other: "ExecutionContext",
-    ) -> Dict[str, Any]:
+        other: ExecutionContext,
+    ) -> dict[str, Any]:
         """
         Compare two execution contexts.
         """
 
         return {
-
-            "metadata":
-
-                set(self.metadata)
-
-                ^
-
-                set(other.metadata),
-
-            "outputs":
-
-                set(self.outputs)
-
-                ^
-
-                set(other.outputs),
-
-            "variables":
-
-                set(self.variables)
-
-                ^
-
-                set(other.variables),
-
-            "artifacts":
-
-                self.artifacts
-
-                ^
-
-                other.artifacts,
-
+            "metadata": set(self.metadata) ^ set(other.metadata),
+            "outputs": set(self.outputs) ^ set(other.outputs),
+            "variables": set(self.variables) ^ set(other.variables),
+            "artifacts": self.artifacts ^ other.artifacts,
         }
 
     # =====================================================
@@ -1308,12 +939,7 @@ class ExecutionContext:
 
         import hashlib
 
-        return hashlib.sha256(
-
-            self.to_json().encode()
-
-        ).hexdigest()
-
+        return hashlib.sha256(self.to_json().encode()).hexdigest()
 
     # =====================================================
     # REPORT
@@ -1321,39 +947,20 @@ class ExecutionContext:
 
     def report(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Comprehensive execution context report.
         """
 
         return {
-
-            "summary":
-
-                self.summary(),
-
-            "statistics":
-
-                self.statistics(),
-
-            "runtime":
-
-                round(
-
-                    self.runtime_seconds,
-
-                    3,
-
-                ),
-
-            "finished":
-
-                self.finished,
-
-            "checksum":
-
-                self.checksum(),
-
+            "summary": self.summary(),
+            "statistics": self.statistics(),
+            "runtime": round(
+                self.runtime_seconds,
+                3,
+            ),
+            "finished": self.finished,
+            "checksum": self.checksum(),
         }
 
     # =====================================================
@@ -1365,21 +972,10 @@ class ExecutionContext:
     ) -> int:
 
         return (
-
             len(self.metadata)
-
-            +
-
-            len(self.outputs)
-
-            +
-
-            len(self.variables)
-
-            +
-
-            len(self.cache)
-
+            + len(self.outputs)
+            + len(self.variables)
+            + len(self.cache)
         )
 
     # -----------------------------------------------------
@@ -1389,9 +985,7 @@ class ExecutionContext:
         key: str,
     ) -> bool:
 
-        return self.exists(
-            key
-        )
+        return self.exists(key)
 
     # -----------------------------------------------------
 
@@ -1399,11 +993,7 @@ class ExecutionContext:
         self,
     ):
 
-        return iter(
-
-            self.metadata.items()
-
-        )
+        return iter(self.metadata.items())
 
     # -----------------------------------------------------
 
@@ -1412,13 +1002,8 @@ class ExecutionContext:
     ) -> str:
 
         return (
-
             f"ExecutionContext("
-
             f"runtime={self.runtime_seconds:.2f}s, "
-
             f"outputs={self.output_count}, "
-
             f"artifacts={self.artifact_count})"
-
         )

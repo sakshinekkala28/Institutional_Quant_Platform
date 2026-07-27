@@ -22,30 +22,22 @@ Responsibilities
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
-
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Type
+from dataclasses import dataclass, field
 
 from orchestration.base_engine import (
     BaseEngine,
 )
-
+from orchestration.dependency_graph import (
+    DependencyGraph,
+)
 from orchestration.engine_registry import (
     EngineRegistry,
 )
 
-from orchestration.dependency_graph import (
-    DependencyGraph,
-)
-
-
 # =========================================================
 # PIPELINE DEFINITION
 # =========================================================
+
 
 @dataclass(slots=True)
 class PipelineDefinition:
@@ -55,111 +47,59 @@ class PipelineDefinition:
 
     name: str
 
-    engines: List[
-        Type[BaseEngine]
-    ] = field(
-        default_factory=list
-    )
+    engines: list[type[BaseEngine]] = field(default_factory=list)
 
-    execution_order: List[
-        str
-    ] = field(
-        default_factory=list
-    )
+    execution_order: list[str] = field(default_factory=list)
 
-    execution_levels: List[
-        List[str]
-    ] = field(
-        default_factory=list
-    )
+    execution_levels: list[list[str]] = field(default_factory=list)
 
-    metadata: Dict = field(
-        default_factory=dict
-    )
+    metadata: dict = field(default_factory=dict)
 
     # -----------------------------------------------------
 
     @property
     def engine_count(self) -> int:
 
-        return len(
-            self.engines
-        )
+        return len(self.engines)
 
     # -----------------------------------------------------
 
     @property
-    def categories(self) -> List[str]:
+    def categories(self) -> list[str]:
 
-        return sorted(
-
-            {
-
-                engine.CATEGORY
-
-                for engine
-
-                in self.engines
-
-            }
-
-        )
+        return sorted({engine.CATEGORY for engine in self.engines})
 
     # -----------------------------------------------------
 
     @property
-    def stages(self) -> List[str]:
+    def stages(self) -> list[str]:
 
-        return sorted(
-
-            {
-
-                engine.STAGE
-
-                for engine
-
-                in self.engines
-
-            }
-
-        )
+        return sorted({engine.STAGE for engine in self.engines})
 
     # -----------------------------------------------------
 
     @property
-    def outputs(self) -> List[str]:
+    def outputs(self) -> list[str]:
 
         outputs = []
 
         for engine in self.engines:
-
-            outputs.extend(
-                engine.OUTPUTS
-            )
+            outputs.extend(engine.OUTPUTS)
 
         return outputs
 
     # -----------------------------------------------------
 
     @property
-    def dependencies(self) -> Dict:
+    def dependencies(self) -> dict:
 
-        return {
-
-            engine.NAME:
-
-                engine.DEPENDS_ON
-
-            for engine
-
-            in self.engines
-
-        }
+        return {engine.NAME: engine.DEPENDS_ON for engine in self.engines}
 
 
 # =========================================================
 # PIPELINE BUILDER
 # =========================================================
+
 
 class PipelineBuilder:
     """
@@ -188,9 +128,9 @@ class PipelineBuilder:
     def build(
         self,
         pipeline_name: str,
-        stages: Optional[List[str]] = None,
-        categories: Optional[List[str]] = None,
-        engine_names: Optional[List[str]] = None,
+        stages: list[str] | None = None,
+        categories: list[str] | None = None,
+        engine_names: list[str] | None = None,
     ) -> PipelineDefinition:
         """
         Build an executable pipeline.
@@ -207,38 +147,24 @@ class PipelineBuilder:
         # ---------------------------------------------
 
         engines = self._select_engines(
-
             stages=stages,
-
             categories=categories,
-
             engine_names=engine_names,
-
         )
 
         # ---------------------------------------------
         # Automatically include dependencies
         # ---------------------------------------------
 
-        engines = self._expand_dependencies(
-            engines
-        )
+        engines = self._expand_dependencies(engines)
 
         # ---------------------------------------------
         # Determine execution order
         # ---------------------------------------------
 
-        execution_order = (
-            self._execution_order(
-                engines
-            )
-        )
+        execution_order = self._execution_order(engines)
 
-        execution_levels = (
-            self._execution_levels(
-                execution_order
-            )
-        )
+        execution_levels = self._execution_levels(execution_order)
 
         # ---------------------------------------------
         # Metadata
@@ -251,17 +177,11 @@ class PipelineBuilder:
         )
 
         return PipelineDefinition(
-
             name=pipeline_name,
-
             engines=engines,
-
             execution_order=execution_order,
-
             execution_levels=execution_levels,
-
             metadata=metadata,
-
         )
 
     # =====================================================
@@ -277,11 +197,8 @@ class PipelineBuilder:
         """
 
         return self.build(
-
             pipeline_name=stage,
-
             stages=[stage],
-
         )
 
     # =====================================================
@@ -297,11 +214,8 @@ class PipelineBuilder:
         """
 
         return self.build(
-
             pipeline_name=category,
-
             categories=[category],
-
         )
 
     # =====================================================
@@ -311,50 +225,35 @@ class PipelineBuilder:
     def build_from_engines(
         self,
         pipeline_name: str,
-        engines: List[str],
+        engines: list[str],
     ) -> PipelineDefinition:
         """
         Build pipeline from explicit engines.
         """
 
         return self.build(
-
             pipeline_name=pipeline_name,
-
             engine_names=engines,
-
         )
-    
+
     # =====================================================
     # EXECUTION ORDER
     # =====================================================
 
     def _execution_order(
         self,
-        engines: List[
-            Type[BaseEngine]
-        ],
-    ) -> List[str]:
+        engines: list[type[BaseEngine]],
+    ) -> list[str]:
         """
         Build dependency-aware execution order.
         """
 
-        selected = {
-
-            engine.NAME
-
-            for engine
-
-            in engines
-
-        }
+        selected = {engine.NAME for engine in engines}
 
         order = []
 
         for engine in self.graph.execution_order():
-
             if engine in selected:
-
                 order.append(engine)
 
         return order
@@ -365,37 +264,21 @@ class PipelineBuilder:
 
     def _execution_levels(
         self,
-        execution_order: List[str],
-    ) -> List[List[str]]:
+        execution_order: list[str],
+    ) -> list[list[str]]:
         """
         Build parallel execution levels.
         """
 
-        selected = set(
-            execution_order
-        )
+        selected = set(execution_order)
 
         levels = []
 
         for level in self.graph.execution_levels():
-
-            current = [
-
-                engine
-
-                for engine
-
-                in level
-
-                if engine in selected
-
-            ]
+            current = [engine for engine in level if engine in selected]
 
             if current:
-
-                levels.append(
-                    current
-                )
+                levels.append(current)
 
         return levels
 
@@ -413,33 +296,22 @@ class PipelineBuilder:
         report = self.graph.validate()
 
         if report["valid"]:
-
             return
 
         errors = []
 
         errors.extend(
-
             report.get(
-
                 "dependency_errors",
-
                 [],
-
             )
-
         )
 
         errors.extend(
-
             report.get(
-
                 "node_errors",
-
                 [],
-
             )
-
         )
 
         cycles = report.get(
@@ -448,20 +320,9 @@ class PipelineBuilder:
         )
 
         if cycles:
+            errors.append(f"Dependency cycles detected: {cycles}")
 
-            errors.append(
-
-                "Dependency cycles "
-
-                f"detected: {cycles}"
-
-            )
-
-        raise RuntimeError(
-
-            "\n".join(errors)
-
-        )
+        raise RuntimeError("\n".join(errors))
 
     # =====================================================
     # PIPELINE VALIDATION
@@ -469,90 +330,42 @@ class PipelineBuilder:
 
     def _validate_pipeline(
         self,
-        engines: List[
-            Type[BaseEngine]
-        ],
+        engines: list[type[BaseEngine]],
     ) -> None:
         """
         Validate selected pipeline.
         """
 
         if not engines:
+            raise RuntimeError("Pipeline contains no engines.")
 
-            raise RuntimeError(
-
-                "Pipeline contains "
-
-                "no engines."
-
-            )
-
-        names = [
-
-            engine.NAME
-
-            for engine
-
-            in engines
-
-        ]
+        names = [engine.NAME for engine in engines]
 
         if len(names) != len(set(names)):
-
-            raise RuntimeError(
-
-                "Duplicate engines "
-
-                "detected."
-
-            )
+            raise RuntimeError("Duplicate engines detected.")
 
         missing = []
 
         for engine in engines:
-
             for dependency in engine.DEPENDS_ON:
-
                 if dependency not in names:
-
                     missing.append(
-
                         (
-
                             engine.NAME,
-
                             dependency,
-
                         )
-
                     )
 
         if missing:
-
             message = [
-
-                f"{engine} "
-
-                f"requires "
-
-                f"{dependency}"
-
+                f"{engine} requires {dependency}"
                 for (
-
                     engine,
-
                     dependency,
-
                 ) in missing
-
             ]
 
-            raise RuntimeError(
-
-                "\n".join(message)
-
-            )
-        
+            raise RuntimeError("\n".join(message))
 
     # =====================================================
     # PIPELINE METRICS
@@ -561,89 +374,30 @@ class PipelineBuilder:
     def pipeline_metrics(
         self,
         pipeline: PipelineDefinition,
-    ) -> Dict:
+    ) -> dict:
         """
         Return execution metrics for a pipeline.
         """
 
         parallel_width = max(
-
-            (
-
-                len(level)
-
-                for level
-
-                in pipeline.execution_levels
-
-            ),
-
+            (len(level) for level in pipeline.execution_levels),
             default=0,
-
         )
 
-        outputs = sum(
+        outputs = sum(len(engine.OUTPUTS) for engine in pipeline.engines)
 
-            len(engine.OUTPUTS)
+        inputs = sum(len(engine.INPUTS) for engine in pipeline.engines)
 
-            for engine
-
-            in pipeline.engines
-
-        )
-
-        inputs = sum(
-
-            len(engine.INPUTS)
-
-            for engine
-
-            in pipeline.engines
-
-        )
-
-        dependencies = sum(
-
-            len(engine.DEPENDS_ON)
-
-            for engine
-
-            in pipeline.engines
-
-        )
+        dependencies = sum(len(engine.DEPENDS_ON) for engine in pipeline.engines)
 
         return {
-
-            "pipeline":
-
-                pipeline.name,
-
-            "engine_count":
-
-                pipeline.engine_count,
-
-            "execution_levels":
-
-                len(
-                    pipeline.execution_levels
-                ),
-
-            "maximum_parallelism":
-
-                parallel_width,
-
-            "total_inputs":
-
-                inputs,
-
-            "total_outputs":
-
-                outputs,
-
-            "total_dependencies":
-
-                dependencies,
-
+            "pipeline": pipeline.name,
+            "engine_count": pipeline.engine_count,
+            "execution_levels": len(pipeline.execution_levels),
+            "maximum_parallelism": parallel_width,
+            "total_inputs": inputs,
+            "total_outputs": outputs,
+            "total_dependencies": dependencies,
         }
 
     # =====================================================
@@ -653,35 +407,17 @@ class PipelineBuilder:
     def execution_summary(
         self,
         pipeline: PipelineDefinition,
-    ) -> Dict:
+    ) -> dict:
         """
         Human-readable execution summary.
         """
 
         return {
-
-            "pipeline":
-
-                pipeline.name,
-
-            "execution_order":
-
-                pipeline.execution_order,
-
-            "parallel_execution":
-
-                pipeline.execution_levels,
-
-            "metadata":
-
-                pipeline.metadata,
-
-            "metrics":
-
-                self.pipeline_metrics(
-                    pipeline
-                ),
-
+            "pipeline": pipeline.name,
+            "execution_order": pipeline.execution_order,
+            "parallel_execution": pipeline.execution_levels,
+            "metadata": pipeline.metadata,
+            "metrics": self.pipeline_metrics(pipeline),
         }
 
     # =====================================================
@@ -691,22 +427,12 @@ class PipelineBuilder:
     def critical_engines(
         self,
         pipeline: PipelineDefinition,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Return critical engines.
         """
 
-        return [
-
-            engine.NAME
-
-            for engine
-
-            in pipeline.engines
-
-            if engine.CRITICAL
-
-        ]
+        return [engine.NAME for engine in pipeline.engines if engine.CRITICAL]
 
     # =====================================================
     # PARALLELIZABLE ENGINES
@@ -715,23 +441,13 @@ class PipelineBuilder:
     def parallelizable_engines(
         self,
         pipeline: PipelineDefinition,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Return engines that may
         execute concurrently.
         """
 
-        return [
-
-            engine.NAME
-
-            for engine
-
-            in pipeline.engines
-
-            if engine.PARALLELIZABLE
-
-        ]
+        return [engine.NAME for engine in pipeline.engines if engine.PARALLELIZABLE]
 
     # =====================================================
     # EXPORT
@@ -740,47 +456,18 @@ class PipelineBuilder:
     def to_dict(
         self,
         pipeline: PipelineDefinition,
-    ) -> Dict:
+    ) -> dict:
         """
         Export pipeline.
         """
 
         return {
-
-            "name":
-
-                pipeline.name,
-
-            "engines":
-
-                [
-
-                    engine.metadata()
-
-                    for engine
-
-                    in pipeline.engines
-
-                ],
-
-            "execution_order":
-
-                pipeline.execution_order,
-
-            "execution_levels":
-
-                pipeline.execution_levels,
-
-            "metadata":
-
-                pipeline.metadata,
-
-            "metrics":
-
-                self.pipeline_metrics(
-                    pipeline
-                ),
-
+            "name": pipeline.name,
+            "engines": [engine.metadata() for engine in pipeline.engines],
+            "execution_order": pipeline.execution_order,
+            "execution_levels": pipeline.execution_levels,
+            "metadata": pipeline.metadata,
+            "metrics": self.pipeline_metrics(pipeline),
         }
 
     # -----------------------------------------------------
@@ -797,13 +484,8 @@ class PipelineBuilder:
         import json
 
         return json.dumps(
-
-            self.to_dict(
-                pipeline
-            ),
-
+            self.to_dict(pipeline),
             indent=indent,
-
         )
 
     # =====================================================
@@ -813,45 +495,19 @@ class PipelineBuilder:
     def summary(
         self,
         pipeline: PipelineDefinition,
-    ) -> Dict:
+    ) -> dict:
         """
         Pipeline summary.
         """
 
         return {
-
-            "pipeline":
-
-                pipeline.name,
-
-            "engines":
-
-                pipeline.engine_count,
-
-            "categories":
-
-                pipeline.categories,
-
-            "stages":
-
-                pipeline.stages,
-
-            "execution_levels":
-
-                len(
-                    pipeline.execution_levels
-                ),
-
-            "execution_order":
-
-                pipeline.execution_order,
-
-            "metrics":
-
-                self.pipeline_metrics(
-                    pipeline
-                ),
-
+            "pipeline": pipeline.name,
+            "engines": pipeline.engine_count,
+            "categories": pipeline.categories,
+            "stages": pipeline.stages,
+            "execution_levels": len(pipeline.execution_levels),
+            "execution_order": pipeline.execution_order,
+            "metrics": self.pipeline_metrics(pipeline),
         }
 
     # =====================================================
@@ -863,11 +519,7 @@ class PipelineBuilder:
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"registry={self.registry.engine_count}, "
-
             f"graph_nodes={self.graph.node_count})"
-
         )

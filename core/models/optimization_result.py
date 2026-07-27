@@ -28,7 +28,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import numpy as np
-
 import pandas as pd
 
 
@@ -58,11 +57,7 @@ class OptimizationResult:
 
     message: str = ""
 
-    metadata: dict = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict = field(default_factory=dict)
 
     __hash__ = None
 
@@ -70,18 +65,11 @@ class OptimizationResult:
     # INITIALIZATION
     # =====================================================
 
-    def __post_init__(
-
-        self
-
-    ) -> None:
+    def __post_init__(self) -> None:
 
         self.weights = np.asarray(
-
             self.weights,
-
             dtype=np.float64,
-
         )
 
         self.validate()
@@ -90,294 +78,126 @@ class OptimizationResult:
     # COLLECTION
     # =====================================================
 
-    def __len__(
+    def __len__(self) -> int:
 
-        self
+        return len(self.weights)
 
-    ) -> int:
+    def __iter__(self):
 
-        return len(
-
-            self.weights
-
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self.weights
-
-        )
+        return iter(self.weights)
 
     def __getitem__(
-
         self,
-
         key: int | str,
-
     ) -> float:
 
         if isinstance(
-
             key,
-
             int,
-
         ):
-
-            return float(
-
-                self.weights[key]
-
-            )
+            return float(self.weights[key])
 
         if isinstance(
-
             key,
-
             str,
-
         ):
-
             try:
-
-                index = self.symbols.index(
-
-                    key
-
-                )
+                index = self.symbols.index(key)
 
             except ValueError as exc:
+                raise KeyError(f"Unknown symbol '{key}'.") from exc
 
-                raise KeyError(
+            return float(self.weights[index])
 
-                    f"Unknown symbol '{key}'."
-
-                ) from exc
-
-            return float(
-
-                self.weights[index]
-
-            )
-
-        raise TypeError(
-
-            "Key must be int or str."
-
-        )
+        raise TypeError("Key must be int or str.")
 
     # =====================================================
     # PROPERTIES
     # =====================================================
 
     @property
-    def holdings(
+    def holdings(self) -> int:
 
-        self
-
-    ) -> int:
-
-        return len(
-
-            self
-
-        )
+        return len(self)
 
     @property
-    def fully_invested(
+    def fully_invested(self) -> bool:
 
-        self
-
-    ) -> bool:
-
-        return abs(
-
-            self.weights.sum()
-
-            - 1.0
-
-        ) < 1e-6
+        return abs(self.weights.sum() - 1.0) < 1e-6
 
     # =====================================================
     # VALIDATION
     # =====================================================
 
-    def validate(
+    def validate(self) -> None:
 
-        self
+        if len(self.symbols) != len(self.weights):
+            raise ValueError("Symbols and weights size mismatch.")
 
-    ) -> None:
+        if np.isnan(self.weights).any():
+            raise ValueError("Weights contain NaN.")
 
-        if len(
-
-            self.symbols
-
-        ) != len(
-
-            self.weights
-
-        ):
-
-            raise ValueError(
-
-                "Symbols and weights size mismatch."
-
-            )
-
-        if np.isnan(
-
-            self.weights
-
-        ).any():
-
-            raise ValueError(
-
-                "Weights contain NaN."
-
-            )
-
-        if np.isinf(
-
-            self.weights
-
-        ).any():
-
-            raise ValueError(
-
-                "Weights contain infinite values."
-
-            )
+        if np.isinf(self.weights).any():
+            raise ValueError("Weights contain infinite values.")
 
     # =====================================================
     # EXPORT
     # =====================================================
 
-    def to_dict(
-
-        self
-
-    ) -> dict[str, float]:
+    def to_dict(self) -> dict[str, float]:
 
         return {
-
-            symbol: float(
-
-                weight
-
-            )
-
-            for symbol, weight
-
-            in zip(
-
+            symbol: float(weight)
+            for symbol, weight in zip(
                 self.symbols,
-
                 self.weights,
-
                 strict=True,
-
             )
-
         }
 
-    def to_series(
-
-        self
-
-    ) -> pd.Series:
+    def to_series(self) -> pd.Series:
 
         return pd.Series(
-
             self.weights,
-
             index=self.symbols,
-
             name="Weight",
-
         )
 
-    def to_dataframe(
-
-        self
-
-    ) -> pd.DataFrame:
+    def to_dataframe(self) -> pd.DataFrame:
 
         return pd.DataFrame(
-
             {
-
                 "Symbol": self.symbols,
-
                 "Weight": self.weights,
-
             }
-
         )
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         return {
-
-            "Holdings":
-
-                self.holdings,
-
-            "Expected_Return":
-
-                self.expected_return,
-
-            "Expected_Risk":
-
-                self.expected_risk,
-
-            "Expected_Sharpe":
-
-                self.expected_sharpe,
-
-            "Objective":
-
-                self.objective_value,
-
-            "Success":
-
-                self.success,
-
+            "Holdings": self.holdings,
+            "Expected_Return": self.expected_return,
+            "Expected_Risk": self.expected_risk,
+            "Expected_Sharpe": self.expected_sharpe,
+            "Objective": self.objective_value,
+            "Success": self.success,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Holdings={self.holdings}, "
-
             f"Success={self.success}"
-
             f")"
-
         )
 
     __str__ = __repr__

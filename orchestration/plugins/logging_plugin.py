@@ -31,6 +31,7 @@ logger = logging.getLogger(__name__)
 # LOGGING PLUGIN
 # ==========================================================
 
+
 class LoggingPlugin(BasePlugin):
     """
     Platform logging plugin.
@@ -49,11 +50,8 @@ class LoggingPlugin(BasePlugin):
     def initialize(self) -> None:
 
         logger.info(
-
             "%s initialized.",
-
             self.NAME,
-
         )
 
     # -----------------------------------------------------
@@ -61,11 +59,8 @@ class LoggingPlugin(BasePlugin):
     def shutdown(self) -> None:
 
         logger.info(
-
             "%s shutdown.",
-
             self.NAME,
-
         )
 
     # =====================================================
@@ -77,11 +72,7 @@ class LoggingPlugin(BasePlugin):
         **payload: Any,
     ) -> None:
 
-        logger.info(
-
-            "Platform started."
-
-        )
+        logger.info("Platform started.")
 
     # -----------------------------------------------------
 
@@ -90,11 +81,7 @@ class LoggingPlugin(BasePlugin):
         **payload: Any,
     ) -> None:
 
-        logger.info(
-
-            "Platform finished."
-
-        )
+        logger.info("Platform finished.")
 
     # -----------------------------------------------------
 
@@ -103,11 +90,7 @@ class LoggingPlugin(BasePlugin):
         **payload: Any,
     ) -> None:
 
-        logger.error(
-
-            "Platform failed."
-
-        )
+        logger.error("Platform failed.")
 
     # =====================================================
     # PIPELINES
@@ -120,11 +103,8 @@ class LoggingPlugin(BasePlugin):
     ) -> None:
 
         logger.info(
-
             "Pipeline started: %s",
-
             pipeline,
-
         )
 
     # -----------------------------------------------------
@@ -136,11 +116,8 @@ class LoggingPlugin(BasePlugin):
     ) -> None:
 
         logger.info(
-
             "Pipeline finished: %s",
-
             pipeline,
-
         )
 
     # -----------------------------------------------------
@@ -152,11 +129,8 @@ class LoggingPlugin(BasePlugin):
     ) -> None:
 
         logger.exception(
-
             "Pipeline failed: %s",
-
             pipeline,
-
         )
 
     # =====================================================
@@ -170,11 +144,8 @@ class LoggingPlugin(BasePlugin):
     ) -> None:
 
         logger.info(
-
             "Engine started: %s",
-
             engine,
-
         )
 
     # -----------------------------------------------------
@@ -186,11 +157,8 @@ class LoggingPlugin(BasePlugin):
     ) -> None:
 
         logger.info(
-
             "Engine finished: %s",
-
             engine,
-
         )
 
     # -----------------------------------------------------
@@ -202,11 +170,8 @@ class LoggingPlugin(BasePlugin):
     ) -> None:
 
         logger.exception(
-
             "Engine failed: %s",
-
             engine,
-
         )
 
     # =====================================================
@@ -219,11 +184,7 @@ class LoggingPlugin(BasePlugin):
         **payload: Any,
     ) -> None:
 
-        logger.exception(
-
-            exception
-
-        )
+        logger.exception(exception)
 
     # =====================================================
     # STATUS
@@ -232,13 +193,9 @@ class LoggingPlugin(BasePlugin):
     def summary(self) -> dict:
 
         return {
-
             "plugin": self.NAME,
-
             "version": self.VERSION,
-
             "enabled": self.ENABLED,
-
         }
 
     # =====================================================
@@ -247,10 +204,4 @@ class LoggingPlugin(BasePlugin):
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"name='{self.NAME}')"
-
-        )
+        return f"{self.__class__.__name__}(name='{self.NAME}')"

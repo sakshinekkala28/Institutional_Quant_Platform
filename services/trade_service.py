@@ -28,37 +28,26 @@ Responsibilities
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
-
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import Enum
-
-from threading import Lock
-from threading import RLock
-
+from threading import Lock, RLock
 from typing import Any
-from typing import Dict
-from typing import Optional
-
-import pandas as pd
 
 from core.services.base_service import BaseService
-
 
 # ============================================================
 # Enums
 # ============================================================
 
-class TradeSide(str, Enum):
 
+class TradeSide(str, Enum):
     BUY = "BUY"
 
     SELL = "SELL"
 
 
 class TradeStatus(str, Enum):
-
     BOOKED = "BOOKED"
 
     ALLOCATED = "ALLOCATED"
@@ -74,6 +63,7 @@ class TradeStatus(str, Enum):
 # Exceptions
 # ============================================================
 
+
 class TradeError(Exception):
     """Base trade exception."""
 
@@ -86,9 +76,9 @@ class TradeNotFound(TradeError):
 # Trade Model
 # ============================================================
 
+
 @dataclass(slots=True)
 class Trade:
-
     trade_id: str
 
     order_id: str
@@ -107,26 +97,19 @@ class Trade:
 
     taxes: float = 0.0
 
-    settlement_date: Optional[datetime] = None
+    settlement_date: datetime | None = None
 
     status: TradeStatus = TradeStatus.BOOKED
 
-    created_at: datetime = field(
+    created_at: datetime = field(default_factory=datetime.utcnow)
 
-        default_factory=datetime.utcnow
-
-    )
-
-    metadata: Dict[str, Any] = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ============================================================
 # Trade Service
 # ============================================================
+
 
 class TradeService(BaseService):
     """
@@ -137,77 +120,41 @@ class TradeService(BaseService):
 
     _instance_lock = Lock()
 
-    def __new__(
-
-        cls,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def __new__(cls, *args, **kwargs):
 
         if cls._instance is None:
-
             with cls._instance_lock:
-
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
 
-    def __init__(
+    def __init__(self):
 
-        self
-
-    ):
-
-        if getattr(
-
-            self,
-
-            "_initialized",
-
-            False
-
-        ):
-
+        if getattr(self, "_initialized", False):
             return
 
         super().__init__()
 
         self._lock = RLock()
 
-        self._trades: Dict[str, Trade] = {}
+        self._trades: dict[str, Trade] = {}
 
         self._enabled = True
 
         self._initialized = True
 
-        self._logger.info(
-
-            "TradeService initialized."
-
-        )
+        self._logger.info("TradeService initialized.")
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def enable(
-
-        self
-
-    ):
+    def enable(self):
 
         self._enabled = True
 
-    def disable(
-
-        self
-
-    ):
+    def disable(self):
 
         self._enabled = False
 
@@ -215,171 +162,75 @@ class TradeService(BaseService):
     # Registration
     # =====================================================
 
-    def book(
-
-        self,
-
-        trade: Trade
-
-    ) -> None:
+    def book(self, trade: Trade) -> None:
         """
         Book trade.
         """
 
         with self._lock:
-
-            self._trades[
-
-                trade.trade_id
-
-            ] = trade
+            self._trades[trade.trade_id] = trade
 
     # =====================================================
     # Retrieval
     # =====================================================
 
-    def get(
-
-        self,
-
-        trade_id: str
-
-    ) -> Trade:
+    def get(self, trade_id: str) -> Trade:
 
         if trade_id not in self._trades:
+            raise TradeNotFound(trade_id)
 
-            raise TradeNotFound(
-
-                trade_id
-
-            )
-
-        return self._trades[
-
-            trade_id
-
-        ]
+        return self._trades[trade_id]
 
     # =====================================================
     # BaseService
     # =====================================================
 
-    def run(
-
-        self
-
-    ):
+    def run(self):
 
         return self.statistics()
-    
+
     # =====================================================
     # Allocation
     # =====================================================
 
-    def allocate(
-
-        self,
-
-        trade_id: str
-
-    ) -> None:
+    def allocate(self, trade_id: str) -> None:
         """
         Allocate trade.
         """
 
-        trade = self.get(
+        trade = self.get(trade_id)
 
-            trade_id
-
-        )
-
-        trade.status = (
-
-            TradeStatus.ALLOCATED
-
-        )
+        trade.status = TradeStatus.ALLOCATED
 
     # =====================================================
     # Settlement
     # =====================================================
 
-    def settle(
-
-        self,
-
-        trade_id: str,
-
-        settlement_date: Optional[datetime] = None
-
-    ) -> None:
+    def settle(self, trade_id: str, settlement_date: datetime | None = None) -> None:
         """
         Settle trade.
         """
 
-        trade = self.get(
+        trade = self.get(trade_id)
 
-            trade_id
+        trade.status = TradeStatus.SETTLED
 
-        )
-
-        trade.status = (
-
-            TradeStatus.SETTLED
-
-        )
-
-        trade.settlement_date = (
-
-            settlement_date
-
-            or
-
-            datetime.utcnow()
-
-        )
+        trade.settlement_date = settlement_date or datetime.utcnow()
 
     # =====================================================
     # Commission
     # =====================================================
 
-    def calculate_commission(
-
-        self,
-
-        trade_id: str,
-
-        rate: float
-
-    ) -> float:
+    def calculate_commission(self, trade_id: str, rate: float) -> float:
         """
         Calculate commission.
         """
 
-        trade = self.get(
+        trade = self.get(trade_id)
 
-            trade_id
+        commission = trade.quantity * trade.price * rate
 
-        )
-
-        commission = (
-
-            trade.quantity
-
-            *
-
-            trade.price
-
-            *
-
-            rate
-
-        )
-
-        trade.commission = (
-
-            commission
-
-        )
+        trade.commission = commission
 
         return commission
 
@@ -387,24 +238,12 @@ class TradeService(BaseService):
     # Fees
     # =====================================================
 
-    def calculate_fees(
-
-        self,
-
-        trade_id: str,
-
-        fees: float
-
-    ) -> float:
+    def calculate_fees(self, trade_id: str, fees: float) -> float:
         """
         Apply exchange fees.
         """
 
-        trade = self.get(
-
-            trade_id
-
-        )
+        trade = self.get(trade_id)
 
         trade.fees = fees
 
@@ -414,24 +253,12 @@ class TradeService(BaseService):
     # Taxes
     # =====================================================
 
-    def calculate_taxes(
-
-        self,
-
-        trade_id: str,
-
-        taxes: float
-
-    ) -> float:
+    def calculate_taxes(self, trade_id: str, taxes: float) -> float:
         """
         Apply taxes.
         """
 
-        trade = self.get(
-
-            trade_id
-
-        )
+        trade = self.get(trade_id)
 
         trade.taxes = taxes
 
@@ -441,222 +268,94 @@ class TradeService(BaseService):
     # Cancellation
     # =====================================================
 
-    def cancel(
-
-        self,
-
-        trade_id: str
-
-    ) -> None:
+    def cancel(self, trade_id: str) -> None:
         """
         Cancel trade.
         """
 
-        trade = self.get(
+        trade = self.get(trade_id)
 
-            trade_id
-
-        )
-
-        trade.status = (
-
-            TradeStatus.CANCELLED
-
-        )
+        trade.status = TradeStatus.CANCELLED
 
     # =====================================================
     # Reconciliation
     # =====================================================
 
-    def reconcile(
-
-        self,
-
-        trade_id: str
-
-    ) -> None:
+    def reconcile(self, trade_id: str) -> None:
         """
         Mark trade reconciled.
         """
 
-        trade = self.get(
+        trade = self.get(trade_id)
 
-            trade_id
-
-        )
-
-        trade.status = (
-
-            TradeStatus.RECONCILED
-
-        )
+        trade.status = TradeStatus.RECONCILED
 
     # =====================================================
     # Trade Value
     # =====================================================
 
-    def trade_value(
-
-        self,
-
-        trade_id: str
-
-    ) -> float:
+    def trade_value(self, trade_id: str) -> float:
         """
         Gross trade value.
         """
 
-        trade = self.get(
+        trade = self.get(trade_id)
 
-            trade_id
-
-        )
-
-        return (
-
-            trade.quantity
-
-            *
-
-            trade.price
-
-        )
+        return trade.quantity * trade.price
 
     # =====================================================
     # Total Cost
     # =====================================================
 
-    def total_cost(
-
-        self,
-
-        trade_id: str
-
-    ) -> float:
+    def total_cost(self, trade_id: str) -> float:
         """
         Total trade cost.
         """
 
-        trade = self.get(
+        trade = self.get(trade_id)
 
-            trade_id
-
-        )
-
-        return (
-
-            self.trade_value(
-
-                trade_id
-
-            )
-
-            +
-
-            trade.commission
-
-            +
-
-            trade.fees
-
-            +
-
-            trade.taxes
-
-        )
+        return self.trade_value(trade_id) + trade.commission + trade.fees + trade.taxes
 
     # =====================================================
     # Realized P&L
     # =====================================================
 
     def realized_pnl(
-
-        self,
-
-        buy_price: float,
-
-        sell_price: float,
-
-        quantity: float
-
+        self, buy_price: float, sell_price: float, quantity: float
     ) -> float:
         """
         Calculate realized P&L.
         """
 
-        return (
-
-            sell_price
-
-            -
-
-            buy_price
-
-        ) * quantity
+        return (sell_price - buy_price) * quantity
 
     # =====================================================
     # Unrealized P&L Hook
     # =====================================================
 
-    def unrealized_pnl(
-
-        self,
-
-        engine,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def unrealized_pnl(self, engine, *args, **kwargs):
         """
         Delegate unrealized P&L.
         """
 
-        return engine.run(
-
-            *args,
-
-            **kwargs
-
-        )
+        return engine.run(*args, **kwargs)
 
     # =====================================================
     # Validation
     # =====================================================
 
-    def validate(
-
-        self,
-
-        trade_id: str
-
-    ) -> bool:
+    def validate(self, trade_id: str) -> bool:
         """
         Validate trade.
         """
 
-        trade = self.get(
-
-            trade_id
-
-        )
+        trade = self.get(trade_id)
 
         if trade.quantity <= 0:
-
-            raise TradeError(
-
-                "Quantity must be positive."
-
-            )
+            raise TradeError("Quantity must be positive.")
 
         if trade.price <= 0:
-
-            raise TradeError(
-
-                "Price must be positive."
-
-            )
+            raise TradeError("Price must be positive.")
 
         return True
 
@@ -664,260 +363,100 @@ class TradeService(BaseService):
     # Statistics
     # =====================================================
 
-    def statistics(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """
         Trade statistics.
         """
 
         return {
-
-            "trades":
-
-                len(
-
-                    self._trades
-
-                ),
-
-            "settled":
-
-                sum(
-
-                    trade.status
-
-                    ==
-
-                    TradeStatus.SETTLED
-
-                    for trade
-
-                    in self._trades.values()
-
-                ),
-
-            "allocated":
-
-                sum(
-
-                    trade.status
-
-                    ==
-
-                    TradeStatus.ALLOCATED
-
-                    for trade
-
-                    in self._trades.values()
-
-                ),
-
-            "enabled":
-
-                self._enabled
-
+            "trades": len(self._trades),
+            "settled": sum(
+                trade.status == TradeStatus.SETTLED for trade in self._trades.values()
+            ),
+            "allocated": sum(
+                trade.status == TradeStatus.ALLOCATED for trade in self._trades.values()
+            ),
+            "enabled": self._enabled,
         }
-    
+
     # =====================================================
     # Query
     # =====================================================
 
-    def exists(
-
-        self,
-
-        trade_id: str
-
-    ) -> bool:
+    def exists(self, trade_id: str) -> bool:
         """
         Check whether trade exists.
         """
 
         return trade_id in self._trades
 
-    def trades(
-
-        self
-
-    ) -> list[Trade]:
+    def trades(self) -> list[Trade]:
         """
         Return all trades.
         """
 
-        return list(
+        return list(self._trades.values())
 
-            self._trades.values()
-
-        )
-
-    def trades_by_status(
-
-        self,
-
-        status: TradeStatus
-
-    ) -> list[Trade]:
+    def trades_by_status(self, status: TradeStatus) -> list[Trade]:
         """
         Return trades filtered by status.
         """
 
-        return [
+        return [trade for trade in self._trades.values() if trade.status == status]
 
-            trade
+    def booked_trades(self) -> list[Trade]:
 
-            for trade
+        return self.trades_by_status(TradeStatus.BOOKED)
 
-            in self._trades.values()
+    def allocated_trades(self) -> list[Trade]:
 
-            if trade.status == status
+        return self.trades_by_status(TradeStatus.ALLOCATED)
 
-        ]
+    def settled_trades(self) -> list[Trade]:
 
-    def booked_trades(
+        return self.trades_by_status(TradeStatus.SETTLED)
 
-        self
+    def cancelled_trades(self) -> list[Trade]:
 
-    ) -> list[Trade]:
+        return self.trades_by_status(TradeStatus.CANCELLED)
 
-        return self.trades_by_status(
+    def reconciled_trades(self) -> list[Trade]:
 
-            TradeStatus.BOOKED
-
-        )
-
-    def allocated_trades(
-
-        self
-
-    ) -> list[Trade]:
-
-        return self.trades_by_status(
-
-            TradeStatus.ALLOCATED
-
-        )
-
-    def settled_trades(
-
-        self
-
-    ) -> list[Trade]:
-
-        return self.trades_by_status(
-
-            TradeStatus.SETTLED
-
-        )
-
-    def cancelled_trades(
-
-        self
-
-    ) -> list[Trade]:
-
-        return self.trades_by_status(
-
-            TradeStatus.CANCELLED
-
-        )
-
-    def reconciled_trades(
-
-        self
-
-    ) -> list[Trade]:
-
-        return self.trades_by_status(
-
-            TradeStatus.RECONCILED
-
-        )
+        return self.trades_by_status(TradeStatus.RECONCILED)
 
     # =====================================================
     # Metadata
     # =====================================================
 
-    def metadata(
-
-        self,
-
-        trade_id: str
-
-    ) -> Dict[str, Any]:
+    def metadata(self, trade_id: str) -> dict[str, Any]:
         """
         Return trade metadata.
         """
 
-        return dict(
+        return dict(self.get(trade_id).metadata)
 
-            self.get(
-
-                trade_id
-
-            ).metadata
-
-        )
-
-    def update_metadata(
-
-        self,
-
-        trade_id: str,
-
-        **kwargs
-
-    ) -> None:
+    def update_metadata(self, trade_id: str, **kwargs) -> None:
         """
         Update trade metadata.
         """
 
-        self.get(
-
-            trade_id
-
-        ).metadata.update(
-
-            kwargs
-
-        )
+        self.get(trade_id).metadata.update(kwargs)
 
     # =====================================================
     # Registry
     # =====================================================
 
-    def remove(
-
-        self,
-
-        trade_id: str
-
-    ) -> None:
+    def remove(self, trade_id: str) -> None:
         """
         Remove trade.
         """
 
         if trade_id not in self._trades:
+            raise TradeNotFound(trade_id)
 
-            raise TradeNotFound(
+        del self._trades[trade_id]
 
-                trade_id
-
-            )
-
-        del self._trades[
-
-            trade_id
-
-        ]
-
-    def clear(
-
-        self
-
-    ) -> None:
+    def clear(self) -> None:
         """
         Remove all trades.
         """
@@ -928,243 +467,86 @@ class TradeService(BaseService):
     # Snapshot
     # =====================================================
 
-    def snapshot(
-
-        self,
-
-        trade_id: str
-
-    ) -> Dict[str, Any]:
+    def snapshot(self, trade_id: str) -> dict[str, Any]:
         """
         Trade snapshot.
         """
 
-        trade = self.get(
-
-            trade_id
-
-        )
+        trade = self.get(trade_id)
 
         return {
-
-            "trade_id":
-
-                trade.trade_id,
-
-            "order_id":
-
-                trade.order_id,
-
-            "symbol":
-
-                trade.symbol,
-
-            "side":
-
-                trade.side.value,
-
-            "quantity":
-
-                trade.quantity,
-
-            "price":
-
-                trade.price,
-
-            "trade_value":
-
-                self.trade_value(
-
-                    trade_id
-
-                ),
-
-            "commission":
-
-                trade.commission,
-
-            "fees":
-
-                trade.fees,
-
-            "taxes":
-
-                trade.taxes,
-
-            "total_cost":
-
-                self.total_cost(
-
-                    trade_id
-
-                ),
-
-            "status":
-
-                trade.status.value,
-
-            "settlement_date":
-
-                (
-
-                    trade.settlement_date.isoformat()
-
-                    if trade.settlement_date
-
-                    else None
-
-                ),
-
-            "created_at":
-
-                trade.created_at.isoformat(),
-
-            "metadata":
-
-                dict(
-
-                    trade.metadata
-
-                )
-
+            "trade_id": trade.trade_id,
+            "order_id": trade.order_id,
+            "symbol": trade.symbol,
+            "side": trade.side.value,
+            "quantity": trade.quantity,
+            "price": trade.price,
+            "trade_value": self.trade_value(trade_id),
+            "commission": trade.commission,
+            "fees": trade.fees,
+            "taxes": trade.taxes,
+            "total_cost": self.total_cost(trade_id),
+            "status": trade.status.value,
+            "settlement_date": (
+                trade.settlement_date.isoformat() if trade.settlement_date else None
+            ),
+            "created_at": trade.created_at.isoformat(),
+            "metadata": dict(trade.metadata),
         }
 
     # =====================================================
     # Health
     # =====================================================
 
-    def health(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """
         Trade service health.
         """
 
         return {
-
-            "status":
-
-                "HEALTHY"
-
-                if self._enabled
-
-                else "DISABLED",
-
-            "enabled":
-
-                self._enabled,
-
-            "trades":
-
-                len(
-
-                    self._trades
-
-                ),
-
-            "settled":
-
-                len(
-
-                    self.settled_trades()
-
-                )
-
+            "status": "HEALTHY" if self._enabled else "DISABLED",
+            "enabled": self._enabled,
+            "trades": len(self._trades),
+            "settled": len(self.settled_trades()),
         }
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def startup(
-
-        self
-
-    ) -> None:
+    def startup(self) -> None:
 
         self.enable()
 
-        self._logger.info(
+        self._logger.info("TradeService started.")
 
-            "TradeService started."
-
-        )
-
-    def shutdown(
-
-        self
-
-    ) -> None:
+    def shutdown(self) -> None:
 
         self.clear()
 
         self.disable()
 
-        self._logger.info(
-
-            "TradeService shutdown."
-
-        )
+        self._logger.info("TradeService shutdown.")
 
     # =====================================================
     # Magic Methods
     # =====================================================
 
-    def __contains__(
+    def __contains__(self, trade_id: str) -> bool:
 
-        self,
+        return self.exists(trade_id)
 
-        trade_id: str
+    def __len__(self) -> int:
 
-    ) -> bool:
+        return len(self._trades)
 
-        return self.exists(
+    def __iter__(self):
 
-            trade_id
+        return iter(self._trades.values())
 
-        )
+    def __repr__(self) -> str:
 
-    def __len__(
-
-        self
-
-    ) -> int:
-
-        return len(
-
-            self._trades
-
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self._trades.values()
-
-        )
-
-    def __repr__(
-
-        self
-
-    ) -> str:
-
-        return (
-
-            f"{self.__class__.__name__}"
-
-            f"(trades={len(self)}, "
-
-            f"enabled={self._enabled})"
-
-        )
+        return f"{self.__class__.__name__}(trades={len(self)}, enabled={self._enabled})"
 
 
 # ============================================================

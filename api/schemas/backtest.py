@@ -26,15 +26,9 @@ Provides
 
 from __future__ import annotations
 
-from datetime import date
-from datetime import datetime
+from datetime import date, datetime
 
-from pydantic import Field
-
-from api.schemas.base import APIModel
-from api.schemas.base import BaseResponse
-from api.schemas.base import SuccessResponse
-
+from api.schemas.base import APIModel, BaseResponse, SuccessResponse
 
 # ==========================================================
 # BACKTEST CONFIGURATION
@@ -232,17 +226,11 @@ class BacktestReport(
 
     result: BacktestResult
 
-    equity_curve: list[
-        EquityPoint
-    ]
+    equity_curve: list[EquityPoint]
 
-    drawdown_curve: list[
-        DrawdownPoint
-    ]
+    drawdown_curve: list[DrawdownPoint]
 
-    trades: list[
-        BacktestTrade
-    ]
+    trades: list[BacktestTrade]
 
 
 # ==========================================================
@@ -289,9 +277,7 @@ class EquityCurveResponse(
     Equity curve response.
     """
 
-    data: list[
-        EquityPoint
-    ]
+    data: list[EquityPoint]
 
 
 class DrawdownResponse(
@@ -301,9 +287,7 @@ class DrawdownResponse(
     Drawdown response.
     """
 
-    data: list[
-        DrawdownPoint
-    ]
+    data: list[DrawdownPoint]
 
 
 class TradeHistoryResponse(
@@ -313,9 +297,7 @@ class TradeHistoryResponse(
     Trade history response.
     """
 
-    data: list[
-        BacktestTrade
-    ]
+    data: list[BacktestTrade]
 
 
 # ==========================================================
@@ -324,35 +306,19 @@ class TradeHistoryResponse(
 
 
 __all__ = [
-
     "BacktestConfiguration",
-
-    "BacktestRequest",
-
-    "PerformanceMetrics",
-
-    "EquityPoint",
-
-    "DrawdownPoint",
-
-    "BacktestTrade",
-
-    "BenchmarkComparison",
-
-    "BacktestResult",
-
     "BacktestReport",
-
-    "BacktestResponse",
-
-    "BacktestResultResponse",
-
     "BacktestReportResponse",
-
-    "EquityCurveResponse",
-
+    "BacktestRequest",
+    "BacktestResponse",
+    "BacktestResult",
+    "BacktestResultResponse",
+    "BacktestTrade",
+    "BenchmarkComparison",
+    "DrawdownPoint",
     "DrawdownResponse",
-
+    "EquityCurveResponse",
+    "EquityPoint",
+    "PerformanceMetrics",
     "TradeHistoryResponse",
-
 ]

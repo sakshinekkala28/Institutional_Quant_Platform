@@ -24,20 +24,13 @@ Provides
 
 from __future__ import annotations
 
-from typing import Any
-from typing import Generic
-from typing import TypeVar
+from typing import Any, Generic, TypeVar
 
 from pydantic import Field
 
 from api.schemas.base import APIModel
 
-
-T = TypeVar(
-
-    "T"
-
-)
+T = TypeVar("T")
 
 
 # ==========================================================
@@ -53,21 +46,14 @@ class PageRequest(
     """
 
     page: int = Field(
-
         default=1,
-
         ge=1,
-
     )
 
     page_size: int = Field(
-
         default=100,
-
         ge=1,
-
         le=1000,
-
     )
 
 
@@ -104,9 +90,7 @@ class FilterRequest(
         str,
         Any,
     ] = Field(
-
         default_factory=dict,
-
     )
 
 
@@ -168,13 +152,9 @@ class CursorRequest(
     cursor: str | None = None
 
     limit: int = Field(
-
         default=100,
-
         ge=1,
-
         le=1000,
-
     )
 
 
@@ -240,23 +220,13 @@ class SearchRequest(
 
 
 __all__ = [
-
-    "PageRequest",
-
-    "SortRequest",
-
-    "FilterRequest",
-
-    "PageMetadata",
-
-    "PageResponse",
-
-    "CursorRequest",
-
     "CursorMetadata",
-
+    "CursorRequest",
     "CursorResponse",
-
+    "FilterRequest",
+    "PageMetadata",
+    "PageRequest",
+    "PageResponse",
     "SearchRequest",
-
+    "SortRequest",
 ]

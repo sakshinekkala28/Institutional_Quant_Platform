@@ -31,10 +31,8 @@ Used By
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime
-
 
 # ==========================================================
 # ALERT
@@ -55,28 +53,18 @@ class Alert:
 
     message: str
 
-    timestamp: datetime = field(
-
-        default_factory=datetime.utcnow
-
-    )
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
     acknowledged: bool = False
 
-    metadata: dict = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict = field(default_factory=dict)
 
     # =====================================================
     # ACKNOWLEDGE
     # =====================================================
 
     def acknowledge(
-
         self,
-
     ) -> None:
 
         self.acknowledged = True
@@ -86,37 +74,16 @@ class Alert:
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Level":
-
-                self.level,
-
-            "Source":
-
-                self.source,
-
-            "Title":
-
-                self.title,
-
-            "Message":
-
-                self.message,
-
-            "Timestamp":
-
-                self.timestamp.isoformat(),
-
-            "Acknowledged":
-
-                self.acknowledged,
-
+            "Level": self.level,
+            "Source": self.source,
+            "Title": self.title,
+            "Message": self.message,
+            "Timestamp": self.timestamp.isoformat(),
+            "Acknowledged": self.acknowledged,
         }
 
 
@@ -131,11 +98,7 @@ class AlertEngine:
     Institutional alert engine.
     """
 
-    alerts: list[Alert] = field(
-
-        default_factory=list
-
-    )
+    alerts: list[Alert] = field(default_factory=list)
 
     __hash__ = None
 
@@ -144,40 +107,23 @@ class AlertEngine:
     # =====================================================
 
     def create(
-
         self,
-
         level: str,
-
         source: str,
-
         title: str,
-
         message: str,
-
         metadata: dict | None = None,
-
     ) -> Alert:
 
         alert = Alert(
-
             level=level.upper(),
-
             source=source,
-
             title=title,
-
             message=message,
-
             metadata=metadata or {},
-
         )
 
-        self.alerts.append(
-
-            alert
-
-        )
+        self.alerts.append(alert)
 
         return alert
 
@@ -186,27 +132,18 @@ class AlertEngine:
     # =====================================================
 
     def acknowledge(
-
         self,
-
         index: int,
-
     ) -> None:
 
-        self.alerts[
-
-            index
-
-        ].acknowledge()
+        self.alerts[index].acknowledge()
 
     # =====================================================
     # CLEAR
     # =====================================================
 
     def clear(
-
         self,
-
     ) -> None:
 
         self.alerts.clear()
@@ -216,65 +153,27 @@ class AlertEngine:
     # =====================================================
 
     def by_level(
-
         self,
-
         level: str,
-
     ) -> list[Alert]:
 
         level = level.upper()
 
-        return [
-
-            alert
-
-            for alert
-
-            in self.alerts
-
-            if alert.level == level
-
-        ]
+        return [alert for alert in self.alerts if alert.level == level]
 
     def by_source(
-
         self,
-
         source: str,
-
     ) -> list[Alert]:
 
-        return [
-
-            alert
-
-            for alert
-
-            in self.alerts
-
-            if alert.source == source
-
-        ]
+        return [alert for alert in self.alerts if alert.source == source]
 
     @property
     def active(
-
         self,
-
     ) -> list[Alert]:
 
-        return [
-
-            alert
-
-            for alert
-
-            in self.alerts
-
-            if not alert.acknowledged
-
-        ]
+        return [alert for alert in self.alerts if not alert.acknowledged]
 
     # =====================================================
     # COUNTS
@@ -282,104 +181,46 @@ class AlertEngine:
 
     @property
     def total(
-
         self,
-
     ) -> int:
 
-        return len(
-
-            self.alerts
-
-        )
+        return len(self.alerts)
 
     @property
     def critical(
-
         self,
-
     ) -> int:
 
-        return len(
-
-            self.by_level(
-
-                "CRITICAL"
-
-            )
-
-        )
+        return len(self.by_level("CRITICAL"))
 
     @property
     def warning(
-
         self,
-
     ) -> int:
 
-        return len(
-
-            self.by_level(
-
-                "WARNING"
-
-            )
-
-        )
+        return len(self.by_level("WARNING"))
 
     @property
     def info(
-
         self,
-
     ) -> int:
 
-        return len(
-
-            self.by_level(
-
-                "INFO"
-
-            )
-
-        )
+        return len(self.by_level("INFO"))
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "TotalAlerts":
-
-                self.total,
-
-            "Critical":
-
-                self.critical,
-
-            "Warnings":
-
-                self.warning,
-
-            "Information":
-
-                self.info,
-
-            "Active":
-
-                len(
-
-                    self.active
-
-                ),
-
+            "TotalAlerts": self.total,
+            "Critical": self.critical,
+            "Warnings": self.warning,
+            "Information": self.info,
+            "Active": len(self.active),
         }
 
     # =====================================================
@@ -387,19 +228,11 @@ class AlertEngine:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ):
 
         return (
-
-            f"{self.__class__.__name__}("
-
-            f"Alerts={self.total}, "
-
-            f"Critical={self.critical})"
-
+            f"{self.__class__.__name__}(Alerts={self.total}, Critical={self.critical})"
         )
 
     __str__ = __repr__

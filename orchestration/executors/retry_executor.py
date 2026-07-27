@@ -22,20 +22,16 @@ from __future__ import annotations
 
 import time
 
-from typing import List
-from typing import Optional
-
 from orchestration.executors.sequential_executor import (
     SequentialExecutor,
 )
-
 from orchestration.models.engine_result import (
     EngineResult,
 )
-
 from orchestration.models.engine_status import (
     EngineStatus,
 )
+
 
 class RetryExecutor(SequentialExecutor):
     """
@@ -61,9 +57,7 @@ class RetryExecutor(SequentialExecutor):
 
         self.retry_delay = retry_delay
 
-        self.exponential_backoff = (
-            exponential_backoff
-        )
+        self.exponential_backoff = exponential_backoff
 
     # =====================================================
     # EXECUTE
@@ -71,31 +65,24 @@ class RetryExecutor(SequentialExecutor):
 
     def execute(
         self,
-        engine_names: List[str],
-    ) -> List[EngineResult]:
+        engine_names: list[str],
+    ) -> list[EngineResult]:
 
         self.clear_results()
 
         self.before_execution()
 
         try:
-
             for engine_name in engine_names:
+                result = self.execute_with_retry(engine_name)
 
-                result = self.execute_with_retry(
-                    engine_name
-                )
-
-                self.add_result(
-                    result
-                )
+                self.add_result(result)
 
         finally:
-
             self.after_execution()
 
         return self.results
-    
+
     # =====================================================
     # RETRY
     # =====================================================
@@ -108,44 +95,22 @@ class RetryExecutor(SequentialExecutor):
         Execute engine with retry policy.
         """
 
-        last_result: Optional[
-            EngineResult
-        ] = None
+        last_result: EngineResult | None = None
 
-        for attempt in range(
+        for attempt in range(self.max_retries + 1):
+            result = super().execute_engine(engine_name)
 
-            self.max_retries + 1
-
-        ):
-
-            result = super().execute_engine(
-
-                engine_name
-
-            )
-
-            if (
-
-                result.status
-
-                == EngineStatus.SUCCESS
-
-            ):
-
-                result.metadata[
-                    "attempt"
-                ] = attempt + 1
+            if result.status == EngineStatus.SUCCESS:
+                result.metadata["attempt"] = attempt + 1
 
                 return result
 
             last_result = result
 
-            self._wait(
-                attempt
-            )
+            self._wait(attempt)
 
         return last_result
-    
+
     # =====================================================
     # BACKOFF
     # =====================================================
@@ -161,14 +126,9 @@ class RetryExecutor(SequentialExecutor):
         delay = self.retry_delay
 
         if self.exponential_backoff:
+            delay *= 2**attempt
 
-            delay *= (
-                2 ** attempt
-            )
-
-        time.sleep(
-            delay
-        )
+        time.sleep(delay)
 
     # =====================================================
     # METADATA
@@ -180,21 +140,11 @@ class RetryExecutor(SequentialExecutor):
     ) -> dict:
 
         return {
-
-            "max_retries":
-
-                self.max_retries,
-
-            "retry_delay":
-
-                self.retry_delay,
-
-            "exponential_backoff":
-
-                self.exponential_backoff,
-
+            "max_retries": self.max_retries,
+            "retry_delay": self.retry_delay,
+            "exponential_backoff": self.exponential_backoff,
         }
-    
+
     # =====================================================
     # SUMMARY
     # =====================================================
@@ -206,15 +156,9 @@ class RetryExecutor(SequentialExecutor):
         report = super().summary()
 
         report.update(
-
             {
-
-                "retry_policy":
-
-                    self.retry_policy,
-
+                "retry_policy": self.retry_policy,
             }
-
         )
 
         return report

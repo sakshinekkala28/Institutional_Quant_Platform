@@ -17,14 +17,13 @@ data/backtests/all_strategy_results.csv
 =========================================================
 """
 
-from pathlib import Path
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from pathlib import Path
+import traceback
 
 import numpy as np
 import pandas as pd
-import traceback
-
 
 # =========================================================
 # CONFIG
@@ -46,38 +45,15 @@ ENGINE_VERSION = "1.0.0"
 
 ROOT = Path(__file__).resolve().parents[2]
 
-PORTFOLIO_DIR = (
-    ROOT
-    / "data"
-    / "portfolios"
-)
+PORTFOLIO_DIR = ROOT / "data" / "portfolios"
 
-PRICE_DIR = (
-    ROOT
-    / "data"
-    / "raw"
-    / "prices"
-)
+PRICE_DIR = ROOT / "data" / "raw" / "prices"
 
-STRATEGY_DIR = (
-    ROOT
-    / "data"
-    / "research"
-    / "strategies"
-)
+STRATEGY_DIR = ROOT / "data" / "research" / "strategies"
 
-BACKTEST_DIR = (
-    ROOT
-    / "data"
-    / "backtests"
-)
+BACKTEST_DIR = ROOT / "data" / "backtests"
 
-REPORT_FILE = (
-    ROOT
-    / "data"
-    / "logs"
-    / "multi_strategy_backtest_report.csv"
-)
+REPORT_FILE = ROOT / "data" / "logs" / "multi_strategy_backtest_report.csv"
 
 STRATEGY_DIR.mkdir(
     parents=True,
@@ -93,98 +69,60 @@ BACKTEST_DIR.mkdir(
 # BACKTEST FUNCTION
 # =========================================================
 
+
 def run_strategy_backtest(
     portfolio_file,
 ):
 
-    strategy_name = (
-        Path(portfolio_file)
-        .stem
-    )
+    strategy_name = Path(portfolio_file).stem
 
     try:
-
-        portfolio = pd.read_csv(
-            portfolio_file
-        )
+        portfolio = pd.read_csv(portfolio_file)
 
         required_cols = [
             "Symbol",
             "Weight",
         ]
 
-        missing = [
-
-            c
-
-            for c in required_cols
-
-            if c not in portfolio.columns
-        ]
+        missing = [c for c in required_cols if c not in portfolio.columns]
 
         if missing:
-
             return None
 
         returns_list = []
 
         for _, row in portfolio.iterrows():
-
             symbol = row["Symbol"]
 
             weight = row["Weight"]
 
-            file = (
-                PRICE_DIR
-                / f"{symbol}.parquet"
-            )
+            file = PRICE_DIR / f"{symbol}.parquet"
 
             if not file.exists():
                 continue
 
             try:
+                df = pd.read_parquet(file)
 
-                df = pd.read_parquet(
-                    file
-                )
-
-                if (
-                    "Date"
-                    not in df.columns
-                    or
-                    "Close"
-                    not in df.columns
-                ):
+                if "Date" not in df.columns or "Close" not in df.columns:
                     continue
 
-                tmp = pd.DataFrame({
-
-                    "Date":
-                    pd.to_datetime(
-                        df["Date"]
-                    ),
-
-                    "Return":
-                    pd.to_numeric(
-                        df["Close"],
-                        errors="coerce"
-                    )
-                    .pct_change(),
-
-                    "Weight":
-                    weight,
-                })
-
-                returns_list.append(
-                    tmp
+                tmp = pd.DataFrame(
+                    {
+                        "Date": pd.to_datetime(df["Date"]),
+                        "Return": pd.to_numeric(
+                            df["Close"], errors="coerce"
+                        ).pct_change(),
+                        "Weight": weight,
+                    }
                 )
 
-            except Exception:
+                returns_list.append(tmp)
 
+            except Exception:
                 continue
 
         if not returns_list:
-
             return None
 
         all_returns = pd.concat(
@@ -192,226 +130,74 @@ def run_strategy_backtest(
             ignore_index=True,
         )
 
-        all_returns = (
-            all_returns
-            .dropna()
-        )
+        all_returns = all_returns.dropna()
 
         portfolio_returns = (
-
-            all_returns
-
-            .groupby("Date")
-
-            .apply(
-                lambda x:
-                (
-                    x["Return"]
-                    * x["Weight"]
-                ).sum()
-            )
-
-            .reset_index(
-                name="Portfolio_Return"
-            )
+            all_returns.groupby("Date")
+            .apply(lambda x: (x["Return"] * x["Weight"]).sum())
+            .reset_index(name="Portfolio_Return")
         )
 
-        portfolio_returns = (
-            portfolio_returns
-            .sort_values(
-                "Date"
-            )
-        )
+        portfolio_returns = portfolio_returns.sort_values("Date")
 
-        if len(
-            portfolio_returns
-        ) < 30:
-
+        if len(portfolio_returns) < 30:
             return None
 
-        portfolio_returns[
-            "Portfolio_Value"
-        ] = (
-
-            INITIAL_CAPITAL
-
-            * (
-
-                1
-
-                + portfolio_returns[
-                    "Portfolio_Return"
-                ]
-
-            ).cumprod()
+        portfolio_returns["Portfolio_Value"] = (
+            INITIAL_CAPITAL * (1 + portfolio_returns["Portfolio_Return"]).cumprod()
         )
 
-        equity_curve = (
-            portfolio_returns.copy()
-        )
+        equity_curve = portfolio_returns.copy()
 
-        rolling_max = (
+        rolling_max = equity_curve["Portfolio_Value"].cummax()
 
-            equity_curve[
-                "Portfolio_Value"
-            ]
+        equity_curve["Drawdown"] = equity_curve["Portfolio_Value"] / rolling_max - 1
 
-            .cummax()
-        )
+        returns = portfolio_returns["Portfolio_Return"]
 
-        equity_curve[
-            "Drawdown"
-        ] = (
+        annual_return = (1 + returns.mean()) ** TRADING_DAYS - 1
 
-            equity_curve[
-                "Portfolio_Value"
-            ]
+        annual_vol = returns.std() * np.sqrt(TRADING_DAYS)
 
-            / rolling_max
-
-            - 1
-        )
-
-        returns = (
-            portfolio_returns[
-                "Portfolio_Return"
-            ]
-        )
-
-        annual_return = (
-
-            (
-                1
-                + returns.mean()
-            )
-
-            ** TRADING_DAYS
-
-            - 1
-        )
-
-        annual_vol = (
-
-            returns.std()
-
-            * np.sqrt(
-                TRADING_DAYS
-            )
-        )
-
-        sharpe = (
-
-            annual_return
-
-            - RISK_FREE_RATE
-
-        ) / max(
+        sharpe = (annual_return - RISK_FREE_RATE) / max(
             annual_vol,
             1e-9,
         )
 
-        downside = returns[
-            returns < 0
-        ]
+        downside = returns[returns < 0]
 
-        sortino = (
-
-            annual_return
-
-            - RISK_FREE_RATE
-
-        ) / max(
-
-            downside.std()
-
-            * np.sqrt(
-                TRADING_DAYS
-            ),
-
+        sortino = (annual_return - RISK_FREE_RATE) / max(
+            downside.std() * np.sqrt(TRADING_DAYS),
             1e-9,
         )
 
-        drawdown = (
-            equity_curve[
-                "Drawdown"
-            ]
-        )
+        drawdown = equity_curve["Drawdown"]
 
-        max_dd = (
-            drawdown.min()
-        )
+        max_dd = drawdown.min()
 
         years = max(
-
-            len(
-                portfolio_returns
-            )
-
-            / TRADING_DAYS,
-
-            1
-            / TRADING_DAYS,
+            len(portfolio_returns) / TRADING_DAYS,
+            1 / TRADING_DAYS,
         )
 
-        final_value = (
-            equity_curve[
-                "Portfolio_Value"
-            ]
-            .iloc[-1]
+        final_value = equity_curve["Portfolio_Value"].iloc[-1]
+
+        cagr = (final_value / INITIAL_CAPITAL) ** (1 / years) - 1
+
+        calmar = cagr / max(
+            abs(max_dd),
+            1e-9,
         )
 
-        cagr = (
+        win_rate = (returns > 0).mean()
 
-            (
-                final_value
+        gross_profit = returns[returns > 0].sum()
 
-                / INITIAL_CAPITAL
-            )
+        gross_loss = abs(returns[returns < 0].sum())
 
-            ** (
-                1 / years
-            )
-
-            - 1
-        )
-
-        calmar = (
-
-            cagr
-
-            / max(
-                abs(
-                    max_dd
-                ),
-                1e-9,
-            )
-        )
-
-        win_rate = (
-            returns > 0
-        ).mean()
-
-        gross_profit = (
-            returns[
-                returns > 0
-            ].sum()
-        )
-
-        gross_loss = abs(
-
-            returns[
-                returns < 0
-            ].sum()
-        )
-
-        profit_factor = (
-
-            gross_profit
-
-            / max(
-                gross_loss,
-                1e-9,
-            )
+        profit_factor = gross_profit / max(
+            gross_loss,
+            1e-9,
         )
 
         # =====================================
@@ -419,58 +205,26 @@ def run_strategy_backtest(
         # =====================================
 
         equity_curve.to_csv(
-
-            STRATEGY_DIR
-
-            / f"{strategy_name}_equity.csv",
-
+            STRATEGY_DIR / f"{strategy_name}_equity.csv",
             index=False,
         )
 
         metrics = {
-
-            "Strategy":
-            strategy_name,
-
-            "Final_Capital":
-            final_value,
-
-            "CAGR":
-            cagr,
-
-            "Annual_Return":
-            annual_return,
-
-            "Annual_Volatility":
-            annual_vol,
-
-            "Sharpe":
-            sharpe,
-
-            "Sortino":
-            sortino,
-
-            "Calmar":
-            calmar,
-
-            "Max_Drawdown":
-            max_dd,
-
-            "Win_Rate":
-            win_rate,
-
-            "Profit_Factor":
-            profit_factor,
+            "Strategy": strategy_name,
+            "Final_Capital": final_value,
+            "CAGR": cagr,
+            "Annual_Return": annual_return,
+            "Annual_Volatility": annual_vol,
+            "Sharpe": sharpe,
+            "Sortino": sortino,
+            "Calmar": calmar,
+            "Max_Drawdown": max_dd,
+            "Win_Rate": win_rate,
+            "Profit_Factor": profit_factor,
         }
 
-        pd.DataFrame(
-            [metrics]
-        ).to_csv(
-
-            STRATEGY_DIR
-
-            / f"{strategy_name}_metrics.csv",
-
+        pd.DataFrame([metrics]).to_csv(
+            STRATEGY_DIR / f"{strategy_name}_metrics.csv",
             index=False,
         )
 
@@ -481,15 +235,15 @@ def run_strategy_backtest(
         print(f"File: {portfolio_file}")
         print(f"Reason: {e}")
         traceback.print_exc()
-    
+
         return None
+
+
 # =========================================================
 # DISCOVER PORTFOLIOS
 # =========================================================
 
-print(
-    "\n📥 Loading Portfolios..."
-)
+print("\n📥 Loading Portfolios...")
 
 VALID_PORTFOLIOS = {
     "live_portfolio.csv",
@@ -498,105 +252,59 @@ VALID_PORTFOLIOS = {
 }
 
 portfolio_files = sorted(
-    file
-    for file in PORTFOLIO_DIR.glob("*.csv")
-    if file.name in VALID_PORTFOLIOS
+    file for file in PORTFOLIO_DIR.glob("*.csv") if file.name in VALID_PORTFOLIOS
 )
 
 if not portfolio_files:
+    raise ValueError("No portfolios found")
 
-    raise ValueError(
-        "No portfolios found"
-    )
-
-print(
-    f"Strategies Found: "
-    f"{len(portfolio_files)}"
-)
+print(f"Strategies Found: {len(portfolio_files)}")
 
 # =========================================================
 # EXECUTE
 # =========================================================
 
-print(
-    "\n🚀 Running Backtests..."
-)
+print("\n🚀 Running Backtests...")
 
 results = []
 
-with ThreadPoolExecutor(
-    max_workers=MAX_WORKERS
-) as executor:
-
+with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
     futures = [
-
         executor.submit(
             run_strategy_backtest,
             str(f),
         )
-
         for f in portfolio_files
     ]
 
     for future in futures:
-
         result = future.result()
 
         if result:
-
-            results.append(
-                result
-            )
+            results.append(result)
 
 # =========================================================
 # MASTER RESULTS
 # =========================================================
 
-master = pd.DataFrame(
-    results
-)
+master = pd.DataFrame(results)
 
 if master.empty:
+    raise ValueError("No successful backtests")
 
-    raise ValueError(
-        "No successful backtests"
-    )
+master = master.sort_values(
+    "Sharpe",
+    ascending=False,
+).reset_index(drop=True)
 
-master = (
+master["Rank"] = master.index + 1
 
-    master
+master["Run_Date"] = datetime.now().strftime("%Y-%m-%d")
 
-    .sort_values(
-        "Sharpe",
-        ascending=False,
-    )
-
-    .reset_index(
-        drop=True
-    )
-)
-
-master["Rank"] = (
-    master.index + 1
-)
-
-master["Run_Date"] = (
-    datetime.now()
-    .strftime(
-        "%Y-%m-%d"
-    )
-)
-
-master["Engine_Version"] = (
-    ENGINE_VERSION
-)
+master["Engine_Version"] = ENGINE_VERSION
 
 master.to_csv(
-
-    BACKTEST_DIR
-
-    / "all_strategy_results.csv",
-
+    BACKTEST_DIR / "all_strategy_results.csv",
     index=False,
 )
 
@@ -613,35 +321,18 @@ best = master.iloc[0]
 
 print("\n" + "=" * 70)
 
-print(
-    "🏁 MULTI STRATEGY BACKTEST COMPLETE"
-)
+print("🏁 MULTI STRATEGY BACKTEST COMPLETE")
 
 print("=" * 70)
 
-print(
-    f"Strategies Tested : "
-    f"{len(master)}"
-)
+print(f"Strategies Tested : {len(master)}")
 
-print(
-    f"Best Strategy     : "
-    f"{best['Strategy']}"
-)
+print(f"Best Strategy     : {best['Strategy']}")
 
-print(
-    f"Best Sharpe       : "
-    f"{best['Sharpe']:.2f}"
-)
+print(f"Best Sharpe       : {best['Sharpe']:.2f}")
 
-print(
-    f"Best CAGR         : "
-    f"{best['CAGR']:.2%}"
-)
+print(f"Best CAGR         : {best['CAGR']:.2%}")
 
-print(
-    f"\nOutput Directory:\n"
-    f"{STRATEGY_DIR}"
-)
+print(f"\nOutput Directory:\n{STRATEGY_DIR}")
 
 print("=" * 70)

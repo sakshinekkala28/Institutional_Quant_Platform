@@ -23,16 +23,15 @@ from __future__ import annotations
 # ==========================================================
 # IMPORTS
 # ==========================================================
-
 # Replace with monitoring_pipeline when implemented.
 from orchestration.pipelines.reporting_pipeline import (
     main as monitoring_pipeline,
 )
 
-
 # ==========================================================
 # MONITORING STAGE
 # ==========================================================
+
 
 class MonitoringStage:
     """
@@ -43,9 +42,7 @@ class MonitoringStage:
 
     NAME = "Monitoring"
 
-    DESCRIPTION = (
-        "Runtime monitoring and platform validation."
-    )
+    DESCRIPTION = "Runtime monitoring and platform validation."
 
     PIPELINE = monitoring_pipeline
 
@@ -69,15 +66,7 @@ class MonitoringStage:
     @classmethod
     def validate(cls) -> bool:
 
-        return (
-
-            cls.ENABLED
-
-            and
-
-            callable(cls.PIPELINE)
-
-        )
+        return cls.ENABLED and callable(cls.PIPELINE)
 
     # =====================================================
     # METADATA
@@ -87,22 +76,11 @@ class MonitoringStage:
     def metadata(cls) -> dict:
 
         return {
-
-            "stage":
-                cls.STAGE,
-
-            "name":
-                cls.NAME,
-
-            "description":
-                cls.DESCRIPTION,
-
-            "dependencies":
-                cls.DEPENDENCIES,
-
-            "enabled":
-                cls.ENABLED,
-
+            "stage": cls.STAGE,
+            "name": cls.NAME,
+            "description": cls.DESCRIPTION,
+            "dependencies": cls.DEPENDENCIES,
+            "enabled": cls.ENABLED,
         }
 
     # =====================================================
@@ -113,16 +91,9 @@ class MonitoringStage:
     def summary(cls) -> dict:
 
         return {
-
-            "stage":
-                cls.STAGE,
-
-            "pipeline":
-                cls.PIPELINE.__name__,
-
-            "enabled":
-                cls.ENABLED,
-
+            "stage": cls.STAGE,
+            "pipeline": cls.PIPELINE.__name__,
+            "enabled": cls.ENABLED,
         }
 
     # =====================================================
@@ -131,12 +102,4 @@ class MonitoringStage:
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"stage={self.STAGE}, "
-
-            f"name='{self.NAME}')"
-
-        )
+        return f"{self.__class__.__name__}(stage={self.STAGE}, name='{self.NAME}')"

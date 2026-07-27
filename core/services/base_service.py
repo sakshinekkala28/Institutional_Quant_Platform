@@ -23,9 +23,7 @@ Provides
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
-
+from abc import ABC, abstractmethod
 from time import perf_counter
 
 from core.logging_manager import LoggingManager
@@ -36,76 +34,35 @@ class BaseService(ABC):
     Base class for all services.
     """
 
-    def __init__(
+    def __init__(self) -> None:
 
-        self
-
-    ) -> None:
-
-        self._logger = LoggingManager.get_logger(
-
-            self.__class__.__name__
-
-        )
+        self._logger = LoggingManager.get_logger(self.__class__.__name__)
 
     # =====================================================
     # LIFECYCLE
     # =====================================================
 
-    def before_execute(
-
-        self
-
-    ) -> None:
-
+    def before_execute(self) -> None:
         """
         Hook executed before service execution.
         """
 
-        self._logger.debug(
+        self._logger.debug("Starting %s", self.__class__.__name__)
 
-            "Starting %s",
-
-            self.__class__.__name__
-
-        )
-
-    def after_execute(
-
-        self,
-
-        elapsed_seconds: float
-
-    ) -> None:
-
+    def after_execute(self, elapsed_seconds: float) -> None:
         """
         Hook executed after service execution.
         """
 
         self._logger.debug(
-
-            "%s completed in %.4f seconds",
-
-            self.__class__.__name__,
-
-            elapsed_seconds
-
+            "%s completed in %.4f seconds", self.__class__.__name__, elapsed_seconds
         )
 
     # =====================================================
     # EXECUTION
     # =====================================================
 
-    def execute(
-
-        self,
-
-        *args,
-
-        **kwargs
-
-    ):
-
+    def execute(self, *args, **kwargs):
         """
         Execute service.
         """
@@ -115,48 +72,21 @@ class BaseService(ABC):
         start = perf_counter()
 
         try:
-
-            result = self.run(
-
-                *args,
-
-                **kwargs
-
-            )
+            result = self.run(*args, **kwargs)
 
             return result
 
         finally:
+            elapsed = perf_counter() - start
 
-            elapsed = (
-
-                perf_counter()
-
-                - start
-
-            )
-
-            self.after_execute(
-
-                elapsed
-
-            )
+            self.after_execute(elapsed)
 
     # =====================================================
     # ABSTRACT
     # =====================================================
 
     @abstractmethod
-    def run(
-
-        self,
-
-        *args,
-
-        **kwargs
-
-    ):
-
+    def run(self, *args, **kwargs):
         """
         Execute service logic.
         """

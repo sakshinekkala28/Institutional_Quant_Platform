@@ -24,10 +24,10 @@ from typing import Any
 from orchestration.events.event_bus import EventBus
 from orchestration.events.events import Event
 
-
 # ==========================================================
 # PUBLISHER
 # ==========================================================
+
 
 class Publisher:
     """
@@ -55,11 +55,8 @@ class Publisher:
         """
 
         self._bus.publish(
-
             event.value,
-
             **payload,
-
         )
 
     # =====================================================
@@ -72,11 +69,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.PLATFORM_STARTED,
-
             **payload,
-
         )
 
     # -----------------------------------------------------
@@ -87,11 +81,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.PLATFORM_FINISHED,
-
             **payload,
-
         )
 
     # -----------------------------------------------------
@@ -102,11 +93,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.PLATFORM_FAILED,
-
             **payload,
-
         )
 
     # =====================================================
@@ -119,11 +107,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.PIPELINE_STARTED,
-
             **payload,
-
         )
 
     # -----------------------------------------------------
@@ -134,11 +119,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.PIPELINE_FINISHED,
-
             **payload,
-
         )
 
     # -----------------------------------------------------
@@ -149,11 +131,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.PIPELINE_FAILED,
-
             **payload,
-
         )
 
     # =====================================================
@@ -166,11 +145,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.ENGINE_STARTED,
-
             **payload,
-
         )
 
     # -----------------------------------------------------
@@ -181,11 +157,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.ENGINE_FINISHED,
-
             **payload,
-
         )
 
     # -----------------------------------------------------
@@ -196,11 +169,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.ENGINE_FAILED,
-
             **payload,
-
         )
 
     # =====================================================
@@ -213,11 +183,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.EXECUTION_STARTED,
-
             **payload,
-
         )
 
     # -----------------------------------------------------
@@ -228,11 +195,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.EXECUTION_FINISHED,
-
             **payload,
-
         )
 
     # -----------------------------------------------------
@@ -243,11 +207,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.EXECUTION_FAILED,
-
             **payload,
-
         )
 
     # =====================================================
@@ -260,11 +221,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.RESOURCE_REGISTERED,
-
             **payload,
-
         )
 
     # -----------------------------------------------------
@@ -275,11 +233,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.RESOURCE_RELEASED,
-
             **payload,
-
         )
 
     # =====================================================
@@ -292,11 +247,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.PLUGIN_REGISTERED,
-
             **payload,
-
         )
 
     # -----------------------------------------------------
@@ -307,11 +259,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.PLUGIN_LOADED,
-
             **payload,
-
         )
 
     # =====================================================
@@ -324,11 +273,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.HEALTH_CHECK,
-
             **payload,
-
         )
 
     # =====================================================
@@ -341,11 +287,8 @@ class Publisher:
     ) -> None:
 
         self.publish(
-
             Event.CONFIG_LOADED,
-
             **payload,
-
         )
 
     # =====================================================
@@ -356,8 +299,4 @@ class Publisher:
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}()"
-
-        )
+        return f"{self.__class__.__name__}()"

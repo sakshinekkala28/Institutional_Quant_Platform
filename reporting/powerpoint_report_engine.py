@@ -2,12 +2,8 @@ from __future__ import annotations
 
 import logging
 
-from pathlib import Path
-
 import pandas as pd
-
 from pptx import Presentation
-
 from pptx.util import Inches
 
 from core.settings import settings
@@ -17,1356 +13,500 @@ from core.settings import settings
 # ==========================================================
 
 logging.basicConfig(
-
-    level=logging.INFO,
-
-    format=(
-
-        "%(asctime)s | "
-
-        "%(levelname)s | "
-
-        "%(message)s"
-
-    )
-
+    level=logging.INFO, format=("%(asctime)s | %(levelname)s | %(message)s")
 )
 
-logger = logging.getLogger(
-
-    __name__
-
-)
+logger = logging.getLogger(__name__)
 
 # ==========================================================
 # PATHS
 # ==========================================================
 
-ROOT_DIR = (
+ROOT_DIR = settings.environment.ROOT_DIR
 
-    settings
-    .environment
-    .ROOT_DIR
+PERFORMANCE_DIR = ROOT_DIR / "data" / "performance"
 
-)
+ALERT_GOVERNANCE_FILE = ROOT_DIR / "data" / "monitoring" / "alert_governance.csv"
 
-PERFORMANCE_DIR = (
+REPORT_DIR = ROOT_DIR / "data" / "reports"
 
-    ROOT_DIR
+REPORT_DIR.mkdir(parents=True, exist_ok=True)
 
-    / "data"
+FORECAST_FILE = PERFORMANCE_DIR / "performance_forecast.csv"
 
-    / "performance"
+GOVERNANCE_FILE = PERFORMANCE_DIR / "governance_decision.csv"
 
-)
+SCENARIO_FILE = PERFORMANCE_DIR / "scenario_analysis.csv"
 
-ALERT_GOVERNANCE_FILE = (
+STRESS_FILE = PERFORMANCE_DIR / "stress_test_results.csv"
 
-    ROOT_DIR
+COMMITTEE_PACK_FILE = PERFORMANCE_DIR / "investment_committee_pack.csv"
 
-    / "data"
+EXECUTIVE_FILE = PERFORMANCE_DIR / "executive_dashboard.csv"
 
-    / "monitoring"
-
-    / "alert_governance.csv"
-
-)
-
-REPORT_DIR = (
-
-    ROOT_DIR
-
-    / "data"
-
-    / "reports"
-
-)
-
-REPORT_DIR.mkdir(
-
-    parents=True,
-
-    exist_ok=True
-
-)
-
-FORECAST_FILE = (
-
-    PERFORMANCE_DIR
-
-    / "performance_forecast.csv"
-
-)
-
-GOVERNANCE_FILE = (
-
-    PERFORMANCE_DIR
-
-    / "governance_decision.csv"
-
-)
-
-SCENARIO_FILE = (
-
-    PERFORMANCE_DIR
-
-    / "scenario_analysis.csv"
-
-)
-
-STRESS_FILE = (
-
-    PERFORMANCE_DIR
-
-    / "stress_test_results.csv"
-
-)
-
-COMMITTEE_PACK_FILE = (
-
-    PERFORMANCE_DIR
-
-    / "investment_committee_pack.csv"
-
-)
-
-EXECUTIVE_FILE = (
-
-    PERFORMANCE_DIR
-
-    / "executive_dashboard.csv"
-
-)
-
-PPT_FILE = (
-
-    REPORT_DIR
-
-    / "investment_committee_presentation.pptx"
-
-)
+PPT_FILE = REPORT_DIR / "investment_committee_presentation.pptx"
 
 # ==========================================================
 # REPOSITORY
 # ==========================================================
 
-class PPTRepository:
 
+class PPTRepository:
     @staticmethod
     def load_forecast():
 
-        return pd.read_csv(
-
-            FORECAST_FILE
-
-        )
+        return pd.read_csv(FORECAST_FILE)
 
     @staticmethod
     def load_governance():
 
-        return pd.read_csv(
-
-            GOVERNANCE_FILE
-
-        )
+        return pd.read_csv(GOVERNANCE_FILE)
 
     @staticmethod
     def load_scenario():
 
-        return pd.read_csv(
-
-            SCENARIO_FILE
-
-        )
+        return pd.read_csv(SCENARIO_FILE)
 
     @staticmethod
     def load_stress():
 
-        return pd.read_csv(
-
-            STRESS_FILE
-
-        )
+        return pd.read_csv(STRESS_FILE)
 
     @staticmethod
     def load_committee():
 
-        return pd.read_csv(
+        return pd.read_csv(COMMITTEE_PACK_FILE)
 
-            COMMITTEE_PACK_FILE
-
-        )
-    
     @staticmethod
     def load_alert_governance():
 
-        return pd.read_csv(
-
-            ALERT_GOVERNANCE_FILE
-
-        )
+        return pd.read_csv(ALERT_GOVERNANCE_FILE)
 
     @staticmethod
     def load_executive():
 
-        return pd.read_csv(
+        return pd.read_csv(EXECUTIVE_FILE)
 
-            EXECUTIVE_FILE
 
-        )
-    
 # ==========================================================
 # VALIDATOR
 # ==========================================================
 
+
 class PPTValidator:
-
     @staticmethod
-    def validate(
-
-        forecast,
-
-        governance
-
-    ):
+    def validate(forecast, governance):
 
         if forecast.empty:
-
-            raise ValueError(
-
-                "Forecast Empty"
-
-            )
+            raise ValueError("Forecast Empty")
 
         if governance.empty:
+            raise ValueError("Governance Empty")
 
-            raise ValueError(
 
-                "Governance Empty"
-
-            )
-        
 # ==========================================================
 # COVER SLIDE
 # ==========================================================
 
+
 class CoverSlideBuilder:
-
     @staticmethod
-    def build(
+    def build(prs, forecast, governance):
 
-        prs,
+        logger.info("Building Cover Slide")
 
-        forecast,
+        slide = prs.slides.add_slide(prs.slide_layouts[0])
 
-        governance
+        forecast_row = forecast.iloc[0]
 
-    ):
+        governance_row = governance.iloc[0]
 
-        logger.info(
-
-            "Building Cover Slide"
-
-        )
-
-        slide = (
-
-            prs.slides.add_slide(
-
-                prs.slide_layouts[0]
-
-            )
-
-        )
-
-        forecast_row = (
-
-            forecast
-
-            .iloc[0]
-
-        )
-
-        governance_row = (
-
-            governance
-
-            .iloc[0]
-
-        )
-
-        slide.shapes.title.text = (
-
-            "Institutional Investment Committee Review"
-
-        )
+        slide.shapes.title.text = "Institutional Investment Committee Review"
 
         slide.placeholders[1].text = (
-
             f"Forecast Regime: "
-
             f"{forecast_row['Forecast_Regime']}\n"
-
             f"Recommendation: "
-
             f"{forecast_row['Forecast_Recommendation']}\n"
-
             f"Decision: "
-
             f"{governance_row['Decision']}"
-
         )
+
 
 # ==========================================================
 # EXECUTIVE SLIDE
 # ==========================================================
 
+
 class ExecutiveSlideBuilder:
-
     @staticmethod
-    def build(
+    def build(prs, executive):
 
-        prs,
+        logger.info("Building Executive Slide")
 
-        executive
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
 
-    ):
+        slide.shapes.title.text = "Executive Dashboard"
 
-        logger.info(
-
-            "Building Executive Slide"
-
+        textbox = slide.shapes.add_textbox(
+            Inches(0.5), Inches(1.2), Inches(8), Inches(4)
         )
 
-        slide = (
-
-            prs.slides.add_slide(
-
-                prs.slide_layouts[1]
-
-            )
-
-        )
-
-        slide.shapes.title.text = (
-
-            "Executive Dashboard"
-
-        )
-
-        textbox = (
-
-            slide.shapes.add_textbox(
-
-                Inches(0.5),
-
-                Inches(1.2),
-
-                Inches(8),
-
-                Inches(4)
-
-            )
-
-        )
-
-        text_frame = (
-
-            textbox
-
-            .text_frame
-
-        )
+        text_frame = textbox.text_frame
 
         for _, row in executive.iterrows():
+            text_frame.add_paragraph().text = f"{row['Metric']}: {row['Value']}"
 
-            text_frame.add_paragraph().text = (
-
-                f"{row['Metric']}: "
-
-                f"{row['Value']}"
-
-            )
 
 # ==========================================================
 # FORECAST SLIDE
 # ==========================================================
 
+
 class ForecastSlideBuilder:
-
     @staticmethod
-    def build(
+    def build(prs, forecast):
 
-        prs,
+        logger.info("Building Forecast Slide")
 
-        forecast
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
 
-    ):
+        slide.shapes.title.text = "Performance Forecast"
 
-        logger.info(
+        row = forecast.iloc[0]
 
-            "Building Forecast Slide"
-
+        textbox = slide.shapes.add_textbox(
+            Inches(0.5), Inches(1.2), Inches(8), Inches(4)
         )
 
-        slide = (
+        tf = textbox.text_frame
 
-            prs.slides.add_slide(
-
-                prs.slide_layouts[1]
-
-            )
-
-        )
-
-        slide.shapes.title.text = (
-
-            "Performance Forecast"
-
-        )
-
-        row = (
-
-            forecast
-
-            .iloc[0]
-
-        )
-
-        textbox = (
-
-            slide.shapes.add_textbox(
-
-                Inches(0.5),
-
-                Inches(1.2),
-
-                Inches(8),
-
-                Inches(4)
-
-            )
-
-        )
-
-        tf = (
-
-            textbox
-
-            .text_frame
-
+        tf.add_paragraph().text = (
+            f"Expected Return (1M): {row['Expected_Return_1M']:.2%}"
         )
 
         tf.add_paragraph().text = (
-
-            f"Expected Return (1M): "
-
-            f"{row['Expected_Return_1M']:.2%}"
-
+            f"Expected Return (3M): {row['Expected_Return_3M']:.2%}"
         )
 
         tf.add_paragraph().text = (
-
-            f"Expected Return (3M): "
-
-            f"{row['Expected_Return_3M']:.2%}"
-
+            f"Expected Return (12M): {row['Expected_Return_12M']:.2%}"
         )
 
         tf.add_paragraph().text = (
-
-            f"Expected Return (12M): "
-
-            f"{row['Expected_Return_12M']:.2%}"
-
+            f"Forecast Confidence: {row['Forecast_Confidence']:.2f}"
         )
 
-        tf.add_paragraph().text = (
+        tf.add_paragraph().text = f"Forecast Risk Grade: {row['Forecast_Risk_Grade']}"
 
-            f"Forecast Confidence: "
+        tf.add_paragraph().text = f"Forecast Regime: {row['Forecast_Regime']}"
 
-            f"{row['Forecast_Confidence']:.2f}"
-
-        )
-
-        tf.add_paragraph().text = (
-
-            f"Forecast Risk Grade: "
-
-            f"{row['Forecast_Risk_Grade']}"
-
-        )
-
-        tf.add_paragraph().text = (
-
-            f"Forecast Regime: "
-
-            f"{row['Forecast_Regime']}"
-
-        )
 
 # ==========================================================
 # GOVERNANCE SLIDE
 # ==========================================================
 
+
 class GovernanceSlideBuilder:
-
     @staticmethod
-    def build(
+    def build(prs, governance):
 
-        prs,
+        logger.info("Building Governance Slide")
 
-        governance
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
 
-    ):
+        slide.shapes.title.text = "Governance Decision"
 
-        logger.info(
+        row = governance.iloc[0]
 
-            "Building Governance Slide"
-
+        textbox = slide.shapes.add_textbox(
+            Inches(0.5), Inches(1.2), Inches(8), Inches(4)
         )
 
-        slide = (
+        tf = textbox.text_frame
 
-            prs.slides.add_slide(
+        tf.add_paragraph().text = f"Committee Score: {row['Committee_Score']:.2f}"
 
-                prs.slide_layouts[1]
+        tf.add_paragraph().text = f"Governance Score: {row['Governance_Score']:.2f}"
 
-            )
+        tf.add_paragraph().text = f"Risk Score: {row['Risk_Score']:.2f}"
 
-        )
+        tf.add_paragraph().text = f"Decision: {row['Decision']}"
 
-        slide.shapes.title.text = (
-
-            "Governance Decision"
-
-        )
-
-        row = (
-
-            governance
-
-            .iloc[0]
-
-        )
-
-        textbox = (
-
-            slide.shapes.add_textbox(
-
-                Inches(0.5),
-
-                Inches(1.2),
-
-                Inches(8),
-
-                Inches(4)
-
-            )
-
-        )
-
-        tf = (
-
-            textbox
-
-            .text_frame
-
-        )
-
-        tf.add_paragraph().text = (
-
-            f"Committee Score: "
-
-            f"{row['Committee_Score']:.2f}"
-
-        )
-
-        tf.add_paragraph().text = (
-
-            f"Governance Score: "
-
-            f"{row['Governance_Score']:.2f}"
-
-        )
-
-        tf.add_paragraph().text = (
-
-            f"Risk Score: "
-
-            f"{row['Risk_Score']:.2f}"
-
-        )
-
-        tf.add_paragraph().text = (
-
-            f"Decision: "
-
-            f"{row['Decision']}"
-
-        )
 
 # ==========================================================
 # SCENARIO ANALYSIS SLIDE
 # ==========================================================
 
+
 class ScenarioSlideBuilder:
-
     @staticmethod
-    def build(
+    def build(prs, scenario):
 
-        prs,
+        logger.info("Building Scenario Slide")
 
-        scenario
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
 
-    ):
+        slide.shapes.title.text = "Scenario Analysis"
 
-        logger.info(
-
-            "Building Scenario Slide"
-
+        textbox = slide.shapes.add_textbox(
+            Inches(0.5), Inches(1.2), Inches(8.5), Inches(4)
         )
 
-        slide = (
+        tf = textbox.text_frame
 
-            prs.slides.add_slide(
-
-                prs.slide_layouts[1]
-
-            )
-
-        )
-
-        slide.shapes.title.text = (
-
-            "Scenario Analysis"
-
-        )
-
-        textbox = (
-
-            slide.shapes.add_textbox(
-
-                Inches(0.5),
-
-                Inches(1.2),
-
-                Inches(8.5),
-
-                Inches(4)
-
-            )
-
-        )
-
-        tf = (
-
-            textbox
-
-            .text_frame
-
-        )
-
-        ranked = (
-
-            scenario
-
-            .sort_values(
-
-                "Scenario_Rank"
-
-            )
-
-        )
+        ranked = scenario.sort_values("Scenario_Rank")
 
         for _, row in ranked.iterrows():
-
             tf.add_paragraph().text = (
-
                 f"{row['Scenario']} | "
-
                 f"Score: {row['Scenario_Score']:.2f} | "
-
                 f"Rank: {row['Scenario_Rank']}"
-
             )
+
 
 # ==========================================================
 # STRESS TESTING SLIDE
 # ==========================================================
 
+
 class StressSlideBuilder:
-
     @staticmethod
-    def build(
+    def build(prs, stress):
 
-        prs,
+        logger.info("Building Stress Slide")
 
-        stress
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
 
-    ):
+        slide.shapes.title.text = "Stress Testing"
 
-        logger.info(
-
-            "Building Stress Slide"
-
+        textbox = slide.shapes.add_textbox(
+            Inches(0.5), Inches(1.2), Inches(8.5), Inches(4)
         )
 
-        slide = (
+        tf = textbox.text_frame
 
-            prs.slides.add_slide(
-
-                prs.slide_layouts[1]
-
-            )
-
-        )
-
-        slide.shapes.title.text = (
-
-            "Stress Testing"
-
-        )
-
-        textbox = (
-
-            slide.shapes.add_textbox(
-
-                Inches(0.5),
-
-                Inches(1.2),
-
-                Inches(8.5),
-
-                Inches(4)
-
-            )
-
-        )
-
-        tf = (
-
-            textbox
-
-            .text_frame
-
-        )
-
-        ranked = (
-
-            stress
-
-            .sort_values(
-
-                "Stress_Rank"
-
-            )
-
-        )
+        ranked = stress.sort_values("Stress_Rank")
 
         for _, row in ranked.iterrows():
-
             tf.add_paragraph().text = (
-
                 f"{row['Scenario']} | "
-
                 f"Score: {row['Stress_Score']:.2f} | "
-
                 f"Impact: {row['Return_Impact']:.2%}"
-
             )
+
 
 # ==========================================================
 # COMMITTEE PACK SLIDE
 # ==========================================================
 
+
 class CommitteePackSlideBuilder:
-
     @staticmethod
-    def build(
+    def build(prs, committee):
 
-        prs,
+        logger.info("Building Committee Pack Slide")
 
-        committee
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
 
-    ):
+        slide.shapes.title.text = "Investment Committee Pack"
 
-        logger.info(
-
-            "Building Committee Pack Slide"
-
+        textbox = slide.shapes.add_textbox(
+            Inches(0.3), Inches(1.0), Inches(9), Inches(5)
         )
 
-        slide = (
-
-            prs.slides.add_slide(
-
-                prs.slide_layouts[1]
-
-            )
-
-        )
-
-        slide.shapes.title.text = (
-
-            "Investment Committee Pack"
-
-        )
-
-        textbox = (
-
-            slide.shapes.add_textbox(
-
-                Inches(0.3),
-
-                Inches(1.0),
-
-                Inches(9),
-
-                Inches(5)
-
-            )
-
-        )
-
-        tf = (
-
-            textbox
-
-            .text_frame
-
-        )
+        tf = textbox.text_frame
 
         current_section = None
 
         for _, row in committee.iterrows():
-
-            section = (
-
-                row.get(
-
-                    "Section",
-
-                    "General"
-
-                )
-
-            )
+            section = row.get("Section", "General")
 
             if section != current_section:
-
                 current_section = section
 
-                tf.add_paragraph().text = (
+                tf.add_paragraph().text = f"=== {section} ==="
 
-                    f"=== {section} ==="
-
-                )
-
-            tf.add_paragraph().text = (
-
-                f"{row['Metric']}: "
-
-                f"{row['Value']}"
-
-            )
-
+            tf.add_paragraph().text = f"{row['Metric']}: {row['Value']}"
 
 
 class AlertGovernanceSlideBuilder:
-
     @staticmethod
-    def build(
+    def build(prs, alert_governance):
 
-        prs,
+        logger.info("Building Alert Governance Slide")
 
-        alert_governance
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
 
-    ):
+        slide.shapes.title.text = "Alert Governance"
 
-        logger.info(
+        metrics = dict(zip(alert_governance["Metric"], alert_governance["Value"]))
 
-            "Building Alert Governance Slide"
-
+        textbox = slide.shapes.add_textbox(
+            Inches(0.5), Inches(1.2), Inches(8), Inches(4)
         )
 
-        slide = (
+        tf = textbox.text_frame
 
-            prs.slides.add_slide(
+        tf.add_paragraph().text = f"Health Score: {metrics.get('Alert_Health_Score')}"
 
-                prs.slide_layouts[1]
+        tf.add_paragraph().text = f"Escalation: {metrics.get('Alert_Escalation')}"
 
-            )
+        tf.add_paragraph().text = f"Governance View: {metrics.get('Governance_View')}"
 
-        )
+        tf.add_paragraph().text = f"Trend Direction: {metrics.get('Trend_Direction')}"
 
-        slide.shapes.title.text = (
-
-            "Alert Governance"
-
-        )
-
-        metrics = dict(
-
-            zip(
-
-                alert_governance["Metric"],
-
-                alert_governance["Value"]
-
-            )
-
-        )
-
-        textbox = (
-
-            slide.shapes.add_textbox(
-
-                Inches(0.5),
-
-                Inches(1.2),
-
-                Inches(8),
-
-                Inches(4)
-
-            )
-
-        )
-
-        tf = (
-
-            textbox.text_frame
-
-        )
-
-        tf.add_paragraph().text = (
-
-            f"Health Score: "
-
-            f"{metrics.get('Alert_Health_Score')}"
-
-        )
-
-        tf.add_paragraph().text = (
-
-            f"Escalation: "
-
-            f"{metrics.get('Alert_Escalation')}"
-
-        )
-
-        tf.add_paragraph().text = (
-
-            f"Governance View: "
-
-            f"{metrics.get('Governance_View')}"
-
-        )
-
-        tf.add_paragraph().text = (
-
-            f"Trend Direction: "
-
-            f"{metrics.get('Trend_Direction')}"
-
-        )
-
-        tf.add_paragraph().text = (
-
-            f"Top Category: "
-
-            f"{metrics.get('Top_Category')}"
-
-        )
+        tf.add_paragraph().text = f"Top Category: {metrics.get('Top_Category')}"
 
 
 # ==========================================================
 # SURVEILLANCE SLIDE
 # ==========================================================
 
+
 class SurveillanceSlideBuilder:
-
     @staticmethod
-    def build(
+    def build(prs, executive):
 
-        prs,
+        logger.info("Building Surveillance Slide")
 
-        executive
+        slide = prs.slides.add_slide(prs.slide_layouts[1])
 
-    ):
+        slide.shapes.title.text = "Portfolio Monitoring"
 
-        logger.info(
-
-            "Building Surveillance Slide"
-
+        textbox = slide.shapes.add_textbox(
+            Inches(0.5), Inches(1.2), Inches(8), Inches(4)
         )
 
-        slide = (
-
-            prs.slides.add_slide(
-
-                prs.slide_layouts[1]
-
-            )
-
-        )
-
-        slide.shapes.title.text = (
-
-            "Portfolio Monitoring"
-
-        )
-
-        textbox = (
-
-            slide.shapes.add_textbox(
-
-                Inches(0.5),
-
-                Inches(1.2),
-
-                Inches(8),
-
-                Inches(4)
-
-            )
-
-        )
-
-        tf = (
-
-            textbox
-
-            .text_frame
-
-        )
+        tf = textbox.text_frame
 
         for _, row in executive.iterrows():
+            metric = str(row["Metric"])
 
-            metric = str(
+            if "Alert" in metric or "Health" in metric:
+                tf.add_paragraph().text = f"{metric}: {row['Value']}"
 
-                row["Metric"]
-
-            )
-
-            if (
-
-                "Alert" in metric
-
-                or
-
-                "Health" in metric
-
-            ):
-
-                tf.add_paragraph().text = (
-
-                    f"{metric}: "
-
-                    f"{row['Value']}"
-
-                )
 
 # ==========================================================
 # PPT BUILDER
 # ==========================================================
 
+
 class PPTBuilder:
+    def build(self):
 
-    def build(
+        logger.info("Building Presentation")
 
-        self
+        forecast = PPTRepository.load_forecast()
 
-    ):
+        governance = PPTRepository.load_governance()
 
-        logger.info(
+        scenario = PPTRepository.load_scenario()
 
-            "Building Presentation"
+        stress = PPTRepository.load_stress()
 
-        )
+        committee = PPTRepository.load_committee()
 
-        forecast = (
+        alert_governance = PPTRepository.load_alert_governance()
 
-            PPTRepository
+        executive = PPTRepository.load_executive()
 
-            .load_forecast()
-
-        )
-
-        governance = (
-
-            PPTRepository
-
-            .load_governance()
-
-        )
-
-        scenario = (
-
-            PPTRepository
-
-            .load_scenario()
-
-        )
-
-        stress = (
-
-            PPTRepository
-
-            .load_stress()
-
-        )
-
-        committee = (
-
-            PPTRepository
-
-            .load_committee()
-
-        )
-
-        alert_governance = (
-
-            PPTRepository
-
-            .load_alert_governance()
-
-        )
-
-        executive = (
-
-            PPTRepository
-
-            .load_executive()
-
-        )
-
-        PPTValidator.validate(
-
-            forecast,
-
-            governance
-
-        )
+        PPTValidator.validate(forecast, governance)
 
         prs = Presentation()
 
-        CoverSlideBuilder.build(
+        CoverSlideBuilder.build(prs, forecast, governance)
 
-            prs,
+        ExecutiveSlideBuilder.build(prs, executive)
 
-            forecast,
+        ForecastSlideBuilder.build(prs, forecast)
 
-            governance
+        GovernanceSlideBuilder.build(prs, governance)
 
-        )
+        ScenarioSlideBuilder.build(prs, scenario)
 
-        ExecutiveSlideBuilder.build(
+        StressSlideBuilder.build(prs, stress)
 
-            prs,
+        CommitteePackSlideBuilder.build(prs, committee)
 
-            executive
+        AlertGovernanceSlideBuilder.build(prs, alert_governance)
 
-        )
-
-        ForecastSlideBuilder.build(
-
-            prs,
-
-            forecast
-
-        )
-
-        GovernanceSlideBuilder.build(
-
-            prs,
-
-            governance
-
-        )
-
-        ScenarioSlideBuilder.build(
-
-            prs,
-
-            scenario
-
-        )
-
-        StressSlideBuilder.build(
-
-            prs,
-
-            stress
-
-        )
-
-        CommitteePackSlideBuilder.build(
-
-            prs,
-
-            committee
-
-        )
-
-        AlertGovernanceSlideBuilder.build(
-
-            prs,
-
-            alert_governance
-
-        )
-
-        SurveillanceSlideBuilder.build(
-
-            prs,
-
-            executive
-
-        )
+        SurveillanceSlideBuilder.build(prs, executive)
 
         return prs
-    
+
 
 # ==========================================================
 # PPT EXPORT ENGINE
 # ==========================================================
 
-class PPTExportEngine:
 
+class PPTExportEngine:
     @staticmethod
     def export():
 
-        logger.info(
+        logger.info("Exporting PowerPoint")
 
-            "Exporting PowerPoint"
+        presentation = PPTBuilder().build()
 
-        )
+        presentation.save(str(PPT_FILE))
 
-        presentation = (
-
-            PPTBuilder()
-
-            .build()
-
-        )
-
-        presentation.save(
-
-            str(
-
-                PPT_FILE
-
-            )
-
-        )
-
-        logger.info(
-
-            "PowerPoint Exported"
-
-        )
+        logger.info("PowerPoint Exported")
 
         return PPT_FILE
-    
+
+
 # ==========================================================
 # EXECUTIVE SUMMARY
 # ==========================================================
 
-class PPTSummaryEngine:
 
+class PPTSummaryEngine:
     @staticmethod
     def build():
 
-        executive = (
-
-            PPTRepository
-
-            .load_executive()
-
-        )
+        executive = PPTRepository.load_executive()
 
         metrics = {}
 
         for _, row in executive.iterrows():
-
-            metrics[
-
-                row["Metric"]
-
-            ] = row["Value"]
+            metrics[row["Metric"]] = row["Value"]
 
         return metrics
-    
+
+
 # ==========================================================
 # RUNNER
 # ==========================================================
 
+
 def run_example():
 
-    ppt_path = (
+    ppt_path = PPTExportEngine.export()
 
-        PPTExportEngine
-
-        .export()
-
-    )
-
-    summary = (
-
-        PPTSummaryEngine
-
-        .build()
-
-    )
+    summary = PPTSummaryEngine.build()
 
     print()
 
-    print(
+    print("=" * 80)
 
-        "=" * 80
+    print("INVESTMENT COMMITTEE PRESENTATION")
 
-    )
+    print("=" * 80)
 
-    print(
-
-        "INVESTMENT COMMITTEE PRESENTATION"
-
-    )
-
-    print(
-
-        "=" * 80
-
-    )
-
-    print(
-
-        f"Presentation: {ppt_path}"
-
-    )
+    print(f"Presentation: {ppt_path}")
 
     print()
 
     for key, value in summary.items():
+        print(f"{key}: {value}")
 
-        print(
+    print("=" * 80)
 
-            f"{key}: {value}"
-
-        )
-
-    print(
-
-        "=" * 80
-
-    )
 
 # ==========================================================
 # MAIN
 # ==========================================================
 
 if __name__ == "__main__":
-
     run_example()

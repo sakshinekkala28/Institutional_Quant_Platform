@@ -21,10 +21,8 @@ Responsibilities
 
 from __future__ import annotations
 
-import logging
-
 from enum import Enum
-from typing import Optional
+import logging
 
 from orchestration.orchestrator import (
     Orchestrator,
@@ -37,8 +35,8 @@ logger = logging.getLogger(__name__)
 # LIFECYCLE STATE
 # =========================================================
 
-class LifecycleState(str, Enum):
 
+class LifecycleState(str, Enum):
     CREATED = "CREATED"
 
     INITIALIZED = "INITIALIZED"
@@ -56,6 +54,7 @@ class LifecycleState(str, Enum):
 # LIFECYCLE MANAGER
 # =========================================================
 
+
 class LifecycleManager:
     """
     Coordinates platform lifecycle.
@@ -63,26 +62,12 @@ class LifecycleManager:
 
     def __init__(
         self,
-        orchestrator: Optional[
-            Orchestrator
-        ] = None,
+        orchestrator: Orchestrator | None = None,
     ) -> None:
 
-        self.orchestrator = (
+        self.orchestrator = orchestrator or Orchestrator()
 
-            orchestrator
-
-            or
-
-            Orchestrator()
-
-        )
-
-        self.state = (
-
-            LifecycleState.CREATED
-
-        )
+        self.state = LifecycleState.CREATED
 
     # =====================================================
     # INITIALIZE
@@ -92,17 +77,9 @@ class LifecycleManager:
         self,
     ) -> None:
 
-        logger.info(
+        logger.info("Initializing platform.")
 
-            "Initializing platform."
-
-        )
-
-        self.state = (
-
-            LifecycleState.INITIALIZED
-
-        )
+        self.state = LifecycleState.INITIALIZED
 
     # =====================================================
     # START
@@ -113,20 +90,11 @@ class LifecycleManager:
     ) -> None:
 
         if self.state == LifecycleState.CREATED:
-
             self.initialize()
 
-        logger.info(
+        logger.info("Starting platform.")
 
-            "Starting platform."
-
-        )
-
-        self.state = (
-
-            LifecycleState.STARTED
-
-        )
+        self.state = LifecycleState.STARTED
 
     # =====================================================
     # RUN
@@ -137,14 +105,9 @@ class LifecycleManager:
     ):
 
         if self.state != LifecycleState.STARTED:
-
             self.start()
 
-        self.state = (
-
-            LifecycleState.RUNNING
-
-        )
+        self.state = LifecycleState.RUNNING
 
         return self.orchestrator.run()
 
@@ -156,17 +119,9 @@ class LifecycleManager:
         self,
     ) -> None:
 
-        logger.info(
+        logger.info("Stopping platform.")
 
-            "Stopping platform."
-
-        )
-
-        self.state = (
-
-            LifecycleState.STOPPED
-
-        )
+        self.state = LifecycleState.STOPPED
 
     # =====================================================
     # SHUTDOWN
@@ -176,19 +131,11 @@ class LifecycleManager:
         self,
     ) -> None:
 
-        logger.info(
-
-            "Shutting down platform."
-
-        )
+        logger.info("Shutting down platform.")
 
         self.stop()
 
-        self.state = (
-
-            LifecycleState.SHUTDOWN
-
-        )
+        self.state = LifecycleState.SHUTDOWN
 
     # =====================================================
     # RESTART
@@ -215,15 +162,8 @@ class LifecycleManager:
     ) -> dict:
 
         return {
-
-            "state":
-
-                self.state.value,
-
-            "executor":
-
-                self.orchestrator._orchestrator.executor_mode,
-
+            "state": self.state.value,
+            "executor": self.orchestrator._orchestrator.executor_mode,
         }
 
     # =====================================================
@@ -234,10 +174,4 @@ class LifecycleManager:
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"state={self.state.value})"
-
-        )
+        return f"{self.__class__.__name__}(state={self.state.value})"

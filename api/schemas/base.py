@@ -35,10 +35,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from pydantic import BaseModel
-from pydantic import ConfigDict
-from pydantic import Field
-
+from pydantic import BaseModel, ConfigDict, Field
 
 # ==========================================================
 # BASE MODEL
@@ -53,13 +50,9 @@ class APIModel(
     """
 
     model_config = ConfigDict(
-
         populate_by_name=True,
-
         extra="ignore",
-
         frozen=False,
-
     )
 
 
@@ -76,15 +69,11 @@ class Metadata(
     """
 
     timestamp: datetime = Field(
-
         default_factory=datetime.utcnow,
-
     )
 
     version: str = Field(
-
         default="1.0.0",
-
     )
 
     request_id: str | None = None
@@ -109,9 +98,7 @@ class BaseResponse(
     message: str = "Success"
 
     metadata: Metadata = Field(
-
         default_factory=Metadata,
-
     )
 
 
@@ -151,9 +138,7 @@ class ErrorResponse(
     error_code: int | None = None
 
     metadata: Metadata = Field(
-
         default_factory=Metadata,
-
     )
 
 
@@ -170,21 +155,14 @@ class Pagination(
     """
 
     page: int = Field(
-
         default=1,
-
         ge=1,
-
     )
 
     page_size: int = Field(
-
         default=100,
-
         ge=1,
-
         le=1000,
-
     )
 
     total_records: int = 0
@@ -205,15 +183,11 @@ class PaginatedResponse(
     """
 
     data: list[Any] = Field(
-
         default_factory=list,
-
     )
 
     pagination: Pagination = Field(
-
         default_factory=Pagination,
-
     )
 
 
@@ -294,12 +268,8 @@ class ValidationErrorResponse(
     Validation error response.
     """
 
-    validation_errors: list[
-        ValidationErrorItem
-    ] = Field(
-
+    validation_errors: list[ValidationErrorItem] = Field(
         default_factory=list,
-
     )
 
 
@@ -309,29 +279,16 @@ class ValidationErrorResponse(
 
 
 __all__ = [
-
     "APIModel",
-
-    "Metadata",
-
     "BaseResponse",
-
-    "SuccessResponse",
-
-    "ErrorResponse",
-
-    "Pagination",
-
-    "PaginatedResponse",
-
-    "HealthResponse",
-
-    "StatusResponse",
-
     "DeleteResponse",
-
+    "ErrorResponse",
+    "HealthResponse",
+    "Metadata",
+    "PaginatedResponse",
+    "Pagination",
+    "StatusResponse",
+    "SuccessResponse",
     "ValidationErrorItem",
-
     "ValidationErrorResponse",
-
 ]

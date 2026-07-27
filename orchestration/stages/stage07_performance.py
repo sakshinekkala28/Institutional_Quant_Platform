@@ -23,17 +23,16 @@ from __future__ import annotations
 # ==========================================================
 # IMPORTS
 # ==========================================================
-
 # Replace this import once a dedicated performance pipeline
 # has been implemented.
 from orchestration.pipelines.reporting_pipeline import (
     main as performance_pipeline,
 )
 
-
 # ==========================================================
 # PERFORMANCE STAGE
 # ==========================================================
+
 
 class PerformanceStage:
     """
@@ -44,9 +43,7 @@ class PerformanceStage:
 
     NAME = "Performance"
 
-    DESCRIPTION = (
-        "Portfolio performance analysis."
-    )
+    DESCRIPTION = "Portfolio performance analysis."
 
     PIPELINE = performance_pipeline
 
@@ -70,15 +67,7 @@ class PerformanceStage:
     @classmethod
     def validate(cls) -> bool:
 
-        return (
-
-            cls.ENABLED
-
-            and
-
-            callable(cls.PIPELINE)
-
-        )
+        return cls.ENABLED and callable(cls.PIPELINE)
 
     # =====================================================
     # METADATA
@@ -88,27 +77,11 @@ class PerformanceStage:
     def metadata(cls) -> dict:
 
         return {
-
-            "stage":
-
-                cls.STAGE,
-
-            "name":
-
-                cls.NAME,
-
-            "description":
-
-                cls.DESCRIPTION,
-
-            "dependencies":
-
-                cls.DEPENDENCIES,
-
-            "enabled":
-
-                cls.ENABLED,
-
+            "stage": cls.STAGE,
+            "name": cls.NAME,
+            "description": cls.DESCRIPTION,
+            "dependencies": cls.DEPENDENCIES,
+            "enabled": cls.ENABLED,
         }
 
     # =====================================================
@@ -119,19 +92,9 @@ class PerformanceStage:
     def summary(cls) -> dict:
 
         return {
-
-            "stage":
-
-                cls.STAGE,
-
-            "pipeline":
-
-                cls.PIPELINE.__name__,
-
-            "enabled":
-
-                cls.ENABLED,
-
+            "stage": cls.STAGE,
+            "pipeline": cls.PIPELINE.__name__,
+            "enabled": cls.ENABLED,
         }
 
     # =====================================================
@@ -140,12 +103,4 @@ class PerformanceStage:
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"stage={self.STAGE}, "
-
-            f"name='{self.NAME}')"
-
-        )
+        return f"{self.__class__.__name__}(stage={self.STAGE}, name='{self.NAME}')"

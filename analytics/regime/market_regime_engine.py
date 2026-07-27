@@ -27,26 +27,11 @@ import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 
-BREADTH_FILE = (
-    ROOT
-    / "data"
-    / "processed"
-    / "market_breadth.csv"
-)
+BREADTH_FILE = ROOT / "data" / "processed" / "market_breadth.csv"
 
-BENCHMARK_FILE = (
-    ROOT
-    / "data"
-    / "raw"
-    / "benchmark_prices.csv"
-)
+BENCHMARK_FILE = ROOT / "data" / "raw" / "benchmark_prices.csv"
 
-OUTPUT_FILE = (
-    ROOT
-    / "data"
-    / "regime"
-    / "market_regime.csv"
-)
+OUTPUT_FILE = ROOT / "data" / "regime" / "market_regime.csv"
 
 # =========================================================
 # LOAD DATA
@@ -54,33 +39,23 @@ OUTPUT_FILE = (
 
 print("\n📥 Loading Regime Inputs...")
 
-breadth = pd.read_csv(
-    BREADTH_FILE
-)
+breadth = pd.read_csv(BREADTH_FILE)
 
 # prepare breadth dates
 breadth["Date"] = pd.to_datetime(breadth["Date"])
 breadth = breadth.sort_values("Date")
 
-benchmark = pd.read_csv(
-    BENCHMARK_FILE
-)
+benchmark = pd.read_csv(BENCHMARK_FILE)
 
-benchmark["Date"] = pd.to_datetime(
-    benchmark["Date"]
-)
+benchmark["Date"] = pd.to_datetime(benchmark["Date"])
 
-benchmark = benchmark.sort_values(
-    "Date"
-)
+benchmark = benchmark.sort_values("Date")
 
 # =========================================================
 # BENCHMARK INDICATORS
 # =========================================================
 
-print(
-    "\n📈 Calculating Trend Indicators..."
-)
+print("\n📈 Calculating Trend Indicators...")
 
 benchmark["DMA200"] = (
     benchmark["Close"]
@@ -91,10 +66,7 @@ benchmark["DMA200"] = (
     .mean()
 )
 
-benchmark["RET"] = (
-    benchmark["Close"]
-    .pct_change()
-)
+benchmark["RET"] = benchmark["Close"].pct_change()
 
 benchmark["VOL20"] = (
     benchmark["RET"]
@@ -114,7 +86,6 @@ benchmark["VOL20"] = (
 regime_history = []
 
 for idx in range(200, len(benchmark)):
-
     row = benchmark.iloc[idx]
 
     date = row["Date"]
@@ -136,46 +107,28 @@ for idx in range(200, len(benchmark)):
 
     regime = "SIDEWAYS"
 
-    if (
-        close > dma200
-        and breadth_score >= 60
-    ):
+    if close > dma200 and breadth_score >= 60:
         regime = "BULL"
 
-    elif (
-        close < dma200
-        and breadth_score <= 40
-    ):
+    elif close < dma200 and breadth_score <= 40:
         regime = "BEAR"
 
     if volatility >= 25:
-
         regime += "_HIGH_VOL"
 
     elif volatility <= 15:
-
         regime += "_LOW_VOL"
 
-    regime_history.append({
-
-        "Date":
-        date,
-
-        "Regime":
-        regime,
-
-        "Close":
-        close,
-
-        "DMA200":
-        dma200,
-
-        "VOL20":
-        volatility,
-
-        "BREADTH_SCORE":
-        breadth_score,
-    })
+    regime_history.append(
+        {
+            "Date": date,
+            "Regime": regime,
+            "Close": close,
+            "DMA200": dma200,
+            "VOL20": volatility,
+            "BREADTH_SCORE": breadth_score,
+        }
+    )
 
 # =========================================================
 # SAVE
@@ -199,23 +152,15 @@ regime_df.to_csv(
 
 print("\n" + "=" * 70)
 
-print(
-    "🏁 REGIME ENGINE COMPLETE"
-)
+print("🏁 REGIME ENGINE COMPLETE")
 
 print("=" * 70)
 
-print(
-    f"Regime             : {regime}"
-)
+print(f"Regime             : {regime}")
 
-print(
-    f"Breadth Score      : {breadth_score:.2f}"
-)
+print(f"Breadth Score      : {breadth_score:.2f}")
 
-print(
-    f"20D Volatility     : {volatility:.2f}%"
-)
+print(f"20D Volatility     : {volatility:.2f}%")
 
 # derive simple target exposures for reporting
 if regime.startswith("BULL"):
@@ -236,8 +181,6 @@ cash_weight = 1.0 - equity_exposure
 print(f"Target Exposure    : {equity_exposure:.0%}")
 print(f"Cash Allocation    : {cash_weight:.0%}")
 
-print(
-    f"\nSaved:\n{OUTPUT_FILE}"
-)
+print(f"\nSaved:\n{OUTPUT_FILE}")
 
 print("=" * 70)

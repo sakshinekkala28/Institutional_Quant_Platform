@@ -10,9 +10,9 @@ Plugins extend functionality without modifying the core system.
 
 from __future__ import annotations
 
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import logging
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 # ======================================================================
 # Plugin Configuration
 # ======================================================================
+
 
 @dataclass(frozen=True)
 class PluginConfig:
@@ -36,6 +37,7 @@ class PluginConfig:
 # Plugin Result
 # ======================================================================
 
+
 @dataclass(slots=True)
 class PluginResult:
     """Standard plugin execution result."""
@@ -48,6 +50,7 @@ class PluginResult:
 # ======================================================================
 # Base Plugin
 # ======================================================================
+
 
 class BasePlugin(ABC):
     """
@@ -84,6 +87,7 @@ class BasePlugin(ABC):
 # Plugin Registry
 # ======================================================================
 
+
 class PluginRegistry:
     """
     Central plugin registry.
@@ -110,7 +114,6 @@ class PluginRegistry:
     ) -> None:
 
         if name in self._plugins:
-
             logger.info(
                 "Removing plugin: %s",
                 name,
@@ -133,6 +136,7 @@ class PluginRegistry:
 # ======================================================================
 # Example Plugin
 # ======================================================================
+
 
 class AlphaScorePlugin(BasePlugin):
     """
@@ -181,6 +185,7 @@ class AlphaScorePlugin(BasePlugin):
 # Plugin Manager
 # ======================================================================
 
+
 class PluginManager:
     """
     Executes registered plugins.
@@ -203,11 +208,9 @@ class PluginManager:
         plugin.initialize()
 
         try:
-
             result = plugin.execute(**kwargs)
 
         finally:
-
             plugin.shutdown()
 
         return result
@@ -216,6 +219,7 @@ class PluginManager:
 # ======================================================================
 # Example Usage
 # ======================================================================
+
 
 def main() -> None:
 

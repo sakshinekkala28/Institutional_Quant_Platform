@@ -35,15 +35,14 @@ from __future__ import annotations
 from functools import lru_cache
 
 from portfolio.portfolio_engine import (
-    PortfolioEngine,
+    BlackLittermanOverlay,
+    ConstraintEngine,
     PortfolioConstructor,
     PortfolioDataValidator,
+    PortfolioEngine,
     PortfolioHealthCheck,
     RiskParityAllocator,
-    ConstraintEngine,
-    BlackLittermanOverlay,
 )
-
 
 # ==========================================================
 # PORTFOLIO ENGINE
@@ -147,13 +146,9 @@ def portfolio_health() -> dict:
     """
 
     return {
-
         "engine": "PortfolioEngine",
-
         "status": "healthy",
-
         "singleton": True,
-
     }
 
 
@@ -168,27 +163,16 @@ def portfolio_summary() -> dict:
     """
 
     return {
-
         "services": [
-
             "PortfolioEngine",
-
             "PortfolioConstructor",
-
             "PortfolioDataValidator",
-
             "PortfolioHealthCheck",
-
             "RiskParityAllocator",
-
             "ConstraintEngine",
-
             "BlackLittermanOverlay",
-
         ],
-
         "count": 7,
-
     }
 
 
@@ -198,23 +182,13 @@ def portfolio_summary() -> dict:
 
 
 __all__ = [
-
-    "get_portfolio_engine",
-
-    "get_portfolio_constructor",
-
-    "get_portfolio_validator",
-
-    "get_portfolio_health_check",
-
-    "get_risk_parity_allocator",
-
-    "get_constraint_engine",
-
     "get_black_litterman_overlay",
-
+    "get_constraint_engine",
+    "get_portfolio_constructor",
+    "get_portfolio_engine",
+    "get_portfolio_health_check",
+    "get_portfolio_validator",
+    "get_risk_parity_allocator",
     "portfolio_health",
-
     "portfolio_summary",
-
 ]

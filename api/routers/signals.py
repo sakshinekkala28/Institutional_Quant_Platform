@@ -25,9 +25,7 @@ Provides
 
 from __future__ import annotations
 
-from fastapi import APIRouter
-from fastapi import HTTPException
-from fastapi import Query
+from fastapi import APIRouter, HTTPException, Query
 
 router = APIRouter()
 
@@ -43,11 +41,8 @@ router = APIRouter()
 async def health():
 
     return {
-
         "module": "Signals",
-
         "status": "Healthy",
-
     }
 
 
@@ -62,17 +57,11 @@ async def health():
 async def summary():
 
     return {
-
         "signals": 0,
-
         "buy": 0,
-
         "hold": 0,
-
         "sell": 0,
-
         "generated": None,
-
     }
 
 
@@ -85,27 +74,17 @@ async def summary():
     "/",
 )
 async def all_signals(
-
     limit: int = Query(
-
         default=100,
-
         ge=1,
-
         le=1000,
-
     ),
-
 ):
 
     return {
-
         "count": 0,
-
         "limit": limit,
-
         "signals": [],
-
     }
 
 
@@ -119,11 +98,7 @@ async def all_signals(
 )
 async def buy_signals():
 
-    return {
-
-        "signals": []
-
-    }
+    return {"signals": []}
 
 
 # ==========================================================
@@ -136,11 +111,7 @@ async def buy_signals():
 )
 async def sell_signals():
 
-    return {
-
-        "signals": []
-
-    }
+    return {"signals": []}
 
 
 # ==========================================================
@@ -153,11 +124,7 @@ async def sell_signals():
 )
 async def hold_signals():
 
-    return {
-
-        "signals": []
-
-    }
+    return {"signals": []}
 
 
 # ==========================================================
@@ -169,25 +136,16 @@ async def hold_signals():
     "/top",
 )
 async def top_ranked(
-
     n: int = Query(
-
         default=25,
-
         ge=1,
-
         le=100,
-
     ),
-
 ):
 
     return {
-
         "top": n,
-
         "signals": [],
-
     }
 
 
@@ -200,21 +158,14 @@ async def top_ranked(
     "/{symbol}",
 )
 async def signal(
-
     symbol: str,
-
 ):
 
     return {
-
         "symbol": symbol.upper(),
-
         "signal": "NONE",
-
         "score": 0,
-
         "confidence": 0,
-
     }
 
 
@@ -227,17 +178,12 @@ async def signal(
     "/{symbol}/factors",
 )
 async def factors(
-
     symbol: str,
-
 ):
 
     return {
-
         "symbol": symbol.upper(),
-
         "factor_scores": {},
-
     }
 
 
@@ -250,17 +196,12 @@ async def factors(
     "/{symbol}/history",
 )
 async def history(
-
     symbol: str,
-
 ):
 
     return {
-
         "symbol": symbol.upper(),
-
         "history": [],
-
     }
 
 
@@ -275,11 +216,8 @@ async def history(
 async def universe():
 
     return {
-
         "universe_size": 0,
-
         "symbols": [],
-
     }
 
 
@@ -293,11 +231,7 @@ async def universe():
 )
 async def generate():
 
-    return {
-
-        "status": "Signal Generation Started"
-
-    }
+    return {"status": "Signal Generation Started"}
 
 
 # ==========================================================
@@ -309,23 +243,10 @@ async def generate():
     "/{symbol}",
 )
 async def delete_signal(
-
     symbol: str,
-
 ):
 
     raise HTTPException(
-
         status_code=501,
-
-        detail=(
-
-            f"Deleting signal "
-
-            f"{symbol.upper()} "
-
-            "is not implemented."
-
-        ),
-
+        detail=(f"Deleting signal {symbol.upper()} is not implemented."),
     )

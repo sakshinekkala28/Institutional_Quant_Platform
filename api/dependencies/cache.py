@@ -23,7 +23,6 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-
 # ==========================================================
 # CACHE MANAGER
 # ==========================================================
@@ -74,15 +73,10 @@ def cache_health() -> dict:
     cache = get_cache()
 
     return {
-
         "engine": "CacheManager",
-
         "status": "healthy",
-
         "backend": cache.health()["backend"],
-
         "singleton": True,
-
     }
 
 
@@ -97,15 +91,10 @@ def cache_summary() -> dict:
     """
 
     return {
-
         "services": [
-
             "CacheManager",
-
         ],
-
         "count": 1,
-
     }
 
 
@@ -115,13 +104,8 @@ def cache_summary() -> dict:
 
 
 __all__ = [
-
     "CacheManager",
-
-    "get_cache",
-
     "cache_health",
-
     "cache_summary",
-
+    "get_cache",
 ]

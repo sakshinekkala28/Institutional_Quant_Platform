@@ -30,10 +30,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from api.schemas.base import APIModel
-from api.schemas.base import BaseResponse
-from api.schemas.base import SuccessResponse
-
+from api.schemas.base import APIModel, BaseResponse, SuccessResponse
 
 # ==========================================================
 # OPTIMIZATION CONSTRAINT
@@ -73,17 +70,11 @@ class ObjectiveFunction(
     """
 
     objective: Literal[
-
         "MaxSharpe",
-
         "MinVariance",
-
         "RiskParity",
-
         "MaxDiversification",
-
         "MinCVaR",
-
     ] = "MaxSharpe"
 
 
@@ -106,15 +97,11 @@ class OptimizationRequest(
     risk_free_rate: float = 0.06
 
     constraints: OptimizationConstraint = Field(
-
         default_factory=OptimizationConstraint,
-
     )
 
     objective: ObjectiveFunction = Field(
-
         default_factory=ObjectiveFunction,
-
     )
 
 
@@ -199,9 +186,7 @@ class OptimizationResult(
 
     turnover: float
 
-    positions: list[
-        OptimizedPosition
-    ]
+    positions: list[OptimizedPosition]
 
 
 # ==========================================================
@@ -220,13 +205,9 @@ class OptimizationReport(
 
     optimization: OptimizationResult
 
-    risk_contribution: list[
-        RiskContribution
-    ]
+    risk_contribution: list[RiskContribution]
 
-    efficient_frontier: list[
-        EfficientFrontierPoint
-    ]
+    efficient_frontier: list[EfficientFrontierPoint]
 
 
 # ==========================================================
@@ -273,9 +254,7 @@ class EfficientFrontierResponse(
     Efficient frontier response.
     """
 
-    data: list[
-        EfficientFrontierPoint
-    ]
+    data: list[EfficientFrontierPoint]
 
 
 class RiskContributionResponse(
@@ -285,9 +264,7 @@ class RiskContributionResponse(
     Risk contribution response.
     """
 
-    data: list[
-        RiskContribution
-    ]
+    data: list[RiskContribution]
 
 
 # ==========================================================
@@ -296,31 +273,17 @@ class RiskContributionResponse(
 
 
 __all__ = [
-
-    "OptimizationConstraint",
-
-    "ObjectiveFunction",
-
-    "OptimizationRequest",
-
-    "OptimizedPosition",
-
-    "RiskContribution",
-
     "EfficientFrontierPoint",
-
-    "OptimizationResult",
-
-    "OptimizationReport",
-
-    "OptimizationResponse",
-
-    "OptimizationResultResponse",
-
-    "OptimizationReportResponse",
-
     "EfficientFrontierResponse",
-
+    "ObjectiveFunction",
+    "OptimizationConstraint",
+    "OptimizationReport",
+    "OptimizationReportResponse",
+    "OptimizationRequest",
+    "OptimizationResponse",
+    "OptimizationResult",
+    "OptimizationResultResponse",
+    "OptimizedPosition",
+    "RiskContribution",
     "RiskContributionResponse",
-
 ]

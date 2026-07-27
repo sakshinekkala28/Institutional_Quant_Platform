@@ -30,11 +30,9 @@ Managed Resources
 
 from __future__ import annotations
 
+from collections.abc import Callable
 import logging
-
 from typing import Any
-from typing import Callable
-from typing import Dict
 
 logger = logging.getLogger(__name__)
 
@@ -42,6 +40,7 @@ logger = logging.getLogger(__name__)
 # =========================================================
 # RESOURCE MANAGER
 # =========================================================
+
 
 class ResourceManager:
     """
@@ -52,12 +51,12 @@ class ResourceManager:
         self,
     ) -> None:
 
-        self._resources: Dict[
+        self._resources: dict[
             str,
             Any,
         ] = {}
 
-        self._factories: Dict[
+        self._factories: dict[
             str,
             Callable[[], Any],
         ] = {}
@@ -76,12 +75,7 @@ class ResourceManager:
         """
 
         if name in self._factories:
-
-            raise ValueError(
-
-                f"Resource '{name}' already exists."
-
-            )
+            raise ValueError(f"Resource '{name}' already exists.")
 
         self._factories[name] = factory
 
@@ -98,16 +92,10 @@ class ResourceManager:
         """
 
         if name in self._resources:
-
             return self._resources[name]
 
         if name not in self._factories:
-
-            raise KeyError(
-
-                f"Unknown resource '{name}'."
-
-            )
+            raise KeyError(f"Unknown resource '{name}'.")
 
         resource = self._factories[name]()
 
@@ -124,15 +112,7 @@ class ResourceManager:
         name: str,
     ) -> bool:
 
-        return (
-
-            name in self._resources
-
-            or
-
-            name in self._factories
-
-        )
+        return name in self._resources or name in self._factories
 
     # =====================================================
     # REMOVE
@@ -144,49 +124,26 @@ class ResourceManager:
     ) -> None:
 
         resource = self._resources.pop(
-
             name,
-
             None,
-
         )
 
         self._factories.pop(
-
             name,
-
             None,
-
         )
 
-        if (
-
-            resource is not None
-
-            and
-
-            hasattr(
-
-                resource,
-
-                "close",
-
-            )
-
+        if resource is not None and hasattr(
+            resource,
+            "close",
         ):
-
             try:
-
                 resource.close()
 
             except Exception:
-
                 logger.exception(
-
                     "Failed closing resource '%s'.",
-
                     name,
-
                 )
 
     # =====================================================
@@ -200,17 +157,8 @@ class ResourceManager:
         Close every managed resource.
         """
 
-        for name in list(
-
-            self._resources.keys()
-
-        ):
-
-            self.unregister(
-
-                name
-
-            )
+        for name in list(self._resources.keys()):
+            self.unregister(name)
 
     # =====================================================
     # SUMMARY
@@ -221,31 +169,13 @@ class ResourceManager:
     ) -> dict:
 
         return {
-
-            "registered":
-
-                len(
-
-                    self._factories,
-
-                ),
-
-            "active":
-
-                len(
-
-                    self._resources,
-
-                ),
-
-            "resources":
-
-                sorted(
-
-                    self._factories.keys()
-
-                ),
-
+            "registered": len(
+                self._factories,
+            ),
+            "active": len(
+                self._resources,
+            ),
+            "resources": sorted(self._factories.keys()),
         }
 
     # =====================================================
@@ -257,11 +187,7 @@ class ResourceManager:
         name: str,
     ) -> bool:
 
-        return self.exists(
-
-            name
-
-        )
+        return self.exists(name)
 
     # -----------------------------------------------------
 
@@ -269,11 +195,7 @@ class ResourceManager:
         self,
     ) -> int:
 
-        return len(
-
-            self._factories
-
-        )
+        return len(self._factories)
 
     # -----------------------------------------------------
 
@@ -282,11 +204,7 @@ class ResourceManager:
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"registered={len(self)}, "
-
             f"active={len(self._resources)})"
-
         )

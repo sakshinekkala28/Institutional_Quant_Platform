@@ -33,13 +33,10 @@ from pathlib import Path
 
 from backtesting.backtest_report import BacktestReport
 from core.models.risk_report import RiskReport
-
 from execution.execution_report import ExecutionReport
-
 from optimization.optimization_report import (
     OptimizationReport,
 )
-
 from reporting.base_report import BaseReport
 
 
@@ -49,9 +46,7 @@ class ReportEngine:
     """
 
     def __init__(
-
         self,
-
     ) -> None:
 
         self._reports: list[BaseReport] = []
@@ -61,18 +56,11 @@ class ReportEngine:
     # =====================================================
 
     def register(
-
         self,
-
         report: BaseReport,
-
     ) -> None:
 
-        self._reports.append(
-
-            report
-
-        )
+        self._reports.append(report)
 
     # =====================================================
     # BUILD METADATA
@@ -80,52 +68,26 @@ class ReportEngine:
 
     @staticmethod
     def build_metadata(
-
         *,
-
         backtest: BacktestReport | None = None,
-
         risk: RiskReport | None = None,
-
         optimization: OptimizationReport | None = None,
-
         execution: ExecutionReport | None = None,
-
     ) -> dict:
 
         metadata: dict = {}
 
         if backtest is not None:
-
-            metadata[
-
-                "Backtest"
-
-            ] = backtest.summary()
+            metadata["Backtest"] = backtest.summary()
 
         if risk is not None:
-
-            metadata[
-
-                "Risk"
-
-            ] = risk.summary()
+            metadata["Risk"] = risk.summary()
 
         if optimization is not None:
-
-            metadata[
-
-                "Optimization"
-
-            ] = optimization.summary()
+            metadata["Optimization"] = optimization.summary()
 
         if execution is not None:
-
-            metadata[
-
-                "Execution"
-
-            ] = execution.summary()
+            metadata["Execution"] = execution.summary()
 
         return metadata
 
@@ -134,91 +96,43 @@ class ReportEngine:
     # =====================================================
 
     def export(
-
         self,
-
         report: BaseReport,
-
         destination: str | Path,
-
     ) -> None:
 
-        report.export(
-
-            str(
-
-                destination
-
-            )
-
-        )
+        report.export(str(destination))
 
     # =====================================================
     # EXPORT ALL
     # =====================================================
 
     def export_all(
-
         self,
-
         directory: str | Path,
-
     ) -> None:
 
-        directory = Path(
-
-            directory
-
-        )
+        directory = Path(directory)
 
         directory.mkdir(
-
             parents=True,
-
             exist_ok=True,
-
         )
 
         for report in self._reports:
+            filename = report.title.replace(
+                " ",
+                "_",
+            ).lower()
 
-            filename = (
-
-                report.title
-
-                .replace(
-
-                    " ",
-
-                    "_",
-
-                )
-
-                .lower()
-
-            )
-
-            report.export(
-
-                str(
-
-                    directory
-
-                    /
-
-                    filename
-
-                )
-
-            )
+            report.export(str(directory / filename))
 
     # =====================================================
     # CLEAR
     # =====================================================
 
     def clear(
-
         self,
-
     ) -> None:
 
         self._reports.clear()
@@ -229,58 +143,29 @@ class ReportEngine:
 
     @property
     def reports(
-
         self,
-
     ) -> list[BaseReport]:
 
-        return list(
-
-            self._reports
-
-        )
+        return list(self._reports)
 
     @property
     def count(
-
         self,
-
     ) -> int:
 
-        return len(
-
-            self._reports
-
-        )
+        return len(self._reports)
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "RegisteredReports":
-
-                self.count,
-
-            "ReportTitles":
-
-                [
-
-                    report.title
-
-                    for report
-
-                    in self._reports
-
-                ],
-
+            "RegisteredReports": self.count,
+            "ReportTitles": [report.title for report in self._reports],
         }
 
     # =====================================================
@@ -288,19 +173,9 @@ class ReportEngine:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Reports={self.count}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Reports={self.count})"
 
     __str__ = __repr__

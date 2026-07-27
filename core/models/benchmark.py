@@ -26,9 +26,7 @@ Used By
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
-
+from dataclasses import dataclass, field
 from datetime import date
 
 from core.models.return_series import ReturnSeries
@@ -46,11 +44,7 @@ class Benchmark:
 
     return_series: ReturnSeries
 
-    constituents: dict[str, float] = field(
-
-        default_factory=dict
-
-    )
+    constituents: dict[str, float] = field(default_factory=dict)
 
     currency: str = "INR"
 
@@ -58,11 +52,7 @@ class Benchmark:
 
     risk_free_rate: float = 0.0
 
-    metadata: dict[str, str] = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict[str, str] = field(default_factory=dict)
 
     __hash__ = None
 
@@ -70,110 +60,46 @@ class Benchmark:
     # COLLECTION
     # =====================================================
 
-    def __contains__(
-
-        self,
-
-        symbol: str
-
-    ) -> bool:
+    def __contains__(self, symbol: str) -> bool:
 
         return symbol in self.constituents
 
-    def __len__(
+    def __len__(self) -> int:
 
-        self
+        return len(self.constituents)
 
-    ) -> int:
+    def __bool__(self) -> bool:
 
-        return len(
-
-            self.constituents
-
-        )
-
-    def __bool__(
-
-        self
-
-    ) -> bool:
-
-        return bool(
-
-            self.constituents
-
-        )
+        return bool(self.constituents)
 
     # =====================================================
     # BASIC
     # =====================================================
 
     @property
-    def holdings(
+    def holdings(self) -> int:
 
-        self
-
-    ) -> int:
-
-        return len(
-
-            self
-
-        )
+        return len(self)
 
     @property
-    def total_weight(
+    def total_weight(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return sum(
-
-            self.constituents.values()
-
-        )
+        return sum(self.constituents.values())
 
     @property
-    def fully_invested(
+    def fully_invested(self) -> bool:
 
-        self
-
-    ) -> bool:
-
-        return abs(
-
-            self.total_weight - 1.0
-
-        ) < 1e-6
+        return abs(self.total_weight - 1.0) < 1e-6
 
     # =====================================================
     # LOOKUPS
     # =====================================================
 
-    def weight(
+    def weight(self, symbol: str) -> float:
 
-        self,
+        return self.constituents.get(symbol, 0.0)
 
-        symbol: str
-
-    ) -> float:
-
-        return self.constituents.get(
-
-            symbol,
-
-            0.0
-
-        )
-
-    def exists(
-
-        self,
-
-        symbol: str
-
-    ) -> bool:
+    def exists(self, symbol: str) -> bool:
 
         return symbol in self
 
@@ -182,134 +108,57 @@ class Benchmark:
     # =====================================================
 
     @property
-    def annual_return(
+    def annual_return(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return (
-
-            self.return_series
-
-            .annualized_return
-
-        )
+        return self.return_series.annualized_return
 
     @property
-    def annual_volatility(
+    def annual_volatility(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return (
-
-            self.return_series
-
-            .annualized_volatility
-
-        )
+        return self.return_series.annualized_volatility
 
     @property
-    def sharpe_ratio(
+    def sharpe_ratio(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return (
-
-            self.return_series
-
-            .sharpe_ratio
-
-        )
+        return self.return_series.sharpe_ratio
 
     # =====================================================
     # VALIDATION
     # =====================================================
 
-    def validate(
-
-        self
-
-    ) -> None:
+    def validate(self) -> None:
 
         if not self.name:
-
-            raise ValueError(
-
-                "Benchmark name is required."
-
-            )
+            raise ValueError("Benchmark name is required.")
 
         if not self.symbol:
-
-            raise ValueError(
-
-                "Benchmark symbol is required."
-
-            )
+            raise ValueError("Benchmark symbol is required.")
 
         if not self.fully_invested:
-
-            raise ValueError(
-
-                "Benchmark weights must sum to 1.0."
-
-            )
+            raise ValueError("Benchmark weights must sum to 1.0.")
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         return {
-
             "name": self.name,
-
             "symbol": self.symbol,
-
             "currency": self.currency,
-
             "holdings": self.holdings,
-
             "annual_return": self.annual_return,
-
-            "annual_volatility":
-
-                self.annual_volatility,
-
-            "sharpe_ratio":
-
-                self.sharpe_ratio
-
+            "annual_volatility": self.annual_volatility,
+            "sharpe_ratio": self.sharpe_ratio,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
+    def __repr__(self) -> str:
 
-        self
-
-    ) -> str:
-
-        return (
-
-            f"Benchmark("
-
-            f"{self.symbol}, "
-
-            f"{self.holdings} holdings)"
-
-        )
+        return f"Benchmark({self.symbol}, {self.holdings} holdings)"
 
     __str__ = __repr__

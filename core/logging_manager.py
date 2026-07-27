@@ -1,71 +1,42 @@
-from pathlib import Path
 import logging
-
 from logging.handlers import RotatingFileHandler
+from pathlib import Path
 import sys
 
-class LogConfig:
 
+class LogConfig:
     LOG_LEVEL = logging.INFO
 
-    LOG_FORMAT = (
-        "%(asctime)s | "
-        "%(levelname)s | "
-        "%(name)s | "
-        "%(message)s"
-    )
+    LOG_FORMAT = "%(asctime)s | %(levelname)s | %(name)s | %(message)s"
 
-    LOG_DIRECTORY = (
-        Path("logs")
-    )
+    LOG_DIRECTORY = Path("logs")
+
 
 class FileLogger:
-
     @staticmethod
     def create_file_handler():
 
-        LogConfig.LOG_DIRECTORY.mkdir(
-            exist_ok=True
-        )
+        LogConfig.LOG_DIRECTORY.mkdir(exist_ok=True)
 
-        file_handler = RotatingFileHandler(
+        file_handler = RotatingFileHandler(LogConfig.LOG_DIRECTORY / "platform.log")
 
-            LogConfig.LOG_DIRECTORY
-            / "platform.log"
-
-        )
-
-        file_handler.setFormatter(
-
-            logging.Formatter(
-                LogConfig.LOG_FORMAT
-            )
-
-        )
+        file_handler.setFormatter(logging.Formatter(LogConfig.LOG_FORMAT))
 
         return file_handler
-    
-class ConsoleLogger:
 
+
+class ConsoleLogger:
     @staticmethod
     def create_console_handler():
 
-        handler = logging.StreamHandler(
-            sys.stdout
-        )
+        handler = logging.StreamHandler(sys.stdout)
 
-        handler.setFormatter(
-
-            logging.Formatter(
-                LogConfig.LOG_FORMAT
-            )
-
-        )
+        handler.setFormatter(logging.Formatter(LogConfig.LOG_FORMAT))
 
         return handler
-    
-class LoggingManager:
 
+
+class LoggingManager:
     @staticmethod
     def get_logger(name):
 
@@ -74,23 +45,11 @@ class LoggingManager:
         if logger.handlers:
             return logger
 
-        logger.setLevel(
-            LogConfig.LOG_LEVEL
-        )
+        logger.setLevel(LogConfig.LOG_LEVEL)
 
-        logger.addHandler(
+        logger.addHandler(FileLogger.create_file_handler())
 
-            FileLogger
-            .create_file_handler()
-
-        )
-
-        logger.addHandler(
-
-            ConsoleLogger
-            .create_console_handler()
-
-        )
+        logger.addHandler(ConsoleLogger.create_console_handler())
 
         logger.propagate = False
 

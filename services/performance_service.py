@@ -27,25 +27,17 @@ Responsibilities
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
-
-from threading import Lock
-from threading import RLock
-
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from threading import Lock, RLock
 from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import Optional
-
-import pandas as pd
 
 from core.services.base_service import BaseService
-
 
 # ============================================================
 # Exceptions
 # ============================================================
+
 
 class PerformanceError(Exception):
     """Base performance exception."""
@@ -59,34 +51,26 @@ class PerformanceProfileNotFound(PerformanceError):
 # Performance Profile
 # ============================================================
 
+
 @dataclass(slots=True)
 class PerformanceProfile:
-
     name: str
 
     portfolio: str
 
     benchmark: str
 
-    metrics: Dict[str, float] = field(
+    metrics: dict[str, float] = field(default_factory=dict)
 
-        default_factory=dict
-
-    )
-
-    metadata: Dict[str, Any] = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ============================================================
 # Performance Service
 # ============================================================
 
-class PerformanceService(BaseService):
 
+class PerformanceService(BaseService):
     """
     Enterprise Performance Manager.
     """
@@ -95,87 +79,47 @@ class PerformanceService(BaseService):
 
     _instance_lock = Lock()
 
-    def __new__(
-
-        cls,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def __new__(cls, *args, **kwargs):
 
         if cls._instance is None:
-
             with cls._instance_lock:
-
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
 
-    def __init__(
+    def __init__(self):
 
-        self
-
-    ):
-
-        if getattr(
-
-            self,
-
-            "_initialized",
-
-            False
-
-        ):
-
+        if getattr(self, "_initialized", False):
             return
 
         super().__init__()
 
         self._lock = RLock()
 
-        self._profiles: Dict[str, PerformanceProfile] = {}
+        self._profiles: dict[str, PerformanceProfile] = {}
 
-        self._engines: Dict[str, Callable] = {}
+        self._engines: dict[str, Callable] = {}
 
         self._enabled = True
 
         self._initialized = True
 
-        self._logger.info(
-
-            "PerformanceService initialized."
-
-        )
+        self._logger.info("PerformanceService initialized.")
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def enable(
-
-        self
-
-    ):
+    def enable(self):
 
         self._enabled = True
 
-    def disable(
-
-        self
-
-    ):
+    def disable(self):
 
         self._enabled = False
 
-    def enabled(
-
-        self
-
-    ):
+    def enabled(self):
 
         return self._enabled
 
@@ -184,55 +128,33 @@ class PerformanceService(BaseService):
     # =====================================================
 
     def register(
-
         self,
-
         name: str,
-
         portfolio: str,
-
         benchmark: str,
-
-        metrics: Optional[Dict[str, float]] = None,
-
-        metadata: Optional[Dict[str, Any]] = None
-
+        metrics: dict[str, float] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Register performance profile.
         """
 
         profile = PerformanceProfile(
-
             name=name,
-
             portfolio=portfolio,
-
             benchmark=benchmark,
-
             metrics=metrics or {},
-
-            metadata=metadata or {}
-
+            metadata=metadata or {},
         )
 
         with self._lock:
-
             self._profiles[name] = profile
 
     # =====================================================
     # Analytics Engine
     # =====================================================
 
-    def register_engine(
-
-        self,
-
-        name: str,
-
-        engine: Callable
-
-    ) -> None:
+    def register_engine(self, name: str, engine: Callable) -> None:
         """
         Register analytics engine.
         """
@@ -243,21 +165,10 @@ class PerformanceService(BaseService):
     # Retrieval
     # =====================================================
 
-    def get(
-
-        self,
-
-        profile: str
-
-    ) -> PerformanceProfile:
+    def get(self, profile: str) -> PerformanceProfile:
 
         if profile not in self._profiles:
-
-            raise PerformanceProfileNotFound(
-
-                profile
-
-            )
+            raise PerformanceProfileNotFound(profile)
 
         return self._profiles[profile]
 
@@ -265,379 +176,118 @@ class PerformanceService(BaseService):
     # BaseService
     # =====================================================
 
-    def run(
-
-        self
-
-    ):
+    def run(self):
 
         return self.statistics()
-    
+
     # =====================================================
     # Metrics
     # =====================================================
 
-    def update_metric(
-
-        self,
-
-        profile: str,
-
-        metric: str,
-
-        value: float
-
-    ) -> None:
+    def update_metric(self, profile: str, metric: str, value: float) -> None:
         """
         Update performance metric.
         """
 
-        self.get(
-
-            profile
-
-        ).metrics[metric] = value
+        self.get(profile).metrics[metric] = value
 
     def metric(
-
-        self,
-
-        profile: str,
-
-        metric: str,
-
-        default: Optional[float] = None
-
-    ) -> Optional[float]:
+        self, profile: str, metric: str, default: float | None = None
+    ) -> float | None:
         """
         Return performance metric.
         """
 
-        return self.get(
-
-            profile
-
-        ).metrics.get(
-
-            metric,
-
-            default
-
-        )
+        return self.get(profile).metrics.get(metric, default)
 
     # =====================================================
     # Standard Metrics
     # =====================================================
 
-    def total_return(
+    def total_return(self, profile: str) -> float | None:
 
-        self,
+        return self.metric(profile, "total_return")
 
-        profile: str
+    def annualized_return(self, profile: str) -> float | None:
 
-    ) -> Optional[float]:
+        return self.metric(profile, "annualized_return")
 
-        return self.metric(
+    def benchmark_return(self, profile: str) -> float | None:
 
-            profile,
+        return self.metric(profile, "benchmark_return")
 
-            "total_return"
+    def alpha(self, profile: str) -> float | None:
 
-        )
+        return self.metric(profile, "alpha")
 
-    def annualized_return(
+    def beta(self, profile: str) -> float | None:
 
-        self,
+        return self.metric(profile, "beta")
 
-        profile: str
+    def sharpe(self, profile: str) -> float | None:
 
-    ) -> Optional[float]:
+        return self.metric(profile, "sharpe")
 
-        return self.metric(
+    def sortino(self, profile: str) -> float | None:
 
-            profile,
+        return self.metric(profile, "sortino")
 
-            "annualized_return"
+    def calmar(self, profile: str) -> float | None:
 
-        )
+        return self.metric(profile, "calmar")
 
-    def benchmark_return(
+    def information_ratio(self, profile: str) -> float | None:
 
-        self,
+        return self.metric(profile, "information_ratio")
 
-        profile: str
+    def tracking_error(self, profile: str) -> float | None:
 
-    ) -> Optional[float]:
+        return self.metric(profile, "tracking_error")
 
-        return self.metric(
+    def maximum_drawdown(self, profile: str) -> float | None:
 
-            profile,
-
-            "benchmark_return"
-
-        )
-
-    def alpha(
-
-        self,
-
-        profile: str
-
-    ) -> Optional[float]:
-
-        return self.metric(
-
-            profile,
-
-            "alpha"
-
-        )
-
-    def beta(
-
-        self,
-
-        profile: str
-
-    ) -> Optional[float]:
-
-        return self.metric(
-
-            profile,
-
-            "beta"
-
-        )
-
-    def sharpe(
-
-        self,
-
-        profile: str
-
-    ) -> Optional[float]:
-
-        return self.metric(
-
-            profile,
-
-            "sharpe"
-
-        )
-
-    def sortino(
-
-        self,
-
-        profile: str
-
-    ) -> Optional[float]:
-
-        return self.metric(
-
-            profile,
-
-            "sortino"
-
-        )
-
-    def calmar(
-
-        self,
-
-        profile: str
-
-    ) -> Optional[float]:
-
-        return self.metric(
-
-            profile,
-
-            "calmar"
-
-        )
-
-    def information_ratio(
-
-        self,
-
-        profile: str
-
-    ) -> Optional[float]:
-
-        return self.metric(
-
-            profile,
-
-            "information_ratio"
-
-        )
-
-    def tracking_error(
-
-        self,
-
-        profile: str
-
-    ) -> Optional[float]:
-
-        return self.metric(
-
-            profile,
-
-            "tracking_error"
-
-        )
-
-    def maximum_drawdown(
-
-        self,
-
-        profile: str
-
-    ) -> Optional[float]:
-
-        return self.metric(
-
-            profile,
-
-            "maximum_drawdown"
-
-        )
+        return self.metric(profile, "maximum_drawdown")
 
     # =====================================================
     # Analytics Hooks
     # =====================================================
 
-    def evaluate(
-
-        self,
-
-        profile: str,
-
-        engine: str,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def evaluate(self, profile: str, engine: str, *args, **kwargs):
         """
         Execute analytics engine.
         """
 
         if engine not in self._engines:
+            raise PerformanceError(f"Unknown engine '{engine}'.")
 
-            raise PerformanceError(
+        analytics = self._engines[engine]
 
-                f"Unknown engine '{engine}'."
+        return analytics(profile=self.get(profile), *args, **kwargs)
 
-            )
+    def rolling_metrics(self, profile: str, *args, **kwargs):
 
-        analytics = self._engines[
+        return self.evaluate(profile, "rolling", *args, **kwargs)
 
-            engine
+    def attribution(self, profile: str, *args, **kwargs):
 
-        ]
-
-        return analytics(
-
-            profile=self.get(
-
-                profile
-
-            ),
-
-            *args,
-
-            **kwargs
-
-        )
-
-    def rolling_metrics(
-
-        self,
-
-        profile: str,
-
-        *args,
-
-        **kwargs
-
-    ):
-
-        return self.evaluate(
-
-            profile,
-
-            "rolling",
-
-            *args,
-
-            **kwargs
-
-        )
-
-    def attribution(
-
-        self,
-
-        profile: str,
-
-        *args,
-
-        **kwargs
-
-    ):
-
-        return self.evaluate(
-
-            profile,
-
-            "attribution",
-
-            *args,
-
-            **kwargs
-
-        )
+        return self.evaluate(profile, "attribution", *args, **kwargs)
 
     # =====================================================
     # Validation
     # =====================================================
 
-    def validate(
-
-        self,
-
-        profile: str
-
-    ) -> bool:
+    def validate(self, profile: str) -> bool:
         """
         Validate performance profile.
         """
 
-        instance = self.get(
-
-            profile
-
-        )
+        instance = self.get(profile)
 
         if not instance.portfolio:
-
-            raise PerformanceError(
-
-                "Portfolio not assigned."
-
-            )
+            raise PerformanceError("Portfolio not assigned.")
 
         if not instance.benchmark:
-
-            raise PerformanceError(
-
-                "Benchmark not assigned."
-
-            )
+            raise PerformanceError("Benchmark not assigned.")
 
         return True
 
@@ -645,149 +295,64 @@ class PerformanceService(BaseService):
     # Statistics
     # =====================================================
 
-    def statistics(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """
         Performance statistics.
         """
 
         return {
-
-            "profiles":
-
-                len(
-
-                    self._profiles
-
-                ),
-
-            "analytics_engines":
-
-                len(
-
-                    self._engines
-
-                ),
-
-            "enabled":
-
-                self._enabled
-
+            "profiles": len(self._profiles),
+            "analytics_engines": len(self._engines),
+            "enabled": self._enabled,
         }
-    
+
     # =====================================================
     # Metadata
     # =====================================================
 
-    def metadata(
-
-        self,
-
-        profile: str
-
-    ) -> Dict[str, Any]:
+    def metadata(self, profile: str) -> dict[str, Any]:
         """
         Return performance metadata.
         """
 
-        return dict(
+        return dict(self.get(profile).metadata)
 
-            self.get(
-
-                profile
-
-            ).metadata
-
-        )
-
-    def update_metadata(
-
-        self,
-
-        profile: str,
-
-        **kwargs
-
-    ) -> None:
+    def update_metadata(self, profile: str, **kwargs) -> None:
         """
         Update performance metadata.
         """
 
-        self.get(
-
-            profile
-
-        ).metadata.update(
-
-            kwargs
-
-        )
+        self.get(profile).metadata.update(kwargs)
 
     # =====================================================
     # Registry
     # =====================================================
 
-    def exists(
-
-        self,
-
-        profile: str
-
-    ) -> bool:
+    def exists(self, profile: str) -> bool:
         """
         Check whether profile exists.
         """
 
         return profile in self._profiles
 
-    def names(
-
-        self
-
-    ) -> list[str]:
+    def names(self) -> list[str]:
         """
         Return registered profiles.
         """
 
-        return sorted(
+        return sorted(self._profiles.keys())
 
-            self._profiles.keys()
-
-        )
-
-    def remove(
-
-        self,
-
-        profile: str
-
-    ) -> None:
+    def remove(self, profile: str) -> None:
         """
         Remove performance profile.
         """
 
         if profile not in self._profiles:
+            raise PerformanceProfileNotFound(profile)
 
-            raise PerformanceProfileNotFound(
+        del self._profiles[profile]
 
-                profile
-
-            )
-
-        del self._profiles[
-
-            profile
-
-        ]
-
-    def clear(
-
-        self
-
-    ) -> None:
+    def clear(self) -> None:
         """
         Remove every profile.
         """
@@ -800,192 +365,78 @@ class PerformanceService(BaseService):
     # Snapshot
     # =====================================================
 
-    def snapshot(
-
-        self,
-
-        profile: str
-
-    ) -> Dict[str, Any]:
+    def snapshot(self, profile: str) -> dict[str, Any]:
         """
         Performance profile snapshot.
         """
 
-        performance = self.get(
-
-            profile
-
-        )
+        performance = self.get(profile)
 
         return {
-
-            "name":
-
-                performance.name,
-
-            "portfolio":
-
-                performance.portfolio,
-
-            "benchmark":
-
-                performance.benchmark,
-
-            "metrics":
-
-                dict(
-
-                    performance.metrics
-
-                ),
-
-            "metadata":
-
-                dict(
-
-                    performance.metadata
-
-                )
-
+            "name": performance.name,
+            "portfolio": performance.portfolio,
+            "benchmark": performance.benchmark,
+            "metrics": dict(performance.metrics),
+            "metadata": dict(performance.metadata),
         }
 
     # =====================================================
     # Health
     # =====================================================
 
-    def health(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """
         Performance service health.
         """
 
         return {
-
-            "status":
-
-                "HEALTHY"
-
-                if self._enabled
-
-                else "DISABLED",
-
-            "enabled":
-
-                self._enabled,
-
-            "profiles":
-
-                len(
-
-                    self._profiles
-
-                ),
-
-            "analytics_engines":
-
-                len(
-
-                    self._engines
-
-                )
-
+            "status": "HEALTHY" if self._enabled else "DISABLED",
+            "enabled": self._enabled,
+            "profiles": len(self._profiles),
+            "analytics_engines": len(self._engines),
         }
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def startup(
-
-        self
-
-    ) -> None:
+    def startup(self) -> None:
 
         self.enable()
 
-        self._logger.info(
+        self._logger.info("PerformanceService started.")
 
-            "PerformanceService started."
-
-        )
-
-    def shutdown(
-
-        self
-
-    ) -> None:
+    def shutdown(self) -> None:
 
         self.clear()
 
         self.disable()
 
-        self._logger.info(
-
-            "PerformanceService shutdown."
-
-        )
+        self._logger.info("PerformanceService shutdown.")
 
     # =====================================================
     # Magic Methods
     # =====================================================
 
-    def __contains__(
+    def __contains__(self, profile: str) -> bool:
 
-        self,
+        return self.exists(profile)
 
-        profile: str
+    def __len__(self) -> int:
 
-    ) -> bool:
+        return len(self._profiles)
 
-        return self.exists(
+    def __iter__(self):
 
-            profile
+        return iter(self._profiles.items())
 
-        )
-
-    def __len__(
-
-        self
-
-    ) -> int:
-
-        return len(
-
-            self._profiles
-
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self._profiles.items()
-
-        )
-
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}"
-
             f"(profiles={len(self)}, "
-
             f"engines={len(self._engines)}, "
-
             f"enabled={self._enabled})"
-
         )
 
 

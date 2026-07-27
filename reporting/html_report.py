@@ -28,31 +28,21 @@ from pathlib import Path
 from reporting.base_report import BaseReport
 
 
-class HTMLReport(
-    BaseReport
-):
+class HTMLReport(BaseReport):
     """
     Institutional HTML report.
     """
 
     def __init__(
-
         self,
-
         title: str,
-
         report_data: dict,
-
         author: str = "Institutional Quant Platform",
-
     ) -> None:
 
         super().__init__(
-
             title=title,
-
             author=author,
-
         )
 
         self.report_data = report_data
@@ -62,26 +52,14 @@ class HTMLReport(
     # =====================================================
 
     def export(
-
         self,
-
         destination: str,
-
     ) -> None:
 
-        path = Path(
-
-            destination
-
-        )
+        path = Path(destination)
 
         if path.suffix.lower() != ".html":
-
-            path = path.with_suffix(
-
-                ".html"
-
-            )
+            path = path.with_suffix(".html")
 
         html = []
 
@@ -89,38 +67,17 @@ class HTMLReport(
         # HEADER
         # =================================================
 
-        html.append(
+        html.append("<!DOCTYPE html>")
 
-            "<!DOCTYPE html>"
+        html.append("<html>")
 
-        )
+        html.append("<head>")
 
-        html.append(
+        html.append('<meta charset="UTF-8">')
 
-            "<html>"
-
-        )
+        html.append(f"<title>{escape(self.title)}</title>")
 
         html.append(
-
-            "<head>"
-
-        )
-
-        html.append(
-
-            '<meta charset="UTF-8">'
-
-        )
-
-        html.append(
-
-            f"<title>{escape(self.title)}</title>"
-
-        )
-
-        html.append(
-
             """
 <style>
 
@@ -204,221 +161,99 @@ color:#777;
 
 </style>
             """
-
         )
 
-        html.append(
+        html.append("</head>")
 
-            "</head>"
-
-        )
-
-        html.append(
-
-            "<body>"
-
-        )
+        html.append("<body>")
 
         # =================================================
         # TITLE
         # =================================================
 
-        html.append(
-
-            f"<h1>{escape(self.title)}</h1>"
-
-        )
+        html.append(f"<h1>{escape(self.title)}</h1>")
 
         # =================================================
         # METADATA
         # =================================================
 
-        html.append(
+        html.append('<div class="metadata">')
 
-            '<div class="metadata">'
+        html.append(f"<p><b>Author:</b> {escape(self.author)}</p>")
 
-        )
-
-        html.append(
-
-            f"<p><b>Author:</b> "
-
-            f"{escape(self.author)}</p>"
-
-        )
-
-        html.append(
-
-            f"<p><b>Generated:</b> "
-
-            f"{self.created_at}</p>"
-
-        )
+        html.append(f"<p><b>Generated:</b> {self.created_at}</p>")
 
         metadata = self.report_data.get(
-
             "Metadata",
-
             {},
-
         )
 
         if metadata:
+            html.append("<h3>Metadata</h3>")
 
-            html.append(
+            html.append("<table>")
 
-                "<h3>Metadata</h3>"
-
-            )
-
-            html.append(
-
-                "<table>"
-
-            )
-
-            html.append(
-
-                "<tr><th>Key</th><th>Value</th></tr>"
-
-            )
+            html.append("<tr><th>Key</th><th>Value</th></tr>")
 
             for key, value in metadata.items():
-
                 html.append(
-
-                    "<tr>"
-
-                    f"<td>{escape(str(key))}</td>"
-
-                    f"<td>{escape(str(value))}</td>"
-
-                    "</tr>"
-
+                    f"<tr><td>{escape(str(key))}</td><td>{escape(str(value))}</td></tr>"
                 )
 
-            html.append(
+            html.append("</table>")
 
-                "</table>"
-
-            )
-
-        html.append(
-
-            "</div>"
-
-        )
+        html.append("</div>")
 
         # =================================================
         # SECTIONS
         # =================================================
 
         sections = self.report_data.get(
-
             "Sections",
-
             {},
-
         )
 
         for section, values in sections.items():
-
-            html.append(
-
-                f"<h2>{escape(section)}</h2>"
-
-            )
+            html.append(f"<h2>{escape(section)}</h2>")
 
             if isinstance(
-
                 values,
-
                 dict,
-
             ):
+                html.append("<table>")
 
-                html.append(
-
-                    "<table>"
-
-                )
-
-                html.append(
-
-                    "<tr><th>Metric</th><th>Value</th></tr>"
-
-                )
+                html.append("<tr><th>Metric</th><th>Value</th></tr>")
 
                 for key, value in values.items():
-
                     html.append(
-
                         "<tr>"
-
                         f"<td>{escape(str(key))}</td>"
-
                         f"<td>{escape(str(value))}</td>"
-
                         "</tr>"
-
                     )
 
-                html.append(
-
-                    "</table>"
-
-                )
+                html.append("</table>")
 
             else:
-
-                html.append(
-
-                    f"<p>{escape(str(values))}</p>"
-
-                )
+                html.append(f"<p>{escape(str(values))}</p>")
 
         # =================================================
         # FOOTER
         # =================================================
 
-        html.append(
+        html.append('<div class="footer">')
 
-            '<div class="footer">'
+        html.append("Generated by Institutional Quant Platform")
 
-        )
+        html.append("</div>")
 
-        html.append(
+        html.append("</body>")
 
-            "Generated by "
-
-            "Institutional Quant Platform"
-
-        )
-
-        html.append(
-
-            "</div>"
-
-        )
-
-        html.append(
-
-            "</body>"
-
-        )
-
-        html.append(
-
-            "</html>"
-
-        )
+        html.append("</html>")
 
         path.write_text(
-
             "\n".join(html),
-
             encoding="utf-8",
-
         )
 
     # =====================================================
@@ -426,33 +261,18 @@ color:#777;
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
             **super().summary(),
-
-            "Sections":
-
-                len(
-
-                    self.report_data.get(
-
-                        "Sections",
-
-                        {},
-
-                    )
-
-                ),
-
-            "Format":
-
-                "HTML",
-
+            "Sections": len(
+                self.report_data.get(
+                    "Sections",
+                    {},
+                )
+            ),
+            "Format": "HTML",
         }
 
     # =====================================================
@@ -460,19 +280,9 @@ color:#777;
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Title='{self.title}'"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Title='{self.title}')"
 
     __str__ = __repr__

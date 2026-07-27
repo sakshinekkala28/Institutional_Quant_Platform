@@ -58,101 +58,43 @@ class PortfolioConstraints:
     # =====================================================
 
     @classmethod
-    def fully_invested(
-
-        cls,
-
-        portfolio: Portfolio
-
-    ) -> bool:
+    def fully_invested(cls, portfolio: Portfolio) -> bool:
 
         return portfolio.weight_error() <= cls.WEIGHT_TOLERANCE
 
     @classmethod
-    def non_empty(
-
-        cls,
-
-        portfolio: Portfolio
-
-    ) -> bool:
+    def non_empty(cls, portfolio: Portfolio) -> bool:
 
         return not portfolio.is_empty
 
     @classmethod
-    def long_only(
+    def long_only(cls, portfolio: Portfolio) -> bool:
 
-        cls,
+        return all(position.weight >= cls.MIN_WEIGHT for position in portfolio)
 
-        portfolio: Portfolio
-
-    ) -> bool:
+    @classmethod
+    def weight_limits(cls, portfolio: Portfolio) -> bool:
 
         return all(
-
-            position.weight >= cls.MIN_WEIGHT
-
+            cls.MIN_WEIGHT <= position.weight <= cls.MAX_WEIGHT
             for position in portfolio
-
         )
 
     @classmethod
-    def weight_limits(
+    def holdings_limit(cls, portfolio: Portfolio) -> bool:
 
-        cls,
-
-        portfolio: Portfolio
-
-    ) -> bool:
-
-        return all(
-
-            cls.MIN_WEIGHT
-
-            <= position.weight
-
-            <= cls.MAX_WEIGHT
-
-            for position in portfolio
-
-        )
-
-    @classmethod
-    def holdings_limit(
-
-        cls,
-
-        portfolio: Portfolio
-
-    ) -> bool:
-
-        return (
-
-            cls.MIN_HOLDINGS
-
-            <= portfolio.holdings
-
-            <= cls.MAX_HOLDINGS
-
-        )
+        return cls.MIN_HOLDINGS <= portfolio.holdings <= cls.MAX_HOLDINGS
 
     # =====================================================
     # CONCENTRATION
     # =====================================================
 
     @classmethod
-    def concentration(
-
-        cls,
-
-        portfolio: Portfolio
-
-    ) -> bool:
+    def concentration(cls, portfolio: Portfolio) -> bool:
 
         largest = portfolio.largest_position
 
         if largest is None:
-
             return False
 
         return largest.weight <= cls.MAX_WEIGHT
@@ -162,64 +104,15 @@ class PortfolioConstraints:
     # =====================================================
 
     @classmethod
-    def validate(
-
-        cls,
-
-        portfolio: Portfolio
-
-    ) -> dict[str, bool]:
+    def validate(cls, portfolio: Portfolio) -> dict[str, bool]:
 
         return {
-
-            "non_empty":
-
-                cls.non_empty(
-
-                    portfolio
-
-                ),
-
-            "fully_invested":
-
-                cls.fully_invested(
-
-                    portfolio
-
-                ),
-
-            "long_only":
-
-                cls.long_only(
-
-                    portfolio
-
-                ),
-
-            "weight_limits":
-
-                cls.weight_limits(
-
-                    portfolio
-
-                ),
-
-            "holdings_limit":
-
-                cls.holdings_limit(
-
-                    portfolio
-
-                ),
-
-            "concentration":
-
-                cls.concentration(
-
-                    portfolio
-
-                ),
-
+            "non_empty": cls.non_empty(portfolio),
+            "fully_invested": cls.fully_invested(portfolio),
+            "long_only": cls.long_only(portfolio),
+            "weight_limits": cls.weight_limits(portfolio),
+            "holdings_limit": cls.holdings_limit(portfolio),
+            "concentration": cls.concentration(portfolio),
         }
 
     # =====================================================
@@ -227,110 +120,40 @@ class PortfolioConstraints:
     # =====================================================
 
     @classmethod
-    def passed(
+    def passed(cls, portfolio: Portfolio) -> bool:
 
-        cls,
-
-        portfolio: Portfolio
-
-    ) -> bool:
-
-        return all(
-
-            cls.validate(
-
-                portfolio
-
-            ).values()
-
-        )
+        return all(cls.validate(portfolio).values())
 
     # =====================================================
     # FAILED CONSTRAINTS
     # =====================================================
 
     @classmethod
-    def failed(
+    def failed(cls, portfolio: Portfolio) -> list[str]:
 
-        cls,
-
-        portfolio: Portfolio
-
-    ) -> list[str]:
-
-        return [
-
-            name
-
-            for name, passed
-
-            in cls.validate(
-
-                portfolio
-
-            ).items()
-
-            if not passed
-
-        ]
+        return [name for name, passed in cls.validate(portfolio).items() if not passed]
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
     @classmethod
-    def summary(
+    def summary(cls, portfolio: Portfolio) -> dict:
 
-        cls,
-
-        portfolio: Portfolio
-
-    ) -> dict:
-
-        validation = cls.validate(
-
-            portfolio
-
-        )
+        validation = cls.validate(portfolio)
 
         return {
-
-            "passed":
-
-                all(
-
-                    validation.values()
-
-                ),
-
-            "constraints":
-
-                validation,
-
-            "failed":
-
-                cls.failed(
-
-                    portfolio
-
-                ),
-
+            "passed": all(validation.values()),
+            "constraints": validation,
+            "failed": cls.failed(portfolio),
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
+    def __repr__(self) -> str:
 
-        self
-
-    ) -> str:
-
-        return (
-
-            f"{self.__class__.__name__}()"
-
-        )
+        return f"{self.__class__.__name__}()"
 
     __str__ = __repr__

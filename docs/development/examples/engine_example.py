@@ -10,10 +10,10 @@ It is intended as a reference implementation only.
 
 from __future__ import annotations
 
-import logging
-import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import logging
+import time
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -83,9 +83,7 @@ class ExampleEngine(BaseEngine):
 
     def validate(self) -> None:
         if not self.config.enabled:
-            raise RuntimeError(
-                f"{self.config.name} is disabled."
-            )
+            raise RuntimeError(f"{self.config.name} is disabled.")
 
     def execute(self) -> EngineResult:
 

@@ -44,163 +44,65 @@ class PortfolioExposure:
     # =====================================================
 
     @staticmethod
-    def sector(
-
-        portfolio: Portfolio
-
-    ) -> dict[str, float]:
-
+    def sector(portfolio: Portfolio) -> dict[str, float]:
         """
         Sector weight exposure.
         """
 
-        exposure = defaultdict(
-
-            float
-
-        )
+        exposure = defaultdict(float)
 
         for position in portfolio:
+            exposure[position.sector] += position.weight
 
-            exposure[
-
-                position.sector
-
-            ] += position.weight
-
-        return dict(
-
-            sorted(
-
-                exposure.items(),
-
-                key=lambda item: item[1],
-
-                reverse=True
-
-            )
-
-        )
+        return dict(sorted(exposure.items(), key=lambda item: item[1], reverse=True))
 
     # =====================================================
     # MARKET CAP
     # =====================================================
 
     @staticmethod
-    def market_cap(
-
-        portfolio: Portfolio
-
-    ) -> dict[str, float]:
-
+    def market_cap(portfolio: Portfolio) -> dict[str, float]:
         """
         Market capitalization exposure.
         """
 
-        exposure = defaultdict(
-
-            float
-
-        )
+        exposure = defaultdict(float)
 
         for position in portfolio:
+            exposure[position.symbol] = position.market_cap
 
-            exposure[
-
-                position.symbol
-
-            ] = position.market_cap
-
-        return dict(
-
-            sorted(
-
-                exposure.items(),
-
-                key=lambda item: item[1],
-
-                reverse=True
-
-            )
-
-        )
+        return dict(sorted(exposure.items(), key=lambda item: item[1], reverse=True))
 
     # =====================================================
     # LIQUIDITY
     # =====================================================
 
     @staticmethod
-    def liquidity(
-
-        portfolio: Portfolio
-
-    ) -> dict[str, float]:
-
+    def liquidity(portfolio: Portfolio) -> dict[str, float]:
         """
         Liquidity exposure using ADV.
         """
 
-        exposure = defaultdict(
-
-            float
-
-        )
+        exposure = defaultdict(float)
 
         for position in portfolio:
+            exposure[position.symbol] = position.adv_20d
 
-            exposure[
-
-                position.symbol
-
-            ] = position.adv_20d
-
-        return dict(
-
-            sorted(
-
-                exposure.items(),
-
-                key=lambda item: item[1],
-
-                reverse=True
-
-            )
-
-        )
+        return dict(sorted(exposure.items(), key=lambda item: item[1], reverse=True))
 
     # =====================================================
     # POSITION
     # =====================================================
 
     @staticmethod
-    def positions(
-
-        portfolio: Portfolio
-
-    ) -> dict[str, float]:
-
+    def positions(portfolio: Portfolio) -> dict[str, float]:
         """
         Position weight exposure.
         """
 
         return {
-
-            position.symbol:
-
-            position.weight
-
-            for position
-
-            in sorted(
-
-                portfolio,
-
-                key=lambda p: p.weight,
-
-                reverse=True
-
-            )
-
+            position.symbol: position.weight
+            for position in sorted(portfolio, key=lambda p: p.weight, reverse=True)
         }
 
     # =====================================================
@@ -208,51 +110,22 @@ class PortfolioExposure:
     # =====================================================
 
     @staticmethod
-    def top_n(
-
-        portfolio: Portfolio,
-
-        n: int = 10
-
-    ) -> float:
-
+    def top_n(portfolio: Portfolio, n: int = 10) -> float:
         """
         Combined weight of top-N holdings.
         """
 
         if n < 1:
+            raise ValueError("n must be greater than zero.")
 
-            raise ValueError(
-
-                "n must be greater than zero."
-
-            )
-
-        return sum(
-
-            position.weight
-
-            for position
-
-            in portfolio.top_holdings(
-
-                n
-
-            )
-
-        )
+        return sum(position.weight for position in portfolio.top_holdings(n))
 
     # =====================================================
     # MAX POSITION
     # =====================================================
 
     @staticmethod
-    def largest_position(
-
-        portfolio: Portfolio
-
-    ) -> float:
-
+    def largest_position(portfolio: Portfolio) -> float:
         """
         Largest position weight.
         """
@@ -260,7 +133,6 @@ class PortfolioExposure:
         largest = portfolio.largest_position
 
         if largest is None:
-
             return 0.0
 
         return largest.weight
@@ -270,12 +142,7 @@ class PortfolioExposure:
     # =====================================================
 
     @staticmethod
-    def largest_sector(
-
-        portfolio: Portfolio
-
-    ) -> tuple[str, float] | None:
-
+    def largest_sector(portfolio: Portfolio) -> tuple[str, float] | None:
         """
         Largest sector exposure.
         """
@@ -287,60 +154,15 @@ class PortfolioExposure:
     # =====================================================
 
     @staticmethod
-    def summary(
-
-        portfolio: Portfolio
-
-    ) -> dict:
-
+    def summary(portfolio: Portfolio) -> dict:
         """
         Portfolio exposure summary.
         """
 
         return {
-
-            "sector_exposure":
-
-                PortfolioExposure.sector(
-
-                    portfolio
-
-                ),
-
-            "largest_sector":
-
-                PortfolioExposure.largest_sector(
-
-                    portfolio
-
-                ),
-
-            "largest_position":
-
-                PortfolioExposure.largest_position(
-
-                    portfolio
-
-                ),
-
-            "top5_exposure":
-
-                PortfolioExposure.top_n(
-
-                    portfolio,
-
-                    5
-
-                ),
-
-            "top10_exposure":
-
-                PortfolioExposure.top_n(
-
-                    portfolio,
-
-                    10
-
-                )
-
+            "sector_exposure": PortfolioExposure.sector(portfolio),
+            "largest_sector": PortfolioExposure.largest_sector(portfolio),
+            "largest_position": PortfolioExposure.largest_position(portfolio),
+            "top5_exposure": PortfolioExposure.top_n(portfolio, 5),
+            "top10_exposure": PortfolioExposure.top_n(portfolio, 10),
         }

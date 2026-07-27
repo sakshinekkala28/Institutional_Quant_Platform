@@ -33,7 +33,6 @@ from pydantic import Field
 
 from api.schemas.base import APIModel
 
-
 # ==========================================================
 # ERROR DETAIL
 # ==========================================================
@@ -74,19 +73,13 @@ class APIError(
     status_code: int
 
     timestamp: datetime = Field(
-
         default_factory=datetime.utcnow,
-
     )
 
     request_id: str | None = None
 
-    details: list[
-        ErrorDetail
-    ] = Field(
-
+    details: list[ErrorDetail] = Field(
         default_factory=list,
-
     )
 
 
@@ -290,29 +283,16 @@ class TimeoutError(
 
 
 __all__ = [
-
-    "ErrorDetail",
-
     "APIError",
-
-    "ValidationError",
-
     "AuthenticationError",
-
     "AuthorizationError",
-
-    "ResourceNotFoundError",
-
-    "ConflictError",
-
     "BadRequestError",
-
-    "RateLimitError",
-
+    "ConflictError",
+    "ErrorDetail",
     "InternalServerError",
-
+    "RateLimitError",
+    "ResourceNotFoundError",
     "ServiceUnavailableError",
-
     "TimeoutError",
-
+    "ValidationError",
 ]

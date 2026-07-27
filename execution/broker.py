@@ -31,8 +31,7 @@ Used By
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 from execution.execution_report import ExecutionReport
 from execution.order import Order
@@ -44,11 +43,8 @@ class Broker(ABC):
     """
 
     def __init__(
-
         self,
-
         name: str,
-
     ) -> None:
 
         self.name = name
@@ -59,9 +55,7 @@ class Broker(ABC):
 
     @abstractmethod
     def connect(
-
         self,
-
     ) -> None:
         """
         Connect to broker.
@@ -75,9 +69,7 @@ class Broker(ABC):
 
     @abstractmethod
     def disconnect(
-
         self,
-
     ) -> None:
         """
         Disconnect from broker.
@@ -92,9 +84,7 @@ class Broker(ABC):
     @property
     @abstractmethod
     def is_connected(
-
         self,
-
     ) -> bool:
         """
         Broker connection status.
@@ -108,11 +98,8 @@ class Broker(ABC):
 
     @abstractmethod
     def submit_order(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
         """
         Submit order.
@@ -126,11 +113,8 @@ class Broker(ABC):
 
     @abstractmethod
     def cancel_order(
-
         self,
-
         order_id: str,
-
     ) -> bool:
         """
         Cancel order.
@@ -144,11 +128,8 @@ class Broker(ABC):
 
     @abstractmethod
     def modify_order(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
         """
         Modify an existing order.
@@ -162,9 +143,7 @@ class Broker(ABC):
 
     @abstractmethod
     def account_info(
-
         self,
-
     ) -> dict:
         """
         Return broker account information.
@@ -178,9 +157,7 @@ class Broker(ABC):
 
     @abstractmethod
     def open_orders(
-
         self,
-
     ) -> list[Order]:
         """
         Return all open orders.
@@ -194,9 +171,7 @@ class Broker(ABC):
 
     @abstractmethod
     def positions(
-
         self,
-
     ) -> dict:
         """
         Return portfolio positions.
@@ -209,19 +184,9 @@ class Broker(ABC):
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Broker='{self.name}'"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Broker='{self.name}')"
 
     __str__ = __repr__

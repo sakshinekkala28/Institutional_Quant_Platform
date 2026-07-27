@@ -20,20 +20,20 @@ Responsibilities
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from datetime import datetime
 import os
+from pathlib import Path
 import platform
 import socket
 import sys
-from dataclasses import dataclass
-from datetime import datetime
-from pathlib import Path
 from time import perf_counter
 from typing import Any
-
 
 # ==========================================================
 # RUNTIME INFO
 # ==========================================================
+
 
 @dataclass(slots=True, frozen=True)
 class RuntimeInfo:
@@ -62,6 +62,7 @@ class RuntimeInfo:
 # TIMER
 # ==========================================================
 
+
 class Timer:
     """
     High precision timer.
@@ -88,18 +89,13 @@ class Timer:
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"elapsed={self.elapsed:.4f}s)"
-
-        )
+        return f"{self.__class__.__name__}(elapsed={self.elapsed:.4f}s)"
 
 
 # ==========================================================
 # RUNTIME
 # ==========================================================
+
 
 class Runtime:
     """
@@ -118,27 +114,14 @@ class Runtime:
     def info(cls) -> RuntimeInfo:
 
         return RuntimeInfo(
-
             hostname=socket.gethostname(),
-
             platform=platform.platform(),
-
             python_version=sys.version.split()[0],
-
             executable=sys.executable,
-
             process_id=os.getpid(),
-
-            working_directory=str(
-
-                Path.cwd()
-
-            ),
-
+            working_directory=str(Path.cwd()),
             cpu_count=os.cpu_count() or 1,
-
             started_at=cls._START_TIME,
-
         )
 
     # =====================================================
@@ -174,45 +157,17 @@ class Runtime:
         info = cls.info()
 
         return {
-
-            "hostname":
-
-                info.hostname,
-
-            "platform":
-
-                info.platform,
-
-            "python_version":
-
-                info.python_version,
-
-            "process_id":
-
-                info.process_id,
-
-            "working_directory":
-
-                info.working_directory,
-
-            "cpu_count":
-
-                info.cpu_count,
-
-            "started_at":
-
-                info.started_at.isoformat(),
-
-            "uptime_seconds":
-
-                round(
-
-                    cls.uptime(),
-
-                    3,
-
-                ),
-
+            "hostname": info.hostname,
+            "platform": info.platform,
+            "python_version": info.python_version,
+            "process_id": info.process_id,
+            "working_directory": info.working_directory,
+            "cpu_count": info.cpu_count,
+            "started_at": info.started_at.isoformat(),
+            "uptime_seconds": round(
+                cls.uptime(),
+                3,
+            ),
         }
 
     # =====================================================
@@ -221,10 +176,4 @@ class Runtime:
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"uptime={self.uptime():.2f}s)"
-
-        )
+        return f"{self.__class__.__name__}(uptime={self.uptime():.2f}s)"

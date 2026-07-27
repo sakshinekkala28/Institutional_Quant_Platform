@@ -25,15 +25,14 @@ from typing import Any
 from orchestration.health_manager import (
     HealthManager,
 )
-
 from orchestration.plugins.base_plugin import (
     BasePlugin,
 )
 
-
 # ==========================================================
 # MONITORING PLUGIN
 # ==========================================================
+
 
 class MonitoringPlugin(BasePlugin):
     """
@@ -65,16 +64,12 @@ class MonitoringPlugin(BasePlugin):
         Initialize monitoring.
         """
 
-        pass
-
     # -----------------------------------------------------
 
     def shutdown(self) -> None:
         """
         Shutdown monitoring.
         """
-
-        pass
 
     # =====================================================
     # PLATFORM EVENTS
@@ -160,11 +155,8 @@ class MonitoringPlugin(BasePlugin):
     ) -> None:
 
         self.health.register(
-
             name,
-
             check,
-
         )
 
     # -----------------------------------------------------
@@ -192,23 +184,10 @@ class MonitoringPlugin(BasePlugin):
     ) -> dict:
 
         return {
-
-            "plugin":
-
-                self.NAME,
-
-            "version":
-
-                self.VERSION,
-
-            "enabled":
-
-                self.ENABLED,
-
-            "health":
-
-                self.health.summary(),
-
+            "plugin": self.NAME,
+            "version": self.VERSION,
+            "enabled": self.ENABLED,
+            "health": self.health.summary(),
         }
 
     # =====================================================
@@ -219,10 +198,4 @@ class MonitoringPlugin(BasePlugin):
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"ready={self.health.is_ready()})"
-
-        )
+        return f"{self.__class__.__name__}(ready={self.health.is_ready()})"

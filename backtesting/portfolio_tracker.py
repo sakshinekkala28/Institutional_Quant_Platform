@@ -29,8 +29,7 @@ Used By
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
 from backtesting.cash_manager import CashManager
 from backtesting.fill_event import FillEvent
@@ -47,41 +46,22 @@ class PortfolioTracker:
 
     position_manager: PositionManager
 
-    equity_curve: list[float] = field(
+    equity_curve: list[float] = field(default_factory=list)
 
-        default_factory=list
-
-    )
-
-    portfolio_returns: list[float] = field(
-
-        default_factory=list
-
-    )
+    portfolio_returns: list[float] = field(default_factory=list)
 
     # =====================================================
     # APPLY FILL
     # =====================================================
 
     def apply_fill(
-
         self,
-
         fill: FillEvent,
-
     ) -> None:
 
-        self.cash_manager.settle(
+        self.cash_manager.settle(fill)
 
-            fill
-
-        )
-
-        self.position_manager.apply_fill(
-
-            fill
-
-        )
+        self.position_manager.apply_fill(fill)
 
         self.record_equity()
 
@@ -90,21 +70,14 @@ class PortfolioTracker:
     # =====================================================
 
     def update_price(
-
         self,
-
         symbol: str,
-
         price: float,
-
     ) -> None:
 
         self.position_manager.update_price(
-
             symbol,
-
             price,
-
         )
 
         self.record_equity()
@@ -114,65 +87,28 @@ class PortfolioTracker:
     # =====================================================
 
     def record_equity(
-
         self,
-
     ) -> None:
 
-        equity = (
-
-            self.cash_manager.balance
-
-            +
-
-            self.position_manager.market_value
-
-        )
+        equity = self.cash_manager.balance + self.position_manager.market_value
 
         if self.equity_curve:
-
             previous = self.equity_curve[-1]
 
             if previous > 0:
-
-                self.portfolio_returns.append(
-
-                    (
-
-                        equity
-
-                        -
-
-                        previous
-
-                    )
-
-                    / previous
-
-                )
+                self.portfolio_returns.append((equity - previous) / previous)
 
             else:
+                self.portfolio_returns.append(0.0)
 
-                self.portfolio_returns.append(
-
-                    0.0
-
-                )
-
-        self.equity_curve.append(
-
-            equity
-
-        )
+        self.equity_curve.append(equity)
 
     # =====================================================
     # RESET
     # =====================================================
 
     def reset(
-
         self,
-
     ) -> None:
 
         self.cash_manager.reset()
@@ -189,66 +125,45 @@ class PortfolioTracker:
 
     @property
     def equity(
-
         self,
-
     ) -> float:
 
         if not self.equity_curve:
-
-            return (
-
-                self.cash_manager.balance
-
-                +
-
-                self.position_manager.market_value
-
-            )
+            return self.cash_manager.balance + self.position_manager.market_value
 
         return self.equity_curve[-1]
 
     @property
     def cash(
-
         self,
-
     ) -> float:
 
         return self.cash_manager.balance
 
     @property
     def market_value(
-
         self,
-
     ) -> float:
 
         return self.position_manager.market_value
 
     @property
     def realized_pnl(
-
         self,
-
     ) -> float:
 
         return self.position_manager.realized_pnl
 
     @property
     def unrealized_pnl(
-
         self,
-
     ) -> float:
 
         return self.position_manager.unrealized_pnl
 
     @property
     def total_pnl(
-
         self,
-
     ) -> float:
 
         return self.position_manager.total_pnl
@@ -258,45 +173,17 @@ class PortfolioTracker:
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Equity":
-
-                self.equity,
-
-            "Cash":
-
-                self.cash,
-
-            "MarketValue":
-
-                self.market_value,
-
-            "RealizedPnL":
-
-                self.realized_pnl,
-
-            "UnrealizedPnL":
-
-                self.unrealized_pnl,
-
-            "TotalPnL":
-
-                self.total_pnl,
-
-            "Observations":
-
-                len(
-
-                    self.equity_curve
-
-                ),
-
+            "Equity": self.equity,
+            "Cash": self.cash,
+            "MarketValue": self.market_value,
+            "RealizedPnL": self.realized_pnl,
+            "UnrealizedPnL": self.unrealized_pnl,
+            "TotalPnL": self.total_pnl,
+            "Observations": len(self.equity_curve),
         }
 
     # =====================================================
@@ -304,19 +191,9 @@ class PortfolioTracker:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Equity={self.equity:,.2f}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Equity={self.equity:,.2f})"
 
     __str__ = __repr__

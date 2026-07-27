@@ -17,8 +17,8 @@ rebalance_history.csv
 =========================================================
 """
 
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -43,25 +43,11 @@ ENGINE_VERSION = "1.0.0"
 
 ROOT = Path(__file__).resolve().parents[2]
 
-SECURITY_MASTER = (
-    ROOT
-    / "data"
-    / "raw"
-    / "security_master.csv"
-)
+SECURITY_MASTER = ROOT / "data" / "raw" / "security_master.csv"
 
-PRICE_DIR = (
-    ROOT
-    / "data"
-    / "raw"
-    / "prices"
-)
+PRICE_DIR = ROOT / "data" / "raw" / "prices"
 
-OUTPUT_DIR = (
-    ROOT
-    / "data"
-    / "backtests"
-)
+OUTPUT_DIR = ROOT / "data" / "backtests"
 
 OUTPUT_DIR.mkdir(
     parents=True,
@@ -72,20 +58,11 @@ OUTPUT_DIR.mkdir(
 # LOAD UNIVERSE
 # =========================================================
 
-print(
-    "\n📥 Loading Securities..."
-)
+print("\n📥 Loading Securities...")
 
-universe = pd.read_csv(
-    SECURITY_MASTER
-)
+universe = pd.read_csv(SECURITY_MASTER)
 
-symbols = (
-    universe["Symbol"]
-    .dropna()
-    .unique()
-    .tolist()
-)
+symbols = universe["Symbol"].dropna().unique().tolist()
 
 # =========================================================
 # LOAD PRICES
@@ -94,113 +71,60 @@ symbols = (
 price_matrix = []
 
 for symbol in symbols:
-
-    file = (
-        PRICE_DIR
-        / f"{symbol}.parquet"
-    )
+    file = PRICE_DIR / f"{symbol}.parquet"
 
     if not file.exists():
         continue
 
     try:
-
-        df = pd.read_parquet(
-            file
-        )
+        df = pd.read_parquet(file)
 
         if "Close" not in df.columns:
             continue
 
-        tmp = pd.DataFrame({
-
-            "Date":
-            pd.to_datetime(
-                df["Date"]
-            ),
-
-            "Symbol":
-            symbol,
-
-            "Close":
-            pd.to_numeric(
-                df["Close"],
-                errors="coerce"
-            )
-        })
-
-        price_matrix.append(
-            tmp
+        tmp = pd.DataFrame(
+            {
+                "Date": pd.to_datetime(df["Date"]),
+                "Symbol": symbol,
+                "Close": pd.to_numeric(df["Close"], errors="coerce"),
+            }
         )
 
-    except Exception:
+        price_matrix.append(tmp)
 
+    except Exception:
         continue
 
-prices = pd.concat(
-    price_matrix,
-    ignore_index=True
-)
+prices = pd.concat(price_matrix, ignore_index=True)
 
 prices = prices.dropna()
 
-print(
-    f"Price Rows: "
-    f"{len(prices):,}"
-)
+print(f"Price Rows: {len(prices):,}")
 
-print(
-    f"Symbols: "
-    f"{prices['Symbol'].nunique():,}"
-)
+print(f"Symbols: {prices['Symbol'].nunique():,}")
 
-prices["Date"] = pd.to_datetime(
-    prices["Date"],
-    errors="coerce"
-)
+prices["Date"] = pd.to_datetime(prices["Date"], errors="coerce")
 
-prices = prices.dropna(
-    subset=["Date"]
-)
+prices = prices.dropna(subset=["Date"])
 
 # =========================================================
 # REBALANCE DATES
 # =========================================================
 
-prices["Date"] = pd.to_datetime(
-    prices["Date"]
-)
+prices["Date"] = pd.to_datetime(prices["Date"])
 
 rebalance_dates = (
-
-    prices
-
-    .groupby(
-        prices["Date"]
-        .dt.to_period("M")
-    )["Date"]
-
+    prices.groupby(prices["Date"].dt.to_period("M"))["Date"]
     .max()
-
     .sort_values()
-
     .tolist()
 )
 
-print(
-    f"Rebalance Dates: "
-    f"{len(rebalance_dates)}"
-)
+print(f"Rebalance Dates: {len(rebalance_dates)}")
 
-print(
-    "First:",
-    rebalance_dates[0]
-)
+print("First:", rebalance_dates[0])
 
-print(
-    "Last:",
-    rebalance_dates[-1]
-)
+print("Last:", rebalance_dates[-1])
 
 # =========================================================
 # STORAGE
@@ -216,31 +140,18 @@ rebalance_history = []
 # MAIN LOOP
 # =========================================================
 
-print(
-    "\n🚀 Running Walk Forward..."
-)
+print("\n🚀 Running Walk Forward...")
 
-for idx in range(
-    12,
-    len(rebalance_dates) - 1
-):
+for idx in range(12, len(rebalance_dates) - 1):
+    rebalance_date = rebalance_dates[idx]
 
-    rebalance_date = (
-        rebalance_dates[idx]
-    )
-
-    next_date = (
-        rebalance_dates[idx + 1]
-    )
+    next_date = rebalance_dates[idx + 1]
 
     # =====================================
     # Historical Data Only
     # =====================================
 
-    hist = prices[
-        prices["Date"]
-        <= rebalance_date
-    ]
+    hist = prices[prices["Date"] <= rebalance_date]
 
     factor_records = []
 
@@ -249,53 +160,26 @@ for idx in range(
     # =====================================
 
     for symbol in symbols:
-
-        tmp = hist[
-            hist["Symbol"]
-            == symbol
-        ]
+        tmp = hist[hist["Symbol"] == symbol]
 
         if len(tmp) < 252:
             continue
 
-        close = (
-            tmp["Close"]
-            .dropna()
+        close = tmp["Close"].dropna()
+
+        momentum = close.iloc[-1] / close.iloc[-252] - 1
+
+        volatility = close.pct_change().std() * np.sqrt(252)
+
+        factor_records.append(
+            {
+                "Symbol": symbol,
+                "Momentum": momentum,
+                "Volatility": volatility,
+            }
         )
 
-        momentum = (
-
-            close.iloc[-1]
-
-            / close.iloc[-252]
-
-            - 1
-        )
-
-        volatility = (
-
-            close
-            .pct_change()
-            .std()
-
-            * np.sqrt(252)
-        )
-
-        factor_records.append({
-
-            "Symbol":
-            symbol,
-
-            "Momentum":
-            momentum,
-
-            "Volatility":
-            volatility,
-        })
-
-    factors = pd.DataFrame(
-        factor_records
-    )
+    factors = pd.DataFrame(factor_records)
 
     if factors.empty:
         continue
@@ -304,75 +188,21 @@ for idx in range(
     # Ranking
     # =====================================
 
-    factors["Momentum_Rank"] = (
+    factors["Momentum_Rank"] = factors["Momentum"].rank(pct=True)
 
-        factors[
-            "Momentum"
-        ]
+    factors["Vol_Rank"] = 1 - factors["Volatility"].rank(pct=True)
 
-        .rank(
-            pct=True
-        )
-    )
+    factors["Alpha"] = 0.7 * factors["Momentum_Rank"] + 0.3 * factors["Vol_Rank"]
 
-    factors["Vol_Rank"] = (
+    portfolio = factors.sort_values("Alpha", ascending=False).head(TOP_N)
 
-        1
-
-        -
-
-        factors[
-            "Volatility"
-        ]
-
-        .rank(
-            pct=True
-        )
-    )
-
-    factors["Alpha"] = (
-
-        0.7
-        * factors[
-            "Momentum_Rank"
-        ]
-
-        +
-
-        0.3
-        * factors[
-            "Vol_Rank"
-        ]
-    )
-
-    portfolio = (
-
-        factors
-
-        .sort_values(
-            "Alpha",
-            ascending=False
-        )
-
-        .head(TOP_N)
-    )
-
-    portfolio["Weight"] = (
-        1 / len(portfolio)
-    )
+    portfolio["Weight"] = 1 / len(portfolio)
 
     # =====================================
     # Forward Returns
     # =====================================
 
-    future = prices[
-
-        (prices["Date"] > rebalance_date)
-
-        &
-
-        (prices["Date"] <= next_date)
-    ]
+    future = prices[(prices["Date"] > rebalance_date) & (prices["Date"] <= next_date)]
 
     if future.empty:
         continue
@@ -380,170 +210,96 @@ for idx in range(
     returns = []
 
     for _, row in portfolio.iterrows():
-
         symbol = row["Symbol"]
 
         weight = row["Weight"]
 
-        tmp = future[
-            future["Symbol"]
-            == symbol
-        ]
+        tmp = future[future["Symbol"] == symbol]
 
         if len(tmp) < 2:
             continue
 
-        ret = (
+        ret = tmp["Close"].iloc[-1] / tmp["Close"].iloc[0] - 1
 
-            tmp["Close"]
-            .iloc[-1]
+        returns.append(ret * weight)
 
-            / tmp["Close"]
-            .iloc[0]
+    period_return = np.sum(returns)
 
-            - 1
-        )
+    capital *= 1 + period_return
 
-        returns.append(
-            ret * weight
-        )
-
-    period_return = np.sum(
-        returns
+    equity_curve.append(
+        {
+            "Date": next_date,
+            "Portfolio_Value": capital,
+            "Period_Return": period_return,
+        }
     )
 
-    capital *= (
-        1 + period_return
+    rebalance_history.append(
+        {
+            "Rebalance_Date": rebalance_date,
+            "Portfolio_Size": len(portfolio),
+            "Portfolio_Return": period_return,
+        }
     )
-
-    equity_curve.append({
-
-        "Date":
-        next_date,
-
-        "Portfolio_Value":
-        capital,
-
-        "Period_Return":
-        period_return,
-    })
-
-    rebalance_history.append({
-
-        "Rebalance_Date":
-        rebalance_date,
-
-        "Portfolio_Size":
-        len(portfolio),
-
-        "Portfolio_Return":
-        period_return,
-    })
 
 # =========================================================
 # EQUITY CURVE
 # =========================================================
 
-equity_curve = pd.DataFrame(
-    equity_curve
-)
+equity_curve = pd.DataFrame(equity_curve)
 
-equity_curve[
-    "Cumulative_Return"
-] = (
-
-    equity_curve[
-        "Portfolio_Value"
-    ]
-
-    / INITIAL_CAPITAL
-
-    - 1
+equity_curve["Cumulative_Return"] = (
+    equity_curve["Portfolio_Value"] / INITIAL_CAPITAL - 1
 )
 
 # =========================================================
 # METRICS
 # =========================================================
 
-returns = equity_curve[
-    "Period_Return"
-]
+returns = equity_curve["Period_Return"]
 
-years = (
-    len(returns)
-    / 12
-)
+years = len(returns) / 12
 
-cagr = (
+cagr = (capital / INITIAL_CAPITAL) ** (1 / years) - 1
 
-    (
-        capital
-        / INITIAL_CAPITAL
-    )
+volatility = returns.std() * np.sqrt(12)
 
-    ** (1 / years)
-
-    - 1
-)
-
-volatility = (
-    returns.std()
-    * np.sqrt(12)
-)
-
-sharpe = (
-    cagr
-    / max(
-        volatility,
-        1e-9
-    )
-)
+sharpe = cagr / max(volatility, 1e-9)
 
 # =========================================================
 # SAVE
 # =========================================================
 
 equity_curve.to_csv(
-    OUTPUT_DIR
-    / "walk_forward_equity_curve.csv",
+    OUTPUT_DIR / "walk_forward_equity_curve.csv",
+    index=False,
+)
+
+pd.DataFrame(rebalance_history).to_csv(
+    OUTPUT_DIR / "rebalance_history.csv",
     index=False,
 )
 
 pd.DataFrame(
-    rebalance_history
+    {
+        "Metric": [
+            "CAGR",
+            "Volatility",
+            "Sharpe",
+            "Final_Capital",
+            "Run_Date",
+        ],
+        "Value": [
+            cagr,
+            volatility,
+            sharpe,
+            capital,
+            datetime.now().strftime("%Y-%m-%d"),
+        ],
+    }
 ).to_csv(
-    OUTPUT_DIR
-    / "rebalance_history.csv",
-    index=False,
-)
-
-pd.DataFrame({
-
-    "Metric": [
-
-        "CAGR",
-        "Volatility",
-        "Sharpe",
-        "Final_Capital",
-        "Run_Date",
-    ],
-
-    "Value": [
-
-        cagr,
-        volatility,
-        sharpe,
-        capital,
-        datetime.now()
-        .strftime(
-            "%Y-%m-%d"
-        ),
-    ]
-}).to_csv(
-
-    OUTPUT_DIR
-    / "walk_forward_results.csv",
-
+    OUTPUT_DIR / "walk_forward_results.csv",
     index=False,
 )
 
@@ -553,55 +309,26 @@ pd.DataFrame({
 
 print("\n" + "=" * 70)
 
-print(
-    "🏁 WALK FORWARD BACKTEST COMPLETE"
-)
+print("🏁 WALK FORWARD BACKTEST COMPLETE")
 
 print("=" * 70)
 
-print(
-    f"Rebalance Periods : "
-    f"{len(rebalance_history):,}"
-)
+print(f"Rebalance Periods : {len(rebalance_history):,}")
 
-print(
-    f"CAGR              : "
-    f"{cagr:.2%}"
-)
+print(f"CAGR              : {cagr:.2%}")
 
-print(
-    f"Volatility        : "
-    f"{volatility:.2%}"
-)
+print(f"Volatility        : {volatility:.2%}")
 
-print(
-    f"Sharpe Ratio      : "
-    f"{sharpe:.2f}"
-)
+print(f"Sharpe Ratio      : {sharpe:.2f}")
 
-print(
-    f"Final Capital     : "
-    f"₹{capital:,.0f}"
-)
+print(f"Final Capital     : ₹{capital:,.0f}")
 
-print(
-    f"Total Return      : "
-    f"{(capital / INITIAL_CAPITAL - 1):.2%}"
-)
+print(f"Total Return      : {(capital / INITIAL_CAPITAL - 1):.2%}")
 
-print(
-    f"\nEquity Curve:\n"
-    f"{OUTPUT_DIR / 'walk_forward_equity_curve.csv'}"
-)
+print(f"\nEquity Curve:\n{OUTPUT_DIR / 'walk_forward_equity_curve.csv'}")
 
-print(
-    f"\nResults:\n"
-    f"{OUTPUT_DIR / 'walk_forward_results.csv'}"
-)
+print(f"\nResults:\n{OUTPUT_DIR / 'walk_forward_results.csv'}")
 
-print(
-    f"\nRebalance History:\n"
-    f"{OUTPUT_DIR / 'rebalance_history.csv'}"
-)
+print(f"\nRebalance History:\n{OUTPUT_DIR / 'rebalance_history.csv'}")
 
 print("=" * 70)

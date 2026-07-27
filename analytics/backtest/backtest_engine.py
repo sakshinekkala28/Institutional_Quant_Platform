@@ -19,8 +19,8 @@ data/logs/backtest_report.csv
 =========================================================
 """
 
-from pathlib import Path
 from datetime import datetime
+from pathlib import Path
 
 import numpy as np
 import pandas as pd
@@ -43,68 +43,25 @@ ENGINE_VERSION = "1.0.0"
 
 ROOT = Path(__file__).resolve().parents[2]
 
-PORTFOLIO_FILE = (
-    ROOT
-    / "data"
-    / "portfolios"
-    / "live_portfolio.csv"
-)
+PORTFOLIO_FILE = ROOT / "data" / "portfolios" / "live_portfolio.csv"
 
-PRICE_DIR = (
-    ROOT
-    / "data"
-    / "raw"
-    / "prices"
-)
+PRICE_DIR = ROOT / "data" / "raw" / "prices"
 
-BENCHMARK_FILE = (
-    ROOT
-    / "data"
-    / "benchmark"
-    / "benchmark_timeseries.csv"
-)
+BENCHMARK_FILE = ROOT / "data" / "benchmark" / "benchmark_timeseries.csv"
 
-BACKTEST_DIR = (
-    ROOT
-    / "data"
-    / "backtests"
-)
+BACKTEST_DIR = ROOT / "data" / "backtests"
 
-RESULTS_FILE = (
-    BACKTEST_DIR
-    / "backtest_results.csv"
-)
+RESULTS_FILE = BACKTEST_DIR / "backtest_results.csv"
 
-EQUITY_FILE = (
-    BACKTEST_DIR
-    / "equity_curve.csv"
-)
+EQUITY_FILE = BACKTEST_DIR / "equity_curve.csv"
 
-MONTHLY_FILE = (
-    BACKTEST_DIR
-    / "monthly_returns.csv"
-)
+MONTHLY_FILE = BACKTEST_DIR / "monthly_returns.csv"
 
-REBALANCE_FILE = (
-    ROOT
-    / "data"
-    / "live"
-    / "rebalance_orders.csv"
-)
+REBALANCE_FILE = ROOT / "data" / "live" / "rebalance_orders.csv"
 
-REPORT_FILE = (
-    ROOT
-    / "data"
-    / "logs"
-    / "backtest_report.csv"
-)
+REPORT_FILE = ROOT / "data" / "logs" / "backtest_report.csv"
 
-PORTFOLIO_HISTORY_FILE = (
-    ROOT
-    / "data"
-    / "portfolios"
-    / "portfolio_history.csv"
-)
+PORTFOLIO_HISTORY_FILE = ROOT / "data" / "portfolios" / "portfolio_history.csv"
 
 # =========================================================
 # LOAD PORTFOLIO
@@ -112,13 +69,9 @@ PORTFOLIO_HISTORY_FILE = (
 
 print("\n📥 Loading Portfolio...")
 
-portfolio = pd.read_csv(
-    PORTFOLIO_FILE
-)
+portfolio = pd.read_csv(PORTFOLIO_FILE)
 
-history = pd.read_csv(
-    PORTFOLIO_HISTORY_FILE
-)
+history = pd.read_csv(PORTFOLIO_HISTORY_FILE)
 
 # =========================================================
 # LOAD BENCHMARK
@@ -127,35 +80,17 @@ history = pd.read_csv(
 benchmark = None
 
 if BENCHMARK_FILE.exists():
+    benchmark = pd.read_csv(BENCHMARK_FILE)
 
-    benchmark = pd.read_csv(
-        BENCHMARK_FILE
-    )
+    benchmark["Date"] = pd.to_datetime(benchmark["Date"])
 
-    benchmark["Date"] = pd.to_datetime(
-        benchmark["Date"]
-    )
+    if "Benchmark_Return" not in benchmark.columns:
+        raise ValueError("Benchmark_Return missing")
 
-    if (
-        "Benchmark_Return"
-        not in benchmark.columns
-    ):
-        raise ValueError(
-            "Benchmark_Return missing"
-        )
-
-    benchmark = benchmark[
-        [
-            "Date",
-            "Benchmark_Return"
-        ]
-    ]
+    benchmark = benchmark[["Date", "Benchmark_Return"]]
 
 if portfolio.empty:
-
-    raise ValueError(
-        "Portfolio is empty"
-    )
+    raise ValueError("Portfolio is empty")
 
 required_cols = [
     "Symbol",
@@ -163,12 +98,8 @@ required_cols = [
 ]
 
 for col in required_cols:
-
     if col not in portfolio.columns:
-
-        raise ValueError(
-            f"Missing column: {col}"
-        )
+        raise ValueError(f"Missing column: {col}")
 
 # =========================================================
 # LOAD PRICE HISTORY
@@ -179,68 +110,41 @@ print("\n📊 Building Return Matrix...")
 returns_list = []
 
 for _, row in portfolio.iterrows():
-
     symbol = row["Symbol"]
 
     weight = row["Weight"]
 
-    file = (
-        PRICE_DIR
-        / f"{symbol}.parquet"
-    )
+    file = PRICE_DIR / f"{symbol}.parquet"
 
     if not file.exists():
         continue
 
     try:
-
-        df = pd.read_parquet(
-            file
-        )
+        df = pd.read_parquet(file)
 
         if "Close" not in df.columns:
             continue
 
-        prices = pd.to_numeric(
-            df["Close"],
-            errors="coerce"
+        prices = pd.to_numeric(df["Close"], errors="coerce")
+
+        returns = prices.pct_change()
+
+        tmp = pd.DataFrame(
+            {
+                "Date": pd.to_datetime(df["Date"]),
+                "Return": returns,
+                "Weight": weight,
+                "Symbol": symbol,
+            }
         )
 
-        returns = (
-            prices
-            .pct_change()
-        )
-
-        tmp = pd.DataFrame({
-
-            "Date":
-            pd.to_datetime(
-                df["Date"]
-            ),
-
-            "Return":
-            returns,
-
-            "Weight":
-            weight,
-
-            "Symbol":
-            symbol,
-        })
-
-        returns_list.append(
-            tmp
-        )
+        returns_list.append(tmp)
 
     except Exception:
-
         continue
 
 if not returns_list:
-
-    raise ValueError(
-        "No usable price history"
-    )
+    raise ValueError("No usable price history")
 
 # =========================================================
 # PORTFOLIO RETURNS
@@ -251,138 +155,52 @@ all_returns = pd.concat(
     ignore_index=True,
 )
 
-all_returns = (
-    all_returns
-    .dropna()
-)
+all_returns = all_returns.dropna()
 
 portfolio_returns = (
-
-    all_returns
-
-    .groupby("Date")
-
-    .apply(
-        lambda x:
-        (
-            x["Return"]
-            * x["Weight"]
-        ).sum()
-    )
-
-    .reset_index(
-        name="Portfolio_Return"
-    )
+    all_returns.groupby("Date")
+    .apply(lambda x: (x["Return"] * x["Weight"]).sum())
+    .reset_index(name="Portfolio_Return")
 )
 
-portfolio_returns = (
-    portfolio_returns
-    .sort_values("Date")
-)
+portfolio_returns = portfolio_returns.sort_values("Date")
 
 # =========================================================
 # EQUITY CURVE
 # =========================================================
 
-portfolio_returns[
-    "Portfolio_Value"
-] = (
-
-    INITIAL_CAPITAL
-
-    * (
-
-        1
-        +
-        portfolio_returns[
-            "Portfolio_Return"
-        ]
-
-    ).cumprod()
-
+portfolio_returns["Portfolio_Value"] = (
+    INITIAL_CAPITAL * (1 + portfolio_returns["Portfolio_Return"]).cumprod()
 )
 
-portfolio_returns[
-    "Cumulative_Return"
-] = (
+portfolio_returns["Cumulative_Return"] = (
+    portfolio_returns["Portfolio_Value"] / INITIAL_CAPITAL - 1
+)
 
-    portfolio_returns[
-        "Portfolio_Value"
+equity_curve = portfolio_returns[
+    [
+        "Date",
+        "Portfolio_Return",
+        "Portfolio_Value",
+        "Cumulative_Return",
     ]
+].copy()
 
-    / INITIAL_CAPITAL
+rolling_max = equity_curve["Portfolio_Value"].cummax()
 
-    - 1
-)
+equity_curve["Drawdown"] = equity_curve["Portfolio_Value"] / rolling_max - 1
 
-equity_curve = (
-
-    portfolio_returns[
-
-        [
-            "Date",
-            "Portfolio_Return",
-            "Portfolio_Value",
-            "Cumulative_Return",
-        ]
-
-    ]
-
-    .copy()
-)
-
-rolling_max = (
-
-    equity_curve[
-        "Portfolio_Value"
-    ]
-
-    .cummax()
-)
-
-equity_curve[
-    "Drawdown"
-] = (
-
-    equity_curve[
-        "Portfolio_Value"
-    ]
-
-    / rolling_max
-
-    - 1
-)
-
-equity_curve[
-    "High_Water_Mark"
-] = rolling_max
+equity_curve["High_Water_Mark"] = rolling_max
 
 # =========================================================
 # ADD BENCHMARK RETURNS
 # =========================================================
 
 if benchmark is not None:
+    equity_curve = equity_curve.merge(benchmark, on="Date", how="left")
 
-    equity_curve = equity_curve.merge(
-
-        benchmark,
-
-        on="Date",
-
-        how="left"
-    )
-
-    equity_curve[
-        "Active_Return"
-    ] = (
-
-        equity_curve[
-            "Portfolio_Return"
-        ]
-
-        - equity_curve[
-            "Benchmark_Return"
-        ]
+    equity_curve["Active_Return"] = (
+        equity_curve["Portfolio_Return"] - equity_curve["Benchmark_Return"]
     )
 
 # =========================================================
@@ -390,20 +208,9 @@ if benchmark is not None:
 # =========================================================
 
 monthly_returns = (
-
-    portfolio_returns
-
-    .set_index("Date")
-
-    ["Portfolio_Return"]
-
+    portfolio_returns.set_index("Date")["Portfolio_Return"]
     .resample("ME")
-
-    .apply(
-        lambda x:
-        (1 + x).prod() - 1
-    )
-
+    .apply(lambda x: (1 + x).prod() - 1)
     .reset_index()
 )
 
@@ -411,11 +218,7 @@ monthly_returns = (
 # PERFORMANCE METRICS
 # =========================================================
 
-daily_returns = (
-    portfolio_returns[
-        "Portfolio_Return"
-    ]
-)
+daily_returns = portfolio_returns["Portfolio_Return"]
 
 # =========================================================
 # TURNOVER
@@ -424,73 +227,24 @@ daily_returns = (
 turnover = np.nan
 
 if REBALANCE_FILE.exists():
+    orders = pd.read_csv(REBALANCE_FILE)
 
-    orders = pd.read_csv(
-        REBALANCE_FILE
-    )
+    if "Weight_Change" in orders.columns:
+        turnover = orders["Weight_Change"].abs().sum() / 2
 
-    if (
-        "Weight_Change"
-        in orders.columns
-    ):
+annual_return = (1 + daily_returns.mean()) ** TRADING_DAYS - 1
 
-        turnover = (
-
-            orders[
-                "Weight_Change"
-            ]
-
-            .abs()
-
-            .sum()
-
-            / 2
-        )
-
-annual_return = (
-
-    (1 + daily_returns.mean())
-
-    ** TRADING_DAYS
-
-    - 1
-
-)
-
-annual_volatility = (
-
-    daily_returns.std()
-
-    * np.sqrt(
-        TRADING_DAYS
-    )
-)
+annual_volatility = daily_returns.std() * np.sqrt(TRADING_DAYS)
 
 # =========================================================
 # VAR / CVAR
 # =========================================================
 
-var_95 = np.percentile(
-    daily_returns,
-    5
-)
+var_95 = np.percentile(daily_returns, 5)
 
-cvar_95 = (
+cvar_95 = daily_returns[daily_returns <= var_95].mean()
 
-    daily_returns[
-        daily_returns
-        <= var_95
-    ]
-
-    .mean()
-)
-
-sharpe_ratio = (
-
-    annual_return
-    - RISK_FREE_RATE
-
-) / max(
+sharpe_ratio = (annual_return - RISK_FREE_RATE) / max(
     annual_volatility,
     1e-9,
 )
@@ -514,367 +268,151 @@ upside_capture = np.nan
 downside_capture = np.nan
 
 if benchmark is not None:
-
-    attribution = (
-
-        portfolio_returns
-
-        .merge(
-            benchmark,
-            on="Date",
-            how="inner"
-        )
-
-        .dropna()
-    )
+    attribution = portfolio_returns.merge(benchmark, on="Date", how="inner").dropna()
 
     if len(attribution) > 20:
-
-        attribution[
-            "Active_Return"
-        ] = (
-
-            attribution[
-                "Portfolio_Return"
-            ]
-
-            - attribution[
-                "Benchmark_Return"
-            ]
+        attribution["Active_Return"] = (
+            attribution["Portfolio_Return"] - attribution["Benchmark_Return"]
         )
 
-        benchmark_return = (
+        benchmark_return = (1 + attribution["Benchmark_Return"]).prod() - 1
 
-            (
-                1
-                +
-                attribution[
-                    "Benchmark_Return"
-                ]
-            )
+        active_return = (1 + attribution["Active_Return"]).prod() - 1
 
-            .prod()
+        tracking_error = attribution["Active_Return"].std() * np.sqrt(TRADING_DAYS)
 
-            - 1
+        information_ratio = (attribution["Active_Return"].mean() * TRADING_DAYS) / max(
+            tracking_error, 1e-9
         )
 
-        active_return = (
-
-            (
-                1
-                +
-                attribution[
-                    "Active_Return"
-                ]
-            )
-
-            .prod()
-
-            - 1
-        )
-
-        tracking_error = (
-
-            attribution[
-                "Active_Return"
-            ]
-
-            .std()
-
-            * np.sqrt(
-                TRADING_DAYS
-            )
-        )
-
-        information_ratio = (
-
-            attribution[
-                "Active_Return"
-            ]
-
-            .mean()
-
-            * TRADING_DAYS
-
-        ) / max(
-            tracking_error,
-            1e-9
-        )
-
-        hit_ratio = (
-
-            (
-                attribution[
-                    "Active_Return"
-                ]
-                > 0
-            )
-
-            .mean()
-        )
+        hit_ratio = (attribution["Active_Return"] > 0).mean()
 
         covariance = np.cov(
-
-            attribution[
-                "Portfolio_Return"
-            ],
-
-            attribution[
-                "Benchmark_Return"
-            ]
-
+            attribution["Portfolio_Return"], attribution["Benchmark_Return"]
         )
 
-        beta = (
-
-            covariance[0, 1]
-
-            / max(
-                covariance[1, 1],
-                1e-9
-            )
-        )
+        beta = covariance[0, 1] / max(covariance[1, 1], 1e-9)
 
         annual_benchmark = (
+            1 + attribution["Benchmark_Return"].mean()
+        ) ** TRADING_DAYS - 1
 
-            (
-                1
-                +
-                attribution[
-                    "Benchmark_Return"
-                ].mean()
-            )
-
-            ** TRADING_DAYS
-
-            - 1
+        excess_return = annual_return - (
+            RISK_FREE_RATE + beta * (annual_benchmark - RISK_FREE_RATE)
         )
 
-        excess_return = (
+        upside = attribution[attribution["Benchmark_Return"] > 0]
 
-            annual_return
-
-            - (
-                RISK_FREE_RATE
-
-                + beta
-                * (
-                    annual_benchmark
-                    - RISK_FREE_RATE
-                )
-            )
-        )
-
-        upside = attribution[
-            attribution[
-                "Benchmark_Return"
-            ] > 0
-        ]
-
-        downside_benchmark = attribution[
-            attribution[
-                "Benchmark_Return"
-            ] < 0
-        ]
+        downside_benchmark = attribution[attribution["Benchmark_Return"] < 0]
 
         if len(upside):
-
             upside_capture = (
-
-                upside[
-                    "Portfolio_Return"
-                ].mean()
-
-                /
-
-                upside[
-                    "Benchmark_Return"
-                ].mean()
+                upside["Portfolio_Return"].mean() / upside["Benchmark_Return"].mean()
             )
 
-        if len(
-            downside_benchmark
-        ):
-
+        if len(downside_benchmark):
             downside_capture = (
-
-                downside_benchmark[
-                    "Portfolio_Return"
-                ].mean()
-
-                /
-
-                downside_benchmark[
-                    "Benchmark_Return"
-                ].mean()
+                downside_benchmark["Portfolio_Return"].mean()
+                / downside_benchmark["Benchmark_Return"].mean()
             )
 
-downside = daily_returns[
-    daily_returns < 0
-]
+downside = daily_returns[daily_returns < 0]
 
-sortino_ratio = (
-
-    annual_return
-    - RISK_FREE_RATE
-
-) / max(
-
-    downside.std()
-    * np.sqrt(
-        TRADING_DAYS
-    ),
-
+sortino_ratio = (annual_return - RISK_FREE_RATE) / max(
+    downside.std() * np.sqrt(TRADING_DAYS),
     1e-9,
 )
 
-equity = equity_curve[
-    "Portfolio_Value"
-]
+equity = equity_curve["Portfolio_Value"]
 
-rolling_max = (
-    equity.cummax()
+rolling_max = equity.cummax()
+
+drawdown = (equity / rolling_max) - 1
+
+max_drawdown = drawdown.min()
+
+years = len(portfolio_returns) / TRADING_DAYS
+
+cagr = (equity.iloc[-1] / equity.iloc[0]) ** (1 / years) - 1
+
+calmar_ratio = cagr / max(
+    abs(max_drawdown),
+    1e-9,
 )
 
-drawdown = (
-    equity
-    / rolling_max
-) - 1
+win_rate = (daily_returns > 0).mean()
 
-max_drawdown = (
-    drawdown.min()
-)
+gross_profit = daily_returns[daily_returns > 0].sum()
 
-years = (
+gross_loss = abs(daily_returns[daily_returns < 0].sum())
 
-    len(
-        portfolio_returns
-    )
-
-    / TRADING_DAYS
-)
-
-cagr = (
-
-    (
-        equity.iloc[-1]
-        / equity.iloc[0]
-    )
-
-    ** (1 / years)
-
-    - 1
-)
-
-calmar_ratio = (
-
-    cagr
-
-    / max(
-        abs(
-            max_drawdown
-        ),
-        1e-9,
-    )
-)
-
-win_rate = (
-
-    (
-        daily_returns > 0
-    ).mean()
-)
-
-gross_profit = (
-    daily_returns[
-        daily_returns > 0
-    ].sum()
-)
-
-gross_loss = abs(
-    daily_returns[
-        daily_returns < 0
-    ].sum()
-)
-
-profit_factor = (
-
-    gross_profit
-
-    / max(
-        gross_loss,
-        1e-9,
-    )
+profit_factor = gross_profit / max(
+    gross_loss,
+    1e-9,
 )
 
 # =========================================================
 # RESULTS
 # =========================================================
 
-results = pd.DataFrame({
-
-    "Metric": [
-
-        "Initial_Capital",
-        "Final_Capital",
-        "CAGR",
-        "Annual_Return",
-        "Annual_Volatility",
-        "Sharpe_Ratio",
-        "Sortino_Ratio",
-        "Max_Drawdown",
-        "Calmar_Ratio",
-        "Win_Rate",
-        "Profit_Factor",
-        "Benchmark_Return",
-        "Active_Return",
-        "Tracking_Error",
-        "Information_Ratio",
-        "Hit_Ratio",
-        "Beta",
-        "excess_return",
-        "Upside_Capture",
-        "Downside_Capture",
-        "VaR_95",
-        "CVaR_95",
-        "Turnover",
-        "Run_Date",
-        "Engine_Version",
-    ],
-
-    "Value": [
-
-        INITIAL_CAPITAL,
-        equity.iloc[-1],
-        cagr,
-        annual_return,
-        annual_volatility,
-        sharpe_ratio,
-        sortino_ratio,
-        max_drawdown,
-        calmar_ratio,
-        win_rate,
-        profit_factor,
-        benchmark_return,
-        active_return,
-        tracking_error,
-        information_ratio,
-        hit_ratio,
-        beta,
-        excess_return,
-        upside_capture,
-        downside_capture,
-        var_95,
-        cvar_95,
-        turnover,
-        datetime.now()
-        .strftime(
-            "%Y-%m-%d"
-        ),
-
-        ENGINE_VERSION,
-    ]
-})
+results = pd.DataFrame(
+    {
+        "Metric": [
+            "Initial_Capital",
+            "Final_Capital",
+            "CAGR",
+            "Annual_Return",
+            "Annual_Volatility",
+            "Sharpe_Ratio",
+            "Sortino_Ratio",
+            "Max_Drawdown",
+            "Calmar_Ratio",
+            "Win_Rate",
+            "Profit_Factor",
+            "Benchmark_Return",
+            "Active_Return",
+            "Tracking_Error",
+            "Information_Ratio",
+            "Hit_Ratio",
+            "Beta",
+            "excess_return",
+            "Upside_Capture",
+            "Downside_Capture",
+            "VaR_95",
+            "CVaR_95",
+            "Turnover",
+            "Run_Date",
+            "Engine_Version",
+        ],
+        "Value": [
+            INITIAL_CAPITAL,
+            equity.iloc[-1],
+            cagr,
+            annual_return,
+            annual_volatility,
+            sharpe_ratio,
+            sortino_ratio,
+            max_drawdown,
+            calmar_ratio,
+            win_rate,
+            profit_factor,
+            benchmark_return,
+            active_return,
+            tracking_error,
+            information_ratio,
+            hit_ratio,
+            beta,
+            excess_return,
+            upside_capture,
+            downside_capture,
+            var_95,
+            cvar_95,
+            turnover,
+            datetime.now().strftime("%Y-%m-%d"),
+            ENGINE_VERSION,
+        ],
+    }
+)
 
 # =========================================================
 # SAVE
@@ -911,38 +449,21 @@ results.to_csv(
 
 print("\n" + "=" * 70)
 
-print(
-    "🏁 BACKTEST COMPLETE"
-)
+print("🏁 BACKTEST COMPLETE")
 
 print("=" * 70)
 
-print(
-    f"CAGR           : {cagr:.2%}"
-)
+print(f"CAGR           : {cagr:.2%}")
 
-print(
-    f"Sharpe Ratio   : {sharpe_ratio:.2f}"
-)
+print(f"Sharpe Ratio   : {sharpe_ratio:.2f}")
 
-print(
-    f"Max Drawdown   : {max_drawdown:.2%}"
-)
+print(f"Max Drawdown   : {max_drawdown:.2%}")
 
-print(
-    f"Win Rate       : {win_rate:.2%}"
-)
+print(f"Win Rate       : {win_rate:.2%}")
 
 if pd.notna(turnover):
+    print(f"Turnover       : {turnover:.2%}")
 
-    print(
-        f"Turnover       : "
-        f"{turnover:.2%}"
-    )
-
-print(
-    f"Final Capital  : "
-    f"{equity.iloc[-1]:,.0f}"
-)
+print(f"Final Capital  : {equity.iloc[-1]:,.0f}")
 
 print("=" * 70)

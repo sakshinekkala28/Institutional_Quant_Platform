@@ -49,15 +49,10 @@ class PerformanceEngine:
     """
 
     def __init__(
-
         self,
-
         tracker: PortfolioTracker,
-
         risk_free_rate: float = 0.0,
-
         trading_days: int = 252,
-
     ) -> None:
 
         self.tracker = tracker
@@ -72,17 +67,12 @@ class PerformanceEngine:
 
     @property
     def returns(
-
         self,
-
     ) -> np.ndarray:
 
         return np.asarray(
-
             self.tracker.portfolio_returns,
-
             dtype=np.float64,
-
         )
 
     # =====================================================
@@ -91,42 +81,20 @@ class PerformanceEngine:
 
     @property
     def total_return(
-
         self,
-
     ) -> float:
 
-        if len(
-
-            self.tracker.equity_curve
-
-        ) < 2:
-
+        if len(self.tracker.equity_curve) < 2:
             return 0.0
 
-        start = (
+        start = self.tracker.equity_curve[0]
 
-            self.tracker.equity_curve[0]
-
-        )
-
-        end = (
-
-            self.tracker.equity_curve[-1]
-
-        )
+        end = self.tracker.equity_curve[-1]
 
         if start <= 0:
-
             return 0.0
 
-        return (
-
-            end
-
-            / start
-
-        ) - 1.0
+        return (end / start) - 1.0
 
     # =====================================================
     # CAGR
@@ -134,60 +102,20 @@ class PerformanceEngine:
 
     @property
     def cagr(
-
         self,
-
     ) -> float:
 
-        observations = len(
-
-            self.tracker.equity_curve
-
-        )
+        observations = len(self.tracker.equity_curve)
 
         if observations < 2:
-
             return 0.0
 
-        years = (
-
-            observations
-
-            /
-
-            self.trading_days
-
-        )
+        years = observations / self.trading_days
 
         if years <= 0:
-
             return 0.0
 
-        return (
-
-            (
-
-                1.0
-
-                +
-
-                self.total_return
-
-            )
-
-            **
-
-            (
-
-                1.0
-
-                /
-
-                years
-
-            )
-
-        ) - 1.0
+        return ((1.0 + self.total_return) ** (1.0 / years)) - 1.0
 
     # =====================================================
     # VOLATILITY
@@ -195,37 +123,18 @@ class PerformanceEngine:
 
     @property
     def volatility(
-
         self,
-
     ) -> float:
 
-        if len(
-
-            self.returns
-
-        ) < 2:
-
+        if len(self.returns) < 2:
             return 0.0
 
         return float(
-
             np.std(
-
                 self.returns,
-
                 ddof=1,
-
             )
-
-            *
-
-            math.sqrt(
-
-                self.trading_days
-
-            )
-
+            * math.sqrt(self.trading_days)
         )
 
     # =====================================================
@@ -234,28 +143,17 @@ class PerformanceEngine:
 
     @property
     def sharpe(
-
         self,
-
     ) -> float:
 
         volatility = self.volatility
 
         if volatility <= 0:
-
             return 0.0
 
         annual_return = self.cagr
 
-        return (
-
-            annual_return
-
-            -
-
-            self.risk_free_rate
-
-        ) / volatility
+        return (annual_return - self.risk_free_rate) / volatility
 
     # =====================================================
     # SORTINO
@@ -263,58 +161,23 @@ class PerformanceEngine:
 
     @property
     def sortino(
-
         self,
-
     ) -> float:
 
-        downside = self.returns[
+        downside = self.returns[self.returns < 0]
 
-            self.returns < 0
-
-        ]
-
-        if len(
-
-            downside
-
-        ) == 0:
-
+        if len(downside) == 0:
             return 0.0
 
-        downside_vol = (
-
-            np.std(
-
-                downside,
-
-                ddof=1,
-
-            )
-
-            *
-
-            math.sqrt(
-
-                self.trading_days
-
-            )
-
-        )
+        downside_vol = np.std(
+            downside,
+            ddof=1,
+        ) * math.sqrt(self.trading_days)
 
         if downside_vol <= 0:
-
             return 0.0
 
-        return (
-
-            self.cagr
-
-            -
-
-            self.risk_free_rate
-
-        ) / downside_vol
+        return (self.cagr - self.risk_free_rate) / downside_vol
 
     # =====================================================
     # MAXIMUM DRAWDOWN
@@ -322,52 +185,22 @@ class PerformanceEngine:
 
     @property
     def maximum_drawdown(
-
         self,
-
     ) -> float:
 
         equity = np.asarray(
-
             self.tracker.equity_curve,
-
             dtype=np.float64,
-
         )
 
         if equity.size == 0:
-
             return 0.0
 
-        running_max = np.maximum.accumulate(
+        running_max = np.maximum.accumulate(equity)
 
-            equity
+        drawdown = (equity - running_max) / running_max
 
-        )
-
-        drawdown = (
-
-            equity
-
-            -
-
-            running_max
-
-        ) / running_max
-
-        return float(
-
-            abs(
-
-                np.min(
-
-                    drawdown
-
-                )
-
-            )
-
-        )
+        return float(abs(np.min(drawdown)))
 
     # =====================================================
     # CALMAR
@@ -375,117 +208,51 @@ class PerformanceEngine:
 
     @property
     def calmar(
-
         self,
-
     ) -> float:
 
-        drawdown = (
-
-            self.maximum_drawdown
-
-        )
+        drawdown = self.maximum_drawdown
 
         if drawdown <= 0:
-
             return 0.0
 
-        return (
-
-            self.cagr
-
-            / drawdown
-
-        )
+        return self.cagr / drawdown
 
     # =====================================================
     # REPORT
     # =====================================================
 
     def report(
-
         self,
-
     ) -> BacktestReport:
 
         report = BacktestReport()
 
         report.initial_capital = (
-
-            self.tracker.equity_curve[0]
-
-            if self.tracker.equity_curve
-
-            else 0.0
-
+            self.tracker.equity_curve[0] if self.tracker.equity_curve else 0.0
         )
 
-        report.ending_capital = (
+        report.ending_capital = self.tracker.equity
 
-            self.tracker.equity
+        report.total_return = self.total_return
 
-        )
+        report.annual_return = self.cagr
 
-        report.total_return = (
+        report.annual_volatility = self.volatility
 
-            self.total_return
+        report.sharpe_ratio = self.sharpe
 
-        )
+        report.sortino_ratio = self.sortino
 
-        report.annual_return = (
+        report.calmar_ratio = self.calmar
 
-            self.cagr
-
-        )
-
-        report.annual_volatility = (
-
-            self.volatility
-
-        )
-
-        report.sharpe_ratio = (
-
-            self.sharpe
-
-        )
-
-        report.sortino_ratio = (
-
-            self.sortino
-
-        )
-
-        report.calmar_ratio = (
-
-            self.calmar
-
-        )
-
-        report.max_drawdown = (
-
-            self.maximum_drawdown
-
-        )
+        report.max_drawdown = self.maximum_drawdown
 
         report.metadata.update(
-
             {
-
-                "PerformanceEngine":
-
-                    self.__class__.__name__,
-
-                "Observations":
-
-                    len(
-
-                        self.tracker.equity_curve
-
-                    ),
-
+                "PerformanceEngine": self.__class__.__name__,
+                "Observations": len(self.tracker.equity_curve),
             }
-
         )
 
         return report
@@ -495,41 +262,17 @@ class PerformanceEngine:
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Return":
-
-                self.total_return,
-
-            "CAGR":
-
-                self.cagr,
-
-            "Volatility":
-
-                self.volatility,
-
-            "Sharpe":
-
-                self.sharpe,
-
-            "Sortino":
-
-                self.sortino,
-
-            "Calmar":
-
-                self.calmar,
-
-            "MaxDrawdown":
-
-                self.maximum_drawdown,
-
+            "Return": self.total_return,
+            "CAGR": self.cagr,
+            "Volatility": self.volatility,
+            "Sharpe": self.sharpe,
+            "Sortino": self.sortino,
+            "Calmar": self.calmar,
+            "MaxDrawdown": self.maximum_drawdown,
         }
 
     # =====================================================
@@ -537,19 +280,9 @@ class PerformanceEngine:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Sharpe={self.sharpe:.2f}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Sharpe={self.sharpe:.2f})"
 
     __str__ = __repr__

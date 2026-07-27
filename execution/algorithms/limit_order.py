@@ -27,35 +27,24 @@ from execution.execution_report import ExecutionReport
 from execution.order import Order
 
 
-class LimitOrderAlgorithm(
-    ExecutionAlgorithm
-):
+class LimitOrderAlgorithm(ExecutionAlgorithm):
     """
     Institutional limit order algorithm.
     """
 
     def __init__(
-
         self,
-
     ) -> None:
 
-        super().__init__(
-
-            name="Limit Order"
-
-        )
+        super().__init__(name="Limit Order")
 
     # =====================================================
     # EXECUTE
     # =====================================================
 
     def execute(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
 
         report = ExecutionReport()
@@ -64,97 +53,36 @@ class LimitOrderAlgorithm(
 
         report.algorithm = self.name
 
-        if (
-
-            order.price is None
-
-            or
-
-            order.limit_price is None
-
-        ):
-
+        if order.price is None or order.limit_price is None:
             report.status = "REJECTED"
 
-            report.message = (
-
-                "Missing market or limit price."
-
-            )
+            report.message = "Missing market or limit price."
 
             return report
 
-        executable = (
-
-            (
-
-                order.is_buy
-
-                and
-
-                order.price <= order.limit_price
-
-            )
-
-            or
-
-            (
-
-                order.is_sell
-
-                and
-
-                order.price >= order.limit_price
-
-            )
-
+        executable = (order.is_buy and order.price <= order.limit_price) or (
+            order.is_sell and order.price >= order.limit_price
         )
 
         if executable:
-
-            report.executed_quantity = (
-
-                order.quantity
-
-            )
+            report.executed_quantity = order.quantity
 
             report.remaining_quantity = 0.0
 
-            report.average_price = (
+            report.average_price = order.price
 
-                order.price
-
-            )
-
-            report.execution_value = (
-
-                report.executed_quantity
-
-                *
-
-                report.average_price
-
-            )
+            report.execution_value = report.executed_quantity * report.average_price
 
             report.fill_ratio = 1.0
 
             report.status = "FILLED"
 
-            report.message = (
-
-                "Limit order executed."
-
-            )
+            report.message = "Limit order executed."
 
         else:
-
             report.executed_quantity = 0.0
 
-            report.remaining_quantity = (
-
-                order.quantity
-
-            )
+            report.remaining_quantity = order.quantity
 
             report.average_price = 0.0
 
@@ -164,11 +92,7 @@ class LimitOrderAlgorithm(
 
             report.status = "PENDING"
 
-            report.message = (
-
-                "Waiting for limit price."
-
-            )
+            report.message = "Waiting for limit price."
 
         return report
 
@@ -177,15 +101,9 @@ class LimitOrderAlgorithm(
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}()"
-
-        )
+        return f"{self.__class__.__name__}()"
 
     __str__ = __repr__

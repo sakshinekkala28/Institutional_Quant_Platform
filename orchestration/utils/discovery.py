@@ -24,12 +24,10 @@ from __future__ import annotations
 import importlib
 import inspect
 import logging
-import pkgutil
-
 from pathlib import Path
+import pkgutil
 from types import ModuleType
 from typing import Any
-from typing import Type
 
 logger = logging.getLogger(__name__)
 
@@ -37,6 +35,7 @@ logger = logging.getLogger(__name__)
 # =========================================================
 # DISCOVERY
 # =========================================================
+
 
 class Discovery:
     """
@@ -55,9 +54,7 @@ class Discovery:
         Import module.
         """
 
-        return importlib.import_module(
-            module_name
-        )
+        return importlib.import_module(module_name)
 
     # =====================================================
     # PACKAGE
@@ -71,21 +68,12 @@ class Discovery:
         Discover modules inside a package.
         """
 
-        module = importlib.import_module(
-            package
-        )
+        module = importlib.import_module(package)
 
         modules = []
 
-        for info in pkgutil.iter_modules(
-            module.__path__
-        ):
-
-            modules.append(
-
-                f"{package}.{info.name}"
-
-            )
+        for info in pkgutil.iter_modules(module.__path__):
+            modules.append(f"{package}.{info.name}")
 
         return sorted(modules)
 
@@ -97,15 +85,13 @@ class Discovery:
     def discover_classes(
         module_name: str,
         *,
-        base_class: Type | None = None,
-    ) -> list[Type]:
+        base_class: type | None = None,
+    ) -> list[type]:
         """
         Discover classes in module.
         """
 
-        module = Discovery.import_module(
-            module_name
-        )
+        module = Discovery.import_module(module_name)
 
         classes = []
 
@@ -113,33 +99,19 @@ class Discovery:
             module,
             inspect.isclass,
         ):
-
             if obj.__module__ != module_name:
-
                 continue
 
-            if (
-
-                base_class is not None
-
-                and
-
-                not issubclass(
-                    obj,
-                    base_class,
-                )
-
+            if base_class is not None and not issubclass(
+                obj,
+                base_class,
             ):
-
                 continue
 
             if obj is base_class:
-
                 continue
 
-            classes.append(
-                obj
-            )
+            classes.append(obj)
 
         return classes
 
@@ -151,28 +123,20 @@ class Discovery:
     def discover_package_classes(
         package: str,
         *,
-        base_class: Type | None = None,
-    ) -> list[Type]:
+        base_class: type | None = None,
+    ) -> list[type]:
         """
         Discover classes recursively.
         """
 
         discovered = []
 
-        for module in Discovery.discover_modules(
-            package
-        ):
-
+        for module in Discovery.discover_modules(package):
             discovered.extend(
-
                 Discovery.discover_classes(
-
                     module,
-
                     base_class=base_class,
-
                 )
-
             )
 
         return discovered
@@ -190,13 +154,7 @@ class Discovery:
         Discover files.
         """
 
-        return sorted(
-
-            Path(directory).rglob(
-                pattern
-            )
-
-        )
+        return sorted(Path(directory).rglob(pattern))
 
     # =====================================================
     # FILTER
@@ -212,18 +170,12 @@ class Discovery:
         """
 
         return [
-
             obj
-
-            for obj
-
-            in objects
-
+            for obj in objects
             if hasattr(
                 obj,
                 attribute,
             )
-
         ]
 
     # =====================================================
@@ -238,20 +190,12 @@ class Discovery:
         Package summary.
         """
 
-        modules = Discovery.discover_modules(
-            package
-        )
+        modules = Discovery.discover_modules(package)
 
         return {
-
             "package": package,
-
-            "modules": len(
-                modules
-            ),
-
+            "modules": len(modules),
             "names": modules,
-
         }
 
     # =====================================================
@@ -262,8 +206,4 @@ class Discovery:
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}()"
-
-        )
+        return f"{self.__class__.__name__}()"

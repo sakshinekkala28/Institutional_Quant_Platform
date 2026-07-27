@@ -10,14 +10,13 @@ from datetime import datetime
 
 import pandas as pd
 
-
 # ==========================================================
 # ALERT CONFIGURATION
 # ==========================================================
 
+
 @dataclass
 class AlertConfig:
-
     MAX_POSITION_WEIGHT: float = 0.05
 
     MAX_SECTOR_WEIGHT: float = 0.30
@@ -37,270 +36,105 @@ class AlertConfig:
 # ALERT REGISTRY
 # ==========================================================
 
-class AlertRegistry:
 
+class AlertRegistry:
     def __init__(self):
 
         self.alerts = []
 
-    def add(
+    def add(self, severity, category, message):
 
-        self,
-
-        severity,
-
-        category,
-
-        message
-
-    ):
-
-        self.alerts.append({
-
-            "Timestamp":
-
-            datetime.now(),
-
-            "Severity":
-
-            severity,
-
-            "Category":
-
-            category,
-
-            "Message":
-
-            message
-
-        })
+        self.alerts.append(
+            {
+                "Timestamp": datetime.now(),
+                "Severity": severity,
+                "Category": category,
+                "Message": message,
+            }
+        )
 
     def get_alerts(self):
 
-        return pd.DataFrame(
-            self.alerts
-        )
-    
+        return pd.DataFrame(self.alerts)
+
+
 # ==========================================================
 # PORTFOLIO ALERTS
 # ==========================================================
 
+
 class PortfolioAlertEngine:
-
     @staticmethod
-    def evaluate(
+    def evaluate(portfolio, registry, config):
 
-        portfolio,
-
-        registry,
-
-        config
-
-    ):
-
-        max_position = (
-
-            portfolio[
-                "Target_Weight"
-            ].max()
-
-        )
+        max_position = portfolio["Target_Weight"].max()
 
         if max_position > config.MAX_POSITION_WEIGHT:
-
             registry.add(
-
-                "HIGH",
-
-                "POSITION",
-
-                f"Position Limit Breach: "
-                f"{max_position:.2%}"
-
+                "HIGH", "POSITION", f"Position Limit Breach: {max_position:.2%}"
             )
 
-        sector_weights = (
-
-            portfolio
-
-            .groupby("Sector")
-
-            ["Target_Weight"]
-
-            .sum()
-
-        )
+        sector_weights = portfolio.groupby("Sector")["Target_Weight"].sum()
 
         if sector_weights.max() > config.MAX_SECTOR_WEIGHT:
-
-            registry.add(
-
-                "HIGH",
-
-                "SECTOR",
-
-                "Sector Limit Breach"
-
-            )
+            registry.add("HIGH", "SECTOR", "Sector Limit Breach")
 
         # ==========================================================
+
+
 # RISK ALERTS
 # ==========================================================
 
+
 class RiskAlertEngine:
-
     @staticmethod
-    def evaluate(
+    def evaluate(risk_report, registry, config):
 
-        risk_report,
-
-        registry,
-
-        config
-
-    ):
-
-        beta = risk_report.get(
-            "Portfolio_Beta",
-            1.0
-        )
+        beta = risk_report.get("Portfolio_Beta", 1.0)
 
         if beta > config.MAX_BETA:
-
-            registry.add(
-
-                "MEDIUM",
-
-                "BETA",
-
-                f"High Beta: {beta:.2f}"
-
-            )
+            registry.add("MEDIUM", "BETA", f"High Beta: {beta:.2f}")
 
         if beta < config.MIN_BETA:
+            registry.add("MEDIUM", "BETA", f"Low Beta: {beta:.2f}")
 
-            registry.add(
-
-                "MEDIUM",
-
-                "BETA",
-
-                f"Low Beta: {beta:.2f}"
-
-            )
-
-        tracking_error = (
-
-            risk_report.get(
-                "Tracking_Error",
-                0
-            )
-
-        )
+        tracking_error = risk_report.get("Tracking_Error", 0)
 
         if tracking_error > config.MAX_TRACKING_ERROR:
-
             registry.add(
-
-                "HIGH",
-
-                "TRACKING_ERROR",
-
-                f"Tracking Error: "
-                f"{tracking_error:.2%}"
-
+                "HIGH", "TRACKING_ERROR", f"Tracking Error: {tracking_error:.2%}"
             )
 
         # ==========================================================
+
+
 # ALERT ENGINE
 # ==========================================================
 
-class AlertEngine:
 
+class AlertEngine:
     def __init__(self):
 
         self.config = AlertConfig()
 
         self.registry = AlertRegistry()
 
-    def run(
+    def run(self, portfolio, risk_report, monitoring_report=None):
 
-        self,
+        PortfolioAlertEngine.evaluate(portfolio, self.registry, self.config)
 
-        portfolio,
-
-        risk_report,
-
-        monitoring_report=None
-
-    ):
-
-        PortfolioAlertEngine.evaluate(
-
-            portfolio,
-
-            self.registry,
-
-            self.config
-
-        )
-
-        RiskAlertEngine.evaluate(
-
-            risk_report,
-
-            self.registry,
-
-            self.config
-
-        )
+        RiskAlertEngine.evaluate(risk_report, self.registry, self.config)
 
         if monitoring_report:
+            capacity_score = monitoring_report.get("Capacity_Score", 100)
 
-            capacity_score = (
-
-                monitoring_report.get(
-                    "Capacity_Score",
-                    100
-                )
-
-            )
-
-            if (
-
-                capacity_score
-
-                <
-
-                self.config.MIN_CAPACITY_SCORE
-
-            ):
-
+            if capacity_score < self.config.MIN_CAPACITY_SCORE:
                 self.registry.add(
-
-                    "HIGH",
-
-                    "CAPACITY",
-
-                    f"Capacity Score: "
-                    f"{capacity_score}"
-
+                    "HIGH", "CAPACITY", f"Capacity Score: {capacity_score}"
                 )
 
-        alerts = (
+        alerts = self.registry.get_alerts()
 
-            self.registry
-
-            .get_alerts()
-
-        )
-
-        print(
-
-            f"\n✓ Alerts Generated: "
-
-            f"{len(alerts)}"
-
-        )
+        print(f"\n✓ Alerts Generated: {len(alerts)}")
 
         return alerts

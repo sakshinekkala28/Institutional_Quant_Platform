@@ -53,233 +53,116 @@ class LiquidityModel:
     # =====================================================
 
     def participation_rate(
-
         self,
-
         traded_value: float,
-
         average_daily_volume: float,
-
     ) -> float:
 
         if average_daily_volume <= 0.0:
-
             return 1.0
 
-        return (
-
-            traded_value
-
-            /
-
-            average_daily_volume
-
-        )
+        return traded_value / average_daily_volume
 
     # =====================================================
     # LIQUIDITY PENALTY
     # =====================================================
 
     def penalty(
-
         self,
-
         traded_value: float,
-
         average_daily_volume: float,
-
     ) -> float:
 
         participation = self.participation_rate(
-
             traded_value,
-
             average_daily_volume,
-
         )
 
         if participation <= self.max_participation_rate:
-
             return 0.0
 
-        excess = (
+        excess = participation - self.max_participation_rate
 
-            participation
-
-            -
-
-            self.max_participation_rate
-
-        )
-
-        return (
-
-            traded_value
-
-            * excess
-
-            * self.liquidity_penalty_bps
-
-            / 10_000.0
-
-        )
+        return traded_value * excess * self.liquidity_penalty_bps / 10_000.0
 
     # =====================================================
     # PORTFOLIO LIQUIDITY
     # =====================================================
 
     def calculate(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> float:
 
         total = 0.0
 
         for position in portfolio:
-
             adv = getattr(
-
                 position,
-
                 "adv_20d",
-
                 0.0,
-
             )
 
-            traded = (
-
-                position.weight
-
-                * portfolio.nav
-
-            )
+            traded = position.weight * portfolio.nav
 
             total += self.penalty(
-
                 traded,
-
                 adv,
-
             )
 
-        return float(
-
-            total
-
-        )
+        return float(total)
 
     # =====================================================
     # LIQUIDITY SCORE
     # =====================================================
 
     def liquidity_score(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> float:
 
         scores = []
 
         for position in portfolio:
-
             adv = getattr(
-
                 position,
-
                 "adv_20d",
-
                 0.0,
-
             )
 
-            traded = (
-
-                position.weight
-
-                * portfolio.nav
-
-            )
+            traded = position.weight * portfolio.nav
 
             participation = self.participation_rate(
-
                 traded,
-
                 adv,
-
             )
 
-            score = max(
+            score = max(0.0, 1.0 - participation)
 
-                0.0,
-
-                1.0
-
-                -
-
-                participation
-
-            )
-
-            scores.append(
-
-                score
-
-            )
+            scores.append(score)
 
         if not scores:
-
             return 0.0
 
-        return float(
-
-            sum(
-
-                scores
-
-            )
-
-            /
-
-            len(
-
-                scores
-
-            )
-
-        )
+        return float(sum(scores) / len(scores))
 
     # =====================================================
     # LIQUID PORTFOLIO
     # =====================================================
 
     def is_liquid(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> bool:
 
         for position in portfolio:
-
             adv = getattr(
-
                 position,
-
                 "adv_20d",
-
                 0.0,
-
             )
 
             if adv < self.minimum_adv:
-
                 return False
 
         return True
@@ -289,39 +172,14 @@ class LiquidityModel:
     # =====================================================
 
     def summary(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> dict:
 
         return {
-
-            "Liquidity_Cost":
-
-                self.calculate(
-
-                    portfolio
-
-                ),
-
-            "Liquidity_Score":
-
-                self.liquidity_score(
-
-                    portfolio
-
-                ),
-
-            "Tradable":
-
-                self.is_liquid(
-
-                    portfolio
-
-                ),
-
+            "Liquidity_Cost": self.calculate(portfolio),
+            "Liquidity_Score": self.liquidity_score(portfolio),
+            "Tradable": self.is_liquid(portfolio),
         }
 
     # =====================================================
@@ -329,21 +187,14 @@ class LiquidityModel:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"MaxParticipation="
-
             f"{self.max_participation_rate:.0%}"
-
             f")"
-
         )
 
     __str__ = __repr__

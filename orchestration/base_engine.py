@@ -30,7 +30,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter
-from typing import Any, Dict, List, Optional
+from typing import Any
 
 
 class BaseEngine(ABC):
@@ -54,7 +54,7 @@ class BaseEngine(ABC):
 
     OWNER: str = "Institutional Quant Platform"
 
-    TAGS: List[str] = []
+    TAGS: list[str] = []
 
     ENABLED: bool = True
 
@@ -78,11 +78,11 @@ class BaseEngine(ABC):
     # DEPENDENCIES
     # =====================================================
 
-    DEPENDS_ON: List[str] = []
+    DEPENDS_ON: list[str] = []
 
-    INPUTS: List[str] = []
+    INPUTS: list[str] = []
 
-    OUTPUTS: List[str] = []
+    OUTPUTS: list[str] = []
 
     # =====================================================
     # CONSTRUCTOR
@@ -90,9 +90,9 @@ class BaseEngine(ABC):
 
     def __init__(self) -> None:
 
-        self.started_at: Optional[datetime] = None
+        self.started_at: datetime | None = None
 
-        self.finished_at: Optional[datetime] = None
+        self.finished_at: datetime | None = None
 
         self.runtime_seconds: float = 0.0
 
@@ -153,7 +153,6 @@ class BaseEngine(ABC):
         self.status = "RUNNING"
 
         try:
-
             self.validate_inputs(context)
 
             self.pre_execute(context)
@@ -172,20 +171,12 @@ class BaseEngine(ABC):
             return result
 
         except Exception:
-
             self.status = "FAILED"
 
             raise
 
         finally:
-
-            self.runtime_seconds = (
-
-                perf_counter()
-
-                - timer
-
-            )
+            self.runtime_seconds = perf_counter() - timer
 
             self.finished_at = datetime.utcnow()
 
@@ -194,60 +185,31 @@ class BaseEngine(ABC):
     # =====================================================
 
     @classmethod
-    def metadata(cls) -> Dict[str, Any]:
+    def metadata(cls) -> dict[str, Any]:
         """
         Return engine metadata.
         """
 
         return {
-
             "name": cls.NAME,
-
             "description": cls.DESCRIPTION,
-
             "version": cls.VERSION,
-
             "category": cls.CATEGORY,
-
             "stage": cls.STAGE,
-
             "owner": cls.OWNER,
-
             "tags": cls.TAGS,
-
             "enabled": cls.ENABLED,
-
             "critical": cls.CRITICAL,
-
             "priority": cls.PRIORITY,
-
-            "parallelizable":
-                cls.PARALLELIZABLE,
-
-            "supports_incremental":
-                cls.SUPPORTS_INCREMENTAL,
-
-            "cacheable":
-                cls.CACHEABLE,
-
-            "max_retries":
-                cls.MAX_RETRIES,
-
-            "retry_delay":
-                cls.RETRY_DELAY,
-
-            "timeout":
-                cls.TIMEOUT,
-
-            "depends_on":
-                cls.DEPENDS_ON,
-
-            "inputs":
-                cls.INPUTS,
-
-            "outputs":
-                cls.OUTPUTS,
-
+            "parallelizable": cls.PARALLELIZABLE,
+            "supports_incremental": cls.SUPPORTS_INCREMENTAL,
+            "cacheable": cls.CACHEABLE,
+            "max_retries": cls.MAX_RETRIES,
+            "retry_delay": cls.RETRY_DELAY,
+            "timeout": cls.TIMEOUT,
+            "depends_on": cls.DEPENDS_ON,
+            "inputs": cls.INPUTS,
+            "outputs": cls.OUTPUTS,
         }
 
     # =====================================================
@@ -255,58 +217,31 @@ class BaseEngine(ABC):
     # =====================================================
 
     @classmethod
-    def output_paths(cls) -> List[Path]:
+    def output_paths(cls) -> list[Path]:
         """
         Return outputs as pathlib objects.
         """
 
-        return [
-
-            Path(path)
-
-            for path
-
-            in cls.OUTPUTS
-
-        ]
+        return [Path(path) for path in cls.OUTPUTS]
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(self) -> Dict[str, Any]:
+    def summary(self) -> dict[str, Any]:
         """
         Runtime summary.
         """
 
         return {
-
-            "engine":
-                self.NAME,
-
-            "status":
-                self.status,
-
-            "started_at":
-                (
-                    self.started_at.isoformat()
-                    if self.started_at
-                    else None
-                ),
-
-            "finished_at":
-                (
-                    self.finished_at.isoformat()
-                    if self.finished_at
-                    else None
-                ),
-
-            "runtime_seconds":
-                round(
-                    self.runtime_seconds,
-                    3,
-                ),
-
+            "engine": self.NAME,
+            "status": self.status,
+            "started_at": (self.started_at.isoformat() if self.started_at else None),
+            "finished_at": (self.finished_at.isoformat() if self.finished_at else None),
+            "runtime_seconds": round(
+                self.runtime_seconds,
+                3,
+            ),
         }
 
     # =====================================================
@@ -316,15 +251,9 @@ class BaseEngine(ABC):
     def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"name='{self.NAME}', "
-
             f"category='{self.CATEGORY}', "
-
             f"stage='{self.STAGE}', "
-
             f"status='{self.status}')"
-
         )

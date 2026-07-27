@@ -34,15 +34,14 @@ from __future__ import annotations
 
 import argparse
 import logging
-import sys
 from pathlib import Path
-
-from orchestration.orchestrator import (
-    Orchestrator,
-)
+import sys
 
 from orchestration.models.engine_status import (
     EngineStatus,
+)
+from orchestration.orchestrator import (
+    Orchestrator,
 )
 
 logger = logging.getLogger(__name__)
@@ -52,69 +51,42 @@ logger = logging.getLogger(__name__)
 # CLI
 # =========================================================
 
+
 def parse_arguments() -> argparse.Namespace:
     """
     Parse command line arguments.
     """
 
-    parser = argparse.ArgumentParser(
-
-        description=(
-            "Institutional Quant Platform"
-        )
-
-    )
+    parser = argparse.ArgumentParser(description=("Institutional Quant Platform"))
 
     parser.add_argument(
-
         "--executor",
-
         default="sequential",
-
         choices=[
-
             "sequential",
-
             "parallel",
-
             "retry",
-
             "distributed",
-
         ],
-
         help="Execution backend.",
-
     )
 
     parser.add_argument(
-
         "--summary",
-
         action="store_true",
-
         help="Print execution summary.",
-
     )
 
     parser.add_argument(
-
         "--report",
-
         type=Path,
-
         help="Export execution report.",
-
     )
 
     parser.add_argument(
-
         "--verbose",
-
         action="store_true",
-
         help="Verbose logging.",
-
     )
 
     return parser.parse_args()
@@ -124,6 +96,7 @@ def parse_arguments() -> argparse.Namespace:
 # LOGGING
 # =========================================================
 
+
 def configure_logging(
     verbose: bool,
 ) -> None:
@@ -131,33 +104,18 @@ def configure_logging(
     Configure platform logging.
     """
 
-    level = (
-
-        logging.DEBUG
-
-        if verbose
-
-        else logging.INFO
-
-    )
+    level = logging.DEBUG if verbose else logging.INFO
 
     logging.basicConfig(
-
         level=level,
-
-        format=(
-            "%(asctime)s "
-            "%(levelname)s "
-            "%(name)s : "
-            "%(message)s"
-        ),
-
+        format=("%(asctime)s %(levelname)s %(name)s : %(message)s"),
     )
 
 
 # =========================================================
 # MAIN
 # =========================================================
+
 
 def main() -> int:
     """
@@ -167,19 +125,14 @@ def main() -> int:
     args = parse_arguments()
 
     configure_logging(
-
         args.verbose,
-
     )
 
     orchestrator = Orchestrator(
-
         executor=args.executor,
-
     )
 
     try:
-
         result = orchestrator.run()
 
         # ----------------------------------------------
@@ -187,19 +140,13 @@ def main() -> int:
         # ----------------------------------------------
 
         if args.report:
-
             orchestrator.report.save(
-
                 args.report,
-
             )
 
             logger.info(
-
                 "Execution report written to %s",
-
                 args.report,
-
             )
 
         # ----------------------------------------------
@@ -207,64 +154,30 @@ def main() -> int:
         # ----------------------------------------------
 
         if args.summary:
-
             print()
 
             print("=" * 70)
 
-            print(
-
-                "PLATFORM EXECUTION SUMMARY"
-
-            )
+            print("PLATFORM EXECUTION SUMMARY")
 
             print("=" * 70)
 
-            for key, value in (
-
-                orchestrator.summary()
-
-            ).items():
-
-                print(
-
-                    f"{key:<20}: {value}"
-
-                )
+            for key, value in (orchestrator.summary()).items():
+                print(f"{key:<20}: {value}")
 
             print("=" * 70)
 
             print()
 
-        return (
-
-            0
-
-            if result.status
-
-            == EngineStatus.SUCCESS
-
-            else 1
-
-        )
+        return 0 if result.status == EngineStatus.SUCCESS else 1
 
     except KeyboardInterrupt:
-
-        logger.warning(
-
-            "Execution interrupted."
-
-        )
+        logger.warning("Execution interrupted.")
 
         return 130
 
     except Exception:
-
-        logger.exception(
-
-            "Platform execution failed."
-
-        )
+        logger.exception("Platform execution failed.")
 
         return 1
 
@@ -274,9 +187,4 @@ def main() -> int:
 # =========================================================
 
 if __name__ == "__main__":
-
-    sys.exit(
-
-        main()
-
-    )
+    sys.exit(main())
