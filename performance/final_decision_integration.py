@@ -86,7 +86,7 @@ def run_example():
 
     logger.info("Starting Final Decision Integration")
 
-    (final_decision, executive, committee) = FinalDecisionIntegrationRepository.load()
+    final_decision, executive, committee = FinalDecisionIntegrationRepository.load()
 
     executive = ExecutiveDashboardIntegrator.build(executive, final_decision)
 

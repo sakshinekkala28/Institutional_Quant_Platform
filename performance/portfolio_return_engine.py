@@ -1477,7 +1477,7 @@ class PortfolioReturnEngine:
 
         logger.info("Starting Portfolio Return Engine")
 
-        (portfolio, performance_df) = ReturnRepository.build()
+        portfolio, performance_df = ReturnRepository.build()
 
         regime_df = RegimeReturnBuilder.build(performance_df)
 

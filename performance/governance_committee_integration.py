@@ -117,7 +117,7 @@ def run_example():
 
     GovernanceCommitteeValidator.validate()
 
-    (governance, committee, executive) = GovernanceCommitteeRepository.load()
+    governance, committee, executive = GovernanceCommitteeRepository.load()
 
     metrics = GovernanceCommitteeMetrics.build(governance, committee, executive)
 

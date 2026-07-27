@@ -243,15 +243,13 @@ class DuckDBManager:
 
         con.register("prices_df", prices)
 
-        con.execute(
-            """
+        con.execute("""
             CREATE OR REPLACE TABLE prices AS
 
             SELECT *
 
             FROM prices_df
-            """
-        )
+            """)
 
         con.close()
 
@@ -263,16 +261,14 @@ class DuckDBManager:
 
         con.register("universe_df", universe)
 
-        con.execute(
-            """
+        con.execute("""
             CREATE OR REPLACE TABLE
             security_master AS
 
             SELECT *
 
             FROM universe_df
-            """
-        )
+            """)
 
         con.close()
 
@@ -282,16 +278,14 @@ class DuckDBManager:
 
         con.register("metadata_df", metadata)
 
-        con.execute(
-            """
+        con.execute("""
             CREATE OR REPLACE TABLE
             symbol_metadata AS
 
             SELECT *
 
             FROM metadata_df
-            """
-        )
+            """)
 
         con.close()
 
@@ -648,16 +642,14 @@ class DuckDBSynchronization:
 
         con.register("benchmark_df", benchmarks)
 
-        con.execute(
-            """
+        con.execute("""
             CREATE OR REPLACE TABLE
             benchmark_prices AS
 
             SELECT *
 
             FROM benchmark_df
-            """
-        )
+            """)
 
         con.close()
 
