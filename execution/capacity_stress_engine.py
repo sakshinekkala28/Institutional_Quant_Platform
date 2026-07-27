@@ -183,7 +183,7 @@ class CapacityStressEngine:
         sector_results = []
 
         for aum in self.aum_scenarios:
-            (cost_df, bottlenecks, sector_summary) = self.evaluate_aum(trades, aum)
+            cost_df, bottlenecks, sector_summary = self.evaluate_aum(trades, aum)
 
             liquidity_summary = self.build_liquidity_summary(cost_df)
 
@@ -346,7 +346,7 @@ def run_example():
 
     engine = CapacityStressEngine()
 
-    (summary_df, bottleneck_df, sector_df) = engine.run_stress_test(trades)
+    summary_df, bottleneck_df, sector_df = engine.run_stress_test(trades)
 
     summary_df = engine.build_capacity_trends(summary_df)
 

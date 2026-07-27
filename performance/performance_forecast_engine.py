@@ -873,7 +873,7 @@ class PerformanceForecastEngine:
 
         forecast_confidence = confidence_breakdown["Forecast_Confidence"]
 
-        (expected_returns["Expected_Return_12M"], forecast_confidence) = (
+        expected_returns["Expected_Return_12M"], forecast_confidence = (
             MacroForecastAdjuster.adjust(
                 expected_returns["Expected_Return_12M"],
                 forecast_confidence,

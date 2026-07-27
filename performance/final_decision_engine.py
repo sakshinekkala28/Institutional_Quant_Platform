@@ -204,7 +204,7 @@ def run_example():
 
     FinalDecisionValidator.validate()
 
-    (executive, governance) = FinalDecisionRepository.load()
+    executive, governance = FinalDecisionRepository.load()
 
     scores = DecisionScoringEngine.calculate(executive, governance)
 

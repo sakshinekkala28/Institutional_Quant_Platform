@@ -252,11 +252,9 @@ def run_example():
 
     logger.info("Starting Governance Command Center")
 
-    (forecast, alert_governance, monitor, stress_dashboard) = (
-        GovernanceRepository.load()
-    )
+    forecast, alert_governance, monitor, stress_dashboard = GovernanceRepository.load()
 
-    (forecast_dashboard, horizon_dashboard, decision_dashboard) = (
+    forecast_dashboard, horizon_dashboard, decision_dashboard = (
         GovernanceForecastLoader.load()
     )
 

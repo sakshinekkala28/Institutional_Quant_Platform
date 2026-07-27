@@ -77,8 +77,7 @@ class HTMLReport(BaseReport):
 
         html.append(f"<title>{escape(self.title)}</title>")
 
-        html.append(
-            """
+        html.append("""
 <style>
 
 body{
@@ -160,8 +159,7 @@ color:#777;
 }
 
 </style>
-            """
-        )
+            """)
 
         html.append("</head>")
 

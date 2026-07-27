@@ -187,7 +187,7 @@ def run_example():
 
     score = MacroScoreEngine.calculate(signals)
 
-    (regime, recommendation) = MacroRegimeClassifier.classify(score)
+    regime, recommendation = MacroRegimeClassifier.classify(score)
 
     risk = MacroRiskEngine.build(signals)
 
