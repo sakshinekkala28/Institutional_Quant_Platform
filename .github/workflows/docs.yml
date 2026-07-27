@@ -34,10 +34,9 @@ env:
 jobs:
 
   documentation:
-
     name: Build Documentation
-
     runs-on: ubuntu-latest
+    timeout-minutes: 30
 
     steps:
 
@@ -45,15 +44,30 @@ jobs:
       # Checkout
       ####################################################################
 
-      - uses: actions/checkout@v4
+      - name: Checkout Repository
+        uses: actions/checkout@v4
 
       ####################################################################
-      # Python
+      # Setup Python
       ####################################################################
 
-      - uses: actions/setup-python@v5
+      - name: Setup Python
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+
+      ####################################################################
+      # Cache Pip Packages
+      ####################################################################
+
+      - name: Cache Documentation Dependencies
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/pip
+          key: docs-${{ runner.os }}-${{ hashFiles('mkdocs.yml') }}
+          restore-keys: |
+            docs-${{ runner.os }}-
 
       ####################################################################
       # Install Dependencies
@@ -84,7 +98,7 @@ jobs:
             **/*.md
 
       ####################################################################
-      # Link Check
+      # Link Checker
       ####################################################################
 
       - name: Link Checker
@@ -93,7 +107,7 @@ jobs:
           fail: true
 
       ####################################################################
-      # Build Site
+      # Build Documentation
       ####################################################################
 
       - name: Build Documentation
@@ -101,7 +115,14 @@ jobs:
           mkdocs build --strict
 
       ####################################################################
-      # Upload Artifact
+      # Setup GitHub Pages
+      ####################################################################
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      ####################################################################
+      # Upload Site
       ####################################################################
 
       - name: Upload Site
@@ -110,46 +131,70 @@ jobs:
           path: site/
 
   deploy:
-
     name: Deploy Documentation
 
     if: github.ref == 'refs/heads/main'
+
+    needs:
+      - documentation
+
+    runs-on: ubuntu-latest
 
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
 
-    runs-on: ubuntu-latest
-
-    needs:
-      - documentation
-
     steps:
 
-      - name: Deploy
+      ####################################################################
+      # Deploy
+      ####################################################################
+
+      - name: Deploy Documentation
         id: deployment
         uses: actions/deploy-pages@v4
 
   summary:
-
     name: Documentation Summary
 
-    runs-on: ubuntu-latest
+    if: always()
 
     needs:
       - deploy
 
-    if: always()
+    runs-on: ubuntu-latest
 
     steps:
 
-      - run: |
+      ####################################################################
+      # Summary
+      ####################################################################
+
+      - name: Documentation Summary
+        run: |
           echo "========================================="
           echo "Institutional Quant Platform"
           echo "Documentation Build Complete"
           echo "========================================="
           echo ""
+          echo "Repository"
+          echo "${{ github.repository }}"
+          echo ""
+          echo "Branch"
+          echo "${{ github.ref_name }}"
+          echo ""
+          echo "Commit"
+          echo "${{ github.sha }}"
+          echo ""
+          echo "Validation"
           echo "✓ Markdown Validated"
           echo "✓ Links Checked"
+          echo ""
+          echo "Documentation"
           echo "✓ MkDocs Built"
           echo "✓ GitHub Pages Deployed"
+          echo ""
+          echo "Workflow Status"
+          echo "${{ needs.deploy.result }}"
+          echo ""
+          echo "========================================="

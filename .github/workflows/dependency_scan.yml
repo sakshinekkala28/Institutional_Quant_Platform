@@ -5,15 +5,11 @@ on:
     branches:
       - main
       - develop
-
   pull_request:
     branches:
       - main
-
   schedule:
-    # Every Wednesday at 02:00 UTC
     - cron: "0 2 * * 3"
-
   workflow_dispatch:
 
 permissions:
@@ -24,34 +20,18 @@ env:
   PYTHON_VERSION: "3.12"
 
 jobs:
-
   dependency-health:
-
     name: Dependency Health
-
     runs-on: ubuntu-latest
 
     steps:
-
-      ####################################################################
-      # Checkout
-      ####################################################################
-
       - name: Checkout Repository
         uses: actions/checkout@v4
-
-      ####################################################################
-      # Python
-      ####################################################################
 
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
           python-version: ${{ env.PYTHON_VERSION }}
-
-      ####################################################################
-      # Install
-      ####################################################################
 
       - name: Install Tools
         run: |
@@ -67,25 +47,13 @@ jobs:
             pip install -r requirements.txt
           fi
 
-      ####################################################################
-      # Dependency Tree
-      ####################################################################
-
       - name: Generate Dependency Tree
         run: |
           pipdeptree > dependency-tree.txt
 
-      ####################################################################
-      # Outdated Packages
-      ####################################################################
-
       - name: Detect Outdated Packages
         run: |
           pip list --outdated > outdated-packages.txt
-
-      ####################################################################
-      # Vulnerability Scan
-      ####################################################################
 
       - name: pip-audit
         run: |
@@ -93,28 +61,16 @@ jobs:
             --format=json \
             --output=pip-audit.json
 
-      ####################################################################
-      # Safety Scan
-      ####################################################################
-
       - name: Safety Check
         run: |
           safety check \
             --json \
             > safety-report.json
 
-      ####################################################################
-      # Generate SBOM
-      ####################################################################
-
       - name: Generate CycloneDX SBOM
         run: |
           cyclonedx-py environment \
             --output-file sbom.json
-
-      ####################################################################
-      # Upload Reports
-      ####################################################################
 
       - name: Upload Dependency Reports
         uses: actions/upload-artifact@v4
@@ -128,16 +84,11 @@ jobs:
             sbom.json
 
   summary:
-
     name: Dependency Summary
-
     runs-on: ubuntu-latest
-
-    needs:
-      - dependency-health
+    needs: dependency-health
 
     steps:
-
       - name: Summary
         run: |
           echo "======================================"
