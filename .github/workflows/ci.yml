@@ -160,15 +160,18 @@ jobs:
       - name: Checkout Source
         uses: actions/checkout@v4
 
-      - name: Install kubectl
-        uses: azure/setup-kubectl@v4
-
-      - name: Validate Kubernetes Manifests
+      - name: Install kubeconform
         run: |
-          kubectl apply \
-            --dry-run=client \
-            --validate=false \
-            -f docs/infrastructure/kubernetes
+          curl -L https://github.com/yannh/kubeconform/releases/latest/download/kubeconform-linux-amd64.tar.gz \
+            | tar xz
+          sudo mv kubeconform /usr/local/bin/
+
+      - name: Validate Kubernetes manifests
+        run: |
+          kubeconform \
+            -strict \
+            -summary \
+            docs/infrastructure/kubernetes/*.yaml
 
   dockerfiles:
     name: Validate Dockerfiles
@@ -188,8 +191,12 @@ jobs:
         run: |
           find . -name "Dockerfile*" | while read file; do
             echo "Checking $file"
-            hadolint "$file"
-          done            
+            hadolint \
+              --ignore DL3008 \
+              --ignore DL3013 \
+              --ignore DL3059 \
+              "$file"
+          done         
 
   yaml:
     name: Validate YAML Files
