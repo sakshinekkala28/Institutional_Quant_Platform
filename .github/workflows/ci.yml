@@ -104,15 +104,15 @@ jobs:
         uses: hashicorp/setup-terraform@v3
 
       - name: Terraform Format
-        working-directory: infrastructure/terraform
+        working-directory: docs/infrastructure/terraform
         run: terraform fmt -check -recursive
 
       - name: Terraform Init
-        working-directory: infrastructure/terraform
+        working-directory: docs/infrastructure/terraform
         run: terraform init -backend=false
 
       - name: Terraform Validate
-        working-directory: infrastructure/terraform
+        working-directory: docs/infrastructure/terraform
         run: terraform validate
 
   helm:
@@ -127,13 +127,13 @@ jobs:
         uses: azure/setup-helm@v4
 
       - name: Helm Lint
-        run: helm lint infrastructure/helm
+        run: helm lint docs/infrastructure/helm
 
       - name: Helm Template
-        run: helm template institutional-quant infrastructure/helm > rendered.yaml
+        run: helm template institutional-quant docs/infrastructure/helm > rendered.yaml
 
       - name: Helm Package
-        run: helm package infrastructure/helm
+        run: helm package docs/infrastructure/helm
 
       - name: Upload Helm Artifacts
         uses: actions/upload-artifact@v4
@@ -158,7 +158,7 @@ jobs:
         run: |
           kubectl apply \
             --dry-run=client \
-            -f infrastructure/kubernetes
+            -f docs/infrastructure/kubernetes
 
   dockerfiles:
     name: Dockerfile Validation
@@ -171,17 +171,17 @@ jobs:
       - name: Lint API Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: infrastructure/docker/Dockerfile.api
+          dockerfile: docs/infrastructure/docker/Dockerfile.api
 
       - name: Lint Analytics Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: infrastructure/docker/Dockerfile.analytics
+          dockerfile: docs/infrastructure/docker/Dockerfile.analytics
 
       - name: Lint Dashboard Dockerfile
         uses: hadolint/hadolint-action@v3.1.0
         with:
-          dockerfile: infrastructure/docker/Dockerfile.dashboard
+          dockerfile: docs/infrastructure/docker/Dockerfile.dashboard
 
   yaml:
     name: YAML Validation
