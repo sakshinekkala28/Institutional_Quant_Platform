@@ -27,24 +27,18 @@ Responsibilities
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
-
-from threading import Lock
-from threading import RLock
-
+from dataclasses import dataclass, field
+from threading import Lock, RLock
 from typing import Any
-from typing import Dict
-from typing import Optional
 
 import pandas as pd
 
 from core.services.base_service import BaseService
 
-
 # ============================================================
 # Exceptions
 # ============================================================
+
 
 class RebalanceError(Exception):
     """Base rebalance exception."""
@@ -58,31 +52,24 @@ class RebalanceProfileNotFound(RebalanceError):
 # Rebalance Profile
 # ============================================================
 
+
 @dataclass(slots=True)
 class RebalanceProfile:
-
     name: str
 
     current_portfolio: str
 
     target_portfolio: str
 
-    parameters: Dict[str, Any] = field(
+    parameters: dict[str, Any] = field(default_factory=dict)
 
-        default_factory=dict
-
-    )
-
-    metadata: Dict[str, Any] = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ============================================================
 # Rebalance Service
 # ============================================================
+
 
 class RebalanceService(BaseService):
     """
@@ -93,85 +80,45 @@ class RebalanceService(BaseService):
 
     _instance_lock = Lock()
 
-    def __new__(
-
-        cls,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def __new__(cls, *args, **kwargs):
 
         if cls._instance is None:
-
             with cls._instance_lock:
-
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
 
-    def __init__(
+    def __init__(self):
 
-        self
-
-    ):
-
-        if getattr(
-
-            self,
-
-            "_initialized",
-
-            False
-
-        ):
-
+        if getattr(self, "_initialized", False):
             return
 
         super().__init__()
 
         self._lock = RLock()
 
-        self._profiles: Dict[str, RebalanceProfile] = {}
+        self._profiles: dict[str, RebalanceProfile] = {}
 
         self._enabled = True
 
         self._initialized = True
 
-        self._logger.info(
-
-            "RebalanceService initialized."
-
-        )
+        self._logger.info("RebalanceService initialized.")
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def enable(
-
-        self
-
-    ):
+    def enable(self):
 
         self._enabled = True
 
-    def disable(
-
-        self
-
-    ):
+    def disable(self):
 
         self._enabled = False
 
-    def enabled(
-
-        self
-
-    ):
+    def enabled(self):
 
         return self._enabled
 
@@ -180,61 +127,36 @@ class RebalanceService(BaseService):
     # =====================================================
 
     def register(
-
         self,
-
         name: str,
-
         current_portfolio: str,
-
         target_portfolio: str,
-
-        parameters: Optional[Dict[str, Any]] = None,
-
-        metadata: Optional[Dict[str, Any]] = None
-
+        parameters: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Register rebalance profile.
         """
 
         profile = RebalanceProfile(
-
             name=name,
-
             current_portfolio=current_portfolio,
-
             target_portfolio=target_portfolio,
-
             parameters=parameters or {},
-
-            metadata=metadata or {}
-
+            metadata=metadata or {},
         )
 
         with self._lock:
-
             self._profiles[name] = profile
 
     # =====================================================
     # Retrieval
     # =====================================================
 
-    def get(
-
-        self,
-
-        name: str
-
-    ) -> RebalanceProfile:
+    def get(self, name: str) -> RebalanceProfile:
 
         if name not in self._profiles:
-
-            raise RebalanceProfileNotFound(
-
-                name
-
-            )
+            raise RebalanceProfileNotFound(name)
 
         return self._profiles[name]
 
@@ -242,127 +164,52 @@ class RebalanceService(BaseService):
     # BaseService
     # =====================================================
 
-    def run(
-
-        self
-
-    ):
+    def run(self):
 
         return self.statistics()
-    
+
     # =====================================================
     # Parameter Management
     # =====================================================
 
-    def update_parameter(
-
-        self,
-
-        profile: str,
-
-        name: str,
-
-        value: Any
-
-    ) -> None:
+    def update_parameter(self, profile: str, name: str, value: Any) -> None:
         """
         Update rebalance parameter.
         """
 
-        self.get(
+        self.get(profile).parameters[name] = value
 
-            profile
-
-        ).parameters[name] = value
-
-    def parameter(
-
-        self,
-
-        profile: str,
-
-        name: str,
-
-        default: Any = None
-
-    ) -> Any:
+    def parameter(self, profile: str, name: str, default: Any = None) -> Any:
         """
         Return rebalance parameter.
         """
 
-        return self.get(
-
-            profile
-
-        ).parameters.get(
-
-            name,
-
-            default
-
-        )
+        return self.get(profile).parameters.get(name, default)
 
     # =====================================================
     # Portfolio Comparison
     # =====================================================
 
     def compare(
-
         self,
-
         current: pd.DataFrame,
-
         target: pd.DataFrame,
-
         symbol_column: str = "symbol",
-
-        weight_column: str = "weight"
-
+        weight_column: str = "weight",
     ) -> pd.DataFrame:
         """
         Compare current and target portfolios.
         """
 
         comparison = current.merge(
-
-            target,
-
-            on=symbol_column,
-
-            how="outer",
-
-            suffixes=(
-
-                "_current",
-
-                "_target"
-
-            )
-
+            target, on=symbol_column, how="outer", suffixes=("_current", "_target")
         )
 
-        comparison = comparison.fillna(
-
-            0.0
-
-        )
+        comparison = comparison.fillna(0.0)
 
         comparison["weight_change"] = (
-
-            comparison[
-
-                f"{weight_column}_target"
-
-            ]
-
-            -
-
-            comparison[
-
-                f"{weight_column}_current"
-
-            ]
-
+            comparison[f"{weight_column}_target"]
+            - comparison[f"{weight_column}_current"]
         )
 
         return comparison
@@ -372,13 +219,7 @@ class RebalanceService(BaseService):
     # =====================================================
 
     def generate_trades(
-
-        self,
-
-        comparison: pd.DataFrame,
-
-        symbol_column: str = "symbol"
-
+        self, comparison: pd.DataFrame, symbol_column: str = "symbol"
     ) -> pd.DataFrame:
         """
         Generate rebalance trades.
@@ -386,41 +227,11 @@ class RebalanceService(BaseService):
 
         trades = comparison.copy()
 
-        trades["side"] = trades[
-
-            "weight_change"
-
-        ].apply(
-
-            lambda x:
-
-            "BUY"
-
-            if x > 0
-
-            else
-
-            (
-
-                "SELL"
-
-                if x < 0
-
-                else
-
-                "HOLD"
-
-            )
-
+        trades["side"] = trades["weight_change"].apply(
+            lambda x: "BUY" if x > 0 else ("SELL" if x < 0 else "HOLD")
         )
 
-        trades["trade_weight"] = (
-
-            trades["weight_change"]
-
-            .abs()
-
-        )
+        trades["trade_weight"] = trades["weight_change"].abs()
 
         return trades
 
@@ -428,256 +239,81 @@ class RebalanceService(BaseService):
     # Turnover
     # =====================================================
 
-    def turnover(
-
-        self,
-
-        comparison: pd.DataFrame
-
-    ) -> float:
+    def turnover(self, comparison: pd.DataFrame) -> float:
         """
         Portfolio turnover.
         """
 
-        return float(
-
-            comparison[
-
-                "weight_change"
-
-            ]
-
-            .abs()
-
-            .sum()
-
-            / 2.0
-
-        )
+        return float(comparison["weight_change"].abs().sum() / 2.0)
 
     # =====================================================
     # Drift
     # =====================================================
 
-    def drift(
-
-        self,
-
-        comparison: pd.DataFrame
-
-    ) -> float:
+    def drift(self, comparison: pd.DataFrame) -> float:
         """
         Portfolio drift.
         """
 
-        return float(
-
-            comparison[
-
-                "weight_change"
-
-            ]
-
-            .abs()
-
-            .mean()
-
-        )
+        return float(comparison["weight_change"].abs().mean())
 
     # =====================================================
     # New Positions
     # =====================================================
 
-    def new_positions(
-
-        self,
-
-        comparison: pd.DataFrame
-
-    ) -> pd.DataFrame:
+    def new_positions(self, comparison: pd.DataFrame) -> pd.DataFrame:
         """
         Positions entering portfolio.
         """
 
         return comparison.loc[
-
-            (
-
-                comparison[
-
-                    "weight_current"
-
-                ]
-
-                == 0
-
-            )
-
-            &
-
-            (
-
-                comparison[
-
-                    "weight_target"
-
-                ]
-
-                > 0
-
-            )
-
+            (comparison["weight_current"] == 0) & (comparison["weight_target"] > 0)
         ]
 
     # =====================================================
     # Closed Positions
     # =====================================================
 
-    def closed_positions(
-
-        self,
-
-        comparison: pd.DataFrame
-
-    ) -> pd.DataFrame:
+    def closed_positions(self, comparison: pd.DataFrame) -> pd.DataFrame:
         """
         Positions leaving portfolio.
         """
 
         return comparison.loc[
-
-            (
-
-                comparison[
-
-                    "weight_current"
-
-                ]
-
-                > 0
-
-            )
-
-            &
-
-            (
-
-                comparison[
-
-                    "weight_target"
-
-                ]
-
-                == 0
-
-            )
-
+            (comparison["weight_current"] > 0) & (comparison["weight_target"] == 0)
         ]
 
     # =====================================================
     # Updated Positions
     # =====================================================
 
-    def updated_positions(
-
-        self,
-
-        comparison: pd.DataFrame
-
-    ) -> pd.DataFrame:
+    def updated_positions(self, comparison: pd.DataFrame) -> pd.DataFrame:
         """
         Existing positions with
         modified weights.
         """
 
         return comparison.loc[
-
-            (
-
-                comparison[
-
-                    "weight_current"
-
-                ]
-
-                > 0
-
-            )
-
-            &
-
-            (
-
-                comparison[
-
-                    "weight_target"
-
-                ]
-
-                > 0
-
-            )
-
-            &
-
-            (
-
-                comparison[
-
-                    "weight_change"
-
-                ]
-
-                != 0
-
-            )
-
+            (comparison["weight_current"] > 0)
+            & (comparison["weight_target"] > 0)
+            & (comparison["weight_change"] != 0)
         ]
 
     # =====================================================
     # Validation
     # =====================================================
 
-    def validate(
-
-        self,
-
-        comparison: pd.DataFrame
-
-    ) -> bool:
+    def validate(self, comparison: pd.DataFrame) -> bool:
         """
         Validate rebalance comparison.
         """
 
-        required = [
+        required = ["weight_current", "weight_target", "weight_change"]
 
-            "weight_current",
-
-            "weight_target",
-
-            "weight_change"
-
-        ]
-
-        missing = [
-
-            column
-
-            for column
-
-            in required
-
-            if column not in comparison.columns
-
-        ]
+        missing = [column for column in required if column not in comparison.columns]
 
         if missing:
-
-            raise RebalanceError(
-
-                f"Missing columns: {missing}"
-
-            )
+            raise RebalanceError(f"Missing columns: {missing}")
 
         return True
 
@@ -685,315 +321,114 @@ class RebalanceService(BaseService):
     # Statistics
     # =====================================================
 
-    def statistics(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """
         Rebalance statistics.
         """
 
-        return {
+        return {"profiles": len(self._profiles), "enabled": self._enabled}
 
-            "profiles":
-
-                len(
-
-                    self._profiles
-
-                ),
-
-            "enabled":
-
-                self._enabled
-
-        }
-    
     # =====================================================
     # Transaction Cost
     # =====================================================
 
     def estimate_transaction_cost(
-
         self,
-
         trades: pd.DataFrame,
-
         cost_bps: float = 20.0,
-
-        trade_weight_column: str = "trade_weight"
-
+        trade_weight_column: str = "trade_weight",
     ) -> float:
         """
         Estimate transaction cost in portfolio weight.
         """
 
         if trade_weight_column not in trades.columns:
+            raise RebalanceError(f"Missing column '{trade_weight_column}'.")
 
-            raise RebalanceError(
+        traded_weight = float(trades[trade_weight_column].sum())
 
-                f"Missing column '{trade_weight_column}'."
-
-            )
-
-        traded_weight = float(
-
-            trades[trade_weight_column].sum()
-
-        )
-
-        return (
-
-            traded_weight
-
-            * cost_bps
-
-            / 10000.0
-
-        )
+        return traded_weight * cost_bps / 10000.0
 
     # =====================================================
     # Cash Impact
     # =====================================================
 
     def cash_impact(
-
         self,
-
         trades: pd.DataFrame,
-
         portfolio_nav: float,
-
         trade_weight_column: str = "trade_weight",
-
-        side_column: str = "side"
-
-    ) -> Dict[str, float]:
+        side_column: str = "side",
+    ) -> dict[str, float]:
         """
         Calculate cash impact.
         """
 
-        buys = trades.loc[
+        buys = trades.loc[trades[side_column] == "BUY", trade_weight_column].sum()
 
-            trades[side_column] == "BUY",
-
-            trade_weight_column
-
-        ].sum()
-
-        sells = trades.loc[
-
-            trades[side_column] == "SELL",
-
-            trade_weight_column
-
-        ].sum()
+        sells = trades.loc[trades[side_column] == "SELL", trade_weight_column].sum()
 
         return {
-
-            "buy_value":
-
-                float(
-
-                    buys
-
-                    * portfolio_nav
-
-                ),
-
-            "sell_value":
-
-                float(
-
-                    sells
-
-                    * portfolio_nav
-
-                ),
-
-            "net_cash":
-
-                float(
-
-                    (sells - buys)
-
-                    * portfolio_nav
-
-                )
-
+            "buy_value": float(buys * portfolio_nav),
+            "sell_value": float(sells * portfolio_nav),
+            "net_cash": float((sells - buys) * portfolio_nav),
         }
 
     # =====================================================
     # Trade Summary
     # =====================================================
 
-    def summary(
-
-        self,
-
-        trades: pd.DataFrame
-
-    ) -> Dict[str, Any]:
+    def summary(self, trades: pd.DataFrame) -> dict[str, Any]:
         """
         Trade summary.
         """
 
-        buy_count = int(
+        buy_count = int((trades["side"] == "BUY").sum())
 
-            (
+        sell_count = int((trades["side"] == "SELL").sum())
 
-                trades["side"]
-
-                == "BUY"
-
-            ).sum()
-
-        )
-
-        sell_count = int(
-
-            (
-
-                trades["side"]
-
-                == "SELL"
-
-            ).sum()
-
-        )
-
-        hold_count = int(
-
-            (
-
-                trades["side"]
-
-                == "HOLD"
-
-            ).sum()
-
-        )
+        hold_count = int((trades["side"] == "HOLD").sum())
 
         return {
-
-            "total_trades":
-
-                len(trades),
-
-            "buy_orders":
-
-                buy_count,
-
-            "sell_orders":
-
-                sell_count,
-
-            "hold_positions":
-
-                hold_count,
-
-            "turnover":
-
-                self.turnover(
-
-                    trades
-
-                )
-
+            "total_trades": len(trades),
+            "buy_orders": buy_count,
+            "sell_orders": sell_count,
+            "hold_positions": hold_count,
+            "turnover": self.turnover(trades),
         }
 
     # =====================================================
     # Metadata
     # =====================================================
 
-    def metadata(
+    def metadata(self, profile: str) -> dict[str, Any]:
 
-        self,
+        return dict(self.get(profile).metadata)
 
-        profile: str
+    def update_metadata(self, profile: str, **kwargs) -> None:
 
-    ) -> Dict[str, Any]:
-
-        return dict(
-
-            self.get(
-
-                profile
-
-            ).metadata
-
-        )
-
-    def update_metadata(
-
-        self,
-
-        profile: str,
-
-        **kwargs
-
-    ) -> None:
-
-        self.get(
-
-            profile
-
-        ).metadata.update(
-
-            kwargs
-
-        )
+        self.get(profile).metadata.update(kwargs)
 
     # =====================================================
     # Registry
     # =====================================================
 
-    def exists(
-
-        self,
-
-        profile: str
-
-    ) -> bool:
+    def exists(self, profile: str) -> bool:
 
         return profile in self._profiles
 
-    def names(
+    def names(self) -> list[str]:
 
-        self
+        return sorted(self._profiles.keys())
 
-    ) -> list[str]:
-
-        return sorted(
-
-            self._profiles.keys()
-
-        )
-
-    def remove(
-
-        self,
-
-        profile: str
-
-    ) -> None:
+    def remove(self, profile: str) -> None:
 
         if profile not in self._profiles:
-
-            raise RebalanceProfileNotFound(
-
-                profile
-
-            )
+            raise RebalanceProfileNotFound(profile)
 
         del self._profiles[profile]
 
-    def clear(
-
-        self
-
-    ) -> None:
+    def clear(self) -> None:
 
         self._profiles.clear()
 
@@ -1001,182 +436,74 @@ class RebalanceService(BaseService):
     # Snapshot
     # =====================================================
 
-    def snapshot(
-
-        self,
-
-        profile: str
-
-    ) -> Dict[str, Any]:
+    def snapshot(self, profile: str) -> dict[str, Any]:
         """
         Rebalance profile snapshot.
         """
 
-        instance = self.get(
-
-            profile
-
-        )
+        instance = self.get(profile)
 
         return {
-
-            "name":
-
-                instance.name,
-
-            "current_portfolio":
-
-                instance.current_portfolio,
-
-            "target_portfolio":
-
-                instance.target_portfolio,
-
-            "parameters":
-
-                dict(
-
-                    instance.parameters
-
-                ),
-
-            "metadata":
-
-                dict(
-
-                    instance.metadata
-
-                )
-
+            "name": instance.name,
+            "current_portfolio": instance.current_portfolio,
+            "target_portfolio": instance.target_portfolio,
+            "parameters": dict(instance.parameters),
+            "metadata": dict(instance.metadata),
         }
 
     # =====================================================
     # Health
     # =====================================================
 
-    def health(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """
         Service health.
         """
 
         return {
-
-            "status":
-
-                "HEALTHY"
-
-                if self._enabled
-
-                else "DISABLED",
-
-            "enabled":
-
-                self._enabled,
-
-            "profiles":
-
-                len(
-
-                    self._profiles
-
-                )
-
+            "status": "HEALTHY" if self._enabled else "DISABLED",
+            "enabled": self._enabled,
+            "profiles": len(self._profiles),
         }
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def startup(
-
-        self
-
-    ) -> None:
+    def startup(self) -> None:
 
         self.enable()
 
-        self._logger.info(
+        self._logger.info("RebalanceService started.")
 
-            "RebalanceService started."
-
-        )
-
-    def shutdown(
-
-        self
-
-    ) -> None:
+    def shutdown(self) -> None:
 
         self.clear()
 
         self.disable()
 
-        self._logger.info(
-
-            "RebalanceService shutdown."
-
-        )
+        self._logger.info("RebalanceService shutdown.")
 
     # =====================================================
     # Magic Methods
     # =====================================================
 
-    def __contains__(
+    def __contains__(self, profile: str) -> bool:
 
-        self,
+        return self.exists(profile)
 
-        profile: str
+    def __len__(self) -> int:
 
-    ) -> bool:
+        return len(self._profiles)
 
-        return self.exists(
+    def __iter__(self):
 
-            profile
+        return iter(self._profiles.items())
 
-        )
-
-    def __len__(
-
-        self
-
-    ) -> int:
-
-        return len(
-
-            self._profiles
-
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self._profiles.items()
-
-        )
-
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
-            f"{self.__class__.__name__}"
-
-            f"(profiles={len(self)}, "
-
-            f"enabled={self._enabled})"
-
+            f"{self.__class__.__name__}(profiles={len(self)}, enabled={self._enabled})"
         )
 
 

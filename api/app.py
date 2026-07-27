@@ -50,24 +50,14 @@ VERSION = "1.0.0"
 
 @asynccontextmanager
 async def lifespan(
-
     app: FastAPI,
-
 ):
 
-    print(
-
-        "\nStarting Institutional Quant Platform..."
-
-    )
+    print("\nStarting Institutional Quant Platform...")
 
     yield
 
-    print(
-
-        "\nStopping Institutional Quant Platform..."
-
-    )
+    print("\nStopping Institutional Quant Platform...")
 
 
 # ==========================================================
@@ -76,17 +66,11 @@ async def lifespan(
 
 
 app = FastAPI(
-
     title=APP_NAME,
-
     version=VERSION,
-
     lifespan=lifespan,
-
     docs_url="/docs",
-
     redoc_url="/redoc",
-
 )
 
 # ==========================================================
@@ -94,73 +78,45 @@ app = FastAPI(
 # ==========================================================
 
 app.include_router(
-
     portfolio.router,
-
     prefix="/portfolio",
-
     tags=["Portfolio"],
-
 )
 
 app.include_router(
-
     signals.router,
-
     prefix="/signals",
-
     tags=["Signals"],
-
 )
 
 app.include_router(
-
     execution.router,
-
     prefix="/execution",
-
     tags=["Execution"],
-
 )
 
 app.include_router(
-
     optimization.router,
-
     prefix="/optimization",
-
     tags=["Optimization"],
-
 )
 
 app.include_router(
-
     risk.router,
-
     prefix="/risk",
-
     tags=["Risk"],
-
 )
 
 app.include_router(
-
     backtest.router,
-
     prefix="/backtest",
-
     tags=["Backtesting"],
-
 )
 
 app.include_router(
-
     monitoring.router,
-
     prefix="/monitoring",
-
     tags=["Monitoring"],
-
 )
 
 # ==========================================================
@@ -169,27 +125,14 @@ app.include_router(
 
 
 @app.get(
-
     "/",
-
 )
-
 async def root():
 
     return {
-
-        "Application":
-
-            APP_NAME,
-
-        "Version":
-
-            VERSION,
-
-        "Status":
-
-            "Running",
-
+        "Application": APP_NAME,
+        "Version": VERSION,
+        "Status": "Running",
     }
 
 
@@ -199,19 +142,12 @@ async def root():
 
 
 @app.get(
-
     "/health",
-
 )
-
 async def health():
 
     return {
-
-        "Status":
-
-            "Healthy",
-
+        "Status": "Healthy",
     }
 
 
@@ -221,19 +157,12 @@ async def health():
 
 
 @app.get(
-
     "/version",
-
 )
-
 async def version():
 
     return {
-
-        "Version":
-
-            VERSION,
-
+        "Version": VERSION,
     }
 
 
@@ -243,29 +172,14 @@ async def version():
 
 
 @app.get(
-
     "/metrics",
-
 )
-
 async def metrics():
 
     return JSONResponse(
-
         {
-
-            "Application":
-
-                APP_NAME,
-
-            "Version":
-
-                VERSION,
-
-            "Status":
-
-                "Healthy",
-
+            "Application": APP_NAME,
+            "Version": VERSION,
+            "Status": "Healthy",
         }
-
     )

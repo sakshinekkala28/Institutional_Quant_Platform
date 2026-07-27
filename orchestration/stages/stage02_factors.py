@@ -22,10 +22,10 @@ from orchestration.pipelines.factor_pipeline import (
     main as factor_pipeline,
 )
 
-
 # ==========================================================
 # STAGE
 # ==========================================================
+
 
 class FactorStage:
     """
@@ -36,9 +36,7 @@ class FactorStage:
 
     NAME = "Factors"
 
-    DESCRIPTION = (
-        "Factor generation and normalization."
-    )
+    DESCRIPTION = "Factor generation and normalization."
 
     PIPELINE = factor_pipeline
 
@@ -63,17 +61,11 @@ class FactorStage:
     def metadata(cls) -> dict:
 
         return {
-
             "stage": cls.STAGE,
-
             "name": cls.NAME,
-
             "description": cls.DESCRIPTION,
-
             "dependencies": cls.DEPENDENCIES,
-
             "enabled": cls.ENABLED,
-
         }
 
     # =====================================================
@@ -82,10 +74,4 @@ class FactorStage:
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"stage={self.STAGE})"
-
-        )
+        return f"{self.__class__.__name__}(stage={self.STAGE})"

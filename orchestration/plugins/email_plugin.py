@@ -19,10 +19,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from email.message import EmailMessage
 import logging
 import smtplib
-
-from email.message import EmailMessage
 from typing import Any
 
 from orchestration.plugins.notification_plugin import (
@@ -36,6 +35,7 @@ logger = logging.getLogger(__name__)
 # ==========================================================
 # EMAIL PLUGIN
 # ==========================================================
+
 
 class EmailPlugin(NotificationPlugin):
     """
@@ -84,87 +84,46 @@ class EmailPlugin(NotificationPlugin):
         self,
         title: str,
         message: str,
-        severity: NotificationSeverity = (
-            NotificationSeverity.INFO
-        ),
+        severity: NotificationSeverity = (NotificationSeverity.INFO),
         **kwargs: Any,
     ) -> bool:
 
-        if (
-
-            not self.ENABLED
-
-            or
-
-            not self.configured
-
-        ):
-
+        if not self.ENABLED or not self.configured:
             return False
 
         email = EmailMessage()
 
-        email["Subject"] = (
-
-            f"[{severity.value}] {title}"
-
-        )
+        email["Subject"] = f"[{severity.value}] {title}"
 
         email["From"] = self.sender
 
-        email["To"] = ", ".join(
-
-            self.recipients
-
-        )
+        email["To"] = ", ".join(self.recipients)
 
         email.set_content(message)
 
         try:
-
             with smtplib.SMTP(
-
                 self.smtp_server,
-
                 self.smtp_port,
-
             ) as smtp:
-
                 if self.use_tls:
-
                     smtp.starttls()
 
                 smtp.login(
-
                     self.username,
-
                     self.password,
-
                 )
 
-                smtp.send_message(
-
-                    email
-
-                )
+                smtp.send_message(email)
 
             self.increment()
 
-            logger.info(
-
-                "Email notification sent."
-
-            )
+            logger.info("Email notification sent.")
 
             return True
 
         except Exception:
-
-            logger.exception(
-
-                "Failed to send email."
-
-            )
+            logger.exception("Failed to send email.")
 
             return False
 
@@ -178,21 +137,13 @@ class EmailPlugin(NotificationPlugin):
     ) -> bool:
 
         return all(
-
             [
-
                 self.smtp_server,
-
                 self.sender,
-
                 self.username,
-
                 self.password,
-
                 self.recipients,
-
             ]
-
         )
 
     # =====================================================
@@ -204,29 +155,13 @@ class EmailPlugin(NotificationPlugin):
     ) -> dict:
 
         return {
-
             **super().summary(),
-
-            "configured":
-
-                self.configured,
-
-            "smtp_server":
-
-                self.smtp_server,
-
-            "smtp_port":
-
-                self.smtp_port,
-
-            "recipients":
-
-                len(
-
-                    self.recipients,
-
-                ),
-
+            "configured": self.configured,
+            "smtp_server": self.smtp_server,
+            "smtp_port": self.smtp_port,
+            "recipients": len(
+                self.recipients,
+            ),
         }
 
     # =====================================================
@@ -238,11 +173,7 @@ class EmailPlugin(NotificationPlugin):
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"configured={self.configured}, "
-
             f"recipients={len(self.recipients)})"
-
         )

@@ -19,29 +19,22 @@ Responsibilities
 
 from __future__ import annotations
 
-from typing import Dict
-from typing import Optional
-from typing import Type
-
 from orchestration.executors.base_executor import (
     BaseExecutor,
 )
-
+from orchestration.executors.parallel_executor import (
+    ParallelExecutor,
+)
+from orchestration.executors.retry_executor import (
+    RetryExecutor,
+)
 from orchestration.executors.sequential_executor import (
     SequentialExecutor,
 )
 
-from orchestration.executors.parallel_executor import (
-    ParallelExecutor,
-)
-
-from orchestration.executors.retry_executor import (
-    RetryExecutor,
-)
-
-#from orchestration.executors.distributed_executor import (
-    #DistributedExecutor,
-#)
+# from orchestration.executors.distributed_executor import (
+# DistributedExecutor,
+# )
 
 
 class ExecutorFactory:
@@ -49,19 +42,14 @@ class ExecutorFactory:
     Factory for execution strategies.
     """
 
-    _executors: Dict[
+    _executors: dict[
         str,
-        Type[BaseExecutor],
+        type[BaseExecutor],
     ] = {
-
         "sequential": SequentialExecutor,
-
         "parallel": ParallelExecutor,
-
         "retry": RetryExecutor,
-
-        #"distributed": DistributedExecutor,
-
+        # "distributed": DistributedExecutor,
     }
 
     # =====================================================
@@ -72,15 +60,13 @@ class ExecutorFactory:
     def register(
         cls,
         name: str,
-        executor: Type[BaseExecutor],
+        executor: type[BaseExecutor],
     ) -> None:
         """
         Register a custom executor.
         """
 
-        cls._executors[
-            name.lower()
-        ] = executor
+        cls._executors[name.lower()] = executor
 
     # =====================================================
     # CREATE
@@ -101,39 +87,16 @@ class ExecutorFactory:
         mode = mode.lower()
 
         if mode not in cls._executors:
+            available = ", ".join(sorted(cls._executors))
 
-            available = ", ".join(
+            raise ValueError(f"Unknown executor '{mode}'. Available: {available}")
 
-                sorted(
-                    cls._executors
-                )
-
-            )
-
-            raise ValueError(
-
-                f"Unknown executor "
-
-                f"'{mode}'. "
-
-                f"Available: "
-
-                f"{available}"
-
-            )
-
-        executor_class = cls._executors[
-            mode
-        ]
+        executor_class = cls._executors[mode]
 
         return executor_class(
-
             registry=registry,
-
             context=context,
-
             **kwargs,
-
         )
 
     # =====================================================
@@ -148,11 +111,7 @@ class ExecutorFactory:
         Return registered executors.
         """
 
-        return sorted(
-
-            cls._executors.keys()
-
-        )
+        return sorted(cls._executors.keys())
 
     @classmethod
     def exists(
@@ -160,13 +119,7 @@ class ExecutorFactory:
         name: str,
     ) -> bool:
 
-        return (
-
-            name.lower()
-
-            in cls._executors
-
-        )
+        return name.lower() in cls._executors
 
     @classmethod
     def default(
@@ -186,10 +139,4 @@ class ExecutorFactory:
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"registered={len(self._executors)})"
-
-        )
+        return f"{self.__class__.__name__}(registered={len(self._executors)})"

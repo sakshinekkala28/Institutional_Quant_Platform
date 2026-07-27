@@ -25,30 +25,23 @@ Responsibilities
 from __future__ import annotations
 
 from concurrent.futures import (
-    ThreadPoolExecutor,
     Future,
+    ThreadPoolExecutor,
     as_completed,
 )
-
 from datetime import datetime
-
 from threading import Lock
-
-from typing import Dict
-from typing import List
-from typing import Optional
 
 from orchestration.executors.base_executor import (
     BaseExecutor,
 )
-
 from orchestration.models.engine_result import (
     EngineResult,
 )
-
 from orchestration.models.engine_status import (
     EngineStatus,
 )
+
 
 class ParallelExecutor(BaseExecutor):
     """
@@ -63,8 +56,8 @@ class ParallelExecutor(BaseExecutor):
         registry,
         context,
         *,
-        max_workers: Optional[int] = None,
-        timeout: Optional[float] = None,
+        max_workers: int | None = None,
+        timeout: float | None = None,
         cancel_on_failure: bool = True,
     ) -> None:
 
@@ -77,18 +70,13 @@ class ParallelExecutor(BaseExecutor):
 
         self.timeout = timeout
 
-        self.cancel_on_failure = (
-            cancel_on_failure
-        )
+        self.cancel_on_failure = cancel_on_failure
 
         self._lock = Lock()
 
         self._executor = ThreadPoolExecutor(
-
             max_workers=max_workers,
-
             thread_name_prefix="IQP",
-
         )
 
     # =====================================================
@@ -105,7 +93,7 @@ class ParallelExecutor(BaseExecutor):
 
         self._failed = 0
 
-        self._futures: Dict[
+        self._futures: dict[
             Future,
             str,
         ] = {}
@@ -132,15 +120,15 @@ class ParallelExecutor(BaseExecutor):
     def failed(self) -> int:
 
         return self._failed
-    
+
     # =====================================================
     # EXECUTE
     # =====================================================
 
     def execute(
         self,
-        engine_names: List[str],
-    ) -> List[EngineResult]:
+        engine_names: list[str],
+    ) -> list[EngineResult]:
         """
         Execute engines concurrently.
         """
@@ -150,27 +138,18 @@ class ParallelExecutor(BaseExecutor):
         self.before_execution()
 
         try:
-
-            self._submit(
-                engine_names
-            )
+            self._submit(engine_names)
 
             self._collect()
 
         finally:
-
             self.after_execution()
 
         return sorted(
-
             self.results,
-
-            key=lambda r: engine_names.index(
-                r.engine
-            ),
-
+            key=lambda r: engine_names.index(r.engine),
         )
-    
+
     # =====================================================
     # HOOKS
     # =====================================================
@@ -178,27 +157,18 @@ class ParallelExecutor(BaseExecutor):
     def before_execution(self) -> None:
 
         self.set_context(
-
             "executor",
-
             self.strategy,
-
         )
 
         self.set_context(
-
             "parallel",
-
             True,
-
         )
 
         self.set_context(
-
             "started_at",
-
             datetime.utcnow().isoformat(),
-
         )
 
     # -----------------------------------------------------
@@ -206,11 +176,8 @@ class ParallelExecutor(BaseExecutor):
     def after_execution(self) -> None:
 
         self.set_context(
-
             "finished_at",
-
             datetime.utcnow().isoformat(),
-
         )
 
     # =====================================================
@@ -220,29 +187,13 @@ class ParallelExecutor(BaseExecutor):
     def summary(self) -> dict:
 
         return {
-
-            "strategy":
-
-                self.strategy,
-
-            "submitted":
-
-                self.submitted,
-
-            "completed":
-
-                self.completed,
-
-            "failed":
-
-                self.failed,
-
-            "workers":
-
-                self.max_workers,
-
+            "strategy": self.strategy,
+            "submitted": self.submitted,
+            "completed": self.completed,
+            "failed": self.failed,
+            "workers": self.max_workers,
         }
-    
+
     # =====================================================
     # DUNDER
     # =====================================================
@@ -250,22 +201,18 @@ class ParallelExecutor(BaseExecutor):
     def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"workers={self.max_workers}, "
-
             f"submitted={self.submitted})"
-
         )
-    
+
     # =====================================================
     # SUBMIT TASKS
     # =====================================================
 
     def _submit(
         self,
-        engine_names: List[str],
+        engine_names: list[str],
     ) -> None:
         """
         Submit all engines to the thread pool.
@@ -274,20 +221,14 @@ class ParallelExecutor(BaseExecutor):
         self._futures.clear()
 
         for engine_name in engine_names:
-
             future = self._executor.submit(
-
                 self._execute_engine,
-
                 engine_name,
-
             )
 
             self._submitted += 1
 
-            self._futures[
-                future
-            ] = engine_name
+            self._futures[future] = engine_name
 
     # =====================================================
     # EXECUTE ENGINE
@@ -303,74 +244,45 @@ class ParallelExecutor(BaseExecutor):
         Runs inside a worker thread.
         """
 
-        engine = self.create_engine(
-            engine_name
-        )
+        engine = self.create_engine(engine_name)
 
         result = EngineResult(
-
             engine=engine.NAME,
-
             status=EngineStatus.RUNNING,
-
             duration=0.0,
-
         )
 
-        self.before_engine(
-            engine
-        )
+        self.before_engine(engine)
 
         try:
+            output = engine.run(self.context)
 
-            output = engine.run(
-                self.context
-            )
-
-            result.status = (
-                EngineStatus.SUCCESS
-            )
+            result.status = EngineStatus.SUCCESS
 
             result.output = output
 
             with self._lock:
-
                 self.register_output(
-
                     engine.NAME,
-
                     output,
-
                 )
 
                 for path in engine.OUTPUTS:
-
-                    self.register_artifact(
-                        path
-                    )
+                    self.register_artifact(path)
 
         except Exception as exc:
+            result.status = EngineStatus.FAILED
 
-            result.status = (
-                EngineStatus.FAILED
-            )
-
-            result.metadata[
-                "error"
-            ] = str(exc)
+            result.metadata["error"] = str(exc)
 
         finally:
-
             self.after_engine(
-
                 engine,
-
                 result,
-
             )
 
         return result
-    
+
     # =====================================================
     # COLLECT
     # =====================================================
@@ -383,49 +295,27 @@ class ParallelExecutor(BaseExecutor):
         """
 
         for future in as_completed(
-
             self._futures,
-
             timeout=self.timeout,
-
         ):
-
-            engine_name = self._futures[
-                future
-            ]
+            engine_name = self._futures[future]
 
             try:
-
                 result = future.result()
 
-                self.add_result(
-                    result
-                )
+                self.add_result(result)
 
                 self._completed += 1
 
-                if (
-
-                    result.status
-
-                    == EngineStatus.FAILED
-
-                ):
-
+                if result.status == EngineStatus.FAILED:
                     self._failed += 1
 
                     if self.cancel_on_failure:
-
                         self._cancel_pending()
 
-                        raise RuntimeError(
-
-                            f"{engine_name} failed."
-
-                        )
+                        raise RuntimeError(f"{engine_name} failed.")
 
             except Exception:
-
                 self._failed += 1
 
                 self._cancel_pending()
@@ -444,9 +334,7 @@ class ParallelExecutor(BaseExecutor):
         """
 
         for future in self._futures:
-
             if not future.done():
-
                 future.cancel()
 
     # =====================================================
@@ -459,10 +347,7 @@ class ParallelExecutor(BaseExecutor):
     ) -> None:
 
         with self._lock:
-
-            self.context.metadata[
-                "current_engine"
-            ] = engine.NAME
+            self.context.metadata["current_engine"] = engine.NAME
 
     # -----------------------------------------------------
 
@@ -473,14 +358,9 @@ class ParallelExecutor(BaseExecutor):
     ) -> None:
 
         with self._lock:
+            self.context.metadata["last_engine"] = engine.NAME
 
-            self.context.metadata[
-                "last_engine"
-            ] = engine.NAME
-
-            self.context.metadata[
-                "last_status"
-            ] = result.status.value
+            self.context.metadata["last_status"] = result.status.value
 
     # =====================================================
     # CLEANUP

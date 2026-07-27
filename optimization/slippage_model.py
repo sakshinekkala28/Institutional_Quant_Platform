@@ -51,105 +51,49 @@ class SlippageModel:
     # =====================================================
 
     def bid_ask_cost(
-
         self,
-
         traded_value: float,
-
     ) -> float:
 
-        return (
-
-            traded_value
-
-            * self.bid_ask_spread_bps
-
-            / 10_000.0
-
-        )
+        return traded_value * self.bid_ask_spread_bps / 10_000.0
 
     # =====================================================
     # VOLATILITY COST
     # =====================================================
 
     def volatility_cost(
-
         self,
-
         traded_value: float,
-
     ) -> float:
 
-        return (
-
-            traded_value
-
-            * self.volatility_bps
-
-            / 10_000.0
-
-        )
+        return traded_value * self.volatility_bps / 10_000.0
 
     # =====================================================
     # PARTICIPATION COST
     # =====================================================
 
     def participation_cost(
-
         self,
-
         traded_value: float,
-
     ) -> float:
 
-        return (
-
-            traded_value
-
-            * self.participation_penalty_bps
-
-            / 10_000.0
-
-        )
+        return traded_value * self.participation_penalty_bps / 10_000.0
 
     # =====================================================
     # TOTAL SLIPPAGE
     # =====================================================
 
     def calculate(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> float:
 
         traded_value = portfolio.nav
 
         return (
-
-            self.bid_ask_cost(
-
-                traded_value
-
-            )
-
-            +
-
-            self.volatility_cost(
-
-                traded_value
-
-            )
-
-            +
-
-            self.participation_cost(
-
-                traded_value
-
-            )
-
+            self.bid_ask_cost(traded_value)
+            + self.volatility_cost(traded_value)
+            + self.participation_cost(traded_value)
         )
 
     # =====================================================
@@ -157,65 +101,25 @@ class SlippageModel:
     # =====================================================
 
     def breakdown(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> dict:
 
         traded_value = portfolio.nav
 
-        bid_ask = self.bid_ask_cost(
+        bid_ask = self.bid_ask_cost(traded_value)
 
-            traded_value
+        volatility = self.volatility_cost(traded_value)
 
-        )
+        participation = self.participation_cost(traded_value)
 
-        volatility = self.volatility_cost(
-
-            traded_value
-
-        )
-
-        participation = self.participation_cost(
-
-            traded_value
-
-        )
-
-        total = (
-
-            bid_ask
-
-            +
-
-            volatility
-
-            +
-
-            participation
-
-        )
+        total = bid_ask + volatility + participation
 
         return {
-
-            "Bid_Ask_Cost":
-
-                bid_ask,
-
-            "Volatility_Cost":
-
-                volatility,
-
-            "Participation_Cost":
-
-                participation,
-
-            "Total_Slippage":
-
-                total,
-
+            "Bid_Ask_Cost": bid_ask,
+            "Volatility_Cost": volatility,
+            "Participation_Cost": participation,
+            "Total_Slippage": total,
         }
 
     # =====================================================
@@ -223,51 +127,26 @@ class SlippageModel:
     # =====================================================
 
     def summary(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> dict:
 
-        return self.breakdown(
-
-            portfolio
-
-        )
+        return self.breakdown(portfolio)
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         total_bps = (
-
             self.bid_ask_spread_bps
-
-            +
-
-            self.volatility_bps
-
-            +
-
-            self.participation_penalty_bps
-
+            + self.volatility_bps
+            + self.participation_penalty_bps
         )
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Total={total_bps:.2f}bps"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Total={total_bps:.2f}bps)"
 
     __str__ = __repr__

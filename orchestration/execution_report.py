@@ -27,39 +27,29 @@ Institutional Quant Platform
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
-
+from dataclasses import dataclass, field
 from datetime import datetime
-
 from pathlib import Path
-
 from threading import RLock
-
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 
 from orchestration.models.engine_result import (
     EngineResult,
 )
-
-from orchestration.models.pipeline_result import (
-    PipelineResult,
+from orchestration.models.engine_status import (
+    EngineStatus,
 )
-
 from orchestration.models.master_result import (
     MasterResult,
 )
-
-from orchestration.models.engine_status import (
-    EngineStatus,
+from orchestration.models.pipeline_result import (
+    PipelineResult,
 )
 
 # =========================================================
 # EXECUTION REPORT
 # =========================================================
+
 
 @dataclass(slots=True)
 class ExecutionReport:
@@ -74,76 +64,44 @@ class ExecutionReport:
     # Results
     # -----------------------------------------------------
 
-    engine_results: List[
-        EngineResult
-    ] = field(
-        default_factory=list
-    )
+    engine_results: list[EngineResult] = field(default_factory=list)
 
-    pipeline_results: List[
-        PipelineResult
-    ] = field(
-        default_factory=list
-    )
+    pipeline_results: list[PipelineResult] = field(default_factory=list)
 
-    master_result: Optional[
-        MasterResult
-    ] = None
+    master_result: MasterResult | None = None
 
     # -----------------------------------------------------
     # Runtime Metadata
     # -----------------------------------------------------
 
-    metadata: Dict[
+    metadata: dict[
         str,
         Any,
-    ] = field(
-        default_factory=dict
-    )
+    ] = field(default_factory=dict)
 
     # -----------------------------------------------------
     # Outputs
     # -----------------------------------------------------
 
-    outputs: List[
-        str
-    ] = field(
-        default_factory=list
-    )
+    outputs: list[str] = field(default_factory=list)
 
-    artifacts: List[
-        str
-    ] = field(
-        default_factory=list
-    )
+    artifacts: list[str] = field(default_factory=list)
 
     # -----------------------------------------------------
     # Diagnostics
     # -----------------------------------------------------
 
-    warnings: List[
-        str
-    ] = field(
-        default_factory=list
-    )
+    warnings: list[str] = field(default_factory=list)
 
-    errors: List[
-        str
-    ] = field(
-        default_factory=list
-    )
+    errors: list[str] = field(default_factory=list)
 
     # -----------------------------------------------------
     # Runtime
     # -----------------------------------------------------
 
-    started_at: datetime = field(
-        default_factory=datetime.utcnow
-    )
+    started_at: datetime = field(default_factory=datetime.utcnow)
 
-    finished_at: Optional[
-        datetime
-    ] = None
+    finished_at: datetime | None = None
 
     # -----------------------------------------------------
     # Synchronization
@@ -166,26 +124,9 @@ class ExecutionReport:
     ) -> float:
 
         if self.finished_at is None:
+            return (datetime.utcnow() - self.started_at).total_seconds()
 
-            return (
-
-                datetime.utcnow()
-
-                -
-
-                self.started_at
-
-            ).total_seconds()
-
-        return (
-
-            self.finished_at
-
-            -
-
-            self.started_at
-
-        ).total_seconds()
+        return (self.finished_at - self.started_at).total_seconds()
 
     # -----------------------------------------------------
 
@@ -203,9 +144,7 @@ class ExecutionReport:
         self,
     ) -> int:
 
-        return len(
-            self.engine_results
-        )
+        return len(self.engine_results)
 
     # -----------------------------------------------------
 
@@ -214,10 +153,8 @@ class ExecutionReport:
         self,
     ) -> int:
 
-        return len(
-            self.pipeline_results
-        )
-    
+        return len(self.pipeline_results)
+
     # =====================================================
     # ENGINE STATISTICS
     # =====================================================
@@ -228,15 +165,7 @@ class ExecutionReport:
     ) -> int:
 
         return sum(
-
-            result.status
-
-            == EngineStatus.SUCCESS
-
-            for result
-
-            in self.engine_results
-
+            result.status == EngineStatus.SUCCESS for result in self.engine_results
         )
 
     # -----------------------------------------------------
@@ -247,15 +176,7 @@ class ExecutionReport:
     ) -> int:
 
         return sum(
-
-            result.status
-
-            == EngineStatus.FAILED
-
-            for result
-
-            in self.engine_results
-
+            result.status == EngineStatus.FAILED for result in self.engine_results
         )
 
     # -----------------------------------------------------
@@ -266,17 +187,9 @@ class ExecutionReport:
     ) -> int:
 
         return sum(
-
-            result.status
-
-            == EngineStatus.SKIPPED
-
-            for result
-
-            in self.engine_results
-
+            result.status == EngineStatus.SKIPPED for result in self.engine_results
         )
-    
+
     # =====================================================
     # PIPELINE STATISTICS
     # =====================================================
@@ -287,15 +200,8 @@ class ExecutionReport:
     ) -> int:
 
         return sum(
-
-            pipeline.status
-
-            == EngineStatus.SUCCESS
-
-            for pipeline
-
-            in self.pipeline_results
-
+            pipeline.status == EngineStatus.SUCCESS
+            for pipeline in self.pipeline_results
         )
 
     # -----------------------------------------------------
@@ -306,15 +212,7 @@ class ExecutionReport:
     ) -> int:
 
         return sum(
-
-            pipeline.status
-
-            == EngineStatus.FAILED
-
-            for pipeline
-
-            in self.pipeline_results
-
+            pipeline.status == EngineStatus.FAILED for pipeline in self.pipeline_results
         )
 
     # -----------------------------------------------------
@@ -325,25 +223,13 @@ class ExecutionReport:
     ) -> float:
 
         if not self.pipeline_results:
-
             return 0.0
 
         return round(
-
-            100
-
-            *
-
-            self.successful_pipelines
-
-            /
-
-            len(self.pipeline_results),
-
+            100 * self.successful_pipelines / len(self.pipeline_results),
             2,
-
         )
-    
+
     # =====================================================
     # RUNTIME
     # =====================================================
@@ -355,9 +241,7 @@ class ExecutionReport:
         Mark report as complete.
         """
 
-        self.finished_at = (
-            datetime.utcnow()
-        )
+        self.finished_at = datetime.utcnow()
 
     # =====================================================
     # SUMMARY
@@ -365,40 +249,18 @@ class ExecutionReport:
 
     def summary(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         return {
-
-            "runtime":
-
-                round(
-
-                    self.runtime_seconds,
-
-                    3,
-
-                ),
-
-            "pipelines":
-
-                self.total_pipelines,
-
-            "engines":
-
-                self.total_engines,
-
-            "success_rate":
-
-                self.pipeline_success_rate,
-
-            "warnings":
-
-                len(self.warnings),
-
-            "errors":
-
-                len(self.errors),
-
+            "runtime": round(
+                self.runtime_seconds,
+                3,
+            ),
+            "pipelines": self.total_pipelines,
+            "engines": self.total_engines,
+            "success_rate": self.pipeline_success_rate,
+            "warnings": len(self.warnings),
+            "errors": len(self.errors),
         }
 
     # =====================================================
@@ -410,15 +272,11 @@ class ExecutionReport:
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"pipelines={self.total_pipelines}, "
-
             f"engines={self.total_engines})"
-
         )
-    
+
     # =====================================================
     # ENGINE RESULTS
     # =====================================================
@@ -432,26 +290,20 @@ class ExecutionReport:
         """
 
         with self._lock:
-
-            self.engine_results.append(
-                result
-            )
+            self.engine_results.append(result)
 
     # -----------------------------------------------------
 
     def add_engine_results(
         self,
-        results: List[EngineResult],
+        results: list[EngineResult],
     ) -> None:
         """
         Record multiple engine results.
         """
 
         with self._lock:
-
-            self.engine_results.extend(
-                results
-            )
+            self.engine_results.extend(results)
 
     # =====================================================
     # PIPELINE RESULTS
@@ -466,26 +318,20 @@ class ExecutionReport:
         """
 
         with self._lock:
-
-            self.pipeline_results.append(
-                result
-            )
+            self.pipeline_results.append(result)
 
     # -----------------------------------------------------
 
     def add_pipeline_results(
         self,
-        results: List[PipelineResult],
+        results: list[PipelineResult],
     ) -> None:
         """
         Record multiple pipeline results.
         """
 
         with self._lock:
-
-            self.pipeline_results.extend(
-                results
-            )
+            self.pipeline_results.extend(results)
 
     # =====================================================
     # MASTER RESULT
@@ -512,7 +358,6 @@ class ExecutionReport:
     ) -> None:
 
         with self._lock:
-
             self.metadata[key] = value
 
     # -----------------------------------------------------
@@ -527,8 +372,9 @@ class ExecutionReport:
             key,
             default,
         )
-    
+
         # =====================================================
+
     # OUTPUTS
     # =====================================================
 
@@ -538,23 +384,17 @@ class ExecutionReport:
     ) -> None:
 
         with self._lock:
-
-            self.outputs.append(
-                output
-            )
+            self.outputs.append(output)
 
     # -----------------------------------------------------
 
     def add_outputs(
         self,
-        outputs: List[str],
+        outputs: list[str],
     ) -> None:
 
         with self._lock:
-
-            self.outputs.extend(
-                outputs
-            )
+            self.outputs.extend(outputs)
 
     # =====================================================
     # ARTIFACTS
@@ -566,23 +406,17 @@ class ExecutionReport:
     ) -> None:
 
         with self._lock:
-
-            self.artifacts.append(
-                artifact
-            )
+            self.artifacts.append(artifact)
 
     # -----------------------------------------------------
 
     def add_artifacts(
         self,
-        artifacts: List[str],
+        artifacts: list[str],
     ) -> None:
 
         with self._lock:
-
-            self.artifacts.extend(
-                artifacts
-            )
+            self.artifacts.extend(artifacts)
 
     # =====================================================
     # WARNINGS
@@ -594,10 +428,7 @@ class ExecutionReport:
     ) -> None:
 
         with self._lock:
-
-            self.warnings.append(
-                warning
-            )
+            self.warnings.append(warning)
 
     # -----------------------------------------------------
 
@@ -607,10 +438,7 @@ class ExecutionReport:
     ) -> None:
 
         with self._lock:
-
-            self.errors.append(
-                error
-            )
+            self.errors.append(error)
 
     # =====================================================
     # MERGE
@@ -618,47 +446,29 @@ class ExecutionReport:
 
     def merge(
         self,
-        other: "ExecutionReport",
+        other: ExecutionReport,
     ) -> None:
         """
         Merge another report.
         """
 
         with self._lock:
+            self.engine_results.extend(other.engine_results)
 
-            self.engine_results.extend(
-                other.engine_results
-            )
+            self.pipeline_results.extend(other.pipeline_results)
 
-            self.pipeline_results.extend(
-                other.pipeline_results
-            )
+            self.outputs.extend(other.outputs)
 
-            self.outputs.extend(
-                other.outputs
-            )
+            self.artifacts.extend(other.artifacts)
 
-            self.artifacts.extend(
-                other.artifacts
-            )
+            self.warnings.extend(other.warnings)
 
-            self.warnings.extend(
-                other.warnings
-            )
+            self.errors.extend(other.errors)
 
-            self.errors.extend(
-                other.errors
-            )
-
-            self.metadata.update(
-                other.metadata
-            )
+            self.metadata.update(other.metadata)
 
             if other.master_result:
-
-                self.master_result = (
-                    other.master_result
-                )
+                self.master_result = other.master_result
 
     # =====================================================
     # CLEAR
@@ -672,7 +482,6 @@ class ExecutionReport:
         """
 
         with self._lock:
-
             self.engine_results.clear()
 
             self.pipeline_results.clear()
@@ -689,9 +498,7 @@ class ExecutionReport:
 
             self.master_result = None
 
-            self.started_at = (
-                datetime.utcnow()
-            )
+            self.started_at = datetime.utcnow()
 
             self.finished_at = None
 
@@ -708,19 +515,11 @@ class ExecutionReport:
         """
 
         if not self.engine_results:
-
             return 0.0
 
         return round(
-
-            100.0
-
-            * self.successful_engines
-
-            / self.total_engines,
-
+            100.0 * self.successful_engines / self.total_engines,
             2,
-
         )
 
     # -----------------------------------------------------
@@ -734,15 +533,12 @@ class ExecutionReport:
         """
 
         if self.master_result:
-
             return self.master_result.status
 
         if self.failed_engines:
-
             return EngineStatus.FAILED
 
         if self.failed_pipelines:
-
             return EngineStatus.FAILED
 
         return EngineStatus.SUCCESS
@@ -757,19 +553,8 @@ class ExecutionReport:
     ) -> float:
 
         return round(
-
-            sum(
-
-                engine.duration
-
-                for engine
-
-                in self.engine_results
-
-            ),
-
+            sum(engine.duration for engine in self.engine_results),
             3,
-
         )
 
     # -----------------------------------------------------
@@ -780,17 +565,11 @@ class ExecutionReport:
     ) -> float:
 
         if not self.engine_results:
-
             return 0.0
 
         return round(
-
-            self.total_runtime
-
-            / len(self.engine_results),
-
+            self.total_runtime / len(self.engine_results),
             3,
-
         )
 
     # -----------------------------------------------------
@@ -801,27 +580,12 @@ class ExecutionReport:
     ) -> float:
 
         if not self.pipeline_results:
-
             return 0.0
 
         return round(
-
-            sum(
-
-                pipeline.duration
-
-                for pipeline
-
-                in self.pipeline_results
-
-            )
-
-            /
-
-            len(self.pipeline_results),
-
+            sum(pipeline.duration for pipeline in self.pipeline_results)
+            / len(self.pipeline_results),
             3,
-
         )
 
     # =====================================================
@@ -831,19 +595,15 @@ class ExecutionReport:
     def slowest_engines(
         self,
         limit: int = 10,
-    ) -> List[EngineResult]:
+    ) -> list[EngineResult]:
         """
         Slowest executed engines.
         """
 
         return sorted(
-
             self.engine_results,
-
             key=lambda result: result.duration,
-
             reverse=True,
-
         )[:limit]
 
     # -----------------------------------------------------
@@ -851,17 +611,14 @@ class ExecutionReport:
     def fastest_engines(
         self,
         limit: int = 10,
-    ) -> List[EngineResult]:
+    ) -> list[EngineResult]:
         """
         Fastest engines.
         """
 
         return sorted(
-
             self.engine_results,
-
             key=lambda result: result.duration,
-
         )[:limit]
 
     # =====================================================
@@ -871,16 +628,12 @@ class ExecutionReport:
     def slowest_pipelines(
         self,
         limit: int = 10,
-    ) -> List[PipelineResult]:
+    ) -> list[PipelineResult]:
 
         return sorted(
-
             self.pipeline_results,
-
             key=lambda result: result.duration,
-
             reverse=True,
-
         )[:limit]
 
     # -----------------------------------------------------
@@ -888,16 +641,12 @@ class ExecutionReport:
     def fastest_pipelines(
         self,
         limit: int = 10,
-    ) -> List[PipelineResult]:
+    ) -> list[PipelineResult]:
 
         return sorted(
-
             self.pipeline_results,
-
             key=lambda result: result.duration,
-
         )[:limit]
-
 
     # =====================================================
     # FAILURES
@@ -905,48 +654,24 @@ class ExecutionReport:
 
     def failed_engine_results(
         self,
-    ) -> List[EngineResult]:
+    ) -> list[EngineResult]:
 
         return [
-
             result
-
-            for result
-
-            in self.engine_results
-
-            if (
-
-                result.status
-
-                == EngineStatus.FAILED
-
-            )
-
+            for result in self.engine_results
+            if (result.status == EngineStatus.FAILED)
         ]
 
     # -----------------------------------------------------
 
     def failed_pipeline_results(
         self,
-    ) -> List[PipelineResult]:
+    ) -> list[PipelineResult]:
 
         return [
-
             result
-
-            for result
-
-            in self.pipeline_results
-
-            if (
-
-                result.status
-
-                == EngineStatus.FAILED
-
-            )
-
+            for result in self.pipeline_results
+            if (result.status == EngineStatus.FAILED)
         ]
 
     # =====================================================
@@ -955,7 +680,7 @@ class ExecutionReport:
 
     def timeline(
         self,
-    ) -> List[Dict[str, Any]]:
+    ) -> list[dict[str, Any]]:
         """
         Execution timeline.
         """
@@ -963,127 +688,52 @@ class ExecutionReport:
         timeline = []
 
         for engine in self.engine_results:
-
             timeline.append(
-
                 {
-
-                    "type":
-
-                        "engine",
-
-                    "name":
-
-                        engine.engine,
-
-                    "status":
-
-                        engine.status.value,
-
-                    "duration":
-
-                        engine.duration,
-
+                    "type": "engine",
+                    "name": engine.engine,
+                    "status": engine.status.value,
+                    "duration": engine.duration,
                 }
-
             )
 
         for pipeline in self.pipeline_results:
-
             timeline.append(
-
                 {
-
-                    "type":
-
-                        "pipeline",
-
-                    "name":
-
-                        pipeline.pipeline,
-
-                    "status":
-
-                        pipeline.status.value,
-
-                    "duration":
-
-                        pipeline.duration,
-
+                    "type": "pipeline",
+                    "name": pipeline.pipeline,
+                    "status": pipeline.status.value,
+                    "duration": pipeline.duration,
                 }
-
             )
 
         return timeline
-    
+
     # =====================================================
     # STATISTICS
     # =====================================================
 
     def statistics(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         return {
-
-            "runtime":
-
-                round(
-
-                    self.runtime_seconds,
-
-                    3,
-
-                ),
-
-            "engine_success_rate":
-
-                self.engine_success_rate,
-
-            "pipeline_success_rate":
-
-                self.pipeline_success_rate,
-
-            "engines":
-
-                self.total_engines,
-
-            "pipelines":
-
-                self.total_pipelines,
-
-            "successful_engines":
-
-                self.successful_engines,
-
-            "failed_engines":
-
-                self.failed_engines,
-
-            "successful_pipelines":
-
-                self.successful_pipelines,
-
-            "failed_pipelines":
-
-                self.failed_pipelines,
-
-            "warnings":
-
-                len(self.warnings),
-
-            "errors":
-
-                len(self.errors),
-
-            "outputs":
-
-                len(self.outputs),
-
-            "artifacts":
-
-                len(self.artifacts),
-
+            "runtime": round(
+                self.runtime_seconds,
+                3,
+            ),
+            "engine_success_rate": self.engine_success_rate,
+            "pipeline_success_rate": self.pipeline_success_rate,
+            "engines": self.total_engines,
+            "pipelines": self.total_pipelines,
+            "successful_engines": self.successful_engines,
+            "failed_engines": self.failed_engines,
+            "successful_pipelines": self.successful_pipelines,
+            "failed_pipelines": self.failed_pipelines,
+            "warnings": len(self.warnings),
+            "errors": len(self.errors),
+            "outputs": len(self.outputs),
+            "artifacts": len(self.artifacts),
         }
 
     # =====================================================
@@ -1092,45 +742,20 @@ class ExecutionReport:
 
     def audit_report(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Comprehensive execution audit.
         """
 
         return {
-
-            "summary":
-
-                self.summary(),
-
-            "statistics":
-
-                self.statistics(),
-
-            "timeline":
-
-                self.timeline(),
-
-            "metadata":
-
-                self.metadata,
-
-            "warnings":
-
-                self.warnings,
-
-            "errors":
-
-                self.errors,
-
-            "outputs":
-
-                self.outputs,
-
-            "artifacts":
-
-                self.artifacts,
-
+            "summary": self.summary(),
+            "statistics": self.statistics(),
+            "timeline": self.timeline(),
+            "metadata": self.metadata,
+            "warnings": self.warnings,
+            "errors": self.errors,
+            "outputs": self.outputs,
+            "artifacts": self.artifacts,
         }
 
     # =====================================================
@@ -1139,91 +764,29 @@ class ExecutionReport:
 
     def to_dict(
         self,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Convert execution report to dictionary.
         """
 
         return {
-
-            "started_at":
-
-                self.started_at.isoformat(),
-
-            "finished_at":
-
-                self.finished_at.isoformat()
-
-                if self.finished_at
-
-                else None,
-
-            "runtime":
-
-                round(
-
-                    self.runtime_seconds,
-
-                    3,
-
-                ),
-
-            "master_result":
-
-                self.master_result.to_dict()
-
-                if self.master_result
-
-                else None,
-
-            "statistics":
-
-                self.statistics(),
-
-            "metadata":
-
-                dict(self.metadata),
-
-            "outputs":
-
-                list(self.outputs),
-
-            "artifacts":
-
-                list(self.artifacts),
-
-            "warnings":
-
-                list(self.warnings),
-
-            "errors":
-
-                list(self.errors),
-
-            "engines":
-
-                [
-
-                    engine.to_dict()
-
-                    for engine
-
-                    in self.engine_results
-
-                ],
-
-            "pipelines":
-
-                [
-
-                    pipeline.to_dict()
-
-                    for pipeline
-
-                    in self.pipeline_results
-
-                ],
-
+            "started_at": self.started_at.isoformat(),
+            "finished_at": self.finished_at.isoformat() if self.finished_at else None,
+            "runtime": round(
+                self.runtime_seconds,
+                3,
+            ),
+            "master_result": self.master_result.to_dict()
+            if self.master_result
+            else None,
+            "statistics": self.statistics(),
+            "metadata": dict(self.metadata),
+            "outputs": list(self.outputs),
+            "artifacts": list(self.artifacts),
+            "warnings": list(self.warnings),
+            "errors": list(self.errors),
+            "engines": [engine.to_dict() for engine in self.engine_results],
+            "pipelines": [pipeline.to_dict() for pipeline in self.pipeline_results],
         }
 
     # -----------------------------------------------------
@@ -1240,13 +803,9 @@ class ExecutionReport:
         import json
 
         return json.dumps(
-
             self.to_dict(),
-
             indent=indent,
-
             default=str,
-
         )
 
     # =====================================================
@@ -1262,19 +821,13 @@ class ExecutionReport:
         """
 
         path.parent.mkdir(
-
             parents=True,
-
             exist_ok=True,
-
         )
 
         path.write_text(
-
             self.to_json(),
-
             encoding="utf-8",
-
         )
 
     # -----------------------------------------------------
@@ -1283,7 +836,7 @@ class ExecutionReport:
     def load(
         cls,
         path: Path,
-    ) -> "ExecutionReport":
+    ) -> ExecutionReport:
         """
         Restore report from JSON.
 
@@ -1295,76 +848,43 @@ class ExecutionReport:
 
         import json
 
-        data = json.loads(
-
-            path.read_text(
-
-                encoding="utf-8"
-
-            )
-
-        )
+        data = json.loads(path.read_text(encoding="utf-8"))
 
         report = cls()
 
         report.metadata.update(
-
             data.get(
-
                 "metadata",
-
                 {},
-
             )
-
         )
 
         report.outputs.extend(
-
             data.get(
-
                 "outputs",
-
                 [],
-
             )
-
         )
 
         report.artifacts.extend(
-
             data.get(
-
                 "artifacts",
-
                 [],
-
             )
-
         )
 
         report.warnings.extend(
-
             data.get(
-
                 "warnings",
-
                 [],
-
             )
-
         )
 
         report.errors.extend(
-
             data.get(
-
                 "errors",
-
                 [],
-
             )
-
         )
 
         return report
@@ -1381,88 +901,47 @@ class ExecutionReport:
         """
 
         lines = [
-
             "# Execution Report",
-
             "",
-
             f"**Runtime:** {self.runtime_seconds:.2f}s",
-
             f"**Status:** {self.overall_status.value}",
-
             "",
-
             "## Statistics",
-
             "",
-
         ]
 
         for key, value in self.statistics().items():
-
-            lines.append(
-
-                f"- **{key}** : {value}"
-
-            )
+            lines.append(f"- **{key}** : {value}")
 
         lines.extend(
-
             [
-
                 "",
-
                 "## Pipelines",
-
                 "",
-
             ]
-
         )
 
         for pipeline in self.pipeline_results:
-
             lines.append(
-
                 f"- {pipeline.pipeline}"
-
                 f" ({pipeline.status.value})"
-
                 f" [{pipeline.duration:.2f}s]"
-
             )
 
         lines.extend(
-
             [
-
                 "",
-
                 "## Engines",
-
                 "",
-
             ]
-
         )
 
         for engine in self.engine_results:
-
             lines.append(
-
-                f"- {engine.engine}"
-
-                f" ({engine.status.value})"
-
-                f" [{engine.duration:.2f}s]"
-
+                f"- {engine.engine} ({engine.status.value}) [{engine.duration:.2f}s]"
             )
 
-        return "\n".join(
-
-            lines
-
-        )
+        return "\n".join(lines)
 
     # =====================================================
     # CSV
@@ -1479,53 +958,32 @@ class ExecutionReport:
         import csv
 
         path.parent.mkdir(
-
             parents=True,
-
             exist_ok=True,
-
         )
 
         with path.open(
-
             "w",
-
             newline="",
-
             encoding="utf-8",
-
         ) as fp:
-
             writer = csv.writer(fp)
 
             writer.writerow(
-
                 [
-
                     "Engine",
-
                     "Status",
-
                     "Duration",
-
                 ]
-
             )
 
             for result in self.engine_results:
-
                 writer.writerow(
-
                     [
-
                         result.engine,
-
                         result.status.value,
-
                         result.duration,
-
                     ]
-
                 )
 
     # =====================================================
@@ -1567,15 +1025,7 @@ class ExecutionReport:
         self,
     ) -> int:
 
-        return (
-
-            len(self.engine_results)
-
-            +
-
-            len(self.pipeline_results)
-
-        )
+        return len(self.engine_results) + len(self.pipeline_results)
 
     # -----------------------------------------------------
 
@@ -1583,11 +1033,7 @@ class ExecutionReport:
         self,
     ):
 
-        return iter(
-
-            self.engine_results
-
-        )
+        return iter(self.engine_results)
 
     # -----------------------------------------------------
 
@@ -1596,17 +1042,7 @@ class ExecutionReport:
         engine_name: str,
     ) -> bool:
 
-        return any(
-
-            result.engine
-
-            == engine_name
-
-            for result
-
-            in self.engine_results
-
-        )
+        return any(result.engine == engine_name for result in self.engine_results)
 
     # -----------------------------------------------------
 
@@ -1615,13 +1051,8 @@ class ExecutionReport:
     ) -> str:
 
         return (
-
             f"ExecutionReport("
-
             f"engines={self.total_engines}, "
-
             f"pipelines={self.total_pipelines}, "
-
             f"runtime={self.runtime_seconds:.2f}s)"
-
         )

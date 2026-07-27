@@ -28,26 +28,23 @@ from typing import Any
 from orchestration.execution_context import (
     ExecutionContext,
 )
-
 from orchestration.execution_report import (
     ExecutionReport,
 )
-
 from orchestration.models.engine_result import (
     EngineResult,
 )
-
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
-
 from orchestration.models.master_result import (
     MasterResult,
+)
+from orchestration.models.pipeline_result import (
+    PipelineResult,
 )
 
 # =========================================================
 # METADATA BUILDER
 # =========================================================
+
 
 class MetadataBuilder:
     """
@@ -64,39 +61,14 @@ class MetadataBuilder:
     ) -> dict[str, Any]:
 
         return {
-
-            "engine":
-
-                result.engine,
-
-            "status":
-
-                result.status.value,
-
-            "duration":
-
-                result.duration,
-
-            "started_at":
-
-                result.started_at,
-
-            "finished_at":
-
-                result.finished_at,
-
-            "outputs":
-
-                len(result.outputs),
-
-            "warnings":
-
-                len(result.warnings),
-
-            "errors":
-
-                len(result.errors),
-
+            "engine": result.engine,
+            "status": result.status.value,
+            "duration": result.duration,
+            "started_at": result.started_at,
+            "finished_at": result.finished_at,
+            "outputs": len(result.outputs),
+            "warnings": len(result.warnings),
+            "errors": len(result.errors),
         }
 
     # =====================================================
@@ -109,37 +81,15 @@ class MetadataBuilder:
     ) -> dict[str, Any]:
 
         return {
-
-            "pipeline":
-
-                result.pipeline,
-
-            "status":
-
-                result.status.value,
-
-            "duration":
-
-                result.duration,
-
-            "engines":
-
-                result.total_engines,
-
-            "successful_engines":
-
-                result.successful_engines,
-
-            "failed_engines":
-
-                result.failed_engines,
-
-            "success_rate":
-
-                result.success_rate,
-
+            "pipeline": result.pipeline,
+            "status": result.status.value,
+            "duration": result.duration,
+            "engines": result.total_engines,
+            "successful_engines": result.successful_engines,
+            "failed_engines": result.failed_engines,
+            "success_rate": result.success_rate,
         }
-    
+
     # =====================================================
     # CONTEXT
     # =====================================================
@@ -150,35 +100,16 @@ class MetadataBuilder:
     ) -> dict[str, Any]:
 
         return {
-
-            "runtime":
-
-                round(
-
-                    context.runtime_seconds,
-
-                    3,
-
-                ),
-
-            "outputs":
-
-                context.output_count,
-
-            "artifacts":
-
-                context.artifact_count,
-
-            "warnings":
-
-                context.warning_count,
-
-            "errors":
-
-                context.error_count,
-
+            "runtime": round(
+                context.runtime_seconds,
+                3,
+            ),
+            "outputs": context.output_count,
+            "artifacts": context.artifact_count,
+            "warnings": context.warning_count,
+            "errors": context.error_count,
         }
-    
+
     # =====================================================
     # REPORT
     # =====================================================
@@ -189,35 +120,15 @@ class MetadataBuilder:
     ) -> dict[str, Any]:
 
         return {
-
-            "runtime":
-
-                round(
-
-                    report.runtime_seconds,
-
-                    3,
-
-                ),
-
-            "engine_success_rate":
-
-                report.engine_success_rate,
-
-            "pipeline_success_rate":
-
-                report.pipeline_success_rate,
-
-            "engines":
-
-                report.total_engines,
-
-            "pipelines":
-
-                report.total_pipelines,
-
+            "runtime": round(
+                report.runtime_seconds,
+                3,
+            ),
+            "engine_success_rate": report.engine_success_rate,
+            "pipeline_success_rate": report.pipeline_success_rate,
+            "engines": report.total_engines,
+            "pipelines": report.total_pipelines,
         }
-    
 
     # =====================================================
     # MASTER
@@ -229,41 +140,16 @@ class MetadataBuilder:
     ) -> dict[str, Any]:
 
         return {
-
-            "status":
-
-                result.status.value,
-
-            "duration":
-
-                result.duration,
-
-            "pipelines":
-
-                result.total_pipelines,
-
-            "engines":
-
-                result.total_engines,
-
-            "successful_pipelines":
-
-                result.successful_pipelines,
-
-            "failed_pipelines":
-
-                result.failed_pipelines,
-
-            "success_rate":
-
-                result.success_rate,
-
-            "generated_at":
-
-                datetime.utcnow().isoformat(),
-
+            "status": result.status.value,
+            "duration": result.duration,
+            "pipelines": result.total_pipelines,
+            "engines": result.total_engines,
+            "successful_pipelines": result.successful_pipelines,
+            "failed_pipelines": result.failed_pipelines,
+            "success_rate": result.success_rate,
+            "generated_at": datetime.utcnow().isoformat(),
         }
-    
+
     # =====================================================
     # BUILD
     # =====================================================
@@ -277,9 +163,7 @@ class MetadataBuilder:
         metadata: dict[str, Any] = {}
 
         for value in kwargs.values():
-
             if isinstance(value, dict):
-
                 metadata.update(value)
 
         return metadata

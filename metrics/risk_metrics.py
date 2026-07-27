@@ -48,43 +48,24 @@ class RiskMetrics:
 
     @staticmethod
     def volatility(
-
         returns: list[float] | np.ndarray,
-
         trading_days: int = 252,
-
     ) -> float:
 
         values = np.asarray(
-
             returns,
-
             dtype=np.float64,
-
         )
 
         if values.size < 2:
-
             return 0.0
 
         return float(
-
             np.std(
-
                 values,
-
                 ddof=1,
-
             )
-
-            *
-
-            math.sqrt(
-
-                trading_days
-
-            )
-
+            * math.sqrt(trading_days)
         )
 
     # =====================================================
@@ -93,61 +74,29 @@ class RiskMetrics:
 
     @staticmethod
     def downside_deviation(
-
         returns: list[float] | np.ndarray,
-
         target_return: float = 0.0,
-
         trading_days: int = 252,
-
     ) -> float:
 
         values = np.asarray(
-
             returns,
-
             dtype=np.float64,
-
         )
 
-        downside = values[
-
-            values < target_return
-
-        ]
+        downside = values[values < target_return]
 
         if downside.size < 2:
-
             return 0.0
 
-        deviation = (
-
-            downside
-
-            -
-
-            target_return
-
-        )
+        deviation = downside - target_return
 
         return float(
-
             np.std(
-
                 deviation,
-
                 ddof=1,
-
             )
-
-            *
-
-            math.sqrt(
-
-                trading_days
-
-            )
-
+            * math.sqrt(trading_days)
         )
 
     # =====================================================
@@ -156,53 +105,25 @@ class RiskMetrics:
 
     @staticmethod
     def value_at_risk(
-
         returns: list[float] | np.ndarray,
-
         confidence: float = 0.95,
-
     ) -> float:
 
         values = np.asarray(
-
             returns,
-
             dtype=np.float64,
-
         )
 
         if values.size == 0:
-
             return 0.0
 
-        percentile = (
-
-            100.0
-
-            *
-
-            (
-
-                1.0
-
-                -
-
-                confidence
-
-            )
-
-        )
+        percentile = 100.0 * (1.0 - confidence)
 
         return float(
-
             -np.percentile(
-
                 values,
-
                 percentile,
-
             )
-
         )
 
     # =====================================================
@@ -211,50 +132,30 @@ class RiskMetrics:
 
     @classmethod
     def expected_shortfall(
-
         cls,
-
         returns: list[float] | np.ndarray,
-
         confidence: float = 0.95,
-
     ) -> float:
 
         values = np.asarray(
-
             returns,
-
             dtype=np.float64,
-
         )
 
         if values.size == 0:
-
             return 0.0
 
         var = -cls.value_at_risk(
-
             values,
-
             confidence,
-
         )
 
-        losses = values[
-
-            values <= var
-
-        ]
+        losses = values[values <= var]
 
         if losses.size == 0:
-
             return 0.0
 
-        return float(
-
-            -losses.mean()
-
-        )
+        return float(-losses.mean())
 
     # =====================================================
     # MAXIMUM DRAWDOWN
@@ -262,52 +163,22 @@ class RiskMetrics:
 
     @staticmethod
     def maximum_drawdown(
-
         equity_curve: list[float] | np.ndarray,
-
     ) -> float:
 
         equity = np.asarray(
-
             equity_curve,
-
             dtype=np.float64,
-
         )
 
         if equity.size == 0:
-
             return 0.0
 
-        running_max = np.maximum.accumulate(
+        running_max = np.maximum.accumulate(equity)
 
-            equity
+        drawdown = (equity - running_max) / running_max
 
-        )
-
-        drawdown = (
-
-            equity
-
-            -
-
-            running_max
-
-        ) / running_max
-
-        return float(
-
-            abs(
-
-                np.min(
-
-                    drawdown
-
-                )
-
-            )
-
-        )
+        return float(abs(np.min(drawdown)))
 
     # =====================================================
     # DRAWDOWN DURATION
@@ -315,57 +186,37 @@ class RiskMetrics:
 
     @staticmethod
     def drawdown_duration(
-
         equity_curve: list[float] | np.ndarray,
-
     ) -> int:
 
         equity = np.asarray(
-
             equity_curve,
-
             dtype=np.float64,
-
         )
 
         if equity.size == 0:
-
             return 0
 
-        running_max = np.maximum.accumulate(
-
-            equity
-
-        )
+        running_max = np.maximum.accumulate(equity)
 
         duration = 0
 
         maximum = 0
 
         for value, peak in zip(
-
             equity,
-
             running_max,
-
             strict=True,
-
         ):
-
             if value < peak:
-
                 duration += 1
 
                 maximum = max(
-
                     maximum,
-
                     duration,
-
                 )
 
             else:
-
                 duration = 0
 
         return maximum
@@ -376,32 +227,18 @@ class RiskMetrics:
 
     @staticmethod
     def concentration_risk(
-
         weights: list[float] | np.ndarray,
-
     ) -> float:
 
         weights = np.asarray(
-
             weights,
-
             dtype=np.float64,
-
         )
 
         if weights.size == 0:
-
             return 0.0
 
-        return float(
-
-            np.sum(
-
-                weights ** 2
-
-            )
-
-        )
+        return float(np.sum(weights**2))
 
     # =====================================================
     # EFFECTIVE HOLDINGS
@@ -409,21 +246,13 @@ class RiskMetrics:
 
     @classmethod
     def effective_holdings(
-
         cls,
-
         weights: list[float] | np.ndarray,
-
     ) -> float:
 
-        concentration = cls.concentration_risk(
-
-            weights
-
-        )
+        concentration = cls.concentration_risk(weights)
 
         if concentration <= 0:
-
             return 0.0
 
         return 1.0 / concentration
@@ -434,89 +263,28 @@ class RiskMetrics:
 
     @classmethod
     def summary(
-
         cls,
-
         returns: list[float] | np.ndarray,
-
         equity_curve: list[float] | np.ndarray,
-
         weights: list[float] | np.ndarray,
-
         confidence: float = 0.95,
-
     ) -> dict:
 
         return {
-
-            "Volatility":
-
-                cls.volatility(
-
-                    returns
-
-                ),
-
-            "DownsideDeviation":
-
-                cls.downside_deviation(
-
-                    returns
-
-                ),
-
-            "VaR":
-
-                cls.value_at_risk(
-
-                    returns,
-
-                    confidence,
-
-                ),
-
-            "ExpectedShortfall":
-
-                cls.expected_shortfall(
-
-                    returns,
-
-                    confidence,
-
-                ),
-
-            "MaximumDrawdown":
-
-                cls.maximum_drawdown(
-
-                    equity_curve
-
-                ),
-
-            "DrawdownDuration":
-
-                cls.drawdown_duration(
-
-                    equity_curve
-
-                ),
-
-            "ConcentrationRisk":
-
-                cls.concentration_risk(
-
-                    weights
-
-                ),
-
-            "EffectiveHoldings":
-
-                cls.effective_holdings(
-
-                    weights
-
-                ),
-
+            "Volatility": cls.volatility(returns),
+            "DownsideDeviation": cls.downside_deviation(returns),
+            "VaR": cls.value_at_risk(
+                returns,
+                confidence,
+            ),
+            "ExpectedShortfall": cls.expected_shortfall(
+                returns,
+                confidence,
+            ),
+            "MaximumDrawdown": cls.maximum_drawdown(equity_curve),
+            "DrawdownDuration": cls.drawdown_duration(equity_curve),
+            "ConcentrationRisk": cls.concentration_risk(weights),
+            "EffectiveHoldings": cls.effective_holdings(weights),
         }
 
     # =====================================================
@@ -524,15 +292,9 @@ class RiskMetrics:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}()"
-
-        )
+        return f"{self.__class__.__name__}()"
 
     __str__ = __repr__

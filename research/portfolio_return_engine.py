@@ -6,10 +6,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Optional
-
 import logging
-import numpy as np
+
 import pandas as pd
 
 logger = logging.getLogger(__name__)
@@ -18,9 +16,9 @@ logger = logging.getLogger(__name__)
 # CONFIG
 # ==========================================================
 
+
 @dataclass(slots=True)
 class ReturnEngineConfig:
-
     INITIAL_CAPITAL: float = 100_000_000
 
     TRADING_DAYS: int = 252
@@ -31,129 +29,52 @@ class ReturnEngineConfig:
 
     ENABLE_DRIFT_TRACKING: bool = True
 
+
 # ==========================================================
 # RETURN ENGINE
 # ==========================================================
 
+
 class PortfolioReturnEngine:
+    def __init__(self, config: ReturnEngineConfig | None = None):
 
-    def __init__(
-        self,
-        config: Optional[
-            ReturnEngineConfig
-        ] = None
-    ):
-
-        self.config = (
-            config
-            or
-            ReturnEngineConfig()
-        )
+        self.config = config or ReturnEngineConfig()
 
     # ======================================================
     # VALIDATION
     # ======================================================
 
     @staticmethod
-    def validate_inputs(
-        portfolio: pd.DataFrame,
-        prices: pd.DataFrame
-    ) -> None:
+    def validate_inputs(portfolio: pd.DataFrame, prices: pd.DataFrame) -> None:
 
-        portfolio_cols = {
+        portfolio_cols = {"Symbol", "Target_Weight"}
 
-            "Symbol",
+        price_cols = {"Date", "Symbol", "Close"}
 
-            "Target_Weight"
+        missing_portfolio = portfolio_cols - set(portfolio.columns)
 
-        }
-
-        price_cols = {
-
-            "Date",
-
-            "Symbol",
-
-            "Close"
-
-        }
-
-        missing_portfolio = (
-
-            portfolio_cols
-
-            - set(
-                portfolio.columns
-            )
-
-        )
-
-        missing_prices = (
-
-            price_cols
-
-            - set(
-                prices.columns
-            )
-
-        )
+        missing_prices = price_cols - set(prices.columns)
 
         if missing_portfolio:
-
-            raise ValueError(
-                f"Missing Portfolio Columns: "
-                f"{missing_portfolio}"
-            )
+            raise ValueError(f"Missing Portfolio Columns: {missing_portfolio}")
 
         if missing_prices:
-
-            raise ValueError(
-                f"Missing Price Columns: "
-                f"{missing_prices}"
-            )
+            raise ValueError(f"Missing Price Columns: {missing_prices}")
 
     # ======================================================
     # SECURITY RETURNS
     # ======================================================
 
     @staticmethod
-    def build_security_returns(
-        prices: pd.DataFrame
-    ) -> pd.DataFrame:
+    def build_security_returns(prices: pd.DataFrame) -> pd.DataFrame:
 
         prices = prices.copy()
 
-        prices["Date"] = pd.to_datetime(
+        prices["Date"] = pd.to_datetime(prices["Date"])
 
-            prices["Date"]
+        prices.sort_values(["Symbol", "Date"], inplace=True)
 
-        )
-
-        prices.sort_values(
-
-            [
-
-                "Symbol",
-
-                "Date"
-
-            ],
-
-            inplace=True
-
-        )
-
-        prices["Return"] = (
-
-            prices
-
-            .groupby("Symbol")
-
-            ["Close"]
-
-            .pct_change()
-
-        )
+        prices["Return"] = prices.groupby("Symbol")["Close"].pct_change()
 
         return prices
 
@@ -162,104 +83,24 @@ class PortfolioReturnEngine:
     # ======================================================
 
     def build_returns(
-        self,
-        portfolio: pd.DataFrame,
-        prices: pd.DataFrame
+        self, portfolio: pd.DataFrame, prices: pd.DataFrame
     ) -> pd.DataFrame:
 
-        self.validate_inputs(
+        self.validate_inputs(portfolio, prices)
 
-            portfolio,
+        logger.info("Building Portfolio Returns")
 
-            prices
+        prices = self.build_security_returns(prices)
 
-        )
+        weights = portfolio[["Symbol", "Target_Weight"]].copy()
 
-        logger.info(
+        merged = prices.merge(weights, on="Symbol", how="inner")
 
-            "Building Portfolio Returns"
+        merged["Weighted_Return"] = merged["Return"] * merged["Target_Weight"]
 
-        )
+        returns = merged.groupby("Date")["Weighted_Return"].sum().reset_index()
 
-        prices = (
-
-            self.build_security_returns(
-
-                prices
-
-            )
-
-        )
-
-        weights = (
-
-            portfolio[
-
-                [
-
-                    "Symbol",
-
-                    "Target_Weight"
-
-                ]
-
-            ]
-
-            .copy()
-
-        )
-
-        merged = (
-
-            prices.merge(
-
-                weights,
-
-                on="Symbol",
-
-                how="inner"
-
-            )
-
-        )
-
-        merged["Weighted_Return"] = (
-
-            merged["Return"]
-
-            *
-
-            merged["Target_Weight"]
-
-        )
-
-        returns = (
-
-            merged
-
-            .groupby("Date")
-
-            ["Weighted_Return"]
-
-            .sum()
-
-            .reset_index()
-
-        )
-
-        returns.rename(
-
-            columns={
-
-                "Weighted_Return":
-
-                "Portfolio_Return"
-
-            },
-
-            inplace=True
-
-        )
+        returns.rename(columns={"Weighted_Return": "Portfolio_Return"}, inplace=True)
 
         return returns
 
@@ -269,37 +110,14 @@ class PortfolioReturnEngine:
 
     @staticmethod
     def apply_transaction_costs(
-        returns: pd.DataFrame,
-        annual_cost_bps: float = 50
+        returns: pd.DataFrame, annual_cost_bps: float = 50
     ) -> pd.DataFrame:
 
         returns = returns.copy()
 
-        daily_cost = (
+        daily_cost = annual_cost_bps / 10000 / 252
 
-            annual_cost_bps
-
-            / 10000
-
-            / 252
-
-        )
-
-        returns[
-
-            "Net_Return"
-
-        ] = (
-
-            returns[
-                "Portfolio_Return"
-            ]
-
-            -
-
-            daily_cost
-
-        )
+        returns["Net_Return"] = returns["Portfolio_Return"] - daily_cost
 
         return returns
 
@@ -307,44 +125,13 @@ class PortfolioReturnEngine:
     # EQUITY CURVE
     # ======================================================
 
-    def build_equity_curve(
-        self,
-        returns: pd.DataFrame
-    ) -> pd.DataFrame:
+    def build_equity_curve(self, returns: pd.DataFrame) -> pd.DataFrame:
 
         returns = returns.copy()
 
-        series = (
+        series = returns.get("Net_Return", returns["Portfolio_Return"])
 
-            returns.get(
-
-                "Net_Return",
-
-                returns[
-                    "Portfolio_Return"
-                ]
-
-            )
-
-        )
-
-        returns["Equity"] = (
-
-            self.config
-
-            .INITIAL_CAPITAL
-
-            *
-
-            (
-
-                1 + series
-
-            )
-
-            .cumprod()
-
-        )
+        returns["Equity"] = self.config.INITIAL_CAPITAL * (1 + series).cumprod()
 
         return returns
 
@@ -354,8 +141,7 @@ class PortfolioReturnEngine:
 
     @staticmethod
     def calculate_weight_drift(
-        portfolio: pd.DataFrame,
-        current_prices: pd.DataFrame
+        portfolio: pd.DataFrame, current_prices: pd.DataFrame
     ) -> pd.DataFrame:
 
         result = portfolio.copy()
@@ -370,32 +156,13 @@ class PortfolioReturnEngine:
 
     @staticmethod
     def benchmark_relative_returns(
-        portfolio_returns: pd.DataFrame,
-        benchmark_returns: pd.DataFrame
+        portfolio_returns: pd.DataFrame, benchmark_returns: pd.DataFrame
     ) -> pd.DataFrame:
 
-        merged = (
-
-            portfolio_returns.merge(
-
-                benchmark_returns,
-
-                on="Date",
-
-                how="inner"
-
-            )
-
-        )
+        merged = portfolio_returns.merge(benchmark_returns, on="Date", how="inner")
 
         merged["Active_Return"] = (
-
-            merged["Portfolio_Return"]
-
-            -
-
-            merged["Benchmark_Return"]
-
+            merged["Portfolio_Return"] - merged["Benchmark_Return"]
         )
 
         return merged
@@ -405,27 +172,12 @@ class PortfolioReturnEngine:
     # ======================================================
 
     @staticmethod
-    def build_attribution_frame(
-        portfolio: pd.DataFrame
-    ) -> pd.DataFrame:
+    def build_attribution_frame(portfolio: pd.DataFrame) -> pd.DataFrame:
 
         if "Sector" not in portfolio.columns:
-
             return pd.DataFrame()
 
-        return (
-
-            portfolio
-
-            .groupby("Sector")
-
-            ["Target_Weight"]
-
-            .sum()
-
-            .reset_index()
-
-        )
+        return portfolio.groupby("Sector")["Target_Weight"].sum().reset_index()
 
     # ======================================================
     # MASTER PIPELINE
@@ -435,95 +187,27 @@ class PortfolioReturnEngine:
         self,
         portfolio: pd.DataFrame,
         prices: pd.DataFrame,
-        benchmark_returns: Optional[
-            pd.DataFrame
-        ] = None
+        benchmark_returns: pd.DataFrame | None = None,
     ) -> dict:
 
-        returns = (
-
-            self.build_returns(
-
-                portfolio,
-
-                prices
-
-            )
-
-        )
+        returns = self.build_returns(portfolio, prices)
 
         if self.config.ENABLE_COSTS:
+            returns = self.apply_transaction_costs(returns)
 
-            returns = (
-
-                self.apply_transaction_costs(
-
-                    returns
-
-                )
-
-            )
-
-        equity_curve = (
-
-            self.build_equity_curve(
-
-                returns
-
-            )
-
-        )
+        equity_curve = self.build_equity_curve(returns)
 
         result = {
-
-            "returns":
-
-                returns,
-
-            "equity_curve":
-
-                equity_curve,
-
-            "attribution":
-
-                self.build_attribution_frame(
-
-                    portfolio
-
-                )
-
+            "returns": returns,
+            "equity_curve": equity_curve,
+            "attribution": self.build_attribution_frame(portfolio),
         }
 
-        if (
-
-            benchmark_returns is not None
-
-            and
-
-            self.config.ENABLE_BENCHMARK
-
-        ):
-
-            result[
-
-                "benchmark"
-
-            ] = (
-
-                self.benchmark_relative_returns(
-
-                    returns,
-
-                    benchmark_returns
-
-                )
-
+        if benchmark_returns is not None and self.config.ENABLE_BENCHMARK:
+            result["benchmark"] = self.benchmark_relative_returns(
+                returns, benchmark_returns
             )
 
-        logger.info(
-
-            "Portfolio Return Engine Complete"
-
-        )
+        logger.info("Portfolio Return Engine Complete")
 
         return result

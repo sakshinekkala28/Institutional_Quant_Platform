@@ -29,14 +29,12 @@ Used By
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from datetime import datetime
-from typing import Callable
 
-from fastapi import HTTPException
-from fastapi import Request
+from fastapi import HTTPException, Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-
 
 # ==========================================================
 # AUTHENTICATION MIDDLEWARE
@@ -51,187 +49,89 @@ class AuthenticationMiddleware(
     """
 
     def __init__(
-
         self,
-
         app,
-
         api_key: str | None = None,
-
         excluded_paths: list[str] | None = None,
-
     ):
 
         super().__init__(
-
             app,
-
         )
 
         self.api_key = api_key
 
-        self.excluded_paths = (
-
-            excluded_paths
-
-            or
-
-            [
-
-                "/",
-
-                "/docs",
-
-                "/redoc",
-
-                "/openapi.json",
-
-                "/health",
-
-                "/version",
-
-                "/metrics",
-
-            ]
-
-        )
+        self.excluded_paths = excluded_paths or [
+            "/",
+            "/docs",
+            "/redoc",
+            "/openapi.json",
+            "/health",
+            "/version",
+            "/metrics",
+        ]
 
     # =====================================================
     # DISPATCH
     # =====================================================
 
     async def dispatch(
-
         self,
-
         request: Request,
-
         call_next: Callable,
-
     ):
 
         path = request.url.path
 
         if path in self.excluded_paths:
-
             return await call_next(
-
                 request,
-
             )
 
-        authorization = (
-
-            request.headers.get(
-
-                "Authorization",
-
-            )
-
+        authorization = request.headers.get(
+            "Authorization",
         )
 
-        api_key = (
-
-            request.headers.get(
-
-                "X-API-Key",
-
-            )
-
+        api_key = request.headers.get(
+            "X-API-Key",
         )
 
         # =================================================
         # API KEY
         # =================================================
 
-        if (
-
-            self.api_key
-
-            and
-
-            api_key == self.api_key
-
-        ):
-
+        if self.api_key and api_key == self.api_key:
             request.state.user = {
-
-                "username":
-
-                    "api_key_user",
-
-                "role":
-
-                    "system",
-
-                "authenticated":
-
-                    True,
-
+                "username": "api_key_user",
+                "role": "system",
+                "authenticated": True,
             }
 
             return await call_next(
-
                 request,
-
             )
 
         # =================================================
         # BEARER TOKEN
         # =================================================
 
-        if (
-
-            authorization
-
-            and
-
-            authorization.startswith(
-
-                "Bearer "
-
-            )
-
-        ):
-
-            token = (
-
-                authorization.replace(
-
-                    "Bearer ",
-
-                    "",
-
-                )
-
+        if authorization and authorization.startswith("Bearer "):
+            token = authorization.replace(
+                "Bearer ",
+                "",
             )
 
             if self.validate_token(
-
                 token,
-
             ):
-
                 request.state.user = {
-
-                    "username":
-
-                        "authenticated_user",
-
-                    "role":
-
-                        "trader",
-
-                    "authenticated":
-
-                        True,
-
+                    "username": "authenticated_user",
+                    "role": "trader",
+                    "authenticated": True,
                 }
 
                 return await call_next(
-
                     request,
-
                 )
 
         # =================================================
@@ -239,29 +139,13 @@ class AuthenticationMiddleware(
         # =================================================
 
         return JSONResponse(
-
             status_code=401,
-
             content={
-
-                "success":
-
-                    False,
-
-                "error":
-
-                    "Authentication Failed",
-
-                "status_code":
-
-                    401,
-
-                "timestamp":
-
-                    datetime.utcnow().isoformat(),
-
+                "success": False,
+                "error": "Authentication Failed",
+                "status_code": 401,
+                "timestamp": datetime.utcnow().isoformat(),
             },
-
         )
 
     # =====================================================
@@ -270,9 +154,7 @@ class AuthenticationMiddleware(
 
     @staticmethod
     def validate_token(
-
         token: str,
-
     ) -> bool:
         """
         Placeholder validation.
@@ -286,17 +168,10 @@ class AuthenticationMiddleware(
         """
 
         return (
-
             len(
-
                 token,
-
             )
-
-            >
-
-            10
-
+            > 10
         )
 
 
@@ -306,29 +181,19 @@ class AuthenticationMiddleware(
 
 
 def get_current_user(
-
     request: Request,
-
 ):
 
     user = getattr(
-
         request.state,
-
         "user",
-
         None,
-
     )
 
     if user is None:
-
         raise HTTPException(
-
             status_code=401,
-
             detail="Authentication required.",
-
         )
 
     return user
@@ -340,23 +205,14 @@ def get_current_user(
 
 
 def is_authenticated(
-
     request: Request,
-
 ) -> bool:
 
     return (
-
         getattr(
-
             request.state,
-
             "user",
-
             None,
-
         )
-
         is not None
-
     )

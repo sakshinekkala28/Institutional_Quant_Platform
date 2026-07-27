@@ -33,36 +33,30 @@ import numpy as np
 import pandas as pd
 
 from config.paths import (
-    SECURITY_MASTER_FILE,
-    PRICE_HISTORY_DIRECTORY,
-    FACTOR_MASTER_FILE,
-    FACTOR_FAILURE_REPORT,
     FACTOR_COVERAGE_REPORT,
+    FACTOR_FAILURE_REPORT,
+    FACTOR_MASTER_FILE,
+    PRICE_HISTORY_DIRECTORY,
+    SECURITY_MASTER_FILE,
 )
-
 from config.settings import (
-    ENGINE_VERSION,
     DATE_FORMAT,
+    ENGINE_VERSION,
     MAX_WORKERS,
     TRADING_DAYS,
 )
-
 from orchestration.models.engine_result import (
     EngineResult,
 )
-
 from orchestration.models.engine_status import (
     EngineStatus,
 )
-
 from utils.file_utils import (
     ensure_parent_directory,
 )
-
 from utils.logger import (
     get_logger,
 )
-
 from utils.timer import (
     Timer,
 )
@@ -79,146 +73,70 @@ logger = get_logger(__name__)
 # MAIN
 # =========================================================
 
+
 def main() -> EngineResult:
     """
     Calculate institutional factor master.
     """
 
     with Timer() as timer:
-
         try:
-
             # =================================================
             # VALIDATE INPUTS
             # =================================================
 
-            logger.info(
-                "Loading Security Master..."
-            )
+            logger.info("Loading Security Master...")
 
             if not SECURITY_MASTER_FILE.exists():
-
-                raise FileNotFoundError(
-                    f"Missing file:\n"
-                    f"{SECURITY_MASTER_FILE}"
-                )
+                raise FileNotFoundError(f"Missing file:\n{SECURITY_MASTER_FILE}")
 
             if not PRICE_HISTORY_DIRECTORY.exists():
-
                 raise FileNotFoundError(
-                    f"Missing directory:\n"
-                    f"{PRICE_HISTORY_DIRECTORY}"
+                    f"Missing directory:\n{PRICE_HISTORY_DIRECTORY}"
                 )
 
             # =================================================
             # LOAD UNIVERSE
             # =================================================
 
-            universe = pd.read_csv(
-                SECURITY_MASTER_FILE
-            )
+            universe = pd.read_csv(SECURITY_MASTER_FILE)
 
             required_columns = [
-
                 "Security_ID",
-
                 "Symbol",
-
                 "Company_Name",
-
                 "Sector",
-
                 "Industry",
-
                 "Market_Cap",
-
             ]
 
             missing = [
-
-                column
-
-                for column in required_columns
-
-                if column not in universe.columns
-
+                column for column in required_columns if column not in universe.columns
             ]
 
             if missing:
+                raise ValueError(f"Missing required columns: {missing}")
 
-                raise ValueError(
+            universe["Symbol"] = universe["Symbol"].astype(str).str.upper().str.strip()
 
-                    "Missing required columns: "
+            universe = universe.drop_duplicates(subset="Symbol").reset_index(drop=True)
 
-                    f"{missing}"
+            symbols = universe["Symbol"].dropna().tolist()
 
-                )
-
-            universe["Symbol"] = (
-
-                universe["Symbol"]
-
-                .astype(str)
-
-                .str.upper()
-
-                .str.strip()
-
-            )
-
-            universe = (
-
-                universe
-
-                .drop_duplicates(
-                    subset="Symbol"
-                )
-
-                .reset_index(
-                    drop=True
-                )
-
-            )
-
-            symbols = (
-
-                universe["Symbol"]
-
-                .dropna()
-
-                .tolist()
-
-            )
-
-            security_lookup = (
-
-                universe
-
-                .set_index(
-                    "Symbol"
-                )
-
-            )
+            security_lookup = universe.set_index("Symbol")
 
             logger.info(
-
                 "Universe Loaded : %s securities",
-
                 f"{len(symbols):,}",
-
             )
 
             # =================================================
             # PREPARE EXECUTION OBJECTS
             # =================================================
 
-            failures: list[
-                dict
-            ] = []
+            failures: list[dict] = []
 
-            records: list[
-                dict
-            ] = []
+            records: list[dict] = []
 
             # =================================================
             # FACTOR CALCULATION FUNCTION
@@ -233,528 +151,238 @@ def main() -> EngineResult:
                 """
 
                 try:
-
-                    price_file = (
-                        PRICE_HISTORY_DIRECTORY
-                        / f"{symbol}.parquet"
-                    )
+                    price_file = PRICE_HISTORY_DIRECTORY / f"{symbol}.parquet"
 
                     if not price_file.exists():
-
                         return None
 
-                    df = pd.read_parquet(
-                        price_file
-                    )
+                    df = pd.read_parquet(price_file)
 
                     required_price_columns = [
-
                         "Close",
                         "High",
                         "Low",
                         "Volume",
-
                     ]
 
                     if not all(
-
-                        column in df.columns
-
-                        for column
-                        in required_price_columns
-
+                        column in df.columns for column in required_price_columns
                     ):
-
                         return None
 
                     if len(df) < TRADING_DAYS:
-
                         return None
 
                     # =========================================
                     # PRICE SERIES
                     # =========================================
 
-                    close = (
+                    close = pd.to_numeric(
+                        df["Close"],
+                        errors="coerce",
+                    ).dropna()
 
-                        pd.to_numeric(
-
-                            df["Close"],
-
-                            errors="coerce",
-
-                        )
-
-                        .dropna()
-
+                    high = pd.to_numeric(
+                        df["High"],
+                        errors="coerce",
                     )
 
-                    high = (
-
-                        pd.to_numeric(
-
-                            df["High"],
-
-                            errors="coerce",
-
-                        )
-
+                    low = pd.to_numeric(
+                        df["Low"],
+                        errors="coerce",
                     )
 
-                    low = (
-
-                        pd.to_numeric(
-
-                            df["Low"],
-
-                            errors="coerce",
-
-                        )
-
-                    )
-
-                    volume = (
-
-                        pd.to_numeric(
-
-                            df["Volume"],
-
-                            errors="coerce",
-
-                        )
-
+                    volume = pd.to_numeric(
+                        df["Volume"],
+                        errors="coerce",
                     )
 
                     if len(close) < TRADING_DAYS:
-
                         return None
 
                     # =========================================
                     # MOMENTUM FACTORS
                     # =========================================
 
-                    momentum_1m = (
+                    momentum_1m = close.iloc[-1] / close.iloc[-21] - 1
 
-                        close.iloc[-1]
+                    momentum_3m = close.iloc[-1] / close.iloc[-63] - 1
 
-                        / close.iloc[-21]
+                    momentum_6m = close.iloc[-1] / close.iloc[-126] - 1
 
-                        - 1
-
-                    )
-
-                    momentum_3m = (
-
-                        close.iloc[-1]
-
-                        / close.iloc[-63]
-
-                        - 1
-
-                    )
-
-                    momentum_6m = (
-
-                        close.iloc[-1]
-
-                        / close.iloc[-126]
-
-                        - 1
-
-                    )
-
-                    momentum_12m = (
-
-                        close.iloc[-1]
-
-                        / close.iloc[-252]
-
-                        - 1
-
-                    )
+                    momentum_12m = close.iloc[-1] / close.iloc[-252] - 1
 
                     # =========================================
                     # SIZE FACTORS
                     # =========================================
 
-                    market_cap = (
-
-                        security_lookup.loc[
-                            symbol,
-                            "Market_Cap",
-                        ]
-
-                    )
+                    market_cap = security_lookup.loc[
+                        symbol,
+                        "Market_Cap",
+                    ]
 
                     log_market_cap = np.log(
-
                         max(
                             market_cap,
                             1,
                         )
-
                     )
 
                     # =========================================
                     # RETURN SERIES
                     # =========================================
 
-                    returns = (
-
-                        close
-
-                        .pct_change()
-
-                        .dropna()
-
-                    )
+                    returns = close.pct_change().dropna()
 
                     # =========================================
                     # DRAWDOWN
                     # =========================================
 
-                    rolling_max = (
+                    rolling_max = close.cummax()
 
-                        close.cummax()
+                    drawdown = (close / rolling_max) - 1
 
-                    )
-
-                    drawdown = (
-
-                        close
-
-                        / rolling_max
-
-                    ) - 1
-
-                    max_drawdown = (
-
-                        drawdown.min()
-
-                    )
+                    max_drawdown = drawdown.min()
 
                     # =========================================
                     # VOLATILITY
                     # =========================================
 
-                    volatility_20d = (
+                    volatility_20d = returns.tail(20).std() * np.sqrt(TRADING_DAYS)
 
-                        returns
-
-                        .tail(20)
-
-                        .std()
-
-                        * np.sqrt(
-                            TRADING_DAYS
-                        )
-
-                    )
-
-                    volatility_60d = (
-
-                        returns
-
-                        .tail(60)
-
-                        .std()
-
-                        * np.sqrt(
-                            TRADING_DAYS
-                        )
-
-                    )
+                    volatility_60d = returns.tail(60).std() * np.sqrt(TRADING_DAYS)
 
                     # =========================================
                     # ATR (Average True Range)
                     # =========================================
 
-                    previous_close = (
-                        close.shift(1)
-                    )
+                    previous_close = close.shift(1)
 
                     true_range = pd.concat(
                         [
                             high - low,
-                            (
-                                high
-                                - previous_close
-                            ).abs(),
-                            (
-                                low
-                                - previous_close
-                            ).abs(),
+                            (high - previous_close).abs(),
+                            (low - previous_close).abs(),
                         ],
                         axis=1,
                     ).max(axis=1)
 
-                    atr_14 = (
-                        true_range
-                        .tail(14)
-                        .mean()
-                    )
+                    atr_14 = true_range.tail(14).mean()
 
                     # =========================================
                     # TREND
                     # =========================================
 
-                    sma_50 = (
-                        close
-                        .tail(50)
-                        .mean()
-                    )
+                    sma_50 = close.tail(50).mean()
 
-                    sma_200 = (
-                        close
-                        .tail(200)
-                        .mean()
-                    )
+                    sma_200 = close.tail(200).mean()
 
-                    distance_sma50 = (
-                        close.iloc[-1]
-                        / sma_50
-                    ) - 1
+                    distance_sma50 = (close.iloc[-1] / sma_50) - 1
 
-                    distance_sma200 = (
-                        close.iloc[-1]
-                        / sma_200
-                    ) - 1
+                    distance_sma200 = (close.iloc[-1] / sma_200) - 1
 
                     # =========================================
                     # 52 WEEK HIGH
                     # =========================================
 
-                    high_52w = (
-                        close
-                        .tail(TRADING_DAYS)
-                        .max()
-                    )
+                    high_52w = close.tail(TRADING_DAYS).max()
 
-                    distance_52w_high = (
-                        close.iloc[-1]
-                        / high_52w
-                    ) - 1
+                    distance_52w_high = (close.iloc[-1] / high_52w) - 1
 
                     # =========================================
                     # LIQUIDITY
                     # =========================================
 
-                    adv_20d = (
-                        close.tail(20)
-                        * volume.tail(20)
-                    ).mean()
+                    adv_20d = (close.tail(20) * volume.tail(20)).mean()
 
-                    dollar_volume = (
-                        adv_20d
-                    )
+                    dollar_volume = adv_20d
 
-                    turnover_ratio = (
-                        volume
-                        .tail(20)
-                        .mean()
-                    )
+                    turnover_ratio = volume.tail(20).mean()
 
                     # =========================================
                     # BUILD FACTOR RECORD
                     # =========================================
 
                     return {
-
                         # =====================================
                         # IDENTIFIERS
                         # =====================================
-
-                        "Security_ID":
-                            security_lookup.loc[
-                                symbol,
-                                "Security_ID",
-                            ],
-
-                        "Symbol":
+                        "Security_ID": security_lookup.loc[
                             symbol,
-
-                        "Company_Name":
-                            security_lookup.loc[
-                                symbol,
-                                "Company_Name",
-                            ],
-
-                        "Sector":
-                            security_lookup.loc[
-                                symbol,
-                                "Sector",
-                            ],
-
-                        "Industry":
-                            security_lookup.loc[
-                                symbol,
-                                "Industry",
-                            ],
-
+                            "Security_ID",
+                        ],
+                        "Symbol": symbol,
+                        "Company_Name": security_lookup.loc[
+                            symbol,
+                            "Company_Name",
+                        ],
+                        "Sector": security_lookup.loc[
+                            symbol,
+                            "Sector",
+                        ],
+                        "Industry": security_lookup.loc[
+                            symbol,
+                            "Industry",
+                        ],
                         # =====================================
                         # PRICE
                         # =====================================
-
-                        "Last_Close":
-                            float(
-                                close.iloc[-1]
-                            ),
-
+                        "Last_Close": float(close.iloc[-1]),
                         # =====================================
                         # SIZE
                         # =====================================
-
-                        "Market_Cap":
-                            float(
-                                market_cap
-                            ),
-
-                        "Log_Market_Cap":
-                            float(
-                                log_market_cap
-                            ),
-
+                        "Market_Cap": float(market_cap),
+                        "Log_Market_Cap": float(log_market_cap),
                         # =====================================
                         # MOMENTUM
                         # =====================================
-
-                        "Momentum_1M":
-                            float(
-                                momentum_1m
-                            ),
-
-                        "Momentum_3M":
-                            float(
-                                momentum_3m
-                            ),
-
-                        "Momentum_6M":
-                            float(
-                                momentum_6m
-                            ),
-
-                        "Momentum_12M":
-                            float(
-                                momentum_12m
-                            ),
-
+                        "Momentum_1M": float(momentum_1m),
+                        "Momentum_3M": float(momentum_3m),
+                        "Momentum_6M": float(momentum_6m),
+                        "Momentum_12M": float(momentum_12m),
                         # =====================================
                         # RISK
                         # =====================================
-
-                        "Volatility_20D":
-                            float(
-                                volatility_20d
-                            ),
-
-                        "Volatility_60D":
-                            float(
-                                volatility_60d
-                            ),
-
-                        "ATR_14":
-                            float(
-                                atr_14
-                            ),
-
-                        "Max_Drawdown_252D":
-                            float(
-                                max_drawdown
-                            ),
-
+                        "Volatility_20D": float(volatility_20d),
+                        "Volatility_60D": float(volatility_60d),
+                        "ATR_14": float(atr_14),
+                        "Max_Drawdown_252D": float(max_drawdown),
                         # =====================================
                         # TREND
                         # =====================================
-
-                        "SMA_50":
-                            float(
-                                sma_50
-                            ),
-
-                        "SMA_200":
-                            float(
-                                sma_200
-                            ),
-
-                        "Distance_SMA50":
-                            float(
-                                distance_sma50
-                            ),
-
-                        "Distance_SMA200":
-                            float(
-                                distance_sma200
-                            ),
-
+                        "SMA_50": float(sma_50),
+                        "SMA_200": float(sma_200),
+                        "Distance_SMA50": float(distance_sma50),
+                        "Distance_SMA200": float(distance_sma200),
                         # =====================================
                         # 52 WEEK HIGH
                         # =====================================
-
-                        "Price_52W_High":
-                            float(
-                                high_52w
-                            ),
-
-                        "Distance_52W_High":
-                            float(
-                                distance_52w_high
-                            ),
-
+                        "Price_52W_High": float(high_52w),
+                        "Distance_52W_High": float(distance_52w_high),
                         # =====================================
                         # LIQUIDITY
                         # =====================================
-
-                        "ADV_20D":
-                            float(
-                                adv_20d
-                            ),
-
-                        "Dollar_Volume":
-                            float(
-                                dollar_volume
-                            ),
-
-                        "Turnover_Ratio":
-                            float(
-                                turnover_ratio
-                            ),
-
+                        "ADV_20D": float(adv_20d),
+                        "Dollar_Volume": float(dollar_volume),
+                        "Turnover_Ratio": float(turnover_ratio),
                         # =====================================
                         # METADATA
                         # =====================================
-
-                        "Factor_Date":
-                            datetime.now().strftime(
-                                DATE_FORMAT
-                            ),
-
-                        "Engine_Version":
-                            ENGINE_VERSION,
-
+                        "Factor_Date": datetime.now().strftime(DATE_FORMAT),
+                        "Engine_Version": ENGINE_VERSION,
                     }
 
                 except Exception as exc:
-
                     failures.append(
                         {
-
-                            "Symbol":
-                                symbol,
-
-                            "Error":
-                                str(exc),
-
-                            "Timestamp":
-                                datetime.now().strftime(
-                                    "%Y-%m-%d %H:%M:%S"
-                                ),
-
+                            "Symbol": symbol,
+                            "Error": str(exc),
+                            "Timestamp": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                         }
                     )
 
                     logger.exception(
-                        "Factor calculation failed "
-                        "for %s",
+                        "Factor calculation failed for %s",
                         symbol,
                     )
 
@@ -764,14 +392,11 @@ def main() -> EngineResult:
             # MULTI-THREADED EXECUTION
             # =================================================
 
-            logger.info(
-                "Calculating factor exposures..."
-            )
+            logger.info("Calculating factor exposures...")
 
             with ThreadPoolExecutor(
                 max_workers=MAX_WORKERS,
             ) as executor:
-
                 results = executor.map(
                     calculate_factors,
                     symbols,
@@ -781,18 +406,10 @@ def main() -> EngineResult:
                     results,
                     start=1,
                 ):
-
                     if result is not None:
+                        records.append(result)
 
-                        records.append(
-                            result
-                        )
-
-                    if (
-                        index % 100 == 0
-                        or index == len(symbols)
-                    ):
-
+                    if index % 100 == 0 or index == len(symbols):
                         logger.info(
                             "Processed %s/%s securities",
                             f"{index:,}",
@@ -809,9 +426,7 @@ def main() -> EngineResult:
                     "Market_Cap",
                     ascending=False,
                 )
-                .reset_index(
-                    drop=True
-                )
+                .reset_index(drop=True)
             )
 
             # =================================================
@@ -822,15 +437,9 @@ def main() -> EngineResult:
                 [
                     {
                         "Factor": column,
-                        "Coverage":
-                            factor_master[
-                                column
-                            ]
-                            .notna()
-                            .sum(),
+                        "Coverage": factor_master[column].notna().sum(),
                     }
-                    for column
-                    in factor_master.columns
+                    for column in factor_master.columns
                 ]
             )
 
@@ -838,17 +447,11 @@ def main() -> EngineResult:
             # ENSURE OUTPUT DIRECTORIES
             # =================================================
 
-            ensure_parent_directory(
-                FACTOR_MASTER_FILE
-            )
+            ensure_parent_directory(FACTOR_MASTER_FILE)
 
-            ensure_parent_directory(
-                FACTOR_FAILURE_REPORT
-            )
+            ensure_parent_directory(FACTOR_FAILURE_REPORT)
 
-            ensure_parent_directory(
-                FACTOR_COVERAGE_REPORT
-            )
+            ensure_parent_directory(FACTOR_COVERAGE_REPORT)
 
             # =================================================
             # SAVE OUTPUTS
@@ -865,10 +468,7 @@ def main() -> EngineResult:
             )
 
             if failures:
-
-                pd.DataFrame(
-                    failures
-                ).to_csv(
+                pd.DataFrame(failures).to_csv(
                     FACTOR_FAILURE_REPORT,
                     index=False,
                 )
@@ -877,17 +477,11 @@ def main() -> EngineResult:
             # EXECUTION REPORT
             # =================================================
 
-            logger.info(
-                "=" * 70
-            )
+            logger.info("=" * 70)
 
-            logger.info(
-                "FACTOR ENGINE COMPLETE"
-            )
+            logger.info("FACTOR ENGINE COMPLETE")
 
-            logger.info(
-                "=" * 70
-            )
+            logger.info("=" * 70)
 
             logger.info(
                 "Universe Size      : %s",
@@ -914,38 +508,19 @@ def main() -> EngineResult:
                 FACTOR_MASTER_FILE,
             )
 
-            logger.info(
-                "=" * 70
-            )
+            logger.info("=" * 70)
 
             # =================================================
             # EXECUTION METADATA
             # =================================================
 
             execution_metadata = {
-
-                "engine_version":
-                    ENGINE_VERSION,
-
-                "universe_size":
-                    len(symbols),
-
-                "records_processed":
-                    len(factor_master),
-
-                "failed_symbols":
-                    len(failures),
-
-                "coverage_columns":
-                    len(
-                        factor_master.columns
-                    ),
-
-                "factor_date":
-                    datetime.now().strftime(
-                        DATE_FORMAT
-                    ),
-
+                "engine_version": ENGINE_VERSION,
+                "universe_size": len(symbols),
+                "records_processed": len(factor_master),
+                "failed_symbols": len(failures),
+                "coverage_columns": len(factor_master.columns),
+                "factor_date": datetime.now().strftime(DATE_FORMAT),
             }
 
             # =================================================
@@ -953,23 +528,13 @@ def main() -> EngineResult:
             # =================================================
 
             return EngineResult(
-
                 engine=ENGINE_NAME,
-
                 status=EngineStatus.SUCCESS,
-
-                records=len(
-                    factor_master
-                ),
-
+                records=len(factor_master),
                 output=FACTOR_MASTER_FILE,
-
                 report=FACTOR_COVERAGE_REPORT,
-
                 duration=timer.elapsed,
-
                 metadata=execution_metadata,
-
             )
 
         # =====================================================
@@ -977,23 +542,15 @@ def main() -> EngineResult:
         # =====================================================
 
         except Exception as exc:
-
-            logger.exception(
-                "Factor Engine failed."
-            )
+            logger.exception("Factor Engine failed.")
 
             return EngineResult(
-
                 engine=ENGINE_NAME,
-
                 status=EngineStatus.FAILED,
-
                 duration=timer.elapsed,
-
                 metadata={
                     "error": str(exc),
                 },
-
             )
 
 
@@ -1002,7 +559,6 @@ def main() -> EngineResult:
 # =========================================================
 
 if __name__ == "__main__":
-
     result = main()
 
     logger.info(

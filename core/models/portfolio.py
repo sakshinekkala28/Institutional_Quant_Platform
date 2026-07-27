@@ -27,18 +27,16 @@ Used By
 
 from __future__ import annotations
 
+from collections import defaultdict
 from dataclasses import dataclass
 
-from collections import defaultdict
+import pandas as pd
 
 from core.models.portfolio_position import PortfolioPosition
-
-import pandas as pd
 
 
 @dataclass(slots=True)
 class Portfolio:
-
     """
     Institutional Portfolio.
     """
@@ -53,251 +51,97 @@ class Portfolio:
     # COLLECTION PROTOCOL
     # =====================================================
 
-    def __iter__(
-
-        self
-
-    ):
-
+    def __iter__(self):
         """
         Iterate over portfolio positions.
         """
 
-        return iter(
+        return iter(self.positions)
 
-            self.positions
-
-        )
-
-    def __reversed__(
-
-        self
-
-    ):
-
+    def __reversed__(self):
         """
         Reverse iteration.
         """
 
-        return reversed(
+        return reversed(self.positions)
 
-            self.positions
-
-        )
-        
-    def __len__(
-
-        self
-
-    ) -> int:
-
+    def __len__(self) -> int:
         """
         Number of holdings.
         """
 
-        return len(
+        return len(self.positions)
 
-            self.positions
-
-        )
-    
-    def __contains__(
-
-        self,
-
-        symbol: str
-
-    ) -> bool:
-
+    def __contains__(self, symbol: str) -> bool:
         """
         Membership test by symbol.
         """
 
-        return any(
+        return any(position.symbol == symbol for position in self)
 
-            position.symbol == symbol
-
-            for position
-
-            in self
-
-        )
-    
-    def __getitem__(
-
-        self,
-
-        key: int | str
-
-    ) -> PortfolioPosition:
-
+    def __getitem__(self, key: int | str) -> PortfolioPosition:
         """
         Access by index or symbol.
         """
 
-        if isinstance(
-
-            key,
-
-            int
-
-        ):
-
+        if isinstance(key, int):
             return self.positions[key]
 
-        if isinstance(
-
-            key,
-
-            str
-
-        ):
-
-            position = self.get(
-
-                key
-
-            )
+        if isinstance(key, str):
+            position = self.get(key)
 
             if position is None:
-
-                raise KeyError(
-
-                    f"Portfolio position '{key}' not found."
-
-                )
+                raise KeyError(f"Portfolio position '{key}' not found.")
 
             return position
 
-        raise TypeError(
+        raise TypeError("Key must be int or str.")
 
-            "Key must be int or str."
-
-        )
-    
-    def __bool__(
-
-        self
-
-    ) -> bool:
-
+    def __bool__(self) -> bool:
         """
         True if portfolio has positions.
         """
 
-        return len(
-
-            self
-
-        ) > 0
+        return len(self) > 0
 
     # =====================================================
     # BASIC
     # =====================================================
 
     @property
-    def holdings(
+    def holdings(self) -> int:
 
-        self
-
-    ) -> int:
-
-        return len(
-
-            self
-
-        )
+        return len(self)
 
     @property
-    def total_weight(
+    def total_weight(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return sum(
-
-            position.weight
-
-            for position
-
-            in self
-
-        )
+        return sum(position.weight for position in self)
 
     @property
-    def average_alpha(
-
-        self
-
-    ) -> float:
+    def average_alpha(self) -> float:
 
         if self.is_empty:
-
             return 0.0
 
-        return (
-
-            sum(
-
-                position.alpha_adjusted
-
-                for position
-
-                in self
-
-            )
-
-            / len(
-
-                self
-
-            )
-
-        )
+        return sum(position.alpha_adjusted for position in self) / len(self)
 
     # =====================================================
     # LOOKUPS
     # =====================================================
 
-    def symbols(
+    def symbols(self) -> list[str]:
 
-        self
+        return [position.symbol for position in self]
 
-    ) -> list[str]:
-
-        return [
-
-            position.symbol
-
-            for position
-
-            in self
-
-        ]
-
-    def exists(
-
-        self,
-
-        symbol: str
-
-    ) -> bool:
+    def exists(self, symbol: str) -> bool:
 
         return symbol in self
 
-    def get(
-
-        self,
-
-        symbol: str
-
-    ) -> PortfolioPosition | None:
+    def get(self, symbol: str) -> PortfolioPosition | None:
 
         for position in self:
-
             if position.symbol == symbol:
-
                 return position
 
         return None
@@ -305,158 +149,67 @@ class Portfolio:
     # =====================================================
     # ANALYTICS
     # =====================================================
-  
-    def top_holdings(
 
-        self,
-
-        n: int = 10
-
-    ) -> list[PortfolioPosition]:
+    def top_holdings(self, n: int = 10) -> list[PortfolioPosition]:
 
         if n < 1:
+            raise ValueError("n must be greater than zero.")
 
-            raise ValueError(
+        return sorted(self, key=lambda position: position.weight, reverse=True)[:n]
 
-                "n must be greater than zero."
+    def sector_weights(self) -> dict[str, float]:
 
-            )
-    
-        return sorted(
-
-            self,
-
-            key=lambda position: position.weight,
-
-            reverse=True
-
-        )[:n]
-
-    def sector_weights(
-
-        self
-
-    ) -> dict[str, float]:
-
-        weights = defaultdict(
-
-            float
-
-        )
+        weights = defaultdict(float)
 
         for position in self:
+            weights[position.sector] += position.weight
 
-            weights[
-
-                position.sector
-
-            ] += position.weight
-
-        return dict(
-
-            weights
-
-        )
+        return dict(weights)
 
     @property
-    def largest_position(
-
-        self
-
-    ) -> PortfolioPosition | None:
+    def largest_position(self) -> PortfolioPosition | None:
 
         if self.is_empty:
-
             return None
 
-        return max(
-
-            self,
-
-            key=lambda position: position.weight
-
-        )
+        return max(self, key=lambda position: position.weight)
 
     @property
-    def largest_sector(
-
-        self
-
-    ) -> tuple[str, float] | None:
+    def largest_sector(self) -> tuple[str, float] | None:
 
         sectors = self.sector_weights()
 
         if not sectors:
-
             return None
 
-        return max(
-
-            sectors.items(),
-
-            key=lambda x: x[1]
-
-        )
+        return max(sectors.items(), key=lambda x: x[1])
 
     @property
-    def is_empty(
-
-        self
-
-    ) -> bool:
-
+    def is_empty(self) -> bool:
         """
         Whether the portfolio contains no positions.
         """
 
-        return len(
-
-            self
-
-        ) == 0
+        return len(self) == 0
 
     @property
-    def position_count(
-
-        self
-
-    ) -> int:
-
+    def position_count(self) -> int:
         """
         Number of positions.
         """
 
-        return len(
+        return len(self)
 
-            self
-
-        )
-        
     # =====================================================
     # VALIDATION
     # =====================================================
 
-    def weight_error(
+    def weight_error(self) -> float:
 
-        self
+        return abs(1.0 - self.total_weight)
 
-    ) -> float:
-
-        return abs(
-
-            1.0
-
-            - self.total_weight
-
-        )
-
-    
     @property
-    def fully_invested(
-
-        self
-
-    ) -> bool:
+    def fully_invested(self) -> bool:
 
         return self.weight_error() < 1e-6
 
@@ -464,96 +217,32 @@ class Portfolio:
     # EXPORT
     # =====================================================
 
-    def to_dataframe(
+    def to_dataframe(self) -> pd.DataFrame:
 
-        self
-
-    ) -> pd.DataFrame:
-
-        return pd.DataFrame(
-
-            [
-
-                position.to_dict()
-
-                for position
-
-                in self
-
-            ]
-
-        )
+        return pd.DataFrame([position.to_dict() for position in self])
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         return {
-
-            "Holdings":
-
-                self.holdings,
-
-            "Total_Weight":
-
-                self.total_weight,
-
-            "Average_Alpha":
-
-                self.average_alpha,
-
-            "Largest_Position":
-
-                (
-
-                    self.largest_position.symbol
-
-                    if self.largest_position
-
-                    else None
-
-                ),
-
-            "Largest_Sector":
-
-                (
-
-                    self.largest_sector
-
-                    if self.largest_sector
-
-                    else None
-
-                )
-
+            "Holdings": self.holdings,
+            "Total_Weight": self.total_weight,
+            "Average_Alpha": self.average_alpha,
+            "Largest_Position": (
+                self.largest_position.symbol if self.largest_position else None
+            ),
+            "Largest_Sector": (self.largest_sector if self.largest_sector else None),
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
+    def __repr__(self) -> str:
 
-        self
-
-    ) -> str:
-
-        return (
-
-            f"Portfolio("
-
-            f"Holdings={self.holdings}, "
-
-            f"Weight={self.total_weight:.2%}"
-
-            ")"
-
-        )
+        return f"Portfolio(Holdings={self.holdings}, Weight={self.total_weight:.2%})"
 
     __str__ = __repr__

@@ -32,8 +32,7 @@ Inherited From
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from backtesting.event import Event
@@ -57,17 +56,9 @@ class OrderEvent(Event):
 
     price: float | None = None
 
-    timestamp: datetime = field(
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
-        default_factory=datetime.utcnow
-
-    )
-
-    metadata: dict = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict = field(default_factory=dict)
 
     __hash__ = None
 
@@ -77,9 +68,7 @@ class OrderEvent(Event):
 
     @property
     def event_type(
-
         self,
-
     ) -> str:
 
         return "ORDER"
@@ -89,58 +78,27 @@ class OrderEvent(Event):
     # =====================================================
 
     def __post_init__(
-
         self,
-
     ) -> None:
 
         if not self.order_id:
-
-            raise ValueError(
-
-                "Order ID cannot be empty."
-
-            )
+            raise ValueError("Order ID cannot be empty.")
 
         if not self.symbol:
-
-            raise ValueError(
-
-                "Symbol cannot be empty."
-
-            )
+            raise ValueError("Symbol cannot be empty.")
 
         self.side = self.side.upper()
 
         if self.side not in {
-
             "BUY",
-
             "SELL",
-
         }:
+            raise ValueError("Side must be BUY or SELL.")
 
-            raise ValueError(
-
-                "Side must be BUY or SELL."
-
-            )
-
-        self.order_type = (
-
-            self.order_type
-
-            .upper()
-
-        )
+        self.order_type = self.order_type.upper()
 
         if self.quantity <= 0:
-
-            raise ValueError(
-
-                "Quantity must be positive."
-
-            )
+            raise ValueError("Quantity must be positive.")
 
     # =====================================================
     # PROPERTIES
@@ -148,95 +106,47 @@ class OrderEvent(Event):
 
     @property
     def is_buy(
-
         self,
-
     ) -> bool:
 
         return self.side == "BUY"
 
     @property
     def is_sell(
-
         self,
-
     ) -> bool:
 
         return self.side == "SELL"
 
     @property
     def notional(
-
         self,
-
     ) -> float:
 
         if self.price is None:
-
             return 0.0
 
-        return (
-
-            self.quantity
-
-            *
-
-            self.price
-
-        )
+        return self.quantity * self.price
 
     # =====================================================
     # EXPORT
     # =====================================================
 
     def to_dict(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Event":
-
-                self.event_type,
-
-            "Timestamp":
-
-                self.timestamp.isoformat(),
-
-            "OrderID":
-
-                self.order_id,
-
-            "Symbol":
-
-                self.symbol,
-
-            "Side":
-
-                self.side,
-
-            "Quantity":
-
-                self.quantity,
-
-            "OrderType":
-
-                self.order_type,
-
-            "Price":
-
-                self.price,
-
-            "Notional":
-
-                self.notional,
-
-            "Metadata":
-
-                self.metadata,
-
+            "Event": self.event_type,
+            "Timestamp": self.timestamp.isoformat(),
+            "OrderID": self.order_id,
+            "Symbol": self.symbol,
+            "Side": self.side,
+            "Quantity": self.quantity,
+            "OrderType": self.order_type,
+            "Price": self.price,
+            "Notional": self.notional,
+            "Metadata": self.metadata,
         }
 
     # =====================================================
@@ -244,37 +154,16 @@ class OrderEvent(Event):
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Order":
-
-                self.order_id,
-
-            "Symbol":
-
-                self.symbol,
-
-            "Side":
-
-                self.side,
-
-            "Quantity":
-
-                self.quantity,
-
-            "Type":
-
-                self.order_type,
-
-            "Notional":
-
-                self.notional,
-
+            "Order": self.order_id,
+            "Symbol": self.symbol,
+            "Side": self.side,
+            "Quantity": self.quantity,
+            "Type": self.order_type,
+            "Notional": self.notional,
         }
 
     # =====================================================
@@ -282,23 +171,11 @@ class OrderEvent(Event):
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
-            f"{self.__class__.__name__}("
-
-            f"{self.side} "
-
-            f"{self.quantity:.2f} "
-
-            f"{self.symbol}"
-
-            f")"
-
+            f"{self.__class__.__name__}({self.side} {self.quantity:.2f} {self.symbol})"
         )
 
     __str__ = __repr__

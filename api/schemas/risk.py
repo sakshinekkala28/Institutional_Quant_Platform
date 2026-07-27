@@ -32,10 +32,7 @@ from datetime import datetime
 
 from pydantic import Field
 
-from api.schemas.base import APIModel
-from api.schemas.base import BaseResponse
-from api.schemas.base import SuccessResponse
-
+from api.schemas.base import APIModel, BaseResponse, SuccessResponse
 
 # ==========================================================
 # VALUE AT RISK
@@ -248,9 +245,7 @@ class RiskSummary(
     concentration: float
 
     updated_at: datetime = Field(
-
         default_factory=datetime.utcnow,
-
     )
 
 
@@ -272,21 +267,13 @@ class RiskReport(
 
     summary: RiskSummary
 
-    factor_exposures: list[
-        FactorExposure
-    ]
+    factor_exposures: list[FactorExposure]
 
-    sector_exposures: list[
-        SectorExposure
-    ]
+    sector_exposures: list[SectorExposure]
 
-    limits: list[
-        RiskLimit
-    ]
+    limits: list[RiskLimit]
 
-    stress_tests: list[
-        StressTestResult
-    ]
+    stress_tests: list[StressTestResult]
 
 
 # ==========================================================
@@ -356,9 +343,7 @@ class FactorExposureResponse(
     Factor exposure response.
     """
 
-    data: list[
-        FactorExposure
-    ]
+    data: list[FactorExposure]
 
 
 class SectorExposureResponse(
@@ -368,9 +353,7 @@ class SectorExposureResponse(
     Sector exposure response.
     """
 
-    data: list[
-        SectorExposure
-    ]
+    data: list[SectorExposure]
 
 
 class StressTestResponse(
@@ -380,9 +363,7 @@ class StressTestResponse(
     Stress test response.
     """
 
-    data: list[
-        StressTestResult
-    ]
+    data: list[StressTestResult]
 
 
 class ScenarioAnalysisResponse(
@@ -392,9 +373,7 @@ class ScenarioAnalysisResponse(
     Scenario analysis response.
     """
 
-    data: list[
-        ScenarioAnalysis
-    ]
+    data: list[ScenarioAnalysis]
 
 
 # ==========================================================
@@ -403,45 +382,24 @@ class ScenarioAnalysisResponse(
 
 
 __all__ = [
-
-    "ValueAtRisk",
-
-    "ExpectedShortfall",
-
-    "Volatility",
-
     "Beta",
-
-    "TrackingError",
-
+    "ExpectedShortfall",
     "FactorExposure",
-
-    "SectorExposure",
-
-    "RiskLimit",
-
-    "StressTestResult",
-
-    "ScenarioAnalysis",
-
-    "RiskSummary",
-
-    "RiskReport",
-
-    "RiskAnalysisRequest",
-
-    "RiskAnalysisResponse",
-
-    "RiskSummaryResponse",
-
-    "RiskReportResponse",
-
     "FactorExposureResponse",
-
-    "SectorExposureResponse",
-
-    "StressTestResponse",
-
+    "RiskAnalysisRequest",
+    "RiskAnalysisResponse",
+    "RiskLimit",
+    "RiskReport",
+    "RiskReportResponse",
+    "RiskSummary",
+    "RiskSummaryResponse",
+    "ScenarioAnalysis",
     "ScenarioAnalysisResponse",
-
+    "SectorExposure",
+    "SectorExposureResponse",
+    "StressTestResponse",
+    "StressTestResult",
+    "TrackingError",
+    "ValueAtRisk",
+    "Volatility",
 ]

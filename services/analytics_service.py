@@ -28,23 +28,17 @@ Responsibilities
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
-
-from threading import Lock
-from threading import RLock
-
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from threading import Lock, RLock
 from typing import Any
-from typing import Callable
-from typing import Dict
-from typing import Optional
 
 from core.services.base_service import BaseService
-
 
 # ============================================================
 # Exceptions
 # ============================================================
+
 
 class AnalyticsError(Exception):
     """Base analytics exception."""
@@ -62,32 +56,24 @@ class AnalyticsEngineNotFound(AnalyticsError):
 # Analytics Profile
 # ============================================================
 
+
 @dataclass(slots=True)
 class AnalyticsProfile:
-
     name: str
 
     description: str
 
-    parameters: Dict[str, Any] = field(
+    parameters: dict[str, Any] = field(default_factory=dict)
 
-        default_factory=dict
-
-    )
-
-    metadata: Dict[str, Any] = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ============================================================
 # Analytics Service
 # ============================================================
 
-class AnalyticsService(BaseService):
 
+class AnalyticsService(BaseService):
     """
     Enterprise Analytics Orchestrator.
     """
@@ -96,87 +82,47 @@ class AnalyticsService(BaseService):
 
     _instance_lock = Lock()
 
-    def __new__(
-
-        cls,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def __new__(cls, *args, **kwargs):
 
         if cls._instance is None:
-
             with cls._instance_lock:
-
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
 
-    def __init__(
+    def __init__(self):
 
-        self
-
-    ):
-
-        if getattr(
-
-            self,
-
-            "_initialized",
-
-            False
-
-        ):
-
+        if getattr(self, "_initialized", False):
             return
 
         super().__init__()
 
         self._lock = RLock()
 
-        self._profiles: Dict[str, AnalyticsProfile] = {}
+        self._profiles: dict[str, AnalyticsProfile] = {}
 
-        self._engines: Dict[str, Callable] = {}
+        self._engines: dict[str, Callable] = {}
 
         self._enabled = True
 
         self._initialized = True
 
-        self._logger.info(
-
-            "AnalyticsService initialized."
-
-        )
+        self._logger.info("AnalyticsService initialized.")
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def enable(
-
-        self
-
-    ):
+    def enable(self):
 
         self._enabled = True
 
-    def disable(
-
-        self
-
-    ):
+    def disable(self):
 
         self._enabled = False
 
-    def enabled(
-
-        self
-
-    ):
+    def enabled(self):
 
         return self._enabled
 
@@ -185,51 +131,31 @@ class AnalyticsService(BaseService):
     # =====================================================
 
     def register(
-
         self,
-
         name: str,
-
         description: str,
-
-        parameters: Optional[Dict[str, Any]] = None,
-
-        metadata: Optional[Dict[str, Any]] = None
-
+        parameters: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Register analytics profile.
         """
 
         profile = AnalyticsProfile(
-
             name=name,
-
             description=description,
-
             parameters=parameters or {},
-
-            metadata=metadata or {}
-
+            metadata=metadata or {},
         )
 
         with self._lock:
-
             self._profiles[name] = profile
 
     # =====================================================
     # Analytics Engine
     # =====================================================
 
-    def register_engine(
-
-        self,
-
-        name: str,
-
-        engine: Callable
-
-    ) -> None:
+    def register_engine(self, name: str, engine: Callable) -> None:
         """
         Register analytics engine.
         """
@@ -240,341 +166,100 @@ class AnalyticsService(BaseService):
     # Retrieval
     # =====================================================
 
-    def get(
-
-        self,
-
-        profile: str
-
-    ) -> AnalyticsProfile:
+    def get(self, profile: str) -> AnalyticsProfile:
 
         if profile not in self._profiles:
+            raise AnalyticsProfileNotFound(profile)
 
-            raise AnalyticsProfileNotFound(
-
-                profile
-
-            )
-
-        return self._profiles[
-
-            profile
-
-        ]
+        return self._profiles[profile]
 
     # =====================================================
     # BaseService
     # =====================================================
 
-    def run(
-
-        self
-
-    ):
+    def run(self):
 
         return self.statistics()
-    
+
     # =====================================================
     # Parameter Management
     # =====================================================
 
-    def update_parameter(
-
-        self,
-
-        profile: str,
-
-        name: str,
-
-        value: Any
-
-    ) -> None:
+    def update_parameter(self, profile: str, name: str, value: Any) -> None:
         """
         Update analytics parameter.
         """
 
-        self.get(
+        self.get(profile).parameters[name] = value
 
-            profile
-
-        ).parameters[name] = value
-
-    def parameter(
-
-        self,
-
-        profile: str,
-
-        name: str,
-
-        default: Any = None
-
-    ) -> Any:
+    def parameter(self, profile: str, name: str, default: Any = None) -> Any:
         """
         Return analytics parameter.
         """
 
-        return self.get(
-
-            profile
-
-        ).parameters.get(
-
-            name,
-
-            default
-
-        )
+        return self.get(profile).parameters.get(name, default)
 
     # =====================================================
     # Engine Execution
     # =====================================================
 
-    def execute(
-
-        self,
-
-        profile: str,
-
-        engine: str,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def execute(self, profile: str, engine: str, *args, **kwargs):
         """
         Execute analytics engine.
         """
 
         if engine not in self._engines:
+            raise AnalyticsEngineNotFound(engine)
 
-            raise AnalyticsEngineNotFound(
+        analytics_engine = self._engines[engine]
 
-                engine
-
-            )
-
-        analytics_engine = self._engines[
-
-            engine
-
-        ]
-
-        return analytics_engine(
-
-            profile=self.get(
-
-                profile
-
-            ),
-
-            *args,
-
-            **kwargs
-
-        )
+        return analytics_engine(profile=self.get(profile), *args, **kwargs)
 
     # =====================================================
     # Standard Analytics
     # =====================================================
 
-    def factor_analysis(
+    def factor_analysis(self, profile: str, *args, **kwargs):
 
-        self,
+        return self.execute(profile, "factor_analysis", *args, **kwargs)
 
-        profile: str,
+    def attribution(self, profile: str, *args, **kwargs):
 
-        *args,
+        return self.execute(profile, "attribution", *args, **kwargs)
 
-        **kwargs
+    def forecasting(self, profile: str, *args, **kwargs):
 
-    ):
+        return self.execute(profile, "forecasting", *args, **kwargs)
 
-        return self.execute(
+    def regime_detection(self, profile: str, *args, **kwargs):
 
-            profile,
+        return self.execute(profile, "regime_detection", *args, **kwargs)
 
-            "factor_analysis",
+    def correlation_analysis(self, profile: str, *args, **kwargs):
 
-            *args,
+        return self.execute(profile, "correlation_analysis", *args, **kwargs)
 
-            **kwargs
+    def optimization_diagnostics(self, profile: str, *args, **kwargs):
 
-        )
+        return self.execute(profile, "optimization_diagnostics", *args, **kwargs)
 
-    def attribution(
+    def risk_analysis(self, profile: str, *args, **kwargs):
 
-        self,
-
-        profile: str,
-
-        *args,
-
-        **kwargs
-
-    ):
-
-        return self.execute(
-
-            profile,
-
-            "attribution",
-
-            *args,
-
-            **kwargs
-
-        )
-
-    def forecasting(
-
-        self,
-
-        profile: str,
-
-        *args,
-
-        **kwargs
-
-    ):
-
-        return self.execute(
-
-            profile,
-
-            "forecasting",
-
-            *args,
-
-            **kwargs
-
-        )
-
-    def regime_detection(
-
-        self,
-
-        profile: str,
-
-        *args,
-
-        **kwargs
-
-    ):
-
-        return self.execute(
-
-            profile,
-
-            "regime_detection",
-
-            *args,
-
-            **kwargs
-
-        )
-
-    def correlation_analysis(
-
-        self,
-
-        profile: str,
-
-        *args,
-
-        **kwargs
-
-    ):
-
-        return self.execute(
-
-            profile,
-
-            "correlation_analysis",
-
-            *args,
-
-            **kwargs
-
-        )
-
-    def optimization_diagnostics(
-
-        self,
-
-        profile: str,
-
-        *args,
-
-        **kwargs
-
-    ):
-
-        return self.execute(
-
-            profile,
-
-            "optimization_diagnostics",
-
-            *args,
-
-            **kwargs
-
-        )
-
-    def risk_analysis(
-
-        self,
-
-        profile: str,
-
-        *args,
-
-        **kwargs
-
-    ):
-
-        return self.execute(
-
-            profile,
-
-            "risk_analysis",
-
-            *args,
-
-            **kwargs
-
-        )
+        return self.execute(profile, "risk_analysis", *args, **kwargs)
 
     # =====================================================
     # Validation
     # =====================================================
 
-    def validate(
-
-        self,
-
-        profile: str
-
-    ) -> bool:
+    def validate(self, profile: str) -> bool:
         """
         Validate analytics profile.
         """
 
-        analytics_profile = self.get(
-
-            profile
-
-        )
+        analytics_profile = self.get(profile)
 
         if not analytics_profile.name:
-
-            raise AnalyticsError(
-
-                "Analytics profile name missing."
-
-            )
+            raise AnalyticsError("Analytics profile name missing.")
 
         return True
 
@@ -582,149 +267,64 @@ class AnalyticsService(BaseService):
     # Statistics
     # =====================================================
 
-    def statistics(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """
         Analytics statistics.
         """
 
         return {
-
-            "profiles":
-
-                len(
-
-                    self._profiles
-
-                ),
-
-            "engines":
-
-                len(
-
-                    self._engines
-
-                ),
-
-            "enabled":
-
-                self._enabled
-
+            "profiles": len(self._profiles),
+            "engines": len(self._engines),
+            "enabled": self._enabled,
         }
 
     # =====================================================
     # Metadata
     # =====================================================
 
-    def metadata(
-
-        self,
-
-        profile: str
-
-    ) -> Dict[str, Any]:
+    def metadata(self, profile: str) -> dict[str, Any]:
         """
         Return analytics metadata.
         """
 
-        return dict(
+        return dict(self.get(profile).metadata)
 
-            self.get(
-
-                profile
-
-            ).metadata
-
-        )
-
-    def update_metadata(
-
-        self,
-
-        profile: str,
-
-        **kwargs
-
-    ) -> None:
+    def update_metadata(self, profile: str, **kwargs) -> None:
         """
         Update analytics metadata.
         """
 
-        self.get(
-
-            profile
-
-        ).metadata.update(
-
-            kwargs
-
-        )
+        self.get(profile).metadata.update(kwargs)
 
     # =====================================================
     # Registry
     # =====================================================
 
-    def exists(
-
-        self,
-
-        profile: str
-
-    ) -> bool:
+    def exists(self, profile: str) -> bool:
         """
         Check whether profile exists.
         """
 
         return profile in self._profiles
 
-    def names(
-
-        self
-
-    ) -> list[str]:
+    def names(self) -> list[str]:
         """
         Return registered analytics profiles.
         """
 
-        return sorted(
+        return sorted(self._profiles.keys())
 
-            self._profiles.keys()
-
-        )
-
-    def remove(
-
-        self,
-
-        profile: str
-
-    ) -> None:
+    def remove(self, profile: str) -> None:
         """
         Remove analytics profile.
         """
 
         if profile not in self._profiles:
+            raise AnalyticsProfileNotFound(profile)
 
-            raise AnalyticsProfileNotFound(
+        del self._profiles[profile]
 
-                profile
-
-            )
-
-        del self._profiles[
-
-            profile
-
-        ]
-
-    def clear(
-
-        self
-
-    ) -> None:
+    def clear(self) -> None:
         """
         Clear analytics profiles and engines.
         """
@@ -737,188 +337,77 @@ class AnalyticsService(BaseService):
     # Snapshot
     # =====================================================
 
-    def snapshot(
-
-        self,
-
-        profile: str
-
-    ) -> Dict[str, Any]:
+    def snapshot(self, profile: str) -> dict[str, Any]:
         """
         Analytics profile snapshot.
         """
 
-        analytics = self.get(
-
-            profile
-
-        )
+        analytics = self.get(profile)
 
         return {
-
-            "name":
-
-                analytics.name,
-
-            "description":
-
-                analytics.description,
-
-            "parameters":
-
-                dict(
-
-                    analytics.parameters
-
-                ),
-
-            "metadata":
-
-                dict(
-
-                    analytics.metadata
-
-                )
-
+            "name": analytics.name,
+            "description": analytics.description,
+            "parameters": dict(analytics.parameters),
+            "metadata": dict(analytics.metadata),
         }
 
     # =====================================================
     # Health
     # =====================================================
 
-    def health(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """
         Analytics service health.
         """
 
         return {
-
-            "status":
-
-                "HEALTHY"
-
-                if self._enabled
-
-                else "DISABLED",
-
-            "enabled":
-
-                self._enabled,
-
-            "profiles":
-
-                len(
-
-                    self._profiles
-
-                ),
-
-            "engines":
-
-                len(
-
-                    self._engines
-
-                )
-
+            "status": "HEALTHY" if self._enabled else "DISABLED",
+            "enabled": self._enabled,
+            "profiles": len(self._profiles),
+            "engines": len(self._engines),
         }
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def startup(
-
-        self
-
-    ) -> None:
+    def startup(self) -> None:
 
         self.enable()
 
-        self._logger.info(
+        self._logger.info("AnalyticsService started.")
 
-            "AnalyticsService started."
-
-        )
-
-    def shutdown(
-
-        self
-
-    ) -> None:
+    def shutdown(self) -> None:
 
         self.clear()
 
         self.disable()
 
-        self._logger.info(
-
-            "AnalyticsService shutdown."
-
-        )
+        self._logger.info("AnalyticsService shutdown.")
 
     # =====================================================
     # Magic Methods
     # =====================================================
 
-    def __contains__(
+    def __contains__(self, profile: str) -> bool:
 
-        self,
+        return self.exists(profile)
 
-        profile: str
+    def __len__(self) -> int:
 
-    ) -> bool:
+        return len(self._profiles)
 
-        return self.exists(
+    def __iter__(self):
 
-            profile
+        return iter(self._profiles.items())
 
-        )
-
-    def __len__(
-
-        self
-
-    ) -> int:
-
-        return len(
-
-            self._profiles
-
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self._profiles.items()
-
-        )
-
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}"
-
             f"(profiles={len(self)}, "
-
             f"engines={len(self._engines)}, "
-
             f"enabled={self._enabled})"
-
         )
 
 

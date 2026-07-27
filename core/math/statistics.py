@@ -32,466 +32,191 @@ import numpy as np
 
 from core.constants import RiskConstants
 
-
 # ==========================================================
 # MEAN
 # ==========================================================
 
-def mean(
 
-    values: np.ndarray
-
-) -> float:
+def mean(values: np.ndarray) -> float:
     """
     Arithmetic mean.
     """
 
-    values = np.asarray(
-
-        values,
-
-        dtype=np.float64
-
-    )
+    values = np.asarray(values, dtype=np.float64)
 
     if values.size == 0:
-
         return 0.0
 
-    return float(
-
-        np.mean(
-
-            values
-
-        )
-
-    )
+    return float(np.mean(values))
 
 
 # ==========================================================
 # MEDIAN
 # ==========================================================
 
-def median(
 
-    values: np.ndarray
-
-) -> float:
+def median(values: np.ndarray) -> float:
     """
     Median.
     """
 
-    values = np.asarray(
-
-        values,
-
-        dtype=np.float64
-
-    )
+    values = np.asarray(values, dtype=np.float64)
 
     if values.size == 0:
-
         return 0.0
 
-    return float(
-
-        np.median(
-
-            values
-
-        )
-
-    )
+    return float(np.median(values))
 
 
 # ==========================================================
 # VARIANCE
 # ==========================================================
 
-def variance(
 
-    values: np.ndarray,
-
-    ddof: int = 1
-
-) -> float:
+def variance(values: np.ndarray, ddof: int = 1) -> float:
     """
     Sample variance.
     """
 
-    values = np.asarray(
-
-        values,
-
-        dtype=np.float64
-
-    )
+    values = np.asarray(values, dtype=np.float64)
 
     if values.size < 2:
-
         return 0.0
 
-    return float(
-
-        np.var(
-
-            values,
-
-            ddof=ddof
-
-        )
-
-    )
+    return float(np.var(values, ddof=ddof))
 
 
 # ==========================================================
 # STANDARD DEVIATION
 # ==========================================================
 
-def standard_deviation(
 
-    values: np.ndarray,
-
-    ddof: int = 1
-
-) -> float:
+def standard_deviation(values: np.ndarray, ddof: int = 1) -> float:
     """
     Sample standard deviation.
     """
 
-    values = np.asarray(
-
-        values,
-
-        dtype=np.float64
-
-    )
+    values = np.asarray(values, dtype=np.float64)
 
     if values.size < 2:
-
         return 0.0
 
-    return float(
-
-        np.std(
-
-            values,
-
-            ddof=ddof
-
-        )
-
-    )
+    return float(np.std(values, ddof=ddof))
 
 
 # ==========================================================
 # COVARIANCE
 # ==========================================================
 
-def covariance(
 
-    x: np.ndarray,
-
-    y: np.ndarray
-
-) -> float:
+def covariance(x: np.ndarray, y: np.ndarray) -> float:
     """
     Sample covariance.
     """
 
-    x = np.asarray(
+    x = np.asarray(x, dtype=np.float64)
 
-        x,
-
-        dtype=np.float64
-
-    )
-
-    y = np.asarray(
-
-        y,
-
-        dtype=np.float64
-
-    )
+    y = np.asarray(y, dtype=np.float64)
 
     if x.size != y.size:
-
-        raise ValueError(
-
-            "Arrays must have equal length."
-
-        )
+        raise ValueError("Arrays must have equal length.")
 
     if x.size < 2:
-
         return 0.0
 
-    return float(
-
-        np.cov(
-
-            x,
-
-            y,
-
-            ddof=1
-
-        )[0, 1]
-
-    )
+    return float(np.cov(x, y, ddof=1)[0, 1])
 
 
 # ==========================================================
 # CORRELATION
 # ==========================================================
 
-def correlation(
 
-    x: np.ndarray,
-
-    y: np.ndarray
-
-) -> float:
+def correlation(x: np.ndarray, y: np.ndarray) -> float:
     """
     Pearson correlation coefficient.
     """
 
-    x = np.asarray(
+    x = np.asarray(x, dtype=np.float64)
 
-        x,
-
-        dtype=np.float64
-
-    )
-
-    y = np.asarray(
-
-        y,
-
-        dtype=np.float64
-
-    )
+    y = np.asarray(y, dtype=np.float64)
 
     if x.size != y.size:
-
-        raise ValueError(
-
-            "Arrays must have equal length."
-
-        )
+        raise ValueError("Arrays must have equal length.")
 
     if x.size < 2:
-
         return 0.0
 
-    std_x = standard_deviation(
+    std_x = standard_deviation(x)
 
-        x
+    std_y = standard_deviation(y)
 
-    )
-
-    std_y = standard_deviation(
-
-        y
-
-    )
-
-    if (
-
-        std_x
-
-        <= RiskConstants.EPSILON
-
-        or
-
-        std_y
-
-        <= RiskConstants.EPSILON
-
-    ):
-
+    if std_x <= RiskConstants.EPSILON or std_y <= RiskConstants.EPSILON:
         return 0.0
 
-    return float(
-
-        np.corrcoef(
-
-            x,
-
-            y
-
-        )[0, 1]
-
-    )
+    return float(np.corrcoef(x, y)[0, 1])
 
 
 # ==========================================================
 # ROOT MEAN SQUARE
 # ==========================================================
 
-def root_mean_square(
 
-    values: np.ndarray
-
-) -> float:
+def root_mean_square(values: np.ndarray) -> float:
     """
     Root mean square.
     """
 
-    values = np.asarray(
-
-        values,
-
-        dtype=np.float64
-
-    )
+    values = np.asarray(values, dtype=np.float64)
 
     if values.size == 0:
-
         return 0.0
 
-    return float(
-
-        np.sqrt(
-
-            np.mean(
-
-                values ** 2
-
-            )
-
-        )
-
-    )
+    return float(np.sqrt(np.mean(values**2)))
 
 
 # ==========================================================
 # NORMALIZATION
 # ==========================================================
 
-def normalize(
 
-    values: np.ndarray
-
-) -> np.ndarray:
+def normalize(values: np.ndarray) -> np.ndarray:
     """
     Normalize values to [0,1].
     """
 
-    values = np.asarray(
-
-        values,
-
-        dtype=np.float64
-
-    )
+    values = np.asarray(values, dtype=np.float64)
 
     if values.size == 0:
-
         return values
 
-    minimum = float(
+    minimum = float(np.min(values))
 
-        np.min(
+    maximum = float(np.max(values))
 
-            values
-
-        )
-
-    )
-
-    maximum = float(
-
-        np.max(
-
-            values
-
-        )
-
-    )
-
-    spread = (
-
-        maximum
-
-        -
-
-        minimum
-
-    )
+    spread = maximum - minimum
 
     if spread <= RiskConstants.EPSILON:
+        return np.zeros_like(values, dtype=np.float64)
 
-        return np.zeros_like(
-
-            values,
-
-            dtype=np.float64
-
-        )
-
-    return (
-
-        values
-
-        -
-
-        minimum
-
-    ) / spread
+    return (values - minimum) / spread
 
 
 # ==========================================================
 # STANDARDIZATION
 # ==========================================================
 
-def standardize(
 
-    values: np.ndarray
-
-) -> np.ndarray:
+def standardize(values: np.ndarray) -> np.ndarray:
     """
     Z-score standardization.
     """
 
-    values = np.asarray(
+    values = np.asarray(values, dtype=np.float64)
 
-        values,
-
-        dtype=np.float64
-
-    )
-
-    sigma = standard_deviation(
-
-        values,
-
-        ddof=0
-
-    )
+    sigma = standard_deviation(values, ddof=0)
 
     if sigma <= RiskConstants.EPSILON:
+        return np.zeros_like(values, dtype=np.float64)
 
-        return np.zeros_like(
-
-            values,
-
-            dtype=np.float64
-
-        )
-
-    return (
-
-        values
-
-        -
-
-        mean(
-
-            values
-
-        )
-
-    ) / sigma
+    return (values - mean(values)) / sigma

@@ -51,18 +51,11 @@ class EquilibriumReturns:
     # INITIALIZATION
     # =====================================================
 
-    def __post_init__(
-
-        self
-
-    ) -> None:
+    def __post_init__(self) -> None:
 
         self.values = np.asarray(
-
             self.values,
-
             dtype=np.float64,
-
         )
 
         self.validate()
@@ -71,348 +64,149 @@ class EquilibriumReturns:
     # COLLECTION PROTOCOL
     # =====================================================
 
-    def __len__(
+    def __len__(self) -> int:
 
-        self
+        return len(self.values)
 
-    ) -> int:
+    def __iter__(self):
 
-        return len(
-
-            self.values
-
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self.values
-
-        )
+        return iter(self.values)
 
     def __contains__(
-
         self,
-
         symbol: str,
-
     ) -> bool:
 
         return symbol in self.symbols
 
     def __getitem__(
-
         self,
-
         key: int | str,
-
     ) -> float:
 
         if isinstance(
-
             key,
-
             int,
-
         ):
-
-            return float(
-
-                self.values[key]
-
-            )
+            return float(self.values[key])
 
         if isinstance(
-
             key,
-
             str,
-
         ):
-
             try:
-
-                index = self.symbols.index(
-
-                    key
-
-                )
+                index = self.symbols.index(key)
 
             except ValueError as exc:
+                raise KeyError(f"Unknown symbol '{key}'.") from exc
 
-                raise KeyError(
+            return float(self.values[index])
 
-                    f"Unknown symbol '{key}'."
-
-                ) from exc
-
-            return float(
-
-                self.values[index]
-
-            )
-
-        raise TypeError(
-
-            "Key must be int or str."
-
-        )
+        raise TypeError("Key must be int or str.")
 
     # =====================================================
     # PROPERTIES
     # =====================================================
 
     @property
-    def size(
+    def size(self) -> int:
 
-        self
-
-    ) -> int:
-
-        return len(
-
-            self
-
-        )
+        return len(self)
 
     @property
-    def mean(
+    def mean(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return float(
-
-            np.mean(
-
-                self.values
-
-            )
-
-        )
+        return float(np.mean(self.values))
 
     @property
-    def minimum(
+    def minimum(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return float(
-
-            np.min(
-
-                self.values
-
-            )
-
-        )
+        return float(np.min(self.values))
 
     @property
-    def maximum(
+    def maximum(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return float(
-
-            np.max(
-
-                self.values
-
-            )
-
-        )
+        return float(np.max(self.values))
 
     # =====================================================
     # VALIDATION
     # =====================================================
 
-    def validate(
+    def validate(self) -> None:
 
-        self
+        if len(self.symbols) != len(self.values):
+            raise ValueError("Symbols and equilibrium returns size mismatch.")
 
-    ) -> None:
+        if np.isnan(self.values).any():
+            raise ValueError("Equilibrium returns contain NaN.")
 
-        if len(
-
-            self.symbols
-
-        ) != len(
-
-            self.values
-
-        ):
-
-            raise ValueError(
-
-                "Symbols and equilibrium returns size mismatch."
-
-            )
-
-        if np.isnan(
-
-            self.values
-
-        ).any():
-
-            raise ValueError(
-
-                "Equilibrium returns contain NaN."
-
-            )
-
-        if np.isinf(
-
-            self.values
-
-        ).any():
-
-            raise ValueError(
-
-                "Equilibrium returns contain infinite values."
-
-            )
+        if np.isinf(self.values).any():
+            raise ValueError("Equilibrium returns contain infinite values.")
 
         if self.risk_aversion <= 0.0:
-
-            raise ValueError(
-
-                "Risk aversion must be positive."
-
-            )
+            raise ValueError("Risk aversion must be positive.")
 
     # =====================================================
     # EXPORT
     # =====================================================
 
-    def to_numpy(
-
-        self
-
-    ) -> np.ndarray:
+    def to_numpy(self) -> np.ndarray:
 
         return self.values.copy()
 
-    def to_series(
-
-        self
-
-    ) -> pd.Series:
+    def to_series(self) -> pd.Series:
 
         return pd.Series(
-
             self.values,
-
             index=self.symbols,
-
             name="Equilibrium Return",
-
         )
 
-    def to_dataframe(
-
-        self
-
-    ) -> pd.DataFrame:
+    def to_dataframe(self) -> pd.DataFrame:
 
         return pd.DataFrame(
-
             {
-
                 "Symbol": self.symbols,
-
                 "Equilibrium_Return": self.values,
-
             }
-
         )
 
-    def to_dict(
-
-        self
-
-    ) -> dict[str, float]:
+    def to_dict(self) -> dict[str, float]:
 
         return {
-
             symbol: float(value)
-
-            for symbol, value
-
-            in zip(
-
+            for symbol, value in zip(
                 self.symbols,
-
                 self.values,
-
                 strict=True,
-
             )
-
         }
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         return {
-
-            "Assets":
-
-                self.size,
-
-            "Mean":
-
-                self.mean,
-
-            "Minimum":
-
-                self.minimum,
-
-            "Maximum":
-
-                self.maximum,
-
-            "Risk_Aversion":
-
-                self.risk_aversion,
-
+            "Assets": self.size,
+            "Mean": self.mean,
+            "Minimum": self.minimum,
+            "Maximum": self.maximum,
+            "Risk_Aversion": self.risk_aversion,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Assets={self.size}, "
-
             f"RiskAversion={self.risk_aversion:.2f}"
-
             f")"
-
         )
 
     __str__ = __repr__

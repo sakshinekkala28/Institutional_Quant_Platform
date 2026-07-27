@@ -7,76 +7,36 @@
 from __future__ import annotations
 
 from datetime import datetime
-from pathlib import Path
-
 import json
 import logging
+from pathlib import Path
 import traceback
+
 import numpy as np
-import pandas as pd
 
 # ==========================================================
 # CORE ENGINES
 # ==========================================================
-
-from alpha.signal_engine import (
-    SignalEngine
-)
-
-from portfolio.portfolio_engine import (
-    PortfolioEngine
-)
-
-from risk.risk_engine import (
-    RiskEngine
-)
-
-from execution.trade_engine import (
-    TradeEngine
-)
-
-from research.backtest_engine import (
-    BacktestEngine
-)
-
-from reporting.reporting_engine import (
-    ReportingEngine
-)
+from alpha.signal_engine import SignalEngine
 
 # ==========================================================
 # PLATFORM SERVICES
 # ==========================================================
-
-from core.audit_logger import (
-    AuditLogger
-)
-
-from telemetry.telemetry import (
-    TelemetryManager
-)
-
-from mlflow_track.mlflow_manager import (
-    MLflowManager
-)
+from core.audit_logger import AuditLogger
+from execution.trade_engine import TradeEngine
+from mlflow_track.mlflow_manager import MLflowManager
+from portfolio.portfolio_engine import PortfolioEngine
+from reporting.reporting_engine import ReportingEngine
+from research.backtest_engine import BacktestEngine
+from risk.risk_engine import RiskEngine
+from telemetry.telemetry import TelemetryManager
 
 # ==========================================================
 # LOGGING CONFIG
 # ==========================================================
 
 logging.basicConfig(
-
-    level=logging.INFO,
-
-    format=(
-
-        "%(asctime)s | "
-
-        "%(levelname)s | "
-
-        "%(message)s"
-
-    )
-
+    level=logging.INFO, format=("%(asctime)s | %(levelname)s | %(message)s")
 )
 
 logger = logging.getLogger(__name__)
@@ -85,8 +45,8 @@ logger = logging.getLogger(__name__)
 # MASTER REBALANCE ENGINE
 # ==========================================================
 
-class MasterRebalanceEngine:
 
+class MasterRebalanceEngine:
     def __init__(self):
 
         self.start_time = datetime.now()
@@ -123,96 +83,38 @@ class MasterRebalanceEngine:
         # Metadata
         # -----------------------------------------
 
-        self.run_id = (
+        self.run_id = datetime.now().strftime("%Y%m%d_%H%M%S")
 
-            datetime.now()
+        logger.info("=" * 70)
 
-            .strftime(
+        logger.info("INSTITUTIONAL QUANT PLATFORM STARTED")
 
-                "%Y%m%d_%H%M%S"
+        logger.info(f"RUN ID: {self.run_id}")
 
-            )
-
-        )
-
-        logger.info(
-
-            "=" * 70
-
-        )
-
-        logger.info(
-
-            "INSTITUTIONAL QUANT PLATFORM STARTED"
-
-        )
-
-        logger.info(
-
-            f"RUN ID: {self.run_id}"
-
-        )
-
-        logger.info(
-
-            "=" * 70
-
-        )
+        logger.info("=" * 70)
 
     # ======================================================
     # AUDIT EVENT
     # ======================================================
 
-    def log_event(
-
-        self,
-
-        event,
-
-        details=None
-
-    ):
+    def log_event(self, event, details=None):
 
         try:
-
-            self.audit_logger.log(
-
-                event=event,
-
-                details=details
-
-            )
+            self.audit_logger.log(event=event, details=details)
 
         except Exception:
-
             pass
 
     # ======================================================
     # TELEMETRY
     # ======================================================
 
-    def track_metric(
-
-        self,
-
-        metric,
-
-        value
-
-    ):
+    def track_metric(self, metric, value):
 
         try:
-
-            self.telemetry.track_metric(
-
-                metric,
-
-                value
-
-            )
+            self.telemetry.track_metric(metric, value)
 
         except Exception:
-
             pass
 
     # ======================================================
@@ -221,97 +123,37 @@ class MasterRebalanceEngine:
 
     def load_data(self):
 
-        logger.info(
-
-            "Loading Market Data"
-
-        )
+        logger.info("Loading Market Data")
 
         signal_engine = SignalEngine()
 
-        self.data = (
+        self.data = signal_engine.load_data()
 
-            signal_engine
+        self.log_event("DATA_LOAD_COMPLETE")
 
-            .load_data()
-
-        )
-
-        self.log_event(
-
-            "DATA_LOAD_COMPLETE"
-
-        )
-
-        logger.info(
-
-            "Data Loaded Successfully"
-
-        )
+        logger.info("Data Loaded Successfully")
 
         return self.data
-    
+
     # ======================================================
     # BUILD ALPHA UNIVERSE
     # ======================================================
 
     def build_alpha_universe(self):
 
-        logger.info(
-
-            "Building Alpha Universe"
-
-        )
+        logger.info("Building Alpha Universe")
 
         signal_engine = SignalEngine()
 
-        self.alpha_universe = (
+        self.alpha_universe = signal_engine.build_alpha_universe(self.data)
 
-            signal_engine
+        universe_size = len(self.alpha_universe)
 
-            .build_alpha_universe(
+        self.track_metric("universe_size", universe_size)
 
-                self.data
+        self.log_event("ALPHA_UNIVERSE_COMPLETE", {"universe_size": universe_size})
 
-            )
-
-        )
-
-        universe_size = len(
-
-            self.alpha_universe
-
-        )
-
-        self.track_metric(
-
-            "universe_size",
-
-            universe_size
-
-        )
-
-        self.log_event(
-
-            "ALPHA_UNIVERSE_COMPLETE",
-
-            {
-
-                "universe_size":
-
-                universe_size
-
-            }
-
-        )
-
-        logger.info(
-
-            f"Alpha Universe Size: "
-
-            f"{universe_size:,}"
-
-        )
+        logger.info(f"Alpha Universe Size: {universe_size:,}")
 
         return self.alpha_universe
 
@@ -321,67 +163,24 @@ class MasterRebalanceEngine:
 
     def validate_universe(self):
 
-        logger.info(
-
-            "Validating Alpha Universe"
-
-        )
+        logger.info("Validating Alpha Universe")
 
         if self.alpha_universe is None:
+            raise ValueError("Alpha Universe Not Built")
 
-            raise ValueError(
+        if len(self.alpha_universe) == 0:
+            raise ValueError("Empty Alpha Universe")
 
-                "Alpha Universe Not Built"
-
-            )
-
-        if len(
-
-            self.alpha_universe
-
-        ) == 0:
-
-            raise ValueError(
-
-                "Empty Alpha Universe"
-
-            )
-
-        required_columns = [
-
-            "Symbol",
-
-            "Selection_Score"
-
-        ]
+        required_columns = ["Symbol", "Selection_Score"]
 
         missing = [
-
-            col
-
-            for col
-
-            in required_columns
-
-            if col
-
-            not in self.alpha_universe.columns
-
+            col for col in required_columns if col not in self.alpha_universe.columns
         ]
 
         if missing:
+            raise ValueError(f"Missing Columns: {missing}")
 
-            raise ValueError(
-
-                f"Missing Columns: {missing}"
-
-            )
-
-        logger.info(
-
-            "Universe Validation Passed"
-
-        )
+        logger.info("Universe Validation Passed")
 
         return True
 
@@ -391,97 +190,26 @@ class MasterRebalanceEngine:
 
     def construct_portfolio(self):
 
-        logger.info(
+        logger.info("Constructing Portfolio")
 
-            "Constructing Portfolio"
+        portfolio_engine = PortfolioEngine(target_holdings=40)
 
-        )
+        self.portfolio = portfolio_engine.construct(self.alpha_universe)
 
-        portfolio_engine = (
+        holdings = len(self.portfolio)
 
-            PortfolioEngine(
+        weight_sum = self.portfolio["Target_Weight"].sum()
 
-                target_holdings=40
+        self.track_metric("holdings", holdings)
 
-            )
-
-        )
-
-        self.portfolio = (
-
-            portfolio_engine
-
-            .construct(
-
-                self.alpha_universe
-
-            )
-
-        )
-
-        holdings = len(
-
-            self.portfolio
-
-        )
-
-        weight_sum = (
-
-            self.portfolio[
-
-                "Target_Weight"
-
-            ]
-
-            .sum()
-
-        )
-
-        self.track_metric(
-
-            "holdings",
-
-            holdings
-
-        )
-
-        self.track_metric(
-
-            "weight_sum",
-
-            weight_sum
-
-        )
+        self.track_metric("weight_sum", weight_sum)
 
         self.log_event(
-
             "PORTFOLIO_CONSTRUCTED",
-
-            {
-
-                "holdings":
-
-                holdings,
-
-                "weight_sum":
-
-                float(
-
-                    weight_sum
-
-                )
-
-            }
-
+            {"holdings": holdings, "weight_sum": float(weight_sum)},
         )
 
-        logger.info(
-
-            f"Portfolio Holdings: "
-
-            f"{holdings}"
-
-        )
+        logger.info(f"Portfolio Holdings: {holdings}")
 
         return self.portfolio
 
@@ -491,51 +219,17 @@ class MasterRebalanceEngine:
 
     def validate_portfolio(self):
 
-        logger.info(
-
-            "Validating Portfolio"
-
-        )
+        logger.info("Validating Portfolio")
 
         if self.portfolio is None:
+            raise ValueError("Portfolio Not Built")
 
-            raise ValueError(
+        total_weight = self.portfolio["Target_Weight"].sum()
 
-                "Portfolio Not Built"
+        if abs(total_weight - 1.0) > 0.01:
+            raise ValueError(f"Weight Sum Invalid: {total_weight}")
 
-            )
-
-        total_weight = (
-
-            self.portfolio[
-
-                "Target_Weight"
-
-            ]
-
-            .sum()
-
-        )
-
-        if abs(
-
-            total_weight - 1.0
-
-        ) > 0.01:
-
-            raise ValueError(
-
-                f"Weight Sum Invalid: "
-
-                f"{total_weight}"
-
-            )
-
-        logger.info(
-
-            "Portfolio Validation Passed"
-
-        )
+        logger.info("Portfolio Validation Passed")
 
         return True
 
@@ -545,113 +239,30 @@ class MasterRebalanceEngine:
 
     def run_risk_checks(self):
 
-        logger.info(
-
-            "Running Risk Engine"
-
-        )
+        logger.info("Running Risk Engine")
 
         risk_engine = RiskEngine()
 
-        self.risk_report = (
+        self.risk_report = risk_engine.evaluate(self.portfolio)
 
-            risk_engine
+        beta = self.risk_report.get("Portfolio_Beta", 0)
 
-            .evaluate(
+        hhi = self.risk_report.get("HHI", 0)
 
-                self.portfolio
+        effective_holdings = self.risk_report.get("Effective_Holdings", 0)
 
-            )
+        self.track_metric("portfolio_beta", beta)
 
-        )
+        self.track_metric("portfolio_hhi", hhi)
 
-        beta = (
-
-            self.risk_report.get(
-
-                "Portfolio_Beta",
-
-                0
-
-            )
-
-        )
-
-        hhi = (
-
-            self.risk_report.get(
-
-                "HHI",
-
-                0
-
-            )
-
-        )
-
-        effective_holdings = (
-
-            self.risk_report.get(
-
-                "Effective_Holdings",
-
-                0
-
-            )
-
-        )
-
-        self.track_metric(
-
-            "portfolio_beta",
-
-            beta
-
-        )
-
-        self.track_metric(
-
-            "portfolio_hhi",
-
-            hhi
-
-        )
-
-        self.track_metric(
-
-            "effective_holdings",
-
-            effective_holdings
-
-        )
+        self.track_metric("effective_holdings", effective_holdings)
 
         self.log_event(
-
             "RISK_CHECK_COMPLETE",
-
-            {
-
-                "beta":
-
-                beta,
-
-                "hhi":
-
-                hhi,
-
-                "effective_holdings":
-
-                effective_holdings
-
-            }
-
+            {"beta": beta, "hhi": hhi, "effective_holdings": effective_holdings},
         )
 
-        logger.info(
-
-            "Risk Evaluation Complete"
-
-        )
+        logger.info("Risk Evaluation Complete")
 
         return self.risk_report
 
@@ -661,47 +272,18 @@ class MasterRebalanceEngine:
 
     def validate_risk(self):
 
-        logger.info(
-
-            "Validating Risk Report"
-
-        )
+        logger.info("Validating Risk Report")
 
         if self.risk_report is None:
+            raise ValueError("Risk Report Missing")
 
-            raise ValueError(
-
-                "Risk Report Missing"
-
-            )
-
-        required_metrics = [
-
-            "Portfolio_Beta",
-
-            "HHI",
-
-            "Effective_Holdings"
-
-        ]
+        required_metrics = ["Portfolio_Beta", "HHI", "Effective_Holdings"]
 
         for metric in required_metrics:
-
             if metric not in self.risk_report:
+                logger.warning(f"Missing Risk Metric: {metric}")
 
-                logger.warning(
-
-                    f"Missing Risk Metric: "
-
-                    f"{metric}"
-
-                )
-
-        logger.info(
-
-            "Risk Validation Passed"
-
-        )
+        logger.info("Risk Validation Passed")
 
         return True
 
@@ -711,143 +293,38 @@ class MasterRebalanceEngine:
 
     def generate_trades(self):
 
-        logger.info(
-
-            "Generating Trades"
-
-        )
+        logger.info("Generating Trades")
 
         trade_engine = TradeEngine()
 
-        current_portfolio = (
+        current_portfolio = self.data["portfolio"].copy()
 
-            self.data["portfolio"]
+        current_portfolio.rename(columns={"Weight": "Current_Weight"}, inplace=True)
 
-            .copy()
+        self.trades = trade_engine.generate(current_portfolio, self.portfolio)
 
-        )
+        trade_count = len(self.trades)
 
-        current_portfolio.rename(
+        turnover = self.trades["Trade_Weight"].abs().sum()
 
-            columns={
+        estimated_cost = self.trades["Estimated_Cost"].sum()
 
-                "Weight":
+        self.track_metric("trade_count", trade_count)
 
-                "Current_Weight"
+        self.track_metric("turnover", turnover)
 
-            },
-
-            inplace=True
-
-        )
-
-        self.trades = (
-
-            trade_engine
-
-            .generate(
-
-                current_portfolio,
-
-                self.portfolio
-
-            )
-
-        )
-
-        trade_count = len(
-
-            self.trades
-
-        )
-
-        turnover = (
-
-            self.trades[
-
-                "Trade_Weight"
-
-            ]
-
-            .abs()
-
-            .sum()
-
-        )
-
-        estimated_cost = (
-
-            self.trades[
-
-                "Estimated_Cost"
-
-            ]
-
-            .sum()
-
-        )
-
-        self.track_metric(
-
-            "trade_count",
-
-            trade_count
-
-        )
-
-        self.track_metric(
-
-            "turnover",
-
-            turnover
-
-        )
-
-        self.track_metric(
-
-            "estimated_cost",
-
-            estimated_cost
-
-        )
+        self.track_metric("estimated_cost", estimated_cost)
 
         self.log_event(
-
             "TRADE_GENERATION_COMPLETE",
-
             {
-
-                "trade_count":
-
-                trade_count,
-
-                "turnover":
-
-                float(
-
-                    turnover
-
-                ),
-
-                "estimated_cost":
-
-                float(
-
-                    estimated_cost
-
-                )
-
-            }
-
+                "trade_count": trade_count,
+                "turnover": float(turnover),
+                "estimated_cost": float(estimated_cost),
+            },
         )
 
-        logger.info(
-
-            f"Trades Generated: "
-
-            f"{trade_count}"
-
-        )
+        logger.info(f"Trades Generated: {trade_count}")
 
         return self.trades
 
@@ -857,59 +334,19 @@ class MasterRebalanceEngine:
 
     def validate_trades(self):
 
-        logger.info(
-
-            "Validating Trades"
-
-        )
+        logger.info("Validating Trades")
 
         if self.trades is None:
+            raise ValueError("Trade File Missing")
 
-            raise ValueError(
+        required_columns = ["Symbol", "Trade_Weight", "Action"]
 
-                "Trade File Missing"
-
-            )
-
-        required_columns = [
-
-            "Symbol",
-
-            "Trade_Weight",
-
-            "Action"
-
-        ]
-
-        missing = [
-
-            col
-
-            for col
-
-            in required_columns
-
-            if col
-
-            not in self.trades.columns
-
-        ]
+        missing = [col for col in required_columns if col not in self.trades.columns]
 
         if missing:
+            raise ValueError(f"Missing Trade Columns: {missing}")
 
-            raise ValueError(
-
-                f"Missing Trade Columns: "
-
-                f"{missing}"
-
-            )
-
-        logger.info(
-
-            "Trade Validation Passed"
-
-        )
+        logger.info("Trade Validation Passed")
 
         return True
 
@@ -919,95 +356,25 @@ class MasterRebalanceEngine:
 
     def run_backtest(self):
 
-        logger.info(
-
-            "Running Backtest Engine"
-
-        )
+        logger.info("Running Backtest Engine")
 
         backtest_engine = BacktestEngine()
 
-        synthetic_returns = (
+        synthetic_returns = np.random.normal(0.001, 0.02, 252)
 
-            np.random.normal(
+        self.performance_report = backtest_engine.run(synthetic_returns)
 
-                0.001,
+        self.track_metric("cagr", self.performance_report.get("CAGR", 0))
 
-                0.02,
-
-                252
-
-            )
-
-        )
-
-        self.performance_report = (
-
-            backtest_engine
-
-            .run(
-
-                synthetic_returns
-
-            )
-
-        )
+        self.track_metric("sharpe", self.performance_report.get("Sharpe", 0))
 
         self.track_metric(
-
-            "cagr",
-
-            self.performance_report.get(
-
-                "CAGR",
-
-                0
-
-            )
-
+            "max_drawdown", self.performance_report.get("Max_Drawdown", 0)
         )
 
-        self.track_metric(
+        self.log_event("BACKTEST_COMPLETE", self.performance_report)
 
-            "sharpe",
-
-            self.performance_report.get(
-
-                "Sharpe",
-
-                0
-
-            )
-
-        )
-
-        self.track_metric(
-
-            "max_drawdown",
-
-            self.performance_report.get(
-
-                "Max_Drawdown",
-
-                0
-
-            )
-
-        )
-
-        self.log_event(
-
-            "BACKTEST_COMPLETE",
-
-            self.performance_report
-
-        )
-
-        logger.info(
-
-            "Performance Analytics Complete"
-
-        )
+        logger.info("Performance Analytics Complete")
 
         return self.performance_report
 
@@ -1017,25 +384,12 @@ class MasterRebalanceEngine:
 
     def validate_performance(self):
 
-        logger.info(
-
-            "Validating Performance Report"
-
-        )
+        logger.info("Validating Performance Report")
 
         if self.performance_report is None:
+            raise ValueError("Performance Report Missing")
 
-            raise ValueError(
-
-                "Performance Report Missing"
-
-            )
-
-        logger.info(
-
-            "Performance Validation Passed"
-
-        )
+        logger.info("Performance Validation Passed")
 
         return True
 
@@ -1045,47 +399,17 @@ class MasterRebalanceEngine:
 
     def generate_reports(self):
 
-        logger.info(
+        logger.info("Generating Reports")
 
-            "Generating Reports"
+        reporting_engine = ReportingEngine()
 
+        self.reports = reporting_engine.generate(
+            self.portfolio, self.risk_report, self.performance_report, self.trades
         )
 
-        reporting_engine = (
+        self.log_event("REPORT_GENERATION_COMPLETE")
 
-            ReportingEngine()
-
-        )
-
-        self.reports = (
-
-            reporting_engine
-
-            .generate(
-
-                self.portfolio,
-
-                self.risk_report,
-
-                self.performance_report,
-
-                self.trades
-
-            )
-
-        )
-
-        self.log_event(
-
-            "REPORT_GENERATION_COMPLETE"
-
-        )
-
-        logger.info(
-
-            "Reporting Complete"
-
-        )
+        logger.info("Reporting Complete")
 
         return self.reports
 
@@ -1095,63 +419,25 @@ class MasterRebalanceEngine:
 
     def validate_reports(self):
 
-        logger.info(
-
-            "Validating Reports"
-
-        )
+        logger.info("Validating Reports")
 
         if self.reports is None:
-
-            raise ValueError(
-
-                "Reports Missing"
-
-            )
+            raise ValueError("Reports Missing")
 
         required_reports = [
-
             "portfolio",
-
             "risk",
-
             "performance",
-
             "dashboard",
-
-            "execution"
-
+            "execution",
         ]
 
-        missing = [
-
-            report
-
-            for report
-
-            in required_reports
-
-            if report
-
-            not in self.reports
-
-        ]
+        missing = [report for report in required_reports if report not in self.reports]
 
         if missing:
+            logger.warning(f"Missing Reports: {missing}")
 
-            logger.warning(
-
-                f"Missing Reports: "
-
-                f"{missing}"
-
-            )
-
-        logger.info(
-
-            "Report Validation Passed"
-
-        )
+        logger.info("Report Validation Passed")
 
         return True
 
@@ -1162,76 +448,20 @@ class MasterRebalanceEngine:
     def track_experiment(self):
 
         try:
+            self.mlflow.log_metric("holdings", len(self.portfolio))
 
             self.mlflow.log_metric(
-
-                "holdings",
-
-                len(
-
-                    self.portfolio
-
-                )
-
+                "portfolio_beta", self.risk_report.get("Portfolio_Beta", 0)
             )
 
-            self.mlflow.log_metric(
+            self.mlflow.log_metric("sharpe", self.performance_report.get("Sharpe", 0))
 
-                "portfolio_beta",
+            self.mlflow.log_metric("cagr", self.performance_report.get("CAGR", 0))
 
-                self.risk_report.get(
-
-                    "Portfolio_Beta",
-
-                    0
-
-                )
-
-            )
-
-            self.mlflow.log_metric(
-
-                "sharpe",
-
-                self.performance_report.get(
-
-                    "Sharpe",
-
-                    0
-
-                )
-
-            )
-
-            self.mlflow.log_metric(
-
-                "cagr",
-
-                self.performance_report.get(
-
-                    "CAGR",
-
-                    0
-
-                )
-
-            )
-
-            logger.info(
-
-                "MLflow Tracking Complete"
-
-            )
+            logger.info("MLflow Tracking Complete")
 
         except Exception as ex:
-
-            logger.warning(
-
-                f"MLflow Error: "
-
-                f"{ex}"
-
-            )
+            logger.warning(f"MLflow Error: {ex}")
 
     # ======================================================
     # TRADE GENERATION
@@ -1239,143 +469,38 @@ class MasterRebalanceEngine:
 
     def generate_trades(self):
 
-        logger.info(
-
-            "Generating Trades"
-
-        )
+        logger.info("Generating Trades")
 
         trade_engine = TradeEngine()
 
-        current_portfolio = (
+        current_portfolio = self.data["portfolio"].copy()
 
-            self.data["portfolio"]
+        current_portfolio.rename(columns={"Weight": "Current_Weight"}, inplace=True)
 
-            .copy()
+        self.trades = trade_engine.generate(current_portfolio, self.portfolio)
 
-        )
+        trade_count = len(self.trades)
 
-        current_portfolio.rename(
+        turnover = self.trades["Trade_Weight"].abs().sum()
 
-            columns={
+        estimated_cost = self.trades["Estimated_Cost"].sum()
 
-                "Weight":
+        self.track_metric("trade_count", trade_count)
 
-                "Current_Weight"
+        self.track_metric("turnover", turnover)
 
-            },
-
-            inplace=True
-
-        )
-
-        self.trades = (
-
-            trade_engine
-
-            .generate(
-
-                current_portfolio,
-
-                self.portfolio
-
-            )
-
-        )
-
-        trade_count = len(
-
-            self.trades
-
-        )
-
-        turnover = (
-
-            self.trades[
-
-                "Trade_Weight"
-
-            ]
-
-            .abs()
-
-            .sum()
-
-        )
-
-        estimated_cost = (
-
-            self.trades[
-
-                "Estimated_Cost"
-
-            ]
-
-            .sum()
-
-        )
-
-        self.track_metric(
-
-            "trade_count",
-
-            trade_count
-
-        )
-
-        self.track_metric(
-
-            "turnover",
-
-            turnover
-
-        )
-
-        self.track_metric(
-
-            "estimated_cost",
-
-            estimated_cost
-
-        )
+        self.track_metric("estimated_cost", estimated_cost)
 
         self.log_event(
-
             "TRADE_GENERATION_COMPLETE",
-
             {
-
-                "trade_count":
-
-                trade_count,
-
-                "turnover":
-
-                float(
-
-                    turnover
-
-                ),
-
-                "estimated_cost":
-
-                float(
-
-                    estimated_cost
-
-                )
-
-            }
-
+                "trade_count": trade_count,
+                "turnover": float(turnover),
+                "estimated_cost": float(estimated_cost),
+            },
         )
 
-        logger.info(
-
-            f"Trades Generated: "
-
-            f"{trade_count}"
-
-        )
+        logger.info(f"Trades Generated: {trade_count}")
 
         return self.trades
 
@@ -1385,59 +510,19 @@ class MasterRebalanceEngine:
 
     def validate_trades(self):
 
-        logger.info(
-
-            "Validating Trades"
-
-        )
+        logger.info("Validating Trades")
 
         if self.trades is None:
+            raise ValueError("Trade File Missing")
 
-            raise ValueError(
+        required_columns = ["Symbol", "Trade_Weight", "Action"]
 
-                "Trade File Missing"
-
-            )
-
-        required_columns = [
-
-            "Symbol",
-
-            "Trade_Weight",
-
-            "Action"
-
-        ]
-
-        missing = [
-
-            col
-
-            for col
-
-            in required_columns
-
-            if col
-
-            not in self.trades.columns
-
-        ]
+        missing = [col for col in required_columns if col not in self.trades.columns]
 
         if missing:
+            raise ValueError(f"Missing Trade Columns: {missing}")
 
-            raise ValueError(
-
-                f"Missing Trade Columns: "
-
-                f"{missing}"
-
-            )
-
-        logger.info(
-
-            "Trade Validation Passed"
-
-        )
+        logger.info("Trade Validation Passed")
 
         return True
 
@@ -1447,95 +532,25 @@ class MasterRebalanceEngine:
 
     def run_backtest(self):
 
-        logger.info(
-
-            "Running Backtest Engine"
-
-        )
+        logger.info("Running Backtest Engine")
 
         backtest_engine = BacktestEngine()
 
-        synthetic_returns = (
+        synthetic_returns = np.random.normal(0.001, 0.02, 252)
 
-            np.random.normal(
+        self.performance_report = backtest_engine.run(synthetic_returns)
 
-                0.001,
+        self.track_metric("cagr", self.performance_report.get("CAGR", 0))
 
-                0.02,
-
-                252
-
-            )
-
-        )
-
-        self.performance_report = (
-
-            backtest_engine
-
-            .run(
-
-                synthetic_returns
-
-            )
-
-        )
+        self.track_metric("sharpe", self.performance_report.get("Sharpe", 0))
 
         self.track_metric(
-
-            "cagr",
-
-            self.performance_report.get(
-
-                "CAGR",
-
-                0
-
-            )
-
+            "max_drawdown", self.performance_report.get("Max_Drawdown", 0)
         )
 
-        self.track_metric(
+        self.log_event("BACKTEST_COMPLETE", self.performance_report)
 
-            "sharpe",
-
-            self.performance_report.get(
-
-                "Sharpe",
-
-                0
-
-            )
-
-        )
-
-        self.track_metric(
-
-            "max_drawdown",
-
-            self.performance_report.get(
-
-                "Max_Drawdown",
-
-                0
-
-            )
-
-        )
-
-        self.log_event(
-
-            "BACKTEST_COMPLETE",
-
-            self.performance_report
-
-        )
-
-        logger.info(
-
-            "Performance Analytics Complete"
-
-        )
+        logger.info("Performance Analytics Complete")
 
         return self.performance_report
 
@@ -1545,25 +560,12 @@ class MasterRebalanceEngine:
 
     def validate_performance(self):
 
-        logger.info(
-
-            "Validating Performance Report"
-
-        )
+        logger.info("Validating Performance Report")
 
         if self.performance_report is None:
+            raise ValueError("Performance Report Missing")
 
-            raise ValueError(
-
-                "Performance Report Missing"
-
-            )
-
-        logger.info(
-
-            "Performance Validation Passed"
-
-        )
+        logger.info("Performance Validation Passed")
 
         return True
 
@@ -1573,47 +575,17 @@ class MasterRebalanceEngine:
 
     def generate_reports(self):
 
-        logger.info(
+        logger.info("Generating Reports")
 
-            "Generating Reports"
+        reporting_engine = ReportingEngine()
 
+        self.reports = reporting_engine.generate(
+            self.portfolio, self.risk_report, self.performance_report, self.trades
         )
 
-        reporting_engine = (
+        self.log_event("REPORT_GENERATION_COMPLETE")
 
-            ReportingEngine()
-
-        )
-
-        self.reports = (
-
-            reporting_engine
-
-            .generate(
-
-                self.portfolio,
-
-                self.risk_report,
-
-                self.performance_report,
-
-                self.trades
-
-            )
-
-        )
-
-        self.log_event(
-
-            "REPORT_GENERATION_COMPLETE"
-
-        )
-
-        logger.info(
-
-            "Reporting Complete"
-
-        )
+        logger.info("Reporting Complete")
 
         return self.reports
 
@@ -1623,63 +595,25 @@ class MasterRebalanceEngine:
 
     def validate_reports(self):
 
-        logger.info(
-
-            "Validating Reports"
-
-        )
+        logger.info("Validating Reports")
 
         if self.reports is None:
-
-            raise ValueError(
-
-                "Reports Missing"
-
-            )
+            raise ValueError("Reports Missing")
 
         required_reports = [
-
             "portfolio",
-
             "risk",
-
             "performance",
-
             "dashboard",
-
-            "execution"
-
+            "execution",
         ]
 
-        missing = [
-
-            report
-
-            for report
-
-            in required_reports
-
-            if report
-
-            not in self.reports
-
-        ]
+        missing = [report for report in required_reports if report not in self.reports]
 
         if missing:
+            logger.warning(f"Missing Reports: {missing}")
 
-            logger.warning(
-
-                f"Missing Reports: "
-
-                f"{missing}"
-
-            )
-
-        logger.info(
-
-            "Report Validation Passed"
-
-        )
+        logger.info("Report Validation Passed")
 
         return True
 
@@ -1690,76 +624,20 @@ class MasterRebalanceEngine:
     def track_experiment(self):
 
         try:
+            self.mlflow.log_metric("holdings", len(self.portfolio))
 
             self.mlflow.log_metric(
-
-                "holdings",
-
-                len(
-
-                    self.portfolio
-
-                )
-
+                "portfolio_beta", self.risk_report.get("Portfolio_Beta", 0)
             )
 
-            self.mlflow.log_metric(
+            self.mlflow.log_metric("sharpe", self.performance_report.get("Sharpe", 0))
 
-                "portfolio_beta",
+            self.mlflow.log_metric("cagr", self.performance_report.get("CAGR", 0))
 
-                self.risk_report.get(
-
-                    "Portfolio_Beta",
-
-                    0
-
-                )
-
-            )
-
-            self.mlflow.log_metric(
-
-                "sharpe",
-
-                self.performance_report.get(
-
-                    "Sharpe",
-
-                    0
-
-                )
-
-            )
-
-            self.mlflow.log_metric(
-
-                "cagr",
-
-                self.performance_report.get(
-
-                    "CAGR",
-
-                    0
-
-                )
-
-            )
-
-            logger.info(
-
-                "MLflow Tracking Complete"
-
-            )
+            logger.info("MLflow Tracking Complete")
 
         except Exception as ex:
-
-            logger.warning(
-
-                f"MLflow Error: "
-
-                f"{ex}"
-
-            )
+            logger.warning(f"MLflow Error: {ex}")
 
     # ======================================================
     # SAVE OUTPUTS
@@ -1767,136 +645,46 @@ class MasterRebalanceEngine:
 
     def save_outputs(self):
 
-        logger.info(
+        logger.info("Saving Outputs")
 
-            "Saving Outputs"
+        output_dir = Path.cwd() / "data" / "live"
 
-        )
-
-        output_dir = (
-
-            Path.cwd()
-
-            / "data"
-
-            / "live"
-
-        )
-
-        output_dir.mkdir(
-
-            parents=True,
-
-            exist_ok=True
-
-        )
+        output_dir.mkdir(parents=True, exist_ok=True)
 
         # --------------------------------------------------
         # Portfolio
         # --------------------------------------------------
 
-        self.portfolio.to_csv(
-
-            output_dir
-            / "target_portfolio.csv",
-
-            index=False
-
-        )
+        self.portfolio.to_csv(output_dir / "target_portfolio.csv", index=False)
 
         # --------------------------------------------------
         # Trades
         # --------------------------------------------------
 
-        self.trades.to_csv(
-
-            output_dir
-            / "trade_list.csv",
-
-            index=False
-
-        )
+        self.trades.to_csv(output_dir / "trade_list.csv", index=False)
 
         # --------------------------------------------------
         # Risk Report
         # --------------------------------------------------
 
-        with open(
-
-            output_dir
-            / "risk_report.json",
-
-            "w"
-
-        ) as file:
-
-            json.dump(
-
-                self.risk_report,
-
-                file,
-
-                indent=4,
-
-                default=str
-
-            )
+        with open(output_dir / "risk_report.json", "w") as file:
+            json.dump(self.risk_report, file, indent=4, default=str)
 
         # --------------------------------------------------
         # Performance Report
         # --------------------------------------------------
 
-        with open(
-
-            output_dir
-            / "performance_report.json",
-
-            "w"
-
-        ) as file:
-
-            json.dump(
-
-                self.performance_report,
-
-                file,
-
-                indent=4,
-
-                default=str
-
-            )
+        with open(output_dir / "performance_report.json", "w") as file:
+            json.dump(self.performance_report, file, indent=4, default=str)
 
         # --------------------------------------------------
         # Reports
         # --------------------------------------------------
 
-        with open(
+        with open(output_dir / "dashboard.json", "w") as file:
+            json.dump(self.reports, file, indent=4, default=str)
 
-            output_dir
-            / "dashboard.json",
-
-            "w"
-
-        ) as file:
-
-            json.dump(
-
-                self.reports,
-
-                file,
-
-                indent=4,
-
-                default=str
-
-            )
-
-        logger.info(
-
-            "Outputs Saved Successfully"
-
-        )
+        logger.info("Outputs Saved Successfully")
 
         return output_dir
 
@@ -1906,129 +694,39 @@ class MasterRebalanceEngine:
 
     def print_summary(self):
 
-        runtime = (
+        runtime = datetime.now() - self.start_time
 
-            datetime.now()
+        print("\n" + "=" * 80)
 
-            -
+        print("INSTITUTIONAL REBALANCE SUMMARY")
 
-            self.start_time
+        print("=" * 80)
 
-        )
+        print(f"Universe Size: {len(self.alpha_universe):,}")
 
-        print(
+        print(f"Holdings: {len(self.portfolio)}")
 
-            "\n"
+        print(f"Weight Sum: {self.portfolio['Target_Weight'].sum():.4f}")
 
-            + "=" * 80
+        print(f"Portfolio Beta: {self.risk_report.get('Portfolio_Beta', 0):.4f}")
 
-        )
-
-        print(
-
-            "INSTITUTIONAL REBALANCE SUMMARY"
-
-        )
+        print(f"HHI: {self.risk_report.get('HHI', 0):.4f}")
 
         print(
-
-            "=" * 80
-
+            f"Effective Holdings: {self.risk_report.get('Effective_Holdings', 0):.2f}"
         )
 
-        print(
+        print(f"Trades: {len(self.trades)}")
 
-            f"Universe Size: "
+        print(f"CAGR: {self.performance_report.get('CAGR', 0):.2%}")
 
-            f"{len(self.alpha_universe):,}"
+        print(f"Sharpe: {self.performance_report.get('Sharpe', 0):.2f}")
 
-        )
+        print(f"Max Drawdown: {self.performance_report.get('Max_Drawdown', 0):.2%}")
 
-        print(
+        print(f"Runtime: {runtime}")
 
-            f"Holdings: "
-
-            f"{len(self.portfolio)}"
-
-        )
-
-        print(
-
-            f"Weight Sum: "
-
-            f"{self.portfolio['Target_Weight'].sum():.4f}"
-
-        )
-
-        print(
-
-            f"Portfolio Beta: "
-
-            f"{self.risk_report.get('Portfolio_Beta',0):.4f}"
-
-        )
-
-        print(
-
-            f"HHI: "
-
-            f"{self.risk_report.get('HHI',0):.4f}"
-
-        )
-
-        print(
-
-            f"Effective Holdings: "
-
-            f"{self.risk_report.get('Effective_Holdings',0):.2f}"
-
-        )
-
-        print(
-
-            f"Trades: "
-
-            f"{len(self.trades)}"
-
-        )
-
-        print(
-
-            f"CAGR: "
-
-            f"{self.performance_report.get('CAGR',0):.2%}"
-
-        )
-
-        print(
-
-            f"Sharpe: "
-
-            f"{self.performance_report.get('Sharpe',0):.2f}"
-
-        )
-
-        print(
-
-            f"Max Drawdown: "
-
-            f"{self.performance_report.get('Max_Drawdown',0):.2%}"
-
-        )
-
-        print(
-
-            f"Runtime: "
-
-            f"{runtime}"
-
-        )
-
-        print(
-
-            "=" * 80
-
-        )
+        print("=" * 80)
 
     # ======================================================
     # RUN PIPELINE
@@ -2037,7 +735,6 @@ class MasterRebalanceEngine:
     def run(self):
 
         try:
-
             self.load_data()
 
             self.build_alpha_universe()
@@ -2070,80 +767,31 @@ class MasterRebalanceEngine:
 
             self.print_summary()
 
-            self.log_event(
-
-                "REBALANCE_COMPLETE"
-
-            )
+            self.log_event("REBALANCE_COMPLETE")
 
             return {
-
-                "portfolio":
-
-                    self.portfolio,
-
-                "risk":
-
-                    self.risk_report,
-
-                "trades":
-
-                    self.trades,
-
-                "performance":
-
-                    self.performance_report,
-
-                "reports":
-
-                    self.reports
-
+                "portfolio": self.portfolio,
+                "risk": self.risk_report,
+                "trades": self.trades,
+                "performance": self.performance_report,
+                "reports": self.reports,
             }
 
         except Exception as ex:
+            logger.error(str(ex))
 
-            logger.error(
+            logger.error(traceback.format_exc())
 
-                str(ex)
-
-            )
-
-            logger.error(
-
-                traceback.format_exc()
-
-            )
-
-            self.log_event(
-
-                "REBALANCE_FAILED",
-
-                {
-
-                    "error":
-
-                    str(ex)
-
-                }
-
-            )
+            self.log_event("REBALANCE_FAILED", {"error": str(ex)})
 
             raise
+
 
 # ==========================================================
 # ENTRY POINT
 # ==========================================================
 
 if __name__ == "__main__":
+    engine = MasterRebalanceEngine()
 
-    engine = (
-
-        MasterRebalanceEngine()
-
-    )
-
-    results = (
-
-        engine.run()
-
-    )
+    results = engine.run()

@@ -37,35 +37,27 @@ from functools import lru_cache
 from execution.execution_engine import (
     ExecutionEngine,
 )
-
-from execution.trade_engine import (
-    TradeEngine,
-)
-
-from execution.order_router import (
-    OrderRouter,
-)
-
-from execution.slippage_engine import (
-    SlippageEngine,
-)
-
-from execution.market_impact import (
-    MarketImpact,
-)
-
-from execution.transaction_cost_engine import (
-    TransactionCostEngine,
-)
-
 from execution.execution_simulator import (
     ExecutionAnalytics,
 )
-
+from execution.market_impact import (
+    MarketImpact,
+)
 from execution.monitoring_engine import (
     MonitoringEngine,
 )
-
+from execution.order_router import (
+    OrderRouter,
+)
+from execution.slippage_engine import (
+    SlippageEngine,
+)
+from execution.trade_engine import (
+    TradeEngine,
+)
+from execution.transaction_cost_engine import (
+    TransactionCostEngine,
+)
 
 # ==========================================================
 # EXECUTION ENGINE
@@ -182,13 +174,9 @@ def execution_health() -> dict:
     """
 
     return {
-
         "engine": "ExecutionEngine",
-
         "status": "healthy",
-
         "singleton": True,
-
     }
 
 
@@ -203,29 +191,17 @@ def execution_summary() -> dict:
     """
 
     return {
-
         "services": [
-
             "ExecutionEngine",
-
             "TradeEngine",
-
             "OrderRouter",
-
             "SlippageEngine",
-
             "MarketImpact",
-
             "TransactionCostEngine",
-
             "ExecutionAnalytics",
-
             "MonitoringEngine",
-
         ],
-
         "count": 8,
-
     }
 
 
@@ -235,25 +211,14 @@ def execution_summary() -> dict:
 
 
 __all__ = [
-
-    "get_execution_engine",
-
-    "get_trade_engine",
-
-    "get_order_router",
-
-    "get_slippage_engine",
-
-    "get_market_impact",
-
-    "get_transaction_cost_engine",
-
-    "get_execution_analytics",
-
-    "get_monitoring_engine",
-
     "execution_health",
-
     "execution_summary",
-
+    "get_execution_analytics",
+    "get_execution_engine",
+    "get_market_impact",
+    "get_monitoring_engine",
+    "get_order_router",
+    "get_slippage_engine",
+    "get_trade_engine",
+    "get_transaction_cost_engine",
 ]

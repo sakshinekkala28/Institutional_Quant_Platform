@@ -1,6 +1,7 @@
 from pathlib import Path
-import pandas as pd
+
 import numpy as np
+import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[2]
 
@@ -17,14 +18,9 @@ print("Building Beta Model...")
 
 prices = pd.read_parquet(PRICE_FILE)
 
-benchmark = pd.read_csv(
-    BENCHMARK_FILE,
-    parse_dates=["Date"]
-)
+benchmark = pd.read_csv(BENCHMARK_FILE, parse_dates=["Date"])
 
-benchmark["Date"] = pd.to_datetime(
-    benchmark["Date"]
-)
+benchmark["Date"] = pd.to_datetime(benchmark["Date"])
 
 benchmark = benchmark.sort_values("Date")
 
@@ -34,14 +30,9 @@ if benchmark["Close"].notna().sum() > 100:
 else:
     close_col = "Close.1"
 
-benchmark["Benchmark_Return"] = (
-    benchmark[close_col]
-    .pct_change()
-)
+benchmark["Benchmark_Return"] = benchmark[close_col].pct_change()
 
-benchmark = benchmark[
-    ["Date", "Benchmark_Return"]
-].dropna()
+benchmark = benchmark[["Date", "Benchmark_Return"]].dropna()
 
 results = []
 
@@ -50,33 +41,17 @@ results = []
 # =====================================================
 
 for symbol in prices["Symbol"].unique():
-
     try:
+        stock = prices[prices["Symbol"] == symbol][["Date", "Close"]].copy()
 
-        stock = (
-            prices[
-                prices["Symbol"] == symbol
-            ][["Date", "Close"]]
-            .copy()
-        )
-
-        stock["Date"] = pd.to_datetime(
-            stock["Date"]
-        )
+        stock["Date"] = pd.to_datetime(stock["Date"])
 
         stock = stock.sort_values("Date")
 
-        stock["Stock_Return"] = (
-            stock["Close"]
-            .pct_change()
-        )
+        stock["Stock_Return"] = stock["Close"].pct_change()
 
         merged = stock.merge(
-            benchmark[
-                ["Date", "Benchmark_Return"]
-            ],
-            on="Date",
-            how="inner"
+            benchmark[["Date", "Benchmark_Return"]], on="Date", how="inner"
         )
 
         merged = merged.dropna()
@@ -87,32 +62,18 @@ for symbol in prices["Symbol"].unique():
         stock_ret = merged["Stock_Return"]
         bench_ret = merged["Benchmark_Return"]
 
-        covariance = np.cov(
-            stock_ret,
-            bench_ret
-        )[0, 1]
+        covariance = np.cov(stock_ret, bench_ret)[0, 1]
 
-        variance = np.var(
-            bench_ret
-        )
+        variance = np.var(bench_ret)
 
         if variance == 0:
             beta = 1.0
         else:
             beta = covariance / variance
 
-        beta = np.clip(
-            beta,
-            0.25,
-            3.00
-        )
+        beta = np.clip(beta, 0.25, 3.00)
 
-        results.append(
-            {
-                "Symbol": symbol,
-                "Beta": round(beta, 4)
-            }
-        )
+        results.append({"Symbol": symbol, "Beta": round(beta, 4)})
 
     except Exception:
         pass
@@ -125,26 +86,14 @@ beta_df = pd.DataFrame(results)
 
 print("\nBETA SUMMARY")
 
-print(
-    beta_df["Beta"]
-    .describe()
-)
+print(beta_df["Beta"].describe())
 
-print(
-    "\nTotal Symbols"
-)
+print("\nTotal Symbols")
 
-print(
-    len(beta_df)
-)
+print(len(beta_df))
 
-beta_df.to_csv(
-    OUTPUT_FILE,
-    index=False
-)
+beta_df.to_csv(OUTPUT_FILE, index=False)
 
-print(
-    f"Saved {len(beta_df)} symbols"
-)
+print(f"Saved {len(beta_df)} symbols")
 
 print(OUTPUT_FILE)

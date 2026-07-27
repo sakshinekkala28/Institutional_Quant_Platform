@@ -31,8 +31,7 @@ Consumed By
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
 from core.models.portfolio import Portfolio
 
@@ -71,119 +70,50 @@ class OptimizationReport:
 
     iterations: int = 0
 
-    metadata: dict = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict = field(default_factory=dict)
 
     # =====================================================
     # STATUS
     # =====================================================
 
     @property
-    def success(
+    def success(self) -> bool:
 
-        self
-
-    ) -> bool:
-
-        return (
-
-            self.converged
-
-            and
-
-            self.optimized_portfolio
-
-            is not None
-
-        )
+        return self.converged and self.optimized_portfolio is not None
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         return {
-
-            "optimizer":
-
-                self.optimizer_name,
-
-            "expected_return":
-
-                self.expected_return,
-
-            "expected_risk":
-
-                self.expected_risk,
-
-            "expected_volatility":
-
-                self.expected_volatility,
-
-            "expected_sharpe":
-
-                self.expected_sharpe,
-
-            "turnover":
-
-                self.turnover,
-
-            "tracking_error":
-
-                self.tracking_error,
-
-            "diversification_ratio":
-
-                self.diversification_ratio,
-
-            "objective_value":
-
-                self.objective_value,
-
-            "iterations":
-
-                self.iterations,
-
-            "converged":
-
-                self.converged,
-
-            "success":
-
-                self.success
-
+            "optimizer": self.optimizer_name,
+            "expected_return": self.expected_return,
+            "expected_risk": self.expected_risk,
+            "expected_volatility": self.expected_volatility,
+            "expected_sharpe": self.expected_sharpe,
+            "turnover": self.turnover,
+            "tracking_error": self.tracking_error,
+            "diversification_ratio": self.diversification_ratio,
+            "objective_value": self.objective_value,
+            "iterations": self.iterations,
+            "converged": self.converged,
+            "success": self.success,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Optimizer={self.optimizer_name}, "
-
             f"Sharpe={self.expected_sharpe:.4f}, "
-
             f"Converged={self.converged}"
-
             f")"
-
         )
 
     __str__ = __repr__

@@ -32,12 +32,11 @@ Used By
 
 from __future__ import annotations
 
-import uuid
 from collections.abc import Callable
+import uuid
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-
 
 # ==========================================================
 # CONSTANTS
@@ -61,76 +60,35 @@ class RequestIDMiddleware(
     """
 
     async def dispatch(
-
         self,
-
         request: Request,
-
         call_next: Callable,
-
     ):
 
-        request_id = (
-
-            request.headers.get(
-
-                REQUEST_ID_HEADER,
-
-            )
-
-            or
-
-            str(
-
-                uuid.uuid4(),
-
-            )
-
+        request_id = request.headers.get(
+            REQUEST_ID_HEADER,
+        ) or str(
+            uuid.uuid4(),
         )
 
         correlation_id = (
-
             request.headers.get(
-
                 CORRELATION_ID_HEADER,
-
             )
-
-            or
-
-            request_id
-
+            or request_id
         )
 
-        request.state.request_id = (
+        request.state.request_id = request_id
 
-            request_id
-
-        )
-
-        request.state.correlation_id = (
-
-            correlation_id
-
-        )
+        request.state.correlation_id = correlation_id
 
         response = await call_next(
-
             request,
-
         )
 
-        response.headers[
+        response.headers[REQUEST_ID_HEADER] = request_id
 
-            REQUEST_ID_HEADER
-
-        ] = request_id
-
-        response.headers[
-
-            CORRELATION_ID_HEADER
-
-        ] = correlation_id
+        response.headers[CORRELATION_ID_HEADER] = correlation_id
 
         return response
 
@@ -141,71 +99,40 @@ class RequestIDMiddleware(
 
 
 def get_request_id(
-
     request: Request,
-
 ) -> str:
 
     return getattr(
-
         request.state,
-
         "request_id",
-
         "",
-
     )
 
 
 def get_correlation_id(
-
     request: Request,
-
 ) -> str:
 
     return getattr(
-
         request.state,
-
         "correlation_id",
-
         "",
-
     )
 
 
 def request_context(
-
     request: Request,
-
 ) -> dict:
 
     return {
-
-        "request_id":
-
-            get_request_id(
-
-                request,
-
-            ),
-
-        "correlation_id":
-
-            get_correlation_id(
-
-                request,
-
-            ),
-
-        "method":
-
-            request.method,
-
-        "path":
-
-            request.url.path,
-
+        "request_id": get_request_id(
+            request,
+        ),
+        "correlation_id": get_correlation_id(
+            request,
+        ),
+        "method": request.method,
+        "path": request.url.path,
     }
 
 
@@ -214,25 +141,17 @@ def request_context(
 # ==========================================================
 
 
-def generate_request_id(
-
-) -> str:
+def generate_request_id() -> str:
 
     return str(
-
         uuid.uuid4(),
-
     )
 
 
-def generate_correlation_id(
-
-) -> str:
+def generate_correlation_id() -> str:
 
     return str(
-
         uuid.uuid4(),
-
     )
 
 
@@ -241,28 +160,13 @@ def generate_correlation_id(
 # ==========================================================
 
 
-def request_id_summary(
-
-) -> dict:
+def request_id_summary() -> dict:
 
     return {
-
-        "request_header":
-
-            REQUEST_ID_HEADER,
-
-        "correlation_header":
-
-            CORRELATION_ID_HEADER,
-
-        "generator":
-
-            "UUID4",
-
-        "distributed_tracing":
-
-            True,
-
+        "request_header": REQUEST_ID_HEADER,
+        "correlation_header": CORRELATION_ID_HEADER,
+        "generator": "UUID4",
+        "distributed_tracing": True,
     }
 
 
@@ -272,23 +176,13 @@ def request_id_summary(
 
 
 __all__ = [
-
-    "REQUEST_ID_HEADER",
-
     "CORRELATION_ID_HEADER",
-
+    "REQUEST_ID_HEADER",
     "RequestIDMiddleware",
-
-    "get_request_id",
-
-    "get_correlation_id",
-
-    "request_context",
-
-    "generate_request_id",
-
     "generate_correlation_id",
-
+    "generate_request_id",
+    "get_correlation_id",
+    "get_request_id",
+    "request_context",
     "request_id_summary",
-
 ]

@@ -30,12 +30,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import Field
-
-from api.schemas.base import APIModel
-from api.schemas.base import BaseResponse
-from api.schemas.base import SuccessResponse
-
+from api.schemas.base import APIModel, BaseResponse, SuccessResponse
 
 # ==========================================================
 # ORDER
@@ -247,9 +242,7 @@ class OrdersResponse(
     Orders response.
     """
 
-    data: list[
-        Order
-    ]
+    data: list[Order]
 
 
 class TradeResponse(
@@ -269,9 +262,7 @@ class TradesResponse(
     Trades response.
     """
 
-    data: list[
-        Trade
-    ]
+    data: list[Trade]
 
 
 class ExecutionReportResponse(
@@ -310,35 +301,19 @@ class TWAPResponse(
 
 
 __all__ = [
-
-    "Order",
-
-    "Trade",
-
     "ExecutionMetrics",
-
-    "VWAPAnalytics",
-
-    "TWAPAnalytics",
-
     "ExecutionReport",
-
-    "ExecutionRequest",
-
-    "ExecutionResponse",
-
-    "OrderResponse",
-
-    "OrdersResponse",
-
-    "TradeResponse",
-
-    "TradesResponse",
-
     "ExecutionReportResponse",
-
-    "VWAPResponse",
-
+    "ExecutionRequest",
+    "ExecutionResponse",
+    "Order",
+    "OrderResponse",
+    "OrdersResponse",
+    "TWAPAnalytics",
     "TWAPResponse",
-
+    "Trade",
+    "TradeResponse",
+    "TradesResponse",
+    "VWAPAnalytics",
+    "VWAPResponse",
 ]

@@ -36,35 +36,23 @@ from execution.order import Order
 from execution.slippage_engine import SlippageEngine
 
 
-class ExecutionModel(
-    BaseExecutionModel
-):
+class ExecutionModel(BaseExecutionModel):
     """
     Institutional execution model.
     """
 
     def __init__(
-
         self,
-
         fill_model: FillModel,
-
         slippage_engine: SlippageEngine,
-
         market_impact: MarketImpact,
-
         allow_partial_fill: bool = True,
-
         validate_order: bool = True,
-
     ) -> None:
 
         super().__init__(
-
             allow_partial_fill=allow_partial_fill,
-
             validate_order=validate_order,
-
         )
 
         self.fill_model = fill_model
@@ -78,72 +66,29 @@ class ExecutionModel(
     # =====================================================
 
     def execute(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
 
-        self.validate(
-
-            order
-
-        )
+        self.validate(order)
 
         report = self.create_report()
 
         report.order = order
 
-        report.market_impact = (
+        report.market_impact = self.market_impact.calculate(order)
 
-            self.market_impact.calculate(
+        report.slippage = self.slippage_engine.calculate(order)
 
-                order
+        fill = self.fill_model.fill(order)
 
-            )
+        report.executed_quantity = fill.executed_quantity
 
-        )
+        report.average_price = fill.average_price
 
-        report.slippage = (
+        report.fill_ratio = fill.fill_ratio
 
-            self.slippage_engine.calculate(
-
-                order
-
-            )
-
-        )
-
-        fill = self.fill_model.fill(
-
-            order
-
-        )
-
-        report.executed_quantity = (
-
-            fill.executed_quantity
-
-        )
-
-        report.average_price = (
-
-            fill.average_price
-
-        )
-
-        report.fill_ratio = (
-
-            fill.fill_ratio
-
-        )
-
-        report.status = (
-
-            fill.status
-
-        )
+        report.status = fill.status
 
         return report
 
@@ -152,21 +97,14 @@ class ExecutionModel(
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"FillModel={self.fill_model.__class__.__name__}, "
-
             f"Slippage={self.slippage_engine.__class__.__name__}"
-
             f")"
-
         )
 
     __str__ = __repr__

@@ -1,0 +1,4024 @@
+E402 Module level import not at top of file
+  --> alpha/signal_engine.py:15:1
+   |
+13 | warnings.filterwarnings("ignore")
+14 |
+15 | import numpy as np
+   | ^^^^^^^^^^^^^^^^^^
+16 | import pandas as pd
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> alpha/signal_engine.py:16:1
+   |
+15 | import numpy as np
+16 | import pandas as pd
+   | ^^^^^^^^^^^^^^^^^^^
+17 |
+18 | # ==========================================================
+   |
+help: Move module level imports to top of file
+
+PIE810 Call `endswith` once with a `tuple`
+   --> alpha/signal_engine.py:179:52
+    |
+177 |                 df[final] = df[right]
+178 |
+179 |         duplicate_cols = [c for c in df.columns if c.endswith("_x") or c.endswith("_y")]
+    |                                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+180 |
+181 |         df = df.drop(columns=duplicate_cols, errors="ignore")
+    |
+help: Merge into a single `endswith` call
+
+RET504 Unnecessary assignment to `df` before `return` statement
+   --> alpha/signal_engine.py:183:16
+    |
+181 |         df = df.drop(columns=duplicate_cols, errors="ignore")
+182 |
+183 |         return df
+    |                ^^
+184 |
+185 |     @staticmethod
+    |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `report` before `return` statement
+   --> alpha/signal_engine.py:286:16
+    |
+284 |         )
+285 |
+286 |         return report
+    |                ^^^^^^
+287 |
+288 |     @staticmethod
+    |
+help: Remove unnecessary assignment
+
+RUF012 Mutable default value for class attribute
+   --> alpha/signal_engine.py:477:15
+    |
+476 |   class FactorHealthEngine:
+477 |       FACTORS = [
+    |  _______________^
+478 | |         "Signal_Factor",
+479 | |         "Momentum_Factor",
+480 | |         "Quality_Factor",
+481 | |         "Value_Factor",
+482 | |         "Growth_Factor",
+483 | |         "Liquidity_Factor",
+484 | |         "LowVol_Factor",
+485 | |     ]
+    | |_____^
+486 |
+487 |       @classmethod
+    |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+   --> alpha/signal_engine.py:514:15
+    |
+513 |   class FactorCorrelationEngine:
+514 |       FACTORS = [
+    |  _______________^
+515 | |         "Signal_Factor",
+516 | |         "Momentum_Factor",
+517 | |         "Quality_Factor",
+518 | |         "Value_Factor",
+519 | |         "Growth_Factor",
+520 | |         "Liquidity_Factor",
+521 | |         "LowVol_Factor",
+522 | |     ]
+    | |_____^
+523 |
+524 |       @classmethod
+    |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+   --> alpha/signal_engine.py:562:22
+    |
+561 |   class RegimeEngine:
+562 |       REGIME_WEIGHTS = {
+    |  ______________________^
+563 | |         "BULL": {
+564 | |             "Signal": 0.20,
+565 | |             "Momentum": 0.25,
+566 | |             "Quality": 0.10,
+567 | |             "Value": 0.10,
+568 | |             "Growth": 0.25,
+569 | |             "Liquidity": 0.05,
+570 | |             "LowVol": 0.05,
+571 | |         },
+572 | |         "BEAR": {
+573 | |             "Signal": 0.20,
+574 | |             "Momentum": 0.10,
+575 | |             "Quality": 0.25,
+576 | |             "Value": 0.20,
+577 | |             "Growth": 0.10,
+578 | |             "Liquidity": 0.05,
+579 | |             "LowVol": 0.10,
+580 | |         },
+581 | |         "SIDEWAYS": {
+582 | |             "Signal": 0.25,
+583 | |             "Momentum": 0.20,
+584 | |             "Quality": 0.15,
+585 | |             "Value": 0.15,
+586 | |             "Growth": 0.15,
+587 | |             "Liquidity": 0.05,
+588 | |             "LowVol": 0.05,
+589 | |         },
+590 | |     }
+    | |_____^
+591 |
+592 |       @classmethod
+    |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RET504 Unnecessary assignment to `data` before `return` statement
+   --> alpha/signal_engine.py:728:16
+    |
+726 |         }
+727 |
+728 |         return data
+    |                ^^^^
+729 |
+730 |     def build_alpha_universe(self, data):
+    |
+help: Remove unnecessary assignment
+
+B007 Loop control variable `attempt` not used within loop body
+   --> analytics/data/build_security_price_history.py:120:9
+    |
+118 | def download_symbol_history(symbol: str) -> pd.DataFrame:
+119 |
+120 |     for attempt in range(MAX_RETRIES):
+    |         ^^^^^^^
+121 |         try:
+122 |             df = yf.download(
+    |
+help: Rename unused `attempt` to `_attempt`
+
+PLR0911 Too many return statements (9 > 6)
+  --> analytics/data/incremental_price_update.py:87:5
+   |
+87 | def update_symbol(
+   |     ^^^^^^^^^^^^^
+88 |     symbol: str,
+89 |     price_dir: Path,
+   |
+
+F821 Undefined name `filled`
+   --> analytics/data/market_cap_enrichment.py:169:24
+    |
+167 |         print(f"Need Fetch : {total:,}")
+168 |
+169 |         newly_filled = filled - existing
+    |                        ^^^^^^
+170 |
+171 |         # =====================================================
+    |
+
+E402 Module level import not at top of file
+  --> analytics/data/symbol_metadata.py:36:1
+   |
+34 |   logger = get_logger(__name__)
+35 |
+36 | / from config.settings import (
+37 | |     DATE_FORMAT,
+38 | | )
+   | |_^
+39 |   from config.thresholds import (
+40 |       COOLDOWN_AFTER,
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> analytics/data/symbol_metadata.py:39:1
+   |
+37 |       DATE_FORMAT,
+38 |   )
+39 | / from config.thresholds import (
+40 | |     COOLDOWN_AFTER,
+41 | |     COOLDOWN_SECONDS,
+42 | |     MAX_RETRIES,
+43 | |     SAVE_INTERVAL,
+44 | | )
+   | |_^
+45 |   from orchestration.models.engine_result import EngineResult
+46 |   from orchestration.models.engine_status import (
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> analytics/data/symbol_metadata.py:45:1
+   |
+43 |     SAVE_INTERVAL,
+44 | )
+45 | from orchestration.models.engine_result import EngineResult
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+46 | from orchestration.models.engine_status import (
+47 |     EngineStatus,
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> analytics/data/symbol_metadata.py:46:1
+   |
+44 |   )
+45 |   from orchestration.models.engine_result import EngineResult
+46 | / from orchestration.models.engine_status import (
+47 | |     EngineStatus,
+48 | | )
+   | |_^
+49 |   from utils.file_utils import (
+50 |       ensure_parent_directory,
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> analytics/data/symbol_metadata.py:49:1
+   |
+47 |       EngineStatus,
+48 |   )
+49 | / from utils.file_utils import (
+50 | |     ensure_parent_directory,
+51 | | )
+   | |_^
+52 |
+53 |   ENGINE_NAME = "SymbolMetadata"
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> analytics/data/symbol_metadata.py:60:1
+   |
+58 |   # =========================================================
+59 |
+60 | / from config.paths import (
+61 | |     SYMBOL_METADATA_FILE,
+62 | |     VALID_STOCKS_FILE,
+63 | | )
+   | |_^
+64 |
+65 |   # =========================================================
+   |
+help: Move module level imports to top of file
+
+RET504 Unnecessary assignment to `symbol` before `return` statement
+   --> analytics/execution/execution_quality_engine.py:156:12
+    |
+154 |     symbol = symbol.replace(".BO", "")
+155 |
+156 |     return symbol
+    |            ^^^^^^
+    |
+help: Remove unnecessary assignment
+
+E722 Do not use bare `except`
+  --> analytics/factors/build_fundamental_factor_master.py:53:5
+   |
+51 |         return float(value)
+52 |
+53 |     except:
+   |     ^^^^^^
+54 |         return np.nan
+   |
+
+E722 Do not use bare `except`
+  --> analytics/factors/build_fundamental_factor_master.py:65:5
+   |
+63 |         return (current - previous) / abs(previous)
+64 |
+65 |     except:
+   |     ^^^^^^
+66 |         return np.nan
+   |
+
+E722 Do not use bare `except`
+   --> analytics/factors/build_fundamental_factor_master.py:134:13
+    |
+132 |                     roce = ebit / capital_employed
+133 |
+134 |             except:
+    |             ^^^^^^
+135 |                 pass
+    |
+
+E722 Do not use bare `except`
+   --> analytics/factors/build_fundamental_factor_master.py:145:13
+    |
+143 |                     profit_growth = get_growth(net_income.iloc[0], net_income.iloc[1])
+144 |
+145 |             except:
+    |             ^^^^^^
+146 |                 pass
+    |
+
+B023 Function definition does not bind loop variable `snapshot_date`
+   --> analytics/factors/factor_snapshot_engine.py:421:29
+    |
+419 |                         lambda security: calculate_snapshot(
+420 |                             security,
+421 |                             snapshot_date,
+    |                             ^^^^^^^^^^^^^
+422 |                         ),
+423 |                         symbols,
+    |
+
+E402 Module level import not at top of file
+  --> analytics/live/live_rebalance_engine.py:11:1
+   |
+ 9 | warnings.filterwarnings("ignore")
+10 |
+11 | import numpy as np
+   | ^^^^^^^^^^^^^^^^^^
+12 | import pandas as pd
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> analytics/live/live_rebalance_engine.py:12:1
+   |
+11 | import numpy as np
+12 | import pandas as pd
+   | ^^^^^^^^^^^^^^^^^^^
+13 |
+14 | from ingestion.database_manager import DatabaseManager
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> analytics/live/live_rebalance_engine.py:14:1
+   |
+12 | import pandas as pd
+13 |
+14 | from ingestion.database_manager import DatabaseManager
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+15 |
+16 | # =========================================================
+   |
+help: Move module level imports to top of file
+
+N803 Argument name `MAX_POSITION_WEIGHT` should be lowercase
+   --> analytics/live/live_rebalance_engine.py:175:31
+    |
+175 | def enforce_position_caps(df, MAX_POSITION_WEIGHT):
+    |                               ^^^^^^^^^^^^^^^^^^^
+176 |
+177 |     for _ in range(20):
+    |
+
+E722 Do not use bare `except`
+    --> analytics/live/live_rebalance_engine.py:1410:1
+     |
+1408 |     print("✓ Covariance Loaded")
+1409 |
+1410 | except:
+     | ^^^^^^
+1411 |     print("⚠ Covariance Missing")
+     |
+
+B023 Function definition does not bind loop variable `proxy`
+    --> analytics/live/live_rebalance_engine.py:1465:69
+     |
+1463 |             nearest = (
+1464 |                 target.loc[target["Yahoo_Symbol"].isin(cov_matrix.index)]
+1465 |                 .assign(VolGap=lambda x: abs(x["Volatility_252D"] - proxy))
+     |                                                                     ^^^^^
+1466 |                 .sort_values("VolGap")
+1467 |                 .iloc[0]["Yahoo_Symbol"]
+     |
+
+PLR5501 [*] Use `elif` instead of `else` then `if`, to reduce indentation
+    --> analytics/live/live_rebalance_engine.py:2240:5
+     |
+2238 |           approval_status = "CONDITIONAL_APPROVAL"
+2239 |
+2240 | /     else:
+2241 | |         if approval_score >= 85:
+     | |________^
+2242 |               approval_status = "APPROVED"
+     |
+help: Convert to `elif`
+     |
+2239 |
+     -     else:
+     -         if approval_score >= 85:
+     -             approval_status = "APPROVED"
+2240 +     elif approval_score >= 85:
+2241 +         approval_status = "APPROVED"
+2242 |
+     -         elif approval_score >= 70:
+     -             approval_status = "CONDITIONAL_APPROVAL"
+2243 +     elif approval_score >= 70:
+2244 +         approval_status = "CONDITIONAL_APPROVAL"
+2245 |
+     -         else:
+     -             approval_status = "REJECTED"
+2246 +     else:
+2247 +         approval_status = "REJECTED"
+2248 |
+     |
+
+SIM108 Use ternary operator `active_returns = equity["Active_Return"] if "Active_Return" in equity.columns else None` instead of `if`-`else`-block
+   --> analytics/performance/performance_attribution_engine.py:151:1
+    |
+149 |       benchmark_total_return = np.nan
+150 |
+151 | / if "Active_Return" in equity.columns:
+152 | |     active_returns = equity["Active_Return"]
+153 | |
+154 | | else:
+155 | |     active_returns = None
+    | |_________________________^
+156 |
+157 |   portfolio_total_return = (1 + portfolio_returns).prod() - 1
+    |
+help: Replace `if`-`else`-block with `active_returns = equity["Active_Return"] if "Active_Return" in equity.columns else None`
+
+SIM108 Use ternary operator `max_drawdown = equity["Drawdown"].min() if "Drawdown" in equity.columns else np.nan` instead of `if`-`else`-block
+   --> analytics/performance/performance_attribution_engine.py:229:1
+    |
+227 |   # =========================================================
+228 |
+229 | / if "Drawdown" in equity.columns:
+230 | |     max_drawdown = equity["Drawdown"].min()
+231 | |
+232 | | else:
+233 | |     max_drawdown = np.nan
+    | |_________________________^
+234 |
+235 |   # =========================================================
+    |
+help: Replace `if`-`else`-block with `max_drawdown = equity["Drawdown"].min() if "Drawdown" in equity.columns else np.nan`
+
+RUF005 Consider `["Symbol", *factor_cols]` instead of concatenation
+   --> analytics/portfolio/factor_optimizer.py:146:22
+    |
+145 | universe = universe.merge(
+146 |     factor_exposures[["Symbol"] + factor_cols], on="Symbol", how="left"
+    |                      ^^^^^^^^^^^^^^^^^^^^^^^^
+147 | )
+    |
+help: Replace with `["Symbol", *factor_cols]`
+
+SIM108 Use ternary operator `covariance_file = SHRINKAGE_FILE if USE_SHRINKAGE_COVARIANCE else COVARIANCE_FILE` instead of `if`-`else`-block
+   --> analytics/portfolio/optimizer_engine.py:95:1
+    |
+ 93 |   returns_matrix = pd.read_parquet(RETURNS_FILE)
+ 94 |
+ 95 | / if USE_SHRINKAGE_COVARIANCE:
+ 96 | |     covariance_file = SHRINKAGE_FILE
+ 97 | |
+ 98 | | else:
+ 99 | |     covariance_file = COVARIANCE_FILE
+    | |_____________________________________^
+100 |
+101 |   if not covariance_file.exists():
+    |
+help: Replace `if`-`else`-block with `covariance_file = SHRINKAGE_FILE if USE_SHRINKAGE_COVARIANCE else COVARIANCE_FILE`
+
+RUF005 Consider `["Symbol", *rank_cols]` instead of concatenation
+   --> analytics/portfolio/optimizer_v2.py:155:25
+    |
+154 |     universe = universe.merge(
+155 |         factor_rankings[["Symbol"] + rank_cols], on="Symbol", how="left"
+    |                         ^^^^^^^^^^^^^^^^^^^^^^
+156 |     )
+    |
+help: Replace with `["Symbol", *rank_cols]`
+
+RUF005 Consider `["Symbol", *capacity_cols]` instead of concatenation
+   --> analytics/portfolio/optimizer_v2.py:165:23
+    |
+164 | universe = universe.merge(
+165 |     capacity_analysis[["Symbol"] + capacity_cols], on="Symbol", how="left"
+    |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+166 | )
+    |
+help: Replace with `["Symbol", *capacity_cols]`
+
+RUF012 Mutable default value for class attribute
+  --> analytics/portfolio/portfolio_constraints_engine.py:58:24
+   |
+57 |   class PortfolioConstraintValidator:
+58 |       REQUIRED_METRICS = [
+   |  ________________________^
+59 | |         "Risk_Budget_Score",
+60 | |         "Risk_Regime",
+61 | |         "Target_Cash_Level",
+62 | |         "Target_Gross_Exposure",
+63 | |         "Target_Net_Exposure",
+64 | |         "Position_Size_Scaler",
+65 | |         "Max_Position_Size",
+66 | |         "Sector_Risk_Budget",
+67 | |         "Turnover_Budget",
+68 | |         "Portfolio_Leverage_Limit",
+69 | |     ]
+   | |_____^
+70 |
+71 |       @staticmethod
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RET504 Unnecessary assignment to `dashboard` before `return` statement
+   --> analytics/portfolio/portfolio_constraints_engine.py:104:16
+    |
+102 |         dashboard = pd.read_csv(INPUT_FILE)
+103 |
+104 |         return dashboard
+    |                ^^^^^^^^^
+    |
+help: Remove unnecessary assignment
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> analytics/portfolio/portfolio_constraints_engine.py:111:24
+    |
+109 |     def extract(dashboard) -> dict:
+110 |
+111 |         metrics = dict(zip(dashboard["Metric"], dashboard["Value"]))
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+112 |
+113 |         return ConstraintContext(
+    |
+help: Add explicit value for parameter `strict=`
+
+RUF012 Mutable default value for class attribute
+   --> analytics/portfolio/portfolio_constraints_engine.py:430:14
+    |
+429 |   class ConstraintPolicyEngine:
+430 |       POLICY = {
+    |  ______________^
+431 | |         "AGGRESSIVE": {
+432 | |             "Target_Holdings": 35,
+433 | |             "Max_Beta": 1.30,
+434 | |             "Volatility_Target": 24,
+435 | |             "Tracking_Error": 12,
+436 | |             "Max_Position": 5.0,
+437 | |         },
+438 | |         "OFFENSIVE": {
+439 | |             "Target_Holdings": 45,
+440 | |             "Max_Beta": 1.15,
+441 | |             "Volatility_Target": 20,
+442 | |             "Tracking_Error": 10,
+443 | |             "Max_Position": 4.5,
+444 | |         },
+445 | |         "BALANCED": {
+446 | |             "Target_Holdings": 50,
+447 | |             "Max_Beta": 1.00,
+448 | |             "Volatility_Target": 16,
+449 | |             "Tracking_Error": 8,
+450 | |             "Max_Position": 4.0,
+451 | |         },
+452 | |         "CAUTIOUS": {
+453 | |             "Target_Holdings": 60,
+454 | |             "Max_Beta": 0.85,
+455 | |             "Volatility_Target": 12,
+456 | |             "Tracking_Error": 6,
+457 | |             "Max_Position": 3.5,
+458 | |         },
+459 | |         "DEFENSIVE": {
+460 | |             "Target_Holdings": 75,
+461 | |             "Max_Beta": 0.70,
+462 | |             "Volatility_Target": 8,
+463 | |             "Tracking_Error": 4,
+464 | |             "Max_Position": 3.0,
+465 | |         },
+466 | |     }
+    | |_____^
+467 |
+468 |       @classmethod
+    |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+PLR0917 Too many positional arguments (6 > 5)
+   --> analytics/regime/macro_regime_engine.py:151:9
+    |
+149 | class MacroDashboardBuilder:
+150 |     @staticmethod
+151 |     def build(macro_values, score, confidence, regime, recommendation, risk):
+    |         ^^^^^
+152 |
+153 |         rows = [
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+RUF012 Mutable default value for class attribute
+  --> analytics/regime/macro_repository.py:36:24
+   |
+35 | class MacroValidator:
+36 |     REQUIRED_COLUMNS = ["Date", "Value"]
+   |                        ^^^^^^^^^^^^^^^^^
+37 |
+38 |     @staticmethod
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RET504 Unnecessary assignment to `df` before `return` statement
+  --> analytics/regime/macro_repository.py:88:16
+   |
+86 |         df = df.sort_values("Date").reset_index(drop=True)
+87 |
+88 |         return df
+   |                ^^
+89 |
+90 |     @staticmethod
+   |
+help: Remove unnecessary assignment
+
+SIM108 Use ternary operator `latest_breadth = breadth.loc[mask].iloc[-1] if mask.any() else breadth.iloc[0]` instead of `if`-`else`-block
+   --> analytics/regime/market_regime_engine.py:101:5
+    |
+ 99 |       # Use latest available breadth up to this date
+100 |       mask = breadth["Date"] <= date
+101 | /     if mask.any():
+102 | |         latest_breadth = breadth.loc[mask].iloc[-1]
+103 | |     else:
+104 | |         latest_breadth = breadth.iloc[0]
+    | |________________________________________^
+105 |
+106 |       breadth_score = latest_breadth["BREADTH_SCORE"]
+    |
+help: Replace `if`-`else`-block with `latest_breadth = breadth.loc[mask].iloc[-1] if mask.any() else breadth.iloc[0]`
+
+SIM108 Use ternary operator `trend_score = 100 if latest["SMA_6M"] > latest["SMA_12M"] else 0` instead of `if`-`else`-block
+  --> analytics/regime/regime_engine.py:78:1
+   |
+76 |   trend_score = 50
+77 |
+78 | / if latest["SMA_6M"] > latest["SMA_12M"]:
+79 | |     trend_score = 100
+80 | | else:
+81 | |     trend_score = 0
+   | |___________________^
+82 |
+83 |   # =========================================================
+   |
+help: Replace `if`-`else`-block with `trend_score = 100 if latest["SMA_6M"] > latest["SMA_12M"] else 0`
+
+PLR0911 Too many return statements (7 > 6)
+   --> analytics/research/factor_attribution_engine.py:302:5
+    |
+302 | def classify_factor(
+    |     ^^^^^^^^^^^^^^^
+303 |     factor,
+304 | ):
+    |
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> analytics/risk/build_beta_master.py:55:19
+   |
+53 | symbols_df = universe[["Symbol", "Yahoo_Symbol"]].dropna().drop_duplicates()
+54 |
+55 | symbol_map = dict(zip(symbols_df["Yahoo_Symbol"], symbols_df["Symbol"]))
+   |                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+56 |
+57 | symbols = symbols_df["Yahoo_Symbol"].tolist()
+   |
+help: Add explicit value for parameter `strict=`
+
+SIM108 Use ternary operator `close_col = "Close" if benchmark["Close"].notna().sum() > 100 else "Close.1"` instead of `if`-`else`-block
+  --> analytics/risk/build_beta_model.py:28:1
+   |
+27 |   # Find usable close column
+28 | / if benchmark["Close"].notna().sum() > 100:
+29 | |     close_col = "Close"
+30 | | else:
+31 | |     close_col = "Close.1"
+   | |_________________________^
+32 |
+33 |   benchmark["Benchmark_Return"] = benchmark[close_col].pct_change()
+   |
+help: Replace `if`-`else`-block with `close_col = "Close" if benchmark["Close"].notna().sum() > 100 else "Close.1"`
+
+SIM108 Use ternary operator `beta = 1.0 if variance == 0 else covariance / variance` instead of `if`-`else`-block
+  --> analytics/risk/build_beta_model.py:69:9
+   |
+67 |           variance = np.var(bench_ret)
+68 |
+69 | /         if variance == 0:
+70 | |             beta = 1.0
+71 | |         else:
+72 | |             beta = covariance / variance
+   | |________________________________________^
+73 |
+74 |           beta = np.clip(beta, 0.25, 3.00)
+   |
+help: Replace `if`-`else`-block with `beta = 1.0 if variance == 0 else covariance / variance`
+
+PLW2901 `for` loop variable `df` overwritten by assignment target
+  --> analytics/risk/build_volatility_model.py:28:9
+   |
+26 | for symbol, df in prices.groupby("Symbol"):
+27 |     try:
+28 |         df = df.sort_values("Date")
+   |         ^^
+29 |
+30 |         returns = df["Daily_Return"].dropna()
+   |
+
+SIM108 Use ternary operator `input_file = LOG_RETURNS_FILE if USE_LOG_RETURNS else RETURNS_FILE` instead of `if`-`else`-block
+   --> analytics/risk/covariance_matrix_engine.py:104:1
+    |
+102 |   print("\n📥 Loading Return Matrices...")
+103 |
+104 | / if USE_LOG_RETURNS:
+105 | |     input_file = LOG_RETURNS_FILE
+106 | |
+107 | | else:
+108 | |     input_file = RETURNS_FILE
+    | |_____________________________^
+109 |
+110 |   if not input_file.exists():
+    |
+help: Replace `if`-`else`-block with `input_file = LOG_RETURNS_FILE if USE_LOG_RETURNS else RETURNS_FILE`
+
+B904 Within an `except` clause, raise exceptions with `raise ... from err` or `raise ... from None` to distinguish them from errors in exception handling
+   --> analytics/risk/covariance_matrix_engine.py:135:9
+    |
+134 |     except Exception:
+135 |         raise ValueError("Date index invalid.")
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+136 |
+137 | # =========================================================
+    |
+
+RUF015 Prefer `next(c for c in df.columns if "score" in c.lower())` over single element slice
+  --> analytics/risk/factor_exposure_monitor.py:85:17
+   |
+83 |     df = pd.read_csv(file)
+84 |
+85 |     score_col = [c for c in df.columns if "score" in c.lower()][0]
+   |                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+86 |
+87 |     tmp = df[["Symbol", score_col]].copy()
+   |
+help: Replace with `next(c for c in df.columns if "score" in c.lower())`
+
+RUF005 Consider `["Symbol", *factor_columns]` instead of concatenation
+   --> analytics/risk/factor_risk_model.py:207:21
+    |
+206 | portfolio_factor = portfolio.merge(
+207 |     factor_loadings[["Symbol"] + factor_columns], on="Symbol", how="inner"
+    |                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+208 | )
+    |
+help: Replace with `["Symbol", *factor_columns]`
+
+SIM108 Use ternary operator `factor_cvar_95 = tail_returns.mean() if len(tail_returns) > 0 else factor_var_95` instead of `if`-`else`-block
+   --> analytics/risk/factor_stress_engine.py:715:1
+    |
+713 |   tail_returns = stress_returns[stress_returns <= factor_var_95]
+714 |
+715 | / if len(tail_returns) > 0:
+716 | |     factor_cvar_95 = tail_returns.mean()
+717 | |
+718 | | else:
+719 | |     factor_cvar_95 = factor_var_95
+    | |__________________________________^
+720 |
+721 |   # =========================================================
+    |
+help: Replace `if`-`else`-block with `factor_cvar_95 = tail_returns.mean() if len(tail_returns) > 0 else factor_var_95`
+
+SIM108 Use ternary operator `historical_cvar_95 = tail_returns.mean() if len(tail_returns) > 0 else historical_var_95` instead of `if`-`else`-block
+   --> analytics/risk/historical_stress_engine.py:772:1
+    |
+770 |   tail_returns = historical_returns[historical_returns <= historical_var_95]
+771 |
+772 | / if len(tail_returns) > 0:
+773 | |     historical_cvar_95 = tail_returns.mean()
+774 | |
+775 | | else:
+776 | |     historical_cvar_95 = historical_var_95
+    | |__________________________________________^
+777 |
+778 |   # =========================================================
+    |
+help: Replace `if`-`else`-block with `historical_cvar_95 = tail_returns.mean() if len(tail_returns) > 0 else historical_var_95`
+
+SIM108 Use ternary operator `liquidity_cvar_95 = tail_costs.mean() if len(tail_costs) > 0 else liquidity_var_95` instead of `if`-`else`-block
+   --> analytics/risk/liquidity_stress_engine.py:727:1
+    |
+725 |   tail_costs = stress_costs[stress_costs >= liquidity_var_95]
+726 |
+727 | / if len(tail_costs) > 0:
+728 | |     liquidity_cvar_95 = tail_costs.mean()
+729 | |
+730 | | else:
+731 | |     liquidity_cvar_95 = liquidity_var_95
+    | |________________________________________^
+732 |
+733 |   # =========================================================
+    |
+help: Replace `if`-`else`-block with `liquidity_cvar_95 = tail_costs.mean() if len(tail_costs) > 0 else liquidity_var_95`
+
+SIM108 Use ternary operator `stress_cvar_95 = tail_returns.mean() if len(tail_returns) > 0 else stress_var_95` instead of `if`-`else`-block
+   --> analytics/risk/stress_scenario_engine.py:558:1
+    |
+556 |   tail_returns = stress_returns[stress_returns <= stress_var_95]
+557 |
+558 | / if len(tail_returns) > 0:
+559 | |     stress_cvar_95 = tail_returns.mean()
+560 | |
+561 | | else:
+562 | |     stress_cvar_95 = stress_var_95
+    | |__________________________________^
+563 |
+564 |   # =========================================================
+    |
+help: Replace `if`-`else`-block with `stress_cvar_95 = tail_returns.mean() if len(tail_returns) > 0 else stress_var_95`
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/dependencies/authentication.py:106:18
+    |
+105 |   def get_username(
+106 |       user: dict = Depends(
+    |  __________________^
+107 | |         get_current_user,
+108 | |     ),
+    | |_____^
+109 |   ) -> str:
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/dependencies/authentication.py:123:18
+    |
+122 |   def get_role(
+123 |       user: dict = Depends(
+    |  __________________^
+124 | |         get_current_user,
+125 | |     ),
+    | |_____^
+126 |   ) -> str:
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/dependencies/authentication.py:140:18
+    |
+139 |   def get_claims(
+140 |       user: dict = Depends(
+    |  __________________^
+141 | |         get_current_user,
+142 | |     ),
+    | |_____^
+143 |   ) -> dict:
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/dependencies/authentication.py:173:56
+    |
+172 |   def validate_bearer_token(
+173 |       credentials: HTTPAuthorizationCredentials | None = Depends(
+    |  ________________________________________________________^
+174 | |         bearer_scheme,
+175 | |     ),
+    | |_____^
+176 |   ) -> str | None:
+177 |       """
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/dependencies/authorization.py:97:32
+    |
+ 96 |       def dependency(
+ 97 |           user: dict[str, Any] = Depends(
+    |  ________________________________^
+ 98 | |             get_current_user,
+ 99 | |         ),
+    | |_________^
+100 |       ) -> dict[str, Any]:
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/dependencies/authorization.py:131:32
+    |
+130 |       def dependency(
+131 |           user: dict[str, Any] = Depends(
+    |  ________________________________^
+132 | |             get_current_user,
+133 | |         ),
+    | |_________^
+134 |       ) -> dict[str, Any]:
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> api/dependencies/authorization.py:170:32
+    |
+169 |       def dependency(
+170 |           user: dict[str, Any] = Depends(
+    |  ________________________________^
+171 | |             get_current_user,
+172 | |         ),
+    | |_________^
+173 |       ) -> dict[str, Any]:
+    |
+
+SIM103 Return the condition `not compresslevel > 9` directly
+   --> api/middleware/compression.py:203:5
+    |
+201 |           return False
+202 |
+203 | /     if compresslevel > 9:
+204 | |         return False
+205 | |
+206 | |     return True
+    | |_______________^
+    |
+help: Replace with `return not compresslevel > 9`
+
+A001 Variable `TimeoutError` is shadowing a Python builtin
+   --> api/schemas/error.py:266:7
+    |
+266 | class TimeoutError(
+    |       ^^^^^^^^^^^^
+267 |     APIError,
+268 | ):
+    |
+
+UP046 Generic class `PageResponse` uses `Generic` subclass instead of type parameters
+   --> api/schemas/pagination.py:129:5
+    |
+127 | class PageResponse(
+128 |     APIModel,
+129 |     Generic[T],
+    |     ^^^^^^^^^^
+130 | ):
+131 |     """
+    |
+help: Use type parameters
+
+UP046 Generic class `CursorResponse` uses `Generic` subclass instead of type parameters
+   --> api/schemas/pagination.py:189:5
+    |
+187 | class CursorResponse(
+188 |     APIModel,
+189 |     Generic[T],
+    |     ^^^^^^^^^^
+190 | ):
+191 |     """
+    |
+help: Use type parameters
+
+UP046 Generic class `LoadResult` uses `Generic` subclass instead of type parameters
+  --> core/data/loaders/base_loader.py:97:18
+   |
+96 | @dataclass(slots=True)
+97 | class LoadResult(Generic[T]):
+   |                  ^^^^^^^^^^
+98 |     data: T
+   |
+help: Use type parameters
+
+N805 First argument of a method should be named `self`
+   --> core/data/loaders/base_loader.py:232:26
+    |
+230 |     # ======================================================
+231 |
+232 |     def validate_columns(dataframe: pd.DataFrame, required_columns: list[str]) -> None:
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^
+233 |         """
+234 |         Validate required columns.
+    |
+help: Rename `dataframe` to `self`
+
+PLR0917 Too many positional arguments (11 > 5)
+  --> core/data/loaders/csv_loader.py:43:9
+   |
+41 |     """
+42 |
+43 |     def __init__(
+   |         ^^^^^^^^
+44 |         self,
+45 |         source: str | Path,
+   |
+
+RET504 Unnecessary assignment to `dataframe` before `return` statement
+   --> core/data/loaders/csv_loader.py:112:20
+    |
+110 |             )
+111 |
+112 |             return dataframe
+    |                    ^^^^^^^^^
+113 |
+114 |         except UnicodeDecodeError as exc:
+    |
+help: Remove unnecessary assignment
+
+PLR0917 Too many positional arguments (7 > 5)
+  --> core/data/loaders/parquet_loader.py:41:9
+   |
+39 |     """
+40 |
+41 |     def __init__(
+   |         ^^^^^^^^
+42 |         self,
+43 |         source: str | Path,
+   |
+
+RET504 Unnecessary assignment to `dataframe` before `return` statement
+  --> core/data/loaders/parquet_loader.py:94:20
+   |
+92 |             )
+93 |
+94 |             return dataframe
+   |                    ^^^^^^^^^
+95 |
+96 |         except ImportError as exc:
+   |
+help: Remove unnecessary assignment
+
+UP046 Generic class `BaseRepository` uses `Generic` subclass instead of type parameters
+  --> core/data/repositories/base_repository.py:62:27
+   |
+62 | class BaseRepository(ABC, Generic[T]):
+   |                           ^^^^^^^^^^
+63 |     """
+64 |     Institutional Base Repository.
+   |
+help: Use type parameters
+
+RUF012 Mutable default value for class attribute
+  --> core/data/repositories/portfolio_repository.py:43:24
+   |
+41 |       """
+42 |
+43 |       REQUIRED_COLUMNS = [
+   |  ________________________^
+44 | |         "Security_ID",
+45 | |         "Symbol",
+46 | |         "Company_Name",
+47 | |         "Sector",
+48 | |         "Rank",
+49 | |         "Alpha_Adjusted",
+50 | |         "Weight",
+51 | |         "Last_Close",
+52 | |         "Market_Cap",
+53 | |         "ADV_20D",
+54 | |         "Portfolio_Date",
+55 | |         "Engine_Version",
+56 | |     ]
+   | |_____^
+57 |
+58 |       def __init__(self, source: str | Path) -> None:
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+UP046 Generic class `ValidationResult` uses `Generic` subclass instead of type parameters
+  --> core/data/validators/base_validator.py:72:24
+   |
+71 | @dataclass(slots=True)
+72 | class ValidationResult(Generic[T]):
+   |                        ^^^^^^^^^^
+73 |     passed: bool
+   |
+help: Use type parameters
+
+PLR0917 Too many positional arguments (8 > 5)
+  --> core/data/validators/dataframe_validator.py:38:9
+   |
+36 |     """
+37 |
+38 |     def __init__(
+   |         ^^^^^^^^
+39 |         self,
+40 |         required_columns: list[str] | None = None,
+   |
+
+SIM102 Use a single `if` statement instead of nested `if` statements
+   --> core/data/validators/dataframe_validator.py:127:9
+    |
+125 |           # -----------------------------------------------
+126 |
+127 | /         if self.require_unique_index:
+128 | |             if not data.index.is_unique:
+    | |________________________________________^
+129 |                   issues.append(self.error("DataFrame index contains duplicate values."))
+    |
+help: Combine `if` statements using `and`
+
+PLW2901 `for` loop variable `expected_dtype` overwritten by assignment target
+  --> core/data/validators/schema_validator.py:83:13
+   |
+81 |             actual_dtype = str(data[column].dtype)
+82 |
+83 |             expected_dtype = str(expected_dtype)
+   |             ^^^^^^^^^^^^^^
+84 |
+85 |             if actual_dtype != expected_dtype:
+   |
+
+B023 Function definition does not bind loop variable `allowed`
+   --> core/data/validators/schema_validator.py:118:67
+    |
+116 |                 continue
+117 |
+118 |             invalid = data[column].dropna().loc[lambda s: ~s.isin(allowed)]
+    |                                                                   ^^^^^^^
+119 |
+120 |             if not invalid.empty:
+    |
+
+E402 Module level import not at top of file
+  --> core/dependency_container.py:79:1
+   |
+77 | # ==========================================================
+78 |
+79 | from alpha.signal_engine import SignalEngine
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+80 | from execution.execution_simulator import ExecutionEngine
+81 | from execution.trade_engine import TradeEngine
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> core/dependency_container.py:80:1
+   |
+79 | from alpha.signal_engine import SignalEngine
+80 | from execution.execution_simulator import ExecutionEngine
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+81 | from execution.trade_engine import TradeEngine
+82 | from portfolio.portfolio_engine import PortfolioEngine
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> core/dependency_container.py:81:1
+   |
+79 | from alpha.signal_engine import SignalEngine
+80 | from execution.execution_simulator import ExecutionEngine
+81 | from execution.trade_engine import TradeEngine
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+82 | from portfolio.portfolio_engine import PortfolioEngine
+83 | from reporting.reporting_engine import ReportingEngine
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> core/dependency_container.py:82:1
+   |
+80 | from execution.execution_simulator import ExecutionEngine
+81 | from execution.trade_engine import TradeEngine
+82 | from portfolio.portfolio_engine import PortfolioEngine
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+83 | from reporting.reporting_engine import ReportingEngine
+84 | from risk.risk_engine import RiskEngine
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> core/dependency_container.py:83:1
+   |
+81 | from execution.trade_engine import TradeEngine
+82 | from portfolio.portfolio_engine import PortfolioEngine
+83 | from reporting.reporting_engine import ReportingEngine
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+84 | from risk.risk_engine import RiskEngine
+   |
+help: Move module level imports to top of file
+
+E402 Module level import not at top of file
+  --> core/dependency_container.py:84:1
+   |
+82 | from portfolio.portfolio_engine import PortfolioEngine
+83 | from reporting.reporting_engine import ReportingEngine
+84 | from risk.risk_engine import RiskEngine
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+85 |
+86 | # ==========================================================
+   |
+help: Move module level imports to top of file
+
+N818 Exception name `PlatformException` should be named with an Error suffix
+ --> core/exceptions.py:7:7
+  |
+7 | class PlatformException(Exception):
+  |       ^^^^^^^^^^^^^^^^^
+8 |     """Base exception for platform"""
+  |
+
+N818 Exception name `RiskLimitBreach` should be named with an Error suffix
+  --> core/exceptions.py:70:7
+   |
+70 | class RiskLimitBreach(RiskError):
+   |       ^^^^^^^^^^^^^^^
+71 |     pass
+   |
+
+N818 Exception name `TrackingErrorBreach` should be named with an Error suffix
+  --> core/exceptions.py:74:7
+   |
+74 | class TrackingErrorBreach(RiskError):
+   |       ^^^^^^^^^^^^^^^^^^^
+75 |     pass
+   |
+
+N818 Exception name `ComplianceFailure` should be named with an Error suffix
+  --> core/exceptions.py:91:7
+   |
+91 | class ComplianceFailure(GovernanceError):
+   |       ^^^^^^^^^^^^^^^^^
+92 |     pass
+   |
+
+N818 Exception name `SlippageLimitExceeded` should be named with an Error suffix
+   --> core/exceptions.py:104:7
+    |
+104 | class SlippageLimitExceeded(ExecutionError):
+    |       ^^^^^^^^^^^^^^^^^^^^^
+105 |     pass
+    |
+
+N818 Exception name `MarketImpactExceeded` should be named with an Error suffix
+   --> core/exceptions.py:108:7
+    |
+108 | class MarketImpactExceeded(ExecutionError):
+    |       ^^^^^^^^^^^^^^^^^^^^
+109 |     pass
+    |
+
+RUF002 Docstring contains ambiguous `σ` (GREEK SMALL LETTER SIGMA). Did you mean `o` (LATIN SMALL LETTER O)?
+  --> core/math/covariance.py:98:5
+   |
+96 | def portfolio_volatility(weights: np.ndarray, covariance: np.ndarray) -> float:
+97 |     """
+98 |     σ = √(wᵀΣw)
+   |     ^
+99 |     """
+   |
+
+RUF002 Docstring contains ambiguous `σ` (GREEK SMALL LETTER SIGMA). Did you mean `o` (LATIN SMALL LETTER O)?
+   --> core/math/covariance.py:118:10
+    |
+116 |     Marginal contribution to risk.
+117 |
+118 |     Σw / σ
+    |          ^
+119 |     """
+    |
+
+N802 Function name `P` should be lowercase
+  --> core/models/black_litterman_model.py:85:9
+   |
+84 |     @property
+85 |     def P(self) -> np.ndarray:
+   |         ^
+86 |
+87 |         return self.investor_view.pick_matrix
+   |
+help: Consider adding `@typing.override` if this method overrides a method from a superclass
+
+N802 Function name `Q` should be lowercase
+  --> core/models/black_litterman_model.py:90:9
+   |
+89 |     @property
+90 |     def Q(self) -> np.ndarray:
+   |         ^
+91 |
+92 |         return self.investor_view.expected_returns
+   |
+help: Consider adding `@typing.override` if this method overrides a method from a superclass
+
+N806 Variable `NAV` in function should be lowercase
+   --> core/models/portfolio_position.py:100:9
+    |
+ 98 |         """
+ 99 |
+100 |         NAV = 100_000_000
+    |         ^^^
+101 |
+102 |         return NAV * self.weight
+    |
+
+RUF002 Docstring contains ambiguous `–` (EN DASH). Did you mean `-` (HYPHEN-MINUS)?
+   --> core/portfolio/diversification.py:110:33
+    |
+108 |     def diversification_score(portfolio: Portfolio) -> float:
+109 |         """
+110 |         Diversification score (0–100).
+    |                                 ^
+111 |         """
+    |
+
+RUF002 Docstring contains ambiguous `×` (MULTIPLICATION SIGN). Did you mean `x` (LATIN SMALL LETTER X)?
+   --> core/risk/base_risk_model.py:160:21
+    |
+159 |         Shape:
+160 |             (Assets × Observations)
+    |                     ^
+161 |         """
+    |
+
+RET504 Unnecessary assignment to `result` before `return` statement
+  --> core/services/base_service.py:77:20
+   |
+75 |             result = self.run(*args, **kwargs)
+76 |
+77 |             return result
+   |                    ^^^^^^
+78 |
+79 |         finally:
+   |
+help: Remove unnecessary assignment
+
+RUF009 Do not perform function call `Path.cwd` in dataclass defaults
+  --> core/settings.py:26:22
+   |
+24 |     PROJECT_NAME: str = "Institutional Quant Platform"
+25 |
+26 |     ROOT_DIR: Path = Path.cwd()
+   |                      ^^^^^^^^^^
+   |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> docs/development/examples/api_example.py:180:32
+    |
+178 | def create_security(
+179 |     request: SecurityRequest,
+180 |     service: SecurityService = Depends(get_service),
+    |                                ^^^^^^^^^^^^^^^^^^^^
+181 | ):
+    |
+
+B008 Do not perform function call `Depends` in argument defaults; instead, perform the call within the function, or read the default from a module-level singleton variable
+   --> docs/development/examples/api_example.py:202:32
+    |
+200 | def get_security(
+201 |     symbol: str,
+202 |     service: SecurityService = Depends(get_service),
+    |                                ^^^^^^^^^^^^^^^^^^^^
+203 | ):
+    |
+
+UP046 Generic class `Repository` uses `Generic` subclass instead of type parameters
+  --> docs/development/examples/repository_example.py:47:23
+   |
+47 | class Repository(ABC, Generic[T]):
+   |                       ^^^^^^^^^^
+48 |     """
+49 |     Base repository contract.
+   |
+help: Use type parameters
+
+RUF012 Mutable default value for class attribute
+  --> execution/broker_factory.py:43:42
+   |
+41 |       """
+42 |
+43 |       _registry: dict[str, type[Broker]] = {
+   |  __________________________________________^
+44 | |         "SIMULATOR": BrokerSimulator,
+45 | |     }
+   | |_____^
+46 |
+47 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+B027 `ExecutionAlgorithm.pre_execute` is an empty method in an abstract base class, but has no abstract decorator
+  --> execution/execution_algorithm.py:68:5
+   |
+66 |       # =====================================================
+67 |
+68 | /     def pre_execute(
+69 | |         self,
+70 | |         order: Order,
+71 | |     ) -> None:
+72 | |         """
+73 | |         Hook before execution.
+74 | |         """
+   | |___________^
+75 |
+76 |       # =====================================================
+   |
+
+B027 `ExecutionAlgorithm.post_execute` is an empty method in an abstract base class, but has no abstract decorator
+  --> execution/execution_algorithm.py:80:5
+   |
+78 |       # =====================================================
+79 |
+80 | /     def post_execute(
+81 | |         self,
+82 | |         report: ExecutionReport,
+83 | |     ) -> None:
+84 | |         """
+85 | |         Hook after execution.
+86 | |         """
+   | |___________^
+87 |
+88 |       # =====================================================
+   |
+
+SIM108 Use ternary operator `executed = order.quantity if self.allow_partial_fill else order.quantity` instead of `if`-`else`-block
+  --> execution/fill_model.py:84:9
+   |
+82 |       ) -> FillResult:
+83 |
+84 | /         if self.allow_partial_fill:
+85 | |             executed = order.quantity
+86 | |
+87 | |         else:
+88 | |             executed = order.quantity
+   | |_____________________________________^
+89 |
+90 |           remaining = max(
+   |
+help: Replace `if`-`else`-block with `executed = order.quantity if self.allow_partial_fill else order.quantity`
+
+RET504 Unnecessary assignment to `turnover` before `return` statement
+  --> execution/trade_engine.py:72:16
+   |
+70 |         turnover = trades["Trade_Weight"].abs().sum()
+71 |
+72 |         return turnover
+   |                ^^^^^^^^
+73 |
+74 |     @staticmethod
+   |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `trades` before `return` statement
+  --> execution/trade_engine.py:83:16
+   |
+81 |         trades = RebalanceEngine.classify(trades)
+82 |
+83 |         return trades
+   |                ^^^^^^
+84 |
+85 |     @staticmethod
+   |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `enriched` before `return` statement
+   --> execution/transaction_cost_engine.py:526:16
+    |
+524 |         enriched = trades.merge(costs, on="Symbol", how="left")
+525 |
+526 |         return enriched
+    |                ^^^^^^^^
+    |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `analytics` before `return` statement
+   --> execution/transaction_cost_engine.py:609:16
+    |
+607 |         )
+608 |
+609 |         return analytics
+    |                ^^^^^^^^^
+    |
+help: Remove unnecessary assignment
+
+PLC0415 `import` should be at the top-level of a file
+   --> execution/transaction_cost_engine.py:650:13
+    |
+649 |         try:
+650 |             import mlflow
+    |             ^^^^^^^^^^^^^
+651 |
+652 |             for key, value in summary.items():
+    |
+
+PLC0415 `import` should be at the top-level of a file
+   --> execution/transaction_cost_engine.py:670:13
+    |
+669 |         try:
+670 |             from telemetry.telemetry import PIPELINE_RUNS
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+671 |
+672 |             PIPELINE_RUNS.add(1)
+    |
+
+RET504 Unnecessary assignment to `results` before `return` statement
+   --> execution/transaction_cost_engine.py:769:16
+    |
+767 |         results = pipeline.run(trades)
+768 |
+769 |         return results
+    |                ^^^^^^^
+    |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `outliers` before `return` statement
+  --> ingestion/data_engine.py:86:16
+   |
+84 |         outliers = (df[column] > q3 + 1.5 * iqr).sum()
+85 |
+86 |         return outliers
+   |                ^^^^^^^^
+   |
+help: Remove unnecessary assignment
+
+PLC0415 `import` should be at the top-level of a file
+  --> ingestion/database_manager.py:86:9
+   |
+84 |         """
+85 |
+86 |         import numpy as np
+   |         ^^^^^^^^^^^^^^^^^^
+87 |
+88 |         df = dataframe.copy()
+   |
+
+RUF012 Mutable default value for class attribute
+  --> market_data/benchmark_repository.py:38:28
+   |
+37 |   class BenchmarkRepository:
+38 |       SUPPORTED_BENCHMARKS = {
+   |  ____________________________^
+39 | |         "NIFTY50",
+40 | |         "NIFTY100",
+41 | |         "NIFTY200",
+42 | |         "NIFTY500",
+43 | |         "MIDCAP150",
+44 | |         "SMALLCAP250",
+45 | |     }
+   | |_____^
+46 |
+47 |       def __init__(self, config: BenchmarkRepositoryConfig | None = None):
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+   --> market_data/price_ingestion.py:94:30
+    |
+ 93 |   class PriceDataValidator:
+ 94 |       REQUIRED_PRICE_COLUMNS = [
+    |  ______________________________^
+ 95 | |         "Date",
+ 96 | |         "Open",
+ 97 | |         "High",
+ 98 | |         "Low",
+ 99 | |         "Close",
+100 | |         "Volume",
+101 | |         "Symbol",
+102 | |     ]
+    | |_____^
+103 |
+104 |       @classmethod
+    |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RET504 Unnecessary assignment to `prices` before `return` statement
+   --> market_data/price_ingestion.py:349:16
+    |
+347 |         prices = pd.concat(frames, ignore_index=True)
+348 |
+349 |         return prices
+    |                ^^^^^^
+    |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `missing` before `return` statement
+   --> market_data/price_ingestion.py:459:16
+    |
+457 |         missing = universe.loc[~universe["Yahoo_Symbol"].isin(covered)]
+458 |
+459 |         return missing
+    |                ^^^^^^^
+460 |
+461 |     def merge_prices(
+    |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `report` before `return` statement
+   --> market_data/price_ingestion.py:496:16
+    |
+494 |         )
+495 |
+496 |         return report
+    |                ^^^^^^
+497 |
+498 |     @staticmethod
+    |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `missing` before `return` statement
+   --> market_data/price_ingestion.py:519:16
+    |
+517 |         missing = universe.loc[~universe["Yahoo_Symbol"].isin(covered)].copy()
+518 |
+519 |         return missing
+    |                ^^^^^^^
+520 |
+521 |     @staticmethod
+    |
+help: Remove unnecessary assignment
+
+PLC0415 `import` should be at the top-level of a file
+   --> market_data/price_ingestion.py:677:13
+    |
+676 |         try:
+677 |             from telemetry.telemetry import PIPELINE_RUNS
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+678 |
+679 |             PIPELINE_RUNS.add(value)
+    |
+
+PLC0415 `import` should be at the top-level of a file
+   --> market_data/price_ingestion.py:695:13
+    |
+694 |         try:
+695 |             from mlflow_track.mlflow_manager import MLflowManager
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+696 |
+697 |             MLflowManager.log_metric(name, value)
+    |
+
+SIM105 Use `contextlib.suppress(Exception)` instead of `try`-`except`-`pass`
+   --> market_data/price_ingestion.py:883:9
+    |
+881 |               pass
+882 |
+883 | /         try:
+884 | |             TelemetryAdapter.track("price_ingestion_runs", 1)
+885 | |
+886 | |         except Exception:
+887 | |             pass
+    | |________________^
+888 |
+889 |       # ======================================================
+    |
+help: Replace `try`-`except`-`pass` with `with contextlib.suppress(Exception): ...`
+
+RET504 Unnecessary assignment to `matrix` before `return` statement
+   --> market_data/price_repository.py:202:16
+    |
+200 |         )
+201 |
+202 |         return matrix
+    |                ^^^^^^
+203 |
+204 |     # ======================================================
+    |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `matrix` before `return` statement
+   --> market_data/price_repository.py:218:16
+    |
+216 |         )
+217 |
+218 |         return matrix
+    |                ^^^^^^
+219 |
+220 |     # ======================================================
+    |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `latest` before `return` statement
+   --> market_data/price_repository.py:234:16
+    |
+232 |         )
+233 |
+234 |         return latest
+    |                ^^^^^^
+235 |
+236 |     # ======================================================
+    |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `report` before `return` statement
+   --> market_data/price_repository.py:254:16
+    |
+252 |         )
+253 |
+254 |         return report
+    |                ^^^^^^
+255 |
+256 |     # ======================================================
+    |
+help: Remove unnecessary assignment
+
+PLR0917 Too many positional arguments (6 > 5)
+   --> metrics/attribution_metrics.py:258:9
+    |
+257 |     @classmethod
+258 |     def summary(
+    |         ^^^^^^^
+259 |         cls,
+260 |         portfolio_weights: list[float] | np.ndarray,
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+F841 Local variable `recovering` is assigned to but never used
+   --> metrics/drawdown_metrics.py:175:17
+    |
+174 |             else:
+175 |                 recovering = True
+    |                 ^^^^^^^^^^
+176 |
+177 |                 duration += 1
+    |
+help: Remove assignment to unused variable `recovering`
+
+PLR0917 Too many positional arguments (10 > 5)
+   --> metrics/turnover_metrics.py:167:9
+    |
+166 |     @classmethod
+167 |     def summary(
+    |         ^^^^^^^
+168 |         cls,
+169 |         buy_value: float,
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> monitoring/alert_governance_engine.py:58:24
+   |
+56 |         logger.info("Calculating Alert Governance")
+57 |
+58 |         metrics = dict(zip(dashboard["Metric"], dashboard["Value"]))
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+59 |
+60 |         total_alerts = int(metrics.get("Total_Alerts", 0))
+   |
+help: Add explicit value for parameter `strict=`
+
+RUF012 Mutable default value for class attribute
+  --> monitoring/alert_trend_engine.py:40:20
+   |
+39 |   class AlertSeverityEngine:
+40 |       SEVERITY_MAP = {
+   |  ____________________^
+41 | |         "INFO": 0,
+42 | |         "WATCH": 1,
+43 | |         "MEDIUM": 1,
+44 | |         "WARNING": 2,
+45 | |         "HIGH": 3,
+46 | |         "CRITICAL": 4,
+47 | |     }
+   | |_____^
+48 |
+49 |       @classmethod
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+PLR0917 Too many positional arguments (14 > 5)
+   --> monitoring/execution_monitor.py:300:9
+    |
+299 |     @classmethod
+300 |     def report(
+    |         ^^^^^^
+301 |         cls,
+302 |         executed_quantity: float,
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+F841 Local variable `forecast_metrics` is assigned to but never used
+  --> monitoring/governance_command_center.py:86:9
+   |
+84 |     def build(forecast_df, horizon_df, decision_df, stress_dashboard):
+85 |
+86 |         forecast_metrics = dict(zip(forecast_df["Metric"], forecast_df["Value"]))
+   |         ^^^^^^^^^^^^^^^^
+87 |
+88 |         horizon_metrics = dict(zip(horizon_df["Metric"], horizon_df["Value"]))
+   |
+help: Remove assignment to unused variable `forecast_metrics`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> monitoring/governance_command_center.py:86:33
+   |
+84 |     def build(forecast_df, horizon_df, decision_df, stress_dashboard):
+85 |
+86 |         forecast_metrics = dict(zip(forecast_df["Metric"], forecast_df["Value"]))
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+87 |
+88 |         horizon_metrics = dict(zip(horizon_df["Metric"], horizon_df["Value"]))
+   |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> monitoring/governance_command_center.py:88:32
+   |
+86 |         forecast_metrics = dict(zip(forecast_df["Metric"], forecast_df["Value"]))
+87 |
+88 |         horizon_metrics = dict(zip(horizon_df["Metric"], horizon_df["Value"]))
+   |                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+89 |
+90 |         decision_metrics = dict(zip(decision_df["Metric"], decision_df["Value"]))
+   |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> monitoring/governance_command_center.py:90:33
+   |
+88 |         horizon_metrics = dict(zip(horizon_df["Metric"], horizon_df["Value"]))
+89 |
+90 |         decision_metrics = dict(zip(decision_df["Metric"], decision_df["Value"]))
+   |                                 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+91 |
+92 |         stress_metrics = dict(
+   |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> monitoring/governance_command_center.py:93:13
+   |
+92 |         stress_metrics = dict(
+93 |             zip(stress_dashboard["Metric"], stress_dashboard["Value"])
+   |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+94 |         )
+   |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> monitoring/governance_command_center.py:119:30
+    |
+117 |         forecast_confidence = float(forecast.iloc[0]["Forecast_Confidence"])
+118 |
+119 |         alert_metrics = dict(zip(alert_governance["Metric"], alert_governance["Value"]))
+    |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+120 |
+121 |         alert_health = float(alert_metrics.get("Alert_Health_Score", 0))
+    |
+help: Add explicit value for parameter `strict=`
+
+F841 Local variable `stress_average` is assigned to but never used
+   --> monitoring/live_portfolio_monitor.py:339:9
+    |
+337 |         rejected = stress_metrics["Rejected_Scenarios"]
+338 |
+339 |         stress_average = stress_metrics["Stress_Average"]
+    |         ^^^^^^^^^^^^^^
+340 |
+341 |         stress_view = stress_metrics["Stress_View"]
+    |
+help: Remove assignment to unused variable `stress_average`
+
+PLR0911 Too many return statements (7 > 6)
+   --> monitoring/metrics_registry.py:147:9
+    |
+145 |     # =====================================================
+146 |
+147 |     def validate(
+    |         ^^^^^^^^
+148 |         self,
+149 |         metric_name: str,
+    |
+
+RUF012 Mutable default value for class attribute
+  --> monitoring/monitor_trend_engine.py:73:11
+   |
+72 | class SeverityMapper:
+73 |     MAP = {"NORMAL": 0, "WATCH": 1, "WARNING": 2, "CRITICAL": 3}
+   |           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+74 |
+75 |     @classmethod
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RET504 Unnecessary assignment to `counts` before `return` statement
+   --> monitoring/monitor_trend_engine.py:189:16
+    |
+187 |         counts = history.groupby("Status").size().reset_index(name="Count")
+188 |
+189 |         return counts
+    |                ^^^^^^
+    |
+help: Remove unnecessary assignment
+
+PLR0917 Too many positional arguments (7 > 5)
+   --> monitoring/portfolio_monitor.py:312:9
+    |
+311 |     @classmethod
+312 |     def report(
+    |         ^^^^^^
+313 |         cls,
+314 |         portfolio_value: float,
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+PLR0917 Too many positional arguments (6 > 5)
+   --> monitoring/risk_monitor.py:365:9
+    |
+364 |     @classmethod
+365 |     def report(
+    |         ^^^^^^
+366 |         cls,
+367 |         portfolio_returns,
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+PLR0917 Too many positional arguments (7 > 5)
+   --> monitoring/signal_monitor.py:268:9
+    |
+267 |     @classmethod
+268 |     def report(
+    |         ^^^^^^
+269 |         cls,
+270 |         signals: pd.DataFrame,
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+RUF012 Mutable default value for class attribute
+  --> optimization/optimizer_factory.py:44:19
+   |
+42 |       """
+43 |
+44 |       _OPTIMIZERS = {
+   |  ___________________^
+45 | |         "equal_weight": EqualWeightOptimizer,
+46 | |         "minimum_variance": MinimumVarianceOptimizer,
+47 | |         "max_sharpe": MaximumSharpeOptimizer,
+48 | |         "mean_variance": MeanVarianceOptimizer,
+49 | |         "risk_parity": RiskParityOptimizer,
+50 | |         "hrp": HRPOptimizer,
+51 | |         "black_litterman": BlackLittermanOptimizer,
+52 | |     }
+   | |_____^
+53 |
+54 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+PLR0917 Too many positional arguments (6 > 5)
+  --> optimization/optimizers/hrp.py:49:9
+   |
+47 |     """
+48 |
+49 |     def __init__(
+   |         ^^^^^^^^
+50 |         self,
+51 |         covariance_matrix: CovarianceMatrix,
+   |
+
+RET504 Unnecessary assignment to `correlation` before `return` statement
+  --> optimization/optimizers/hrp.py:85:16
+   |
+83 |         correlation = np.nan_to_num(correlation)
+84 |
+85 |         return correlation
+   |                ^^^^^^^^^^^
+86 |
+87 |     # =====================================================
+   |
+help: Remove unnecessary assignment
+
+RUF002 Docstring contains ambiguous `σ` (GREEK SMALL LETTER SIGMA). Did you mean `o` (LATIN SMALL LETTER O)?
+  --> optimization/optimizers/max_sharpe.py:17:21
+   |
+15 |     Maximize
+16 |
+17 |         (Rp - Rf) / σ
+   |                     ^
+18 |
+19 | Subject To
+   |
+
+PLR0917 Too many positional arguments (7 > 5)
+  --> optimization/optimizers/max_sharpe.py:47:9
+   |
+45 |     """
+46 |
+47 |     def __init__(
+   |         ^^^^^^^^
+48 |         self,
+49 |         covariance_matrix: CovarianceMatrix,
+   |
+
+RUF002 Docstring contains ambiguous `−` (MINUS SIGN). Did you mean `-` (HYPHEN-MINUS)?
+  --> optimization/optimizers/mean_variance.py:17:13
+   |
+15 |     Maximize
+16 |
+17 |         μᵀw − λ wᵀΣw
+   |             ^
+18 |
+19 | Subject To
+   |
+
+PLR0917 Too many positional arguments (7 > 5)
+  --> optimization/optimizers/mean_variance.py:47:9
+   |
+45 |     """
+46 |
+47 |     def __init__(
+   |         ^^^^^^^^
+48 |         self,
+49 |         covariance_matrix: CovarianceMatrix,
+   |
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/adapter_factory.py:50:9
+   |
+48 |         str,
+49 |         type[BaseAdapter],
+50 |     ] = {}
+   |         ^^
+51 |
+52 |     # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/base_engine.py:57:23
+   |
+55 |     OWNER: str = "Institutional Quant Platform"
+56 |
+57 |     TAGS: list[str] = []
+   |                       ^^
+58 |
+59 |     ENABLED: bool = True
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/base_engine.py:81:29
+   |
+79 |     # =====================================================
+80 |
+81 |     DEPENDS_ON: list[str] = []
+   |                             ^^
+82 |
+83 |     INPUTS: list[str] = []
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/base_engine.py:83:25
+   |
+81 |     DEPENDS_ON: list[str] = []
+82 |
+83 |     INPUTS: list[str] = []
+   |                         ^^
+84 |
+85 |     OUTPUTS: list[str] = []
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/base_engine.py:85:26
+   |
+83 |     INPUTS: list[str] = []
+84 |
+85 |     OUTPUTS: list[str] = []
+   |                          ^^
+86 |
+87 |     # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+B027 `BaseEngine.pre_execute` is an empty method in an abstract base class, but has no abstract decorator
+   --> orchestration/base_engine.py:116:5
+    |
+114 |       # =====================================================
+115 |
+116 | /     def pre_execute(self, context) -> None:
+117 | |         """
+118 | |         Executed before execute().
+119 | |         """
+    | |___________^
+120 |
+121 |       def post_execute(
+    |
+
+B027 `BaseEngine.post_execute` is an empty method in an abstract base class, but has no abstract decorator
+   --> orchestration/base_engine.py:121:5
+    |
+119 |           """
+120 |
+121 | /     def post_execute(
+122 | |         self,
+123 | |         context,
+124 | |         result: Any,
+125 | |     ) -> None:
+126 | |         """
+127 | |         Executed after execute().
+128 | |         """
+    | |___________^
+129 |
+130 |       def validate_inputs(self, context) -> None:
+    |
+
+B027 `BaseEngine.validate_inputs` is an empty method in an abstract base class, but has no abstract decorator
+   --> orchestration/base_engine.py:130:5
+    |
+128 |           """
+129 |
+130 | /     def validate_inputs(self, context) -> None:
+131 | |         """
+132 | |         Optional input validation.
+133 | |         """
+    | |___________^
+134 |
+135 |       def validate_outputs(self, context) -> None:
+    |
+
+B027 `BaseEngine.validate_outputs` is an empty method in an abstract base class, but has no abstract decorator
+   --> orchestration/base_engine.py:135:5
+    |
+133 |           """
+134 |
+135 | /     def validate_outputs(self, context) -> None:
+136 | |         """
+137 | |         Optional output validation.
+138 | |         """
+    | |___________^
+139 |
+140 |       # =====================================================
+    |
+
+E402 Module level import not at top of file
+  --> orchestration/config/pipeline_config.py:52:1
+   |
+50 |   # =========================================================
+51 |
+52 | / from orchestration.pipelines.data_pipeline import (
+53 | |     main as data_pipeline,
+54 | | )
+   | |_^
+55 |
+56 |   #
+   |
+help: Move module level imports to top of file
+
+RUF005 Consider `[*path[start:], child]` instead of concatenation
+   --> orchestration/dependency_graph.py:768:39
+    |
+766 |                         start = path.index(child)
+767 |
+768 |                         cycles.append(path[start:] + [child])
+    |                                       ^^^^^^^^^^^^^^^^^^^^^^
+769 |
+770 |                     except ValueError:
+    |
+help: Replace with `[*path[start:], child]`
+
+PLC0415 `import` should be at the top-level of a file
+    --> orchestration/dependency_graph.py:1066:9
+     |
+1064 |         """
+1065 |
+1066 |         import json
+     |         ^^^^^^^^^^^
+1067 |
+1068 |         return json.dumps(
+     |
+
+SIM108 Use ternary operator `dependency_text = ", ".join(deps) if deps else "ROOT"` instead of `if`-`else`-block
+    --> orchestration/dependency_graph.py:1118:13
+     |
+1116 |               deps = self.upstream(node)
+1117 |
+1118 | /             if deps:
+1119 | |                 dependency_text = ", ".join(deps)
+1120 | |
+1121 | |             else:
+1122 | |                 dependency_text = "ROOT"
+     | |________________________________________^
+1123 |
+1124 |               lines.append(f"{node:<35}<-- {dependency_text}")
+     |
+help: Replace `if`-`else`-block with `dependency_text = ", ".join(deps) if deps else "ROOT"`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/engine_registry.py:64:24
+   |
+62 |       # =====================================================
+63 |
+64 |       DEFAULT_PACKAGES = [
+   |  ________________________^
+65 | |         "analytics",
+66 | |         "alpha",
+67 | |         "backtesting",
+68 | |         "execution",
+69 | |         "portfolio",
+70 | |         "reporting",
+71 | |         "research",
+72 | |         "risk",
+73 | |     ]
+   | |_____^
+74 |
+75 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+PLW0603 Using the global statement to update `_registry` is discouraged
+   --> orchestration/engine_registry.py:851:12
+    |
+849 |     """
+850 |
+851 |     global _registry
+    |            ^^^^^^^^^
+852 |
+853 |     if _registry is None:
+    |
+
+UP042 Class Event inherits from both `str` and `enum.Enum`
+  --> orchestration/events/events.py:22:7
+   |
+22 | class Event(str, Enum):
+   |       ^^^^^
+23 |     # ------------------------------------------------------
+24 |     # PLATFORM
+   |
+help: Inherit from `enum.StrEnum`
+
+PLC0415 `import` should be at the top-level of a file
+   --> orchestration/execution_context.py:668:9
+    |
+666 |         """
+667 |
+668 |         import json
+    |         ^^^^^^^^^^^
+669 |
+670 |         return json.dumps(
+    |
+
+PLC0415 `import` should be at the top-level of a file
+   --> orchestration/execution_context.py:843:9
+    |
+841 |         """
+842 |
+843 |         import json
+    |         ^^^^^^^^^^^
+844 |
+845 |         path.parent.mkdir(
+    |
+
+PLC0415 `import` should be at the top-level of a file
+   --> orchestration/execution_context.py:872:9
+    |
+870 |         """
+871 |
+872 |         import json
+    |         ^^^^^^^^^^^
+873 |
+874 |         with path.open(
+    |
+
+PLC0415 `import` should be at the top-level of a file
+   --> orchestration/execution_context.py:940:9
+    |
+938 |         """
+939 |
+940 |         import hashlib
+    |         ^^^^^^^^^^^^^^
+941 |
+942 |         return hashlib.sha256(self.to_json().encode()).hexdigest()
+    |
+
+PLC0415 `import` should be at the top-level of a file
+   --> orchestration/execution_report.py:803:9
+    |
+801 |         """
+802 |
+803 |         import json
+    |         ^^^^^^^^^^^
+804 |
+805 |         return json.dumps(
+    |
+
+PLC0415 `import` should be at the top-level of a file
+   --> orchestration/execution_report.py:849:9
+    |
+847 |         """
+848 |
+849 |         import json
+    |         ^^^^^^^^^^^
+850 |
+851 |         data = json.loads(path.read_text(encoding="utf-8"))
+    |
+
+PLC0415 `import` should be at the top-level of a file
+   --> orchestration/execution_report.py:958:9
+    |
+956 |         """
+957 |
+958 |         import csv
+    |         ^^^^^^^^^^
+959 |
+960 |         path.parent.mkdir(
+    |
+
+F811 Redefinition of unused `clear` from line 477
+   --> orchestration/execution_report.py:993:9
+    |
+991 |     # =====================================================
+992 |
+993 |     def clear(
+    |         ^^^^^ `clear` redefined here
+994 |         self,
+995 |     ) -> None:
+    |
+   ::: orchestration/execution_report.py:477:9
+    |
+475 |     # =====================================================
+476 |
+477 |     def clear(
+    |         ----- previous definition of `clear` here
+478 |         self,
+479 |     ) -> None:
+    |
+help: Remove definition: `clear`
+
+B027 `BaseExecutor.before_execution` is an empty method in an abstract base class, but has no abstract decorator
+   --> orchestration/executors/base_executor.py:93:5
+    |
+ 91 |       # =====================================================
+ 92 |
+ 93 | /     def before_execution(
+ 94 | |         self,
+ 95 | |     ) -> None:
+ 96 | |         """
+ 97 | |         Hook executed before execution begins.
+ 98 | |         """
+    | |___________^
+ 99 |
+100 |       def after_execution(
+    |
+
+B027 `BaseExecutor.after_execution` is an empty method in an abstract base class, but has no abstract decorator
+   --> orchestration/executors/base_executor.py:100:5
+    |
+ 98 |           """
+ 99 |
+100 | /     def after_execution(
+101 | |         self,
+102 | |     ) -> None:
+103 | |         """
+104 | |         Hook executed after execution finishes.
+105 | |         """
+    | |___________^
+106 |
+107 |       def before_engine(
+    |
+
+B027 `BaseExecutor.before_engine` is an empty method in an abstract base class, but has no abstract decorator
+   --> orchestration/executors/base_executor.py:107:5
+    |
+105 |           """
+106 |
+107 | /     def before_engine(
+108 | |         self,
+109 | |         engine: BaseEngine,
+110 | |     ) -> None:
+111 | |         """
+112 | |         Hook executed before an engine runs.
+113 | |         """
+    | |___________^
+114 |
+115 |       def after_engine(
+    |
+
+B027 `BaseExecutor.after_engine` is an empty method in an abstract base class, but has no abstract decorator
+   --> orchestration/executors/base_executor.py:115:5
+    |
+113 |           """
+114 |
+115 | /     def after_engine(
+116 | |         self,
+117 | |         engine: BaseEngine,
+118 | |         result: EngineResult,
+119 | |     ) -> None:
+120 | |         """
+121 | |         Hook executed after an engine runs.
+122 | |         """
+    | |___________^
+123 |
+124 |       # =====================================================
+    |
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/executors/executor_factory.py:48:9
+   |
+46 |           str,
+47 |           type[BaseExecutor],
+48 |       ] = {
+   |  _________^
+49 | |         "sequential": SequentialExecutor,
+50 | |         "parallel": ParallelExecutor,
+51 | |         "retry": RetryExecutor,
+52 | |         # "distributed": DistributedExecutor,
+53 | |     }
+   | |_____^
+54 |
+55 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+UP042 Class HealthStatus inherits from both `str` and `enum.Enum`
+  --> orchestration/health_manager.py:38:7
+   |
+38 | class HealthStatus(str, Enum):
+   |       ^^^^^^^^^^^^
+39 |     HEALTHY = "HEALTHY"
+   |
+help: Inherit from `enum.StrEnum`
+
+RUF009 Do not perform function call `datetime.utcnow` in dataclass defaults
+  --> orchestration/health_manager.py:61:27
+   |
+59 |     message: str = ""
+60 |
+61 |     timestamp: datetime = datetime.utcnow()
+   |                           ^^^^^^^^^^^^^^^^^
+62 |
+63 |     metadata: dict[str, Any] | None = None
+   |
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/hook_manager.py:50:19
+   |
+48 |       """
+49 |
+50 |       VALID_HOOKS = {
+   |  ___________________^
+51 | |         "before_platform",
+52 | |         "after_platform",
+53 | |         "before_pipeline",
+54 | |         "after_pipeline",
+55 | |         "before_engine",
+56 | |         "after_engine",
+57 | |     }
+   | |_____^
+58 |
+59 |       def __init__(
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+UP042 Class LifecycleState inherits from both `str` and `enum.Enum`
+  --> orchestration/lifecycle_manager.py:39:7
+   |
+39 | class LifecycleState(str, Enum):
+   |       ^^^^^^^^^^^^^^
+40 |     CREATED = "CREATED"
+   |
+help: Inherit from `enum.StrEnum`
+
+SIM105 Use `contextlib.suppress(Exception)` instead of `try`-`except`-`pass`
+   --> orchestration/master_rebalance_engine.py:102:9
+    |
+100 |       def log_event(self, event, details=None):
+101 |
+102 | /         try:
+103 | |             self.audit_logger.log(event=event, details=details)
+104 | |
+105 | |         except Exception:
+106 | |             pass
+    | |________________^
+107 |
+108 |       # ======================================================
+    |
+help: Replace `try`-`except`-`pass` with `with contextlib.suppress(Exception): ...`
+
+SIM105 Use `contextlib.suppress(Exception)` instead of `try`-`except`-`pass`
+   --> orchestration/master_rebalance_engine.py:114:9
+    |
+112 |       def track_metric(self, metric, value):
+113 |
+114 | /         try:
+115 | |             self.telemetry.track_metric(metric, value)
+116 | |
+117 | |         except Exception:
+118 | |             pass
+    | |________________^
+119 |
+120 |       # ======================================================
+    |
+help: Replace `try`-`except`-`pass` with `with contextlib.suppress(Exception): ...`
+
+F811 Redefinition of unused `generate_trades` from line 294
+   --> orchestration/master_rebalance_engine.py:470:9
+    |
+468 |     # ======================================================
+469 |
+470 |     def generate_trades(self):
+    |         ^^^^^^^^^^^^^^^ `generate_trades` redefined here
+471 |
+472 |         logger.info("Generating Trades")
+    |
+   ::: orchestration/master_rebalance_engine.py:294:9
+    |
+292 |     # ======================================================
+293 |
+294 |     def generate_trades(self):
+    |         --------------- previous definition of `generate_trades` here
+295 |
+296 |         logger.info("Generating Trades")
+    |
+help: Remove definition: `generate_trades`
+
+F811 Redefinition of unused `validate_trades` from line 335
+   --> orchestration/master_rebalance_engine.py:511:9
+    |
+509 |     # ======================================================
+510 |
+511 |     def validate_trades(self):
+    |         ^^^^^^^^^^^^^^^ `validate_trades` redefined here
+512 |
+513 |         logger.info("Validating Trades")
+    |
+   ::: orchestration/master_rebalance_engine.py:335:9
+    |
+333 |     # ======================================================
+334 |
+335 |     def validate_trades(self):
+    |         --------------- previous definition of `validate_trades` here
+336 |
+337 |         logger.info("Validating Trades")
+    |
+help: Remove definition: `validate_trades`
+
+F811 Redefinition of unused `run_backtest` from line 357
+   --> orchestration/master_rebalance_engine.py:533:9
+    |
+531 |     # ======================================================
+532 |
+533 |     def run_backtest(self):
+    |         ^^^^^^^^^^^^ `run_backtest` redefined here
+534 |
+535 |         logger.info("Running Backtest Engine")
+    |
+   ::: orchestration/master_rebalance_engine.py:357:9
+    |
+355 |     # ======================================================
+356 |
+357 |     def run_backtest(self):
+    |         ------------ previous definition of `run_backtest` here
+358 |
+359 |         logger.info("Running Backtest Engine")
+    |
+help: Remove definition: `run_backtest`
+
+F811 Redefinition of unused `validate_performance` from line 385
+   --> orchestration/master_rebalance_engine.py:561:9
+    |
+559 |     # ======================================================
+560 |
+561 |     def validate_performance(self):
+    |         ^^^^^^^^^^^^^^^^^^^^ `validate_performance` redefined here
+562 |
+563 |         logger.info("Validating Performance Report")
+    |
+   ::: orchestration/master_rebalance_engine.py:385:9
+    |
+383 |     # ======================================================
+384 |
+385 |     def validate_performance(self):
+    |         -------------------- previous definition of `validate_performance` here
+386 |
+387 |         logger.info("Validating Performance Report")
+    |
+help: Remove definition: `validate_performance`
+
+F811 Redefinition of unused `generate_reports` from line 400
+   --> orchestration/master_rebalance_engine.py:576:9
+    |
+574 |     # ======================================================
+575 |
+576 |     def generate_reports(self):
+    |         ^^^^^^^^^^^^^^^^ `generate_reports` redefined here
+577 |
+578 |         logger.info("Generating Reports")
+    |
+   ::: orchestration/master_rebalance_engine.py:400:9
+    |
+398 |     # ======================================================
+399 |
+400 |     def generate_reports(self):
+    |         ---------------- previous definition of `generate_reports` here
+401 |
+402 |         logger.info("Generating Reports")
+    |
+help: Remove definition: `generate_reports`
+
+F811 Redefinition of unused `validate_reports` from line 420
+   --> orchestration/master_rebalance_engine.py:596:9
+    |
+594 |     # ======================================================
+595 |
+596 |     def validate_reports(self):
+    |         ^^^^^^^^^^^^^^^^ `validate_reports` redefined here
+597 |
+598 |         logger.info("Validating Reports")
+    |
+   ::: orchestration/master_rebalance_engine.py:420:9
+    |
+418 |     # ======================================================
+419 |
+420 |     def validate_reports(self):
+    |         ---------------- previous definition of `validate_reports` here
+421 |
+422 |         logger.info("Validating Reports")
+    |
+help: Remove definition: `validate_reports`
+
+F811 Redefinition of unused `track_experiment` from line 448
+   --> orchestration/master_rebalance_engine.py:624:9
+    |
+622 |     # ======================================================
+623 |
+624 |     def track_experiment(self):
+    |         ^^^^^^^^^^^^^^^^ `track_experiment` redefined here
+625 |
+626 |         try:
+    |
+   ::: orchestration/master_rebalance_engine.py:448:9
+    |
+446 |     # ======================================================
+447 |
+448 |     def track_experiment(self):
+    |         ---------------- previous definition of `track_experiment` here
+449 |
+450 |         try:
+    |
+help: Remove definition: `track_experiment`
+
+UP042 Class EngineStatus inherits from both `str` and `enum.Enum`
+  --> orchestration/models/engine_status.py:16:7
+   |
+16 | class EngineStatus(str, Enum):
+   |       ^^^^^^^^^^^^
+17 |     """
+18 |     Standard execution lifecycle for platform engines.
+   |
+help: Inherit from `enum.StrEnum`
+
+PLC0415 `import` should be at the top-level of a file
+   --> orchestration/pipeline_analyzer.py:502:9
+    |
+500 |         """
+501 |
+502 |         import json
+    |         ^^^^^^^^^^^
+503 |
+504 |         return json.dumps(
+    |
+
+PLC0415 `import` should be at the top-level of a file
+   --> orchestration/pipeline_builder.py:484:9
+    |
+482 |         """
+483 |
+484 |         import json
+    |         ^^^^^^^^^^^
+485 |
+486 |         return json.dumps(
+    |
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/pipelines/alpha_pipeline.py:57:15
+   |
+55 |       EXECUTOR = "sequential"
+56 |
+57 |       ENGINES = [
+   |  _______________^
+58 | |         (
+59 | |             "Signal Engine",
+60 | |             signal_engine,
+61 | |         ),
+62 | |         (
+63 | |             "Price History Engine",
+64 | |             price_history_engine,
+65 | |         ),
+66 | |         (
+67 | |             "Expected Return Engine",
+68 | |             expected_return_engine,
+69 | |         ),
+70 | |     ]
+   | |_____^
+71 |
+72 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/pipelines/base_pipeline.py:43:43
+   |
+41 |     EXECUTOR = "sequential"
+42 |
+43 |     ENGINES: list[tuple[str, Callable]] = []
+   |                                           ^^
+44 |
+45 |     def __init__(self) -> None:
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+B027 `BasePipeline.before_run` is an empty method in an abstract base class, but has no abstract decorator
+  --> orchestration/pipelines/base_pipeline.py:53:5
+   |
+51 |       # =====================================================
+52 |
+53 | /     def before_run(self) -> None:
+54 | |         """
+55 | |         Override if required.
+56 | |         """
+   | |___________^
+57 |
+58 |       def after_run(
+   |
+
+B027 `BasePipeline.after_run` is an empty method in an abstract base class, but has no abstract decorator
+  --> orchestration/pipelines/base_pipeline.py:58:5
+   |
+56 |           """
+57 |
+58 | /     def after_run(
+59 | |         self,
+60 | |         result: PipelineResult,
+61 | |     ) -> None:
+62 | |         """
+63 | |         Override if required.
+64 | |         """
+   | |___________^
+65 |
+66 |       # =====================================================
+   |
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/pipelines/data_pipeline.py:61:15
+   |
+59 |       EXECUTOR = "sequential"
+60 |
+61 |       ENGINES = [
+   |  _______________^
+62 | |         (
+63 | |             "Symbol Metadata",
+64 | |             symbol_metadata_engine,
+65 | |         ),
+66 | |         (
+67 | |             "Market Cap Enrichment",
+68 | |             market_cap_engine,
+69 | |         ),
+70 | |         (
+71 | |             "Universe Construction",
+72 | |             universe_engine,
+73 | |         ),
+74 | |         (
+75 | |             "Incremental Price Update",
+76 | |             price_update_engine,
+77 | |         ),
+78 | |         (
+79 | |             "Security Master",
+80 | |             security_master_engine,
+81 | |         ),
+82 | |         (
+83 | |             "Stock Metadata",
+84 | |             stock_metadata_engine,
+85 | |         ),
+86 | |     ]
+   | |_____^
+87 |
+88 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/pipelines/execution_pipeline.py:55:15
+   |
+53 |       EXECUTOR = "sequential"
+54 |
+55 |       ENGINES = [
+   |  _______________^
+56 | |         (
+57 | |             "Execution Engine",
+58 | |             execution_engine,
+59 | |         ),
+60 | |         (
+61 | |             "Transaction Cost Engine",
+62 | |             transaction_cost_engine,
+63 | |         ),
+64 | |         (
+65 | |             "Execution Quality Engine",
+66 | |             execution_quality_engine,
+67 | |         ),
+68 | |     ]
+   | |_____^
+69 |
+70 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/pipelines/factor_pipeline.py:59:15
+   |
+57 |       EXECUTOR = "sequential"
+58 |
+59 |       ENGINES = [
+   |  _______________^
+60 | |         (
+61 | |             "Fundamental Factor Master",
+62 | |             build_factor_master_engine,
+63 | |         ),
+64 | |         (
+65 | |             "Factor Engine",
+66 | |             factor_engine,
+67 | |         ),
+68 | |         (
+69 | |             "Factor Ranking",
+70 | |             factor_rank_engine,
+71 | |         ),
+72 | |         (
+73 | |             "Factor Snapshot",
+74 | |             factor_snapshot_engine,
+75 | |         ),
+76 | |     ]
+   | |_____^
+77 |
+78 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/pipelines/live_pipeline.py:51:15
+   |
+49 |       EXECUTOR = "sequential"
+50 |
+51 |       ENGINES = [
+   |  _______________^
+52 | |         (
+53 | |             "Expected Returns",
+54 | |             expected_returns_engine,
+55 | |         ),
+56 | |         (
+57 | |             "Live Rebalance",
+58 | |             live_rebalance_engine,
+59 | |         ),
+60 | |     ]
+   | |_____^
+61 |
+62 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/pipelines/performance_pipeline.py:67:15
+   |
+65 |       EXECUTOR = "sequential"
+66 |
+67 |       ENGINES = [
+   |  _______________^
+68 | |         (
+69 | |             "Benchmark Constituents",
+70 | |             benchmark_constituents_engine,
+71 | |         ),
+72 | |         (
+73 | |             "Benchmark Engine",
+74 | |             benchmark_engine,
+75 | |         ),
+76 | |         (
+77 | |             "Performance Attribution",
+78 | |             performance_attribution_engine,
+79 | |         ),
+80 | |         (
+81 | |             "Security Attribution",
+82 | |             security_attribution_engine,
+83 | |         ),
+84 | |         (
+85 | |             "Brinson Attribution",
+86 | |             brinson_attribution_engine,
+87 | |         ),
+88 | |         (
+89 | |             "Capacity Analysis",
+90 | |             capacity_engine,
+91 | |         ),
+92 | |     ]
+   | |_____^
+93 |
+94 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+   --> orchestration/pipelines/portfolio_pipeline.py:75:15
+    |
+ 73 |       EXECUTOR = "sequential"
+ 74 |
+ 75 |       ENGINES = [
+    |  _______________^
+ 76 | |         (
+ 77 | |             "Portfolio Engine",
+ 78 | |             portfolio_engine,
+ 79 | |         ),
+ 80 | |         (
+ 81 | |             "Optimizer Engine",
+ 82 | |             optimizer_engine,
+ 83 | |         ),
+ 84 | |         (
+ 85 | |             "Factor Optimizer",
+ 86 | |             factor_optimizer_engine,
+ 87 | |         ),
+ 88 | |         (
+ 89 | |             "Portfolio Optimizer",
+ 90 | |             portfolio_optimizer_engine,
+ 91 | |         ),
+ 92 | |         (
+ 93 | |             "Portfolio Constraints",
+ 94 | |             portfolio_constraints_engine,
+ 95 | |         ),
+ 96 | |         (
+ 97 | |             "Portfolio Rebalancing",
+ 98 | |             rebalancing_engine,
+ 99 | |         ),
+100 | |         (
+101 | |             "Portfolio Monitor",
+102 | |             portfolio_monitor_engine,
+103 | |         ),
+104 | |         (
+105 | |             "Portfolio History",
+106 | |             portfolio_history_engine,
+107 | |         ),
+108 | |     ]
+    | |_____^
+109 |
+110 |       # =====================================================
+    |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/pipelines/regime_pipeline.py:63:15
+   |
+61 |       EXECUTOR = "sequential"
+62 |
+63 |       ENGINES = [
+   |  _______________^
+64 | |         (
+65 | |             "Benchmark Prices",
+66 | |             benchmark_prices_engine,
+67 | |         ),
+68 | |         (
+69 | |             "Market Breadth",
+70 | |             market_breadth_engine,
+71 | |         ),
+72 | |         (
+73 | |             "Macro Regime",
+74 | |             macro_regime_engine,
+75 | |         ),
+76 | |         (
+77 | |             "Market Regime",
+78 | |             market_regime_engine,
+79 | |         ),
+80 | |         (
+81 | |             "Composite Regime",
+82 | |             regime_engine,
+83 | |         ),
+84 | |     ]
+   | |_____^
+85 |
+86 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/pipelines/reporting_pipeline.py:65:15
+   |
+63 |       EXECUTOR = "sequential"
+64 |
+65 |       ENGINES = [
+   |  _______________^
+66 | |         (
+67 | |             "Performance Attribution",
+68 | |             performance_engine,
+69 | |         ),
+70 | |         (
+71 | |             "Security Attribution",
+72 | |             security_attribution_engine,
+73 | |         ),
+74 | |         (
+75 | |             "Brinson Attribution",
+76 | |             brinson_engine,
+77 | |         ),
+78 | |         (
+79 | |             "Portfolio History",
+80 | |             portfolio_history_engine,
+81 | |         ),
+82 | |         (
+83 | |             "Risk Dashboard",
+84 | |             risk_dashboard_engine,
+85 | |         ),
+86 | |         (
+87 | |             "Live Rebalance Dashboard",
+88 | |             live_dashboard_engine,
+89 | |         ),
+90 | |     ]
+   | |_____^
+91 |
+92 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+   --> orchestration/pipelines/risk_model_pipeline.py:87:15
+    |
+ 85 |       EXECUTOR = "sequential"
+ 86 |
+ 87 |       ENGINES = [
+    |  _______________^
+ 88 | |         (
+ 89 | |             "Daily Returns",
+ 90 | |             daily_returns_engine,
+ 91 | |         ),
+ 92 | |         (
+ 93 | |             "Beta Master",
+ 94 | |             beta_master_engine,
+ 95 | |         ),
+ 96 | |         (
+ 97 | |             "Beta Model",
+ 98 | |             beta_model_engine,
+ 99 | |         ),
+100 | |         (
+101 | |             "Volatility Model",
+102 | |             volatility_model_engine,
+103 | |         ),
+104 | |         (
+105 | |             "Factor Returns",
+106 | |             factor_returns_engine,
+107 | |         ),
+108 | |         (
+109 | |             "Factor Covariance",
+110 | |             factor_covariance_engine,
+111 | |         ),
+112 | |         (
+113 | |             "Specific Risk",
+114 | |             specific_risk_engine,
+115 | |         ),
+116 | |         (
+117 | |             "Factor Exposure Matrix",
+118 | |             exposure_matrix_engine,
+119 | |         ),
+120 | |         (
+121 | |             "Factor Risk Model Builder",
+122 | |             factor_risk_model_builder,
+123 | |         ),
+124 | |         (
+125 | |             "Factor Risk Model",
+126 | |             factor_risk_model_engine,
+127 | |         ),
+128 | |         (
+129 | |             "Covariance Matrix",
+130 | |             covariance_matrix_engine,
+131 | |         ),
+132 | |     ]
+    | |_____^
+133 |
+134 |       # =====================================================
+    |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+   --> orchestration/pipelines/risk_pipeline.py:91:15
+    |
+ 89 |       EXECUTOR = "sequential"
+ 90 |
+ 91 |       ENGINES = [
+    |  _______________^
+ 92 | |         (
+ 93 | |             "Returns Matrix",
+ 94 | |             returns_matrix_engine,
+ 95 | |         ),
+ 96 | |         (
+ 97 | |             "Factor Returns",
+ 98 | |             factor_returns_engine,
+ 99 | |         ),
+100 | |         (
+101 | |             "Factor Covariance",
+102 | |             covariance_builder_engine,
+103 | |         ),
+104 | |         (
+105 | |             "Specific Risk",
+106 | |             specific_risk_engine,
+107 | |         ),
+108 | |         (
+109 | |             "Factor Exposure Matrix",
+110 | |             exposure_matrix_engine,
+111 | |         ),
+112 | |         (
+113 | |             "Factor Risk Model Builder",
+114 | |             factor_risk_builder,
+115 | |         ),
+116 | |         (
+117 | |             "Factor Risk Model",
+118 | |             factor_risk_engine,
+119 | |         ),
+120 | |         (
+121 | |             "Portfolio Risk",
+122 | |             portfolio_risk_engine,
+123 | |         ),
+124 | |         (
+125 | |             "Exposure Analysis",
+126 | |             exposure_engine,
+127 | |         ),
+128 | |         (
+129 | |             "Risk Budget",
+130 | |             risk_budget_engine,
+131 | |         ),
+132 | |         (
+133 | |             "Stress Testing",
+134 | |             stress_test_engine,
+135 | |         ),
+136 | |         (
+137 | |             "Risk Dashboard",
+138 | |             risk_dashboard_engine,
+139 | |         ),
+140 | |     ]
+    | |_____^
+141 |
+142 |       # =====================================================
+    |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RUF012 Mutable default value for class attribute
+  --> orchestration/pipelines/signal_pipeline.py:56:15
+   |
+54 |       EXECUTOR = "sequential"
+55 |
+56 |       ENGINES = [
+   |  _______________^
+57 | |         (
+58 | |             "Signal Engine",
+59 | |             signal_engine,
+60 | |         ),
+61 | |         (
+62 | |             "Price History Engine",
+63 | |             price_history_engine,
+64 | |         ),
+65 | |         (
+66 | |             "Expected Returns",
+67 | |             expected_returns_engine,
+68 | |         ),
+69 | |     ]
+   | |_____^
+70 |
+71 |       # =====================================================
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+UP042 Class NotificationSeverity inherits from both `str` and `enum.Enum`
+  --> orchestration/plugins/notification_plugin.py:39:7
+   |
+39 | class NotificationSeverity(str, Enum):
+   |       ^^^^^^^^^^^^^^^^^^^^
+40 |     INFO = "INFO"
+   |
+help: Inherit from `enum.StrEnum`
+
+SIM105 Use `contextlib.suppress(Exception)` instead of `try`-`except`-`pass`
+   --> orchestration/scheduler.py:318:21
+    |
+316 |               for job in self.registry.active_jobs():
+317 |                   if job.next_run is None or now >= job.next_run:
+318 | /                     try:
+319 | |                         self.run_job(job.name)
+320 | |
+321 | |                     except Exception:
+322 | |                         # Continue scheduling
+323 | |                         # remaining jobs.
+324 | |                         pass
+    | |____________________________^
+325 |
+326 |               time.sleep(1)
+    |
+help: Replace `try`-`except`-`pass` with `with contextlib.suppress(Exception): ...`
+
+RUF012 Mutable default value for class attribute
+  --> performance/cio_risk_budget_engine.py:30:24
+   |
+29 |   class RiskBudgetValidator:
+30 |       REQUIRED_METRICS = [
+   |  ________________________^
+31 | |         "Governance_Score",
+32 | |         "Forecast_Confidence",
+33 | |         "Stress_Severity_Score",
+34 | |         "Macro_Risk_Level",
+35 | |         "Governance_Status",
+36 | |     ]
+   | |_____^
+37 |
+38 |       @staticmethod
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RET504 Unnecessary assignment to `governance` before `return` statement
+  --> performance/cio_risk_budget_engine.py:68:16
+   |
+66 |         governance = pd.read_csv(GOVERNANCE_FILE)
+67 |
+68 |         return governance
+   |                ^^^^^^^^^^
+   |
+help: Remove unnecessary assignment
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> performance/cio_risk_budget_engine.py:75:24
+   |
+73 |     def extract(governance):
+74 |
+75 |         metrics = dict(zip(governance["Metric"], governance["Value"]))
+   |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+76 |
+77 |         governance_score = float(metrics.get("Governance_Score", 0))
+   |
+help: Add explicit value for parameter `strict=`
+
+RUF012 Mutable default value for class attribute
+  --> performance/cio_risk_budget_engine.py:97:23
+   |
+96 | class RiskBudgetScoringEngine:
+97 |     MACRO_SCORE_MAP = {"LOW": 90, "MODERATE": 70, "HIGH": 40}
+   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+98 |
+99 |     @staticmethod
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> performance/final_decision_engine.py:63:34
+   |
+61 |     def calculate(executive, governance):
+62 |
+63 |         executive_metrics = dict(zip(executive["Metric"], executive["Value"]))
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+64 |
+65 |         governance_metrics = dict(zip(governance["Metric"], governance["Value"]))
+   |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> performance/final_decision_engine.py:65:35
+   |
+63 |         executive_metrics = dict(zip(executive["Metric"], executive["Value"]))
+64 |
+65 |         governance_metrics = dict(zip(governance["Metric"], governance["Value"]))
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+66 |
+67 |         pack_score = float(executive_metrics.get("Pack_Score", 0))
+   |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> performance/final_decision_engine.py:87:34
+   |
+85 |     def build(executive, governance, scores):
+86 |
+87 |         executive_metrics = dict(zip(executive["Metric"], executive["Value"]))
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+88 |
+89 |         governance_metrics = dict(zip(governance["Metric"], governance["Value"]))
+   |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> performance/final_decision_engine.py:89:35
+   |
+87 |         executive_metrics = dict(zip(executive["Metric"], executive["Value"]))
+88 |
+89 |         governance_metrics = dict(zip(governance["Metric"], governance["Value"]))
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+90 |
+91 |         forecast_bias = str(governance_metrics.get("Forecast_Bias", ""))
+   |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> performance/governance_committee_integration.py:73:35
+   |
+71 |     def build(governance, committee, executive):
+72 |
+73 |         governance_metrics = dict(zip(governance["Metric"], governance["Value"]))
+   |                                   ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+74 |
+75 |         executive_metrics = dict(zip(executive["Metric"], executive["Value"]))
+   |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> performance/governance_committee_integration.py:75:34
+   |
+73 |         governance_metrics = dict(zip(governance["Metric"], governance["Value"]))
+74 |
+75 |         executive_metrics = dict(zip(executive["Metric"], executive["Value"]))
+   |                                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+76 |
+77 |         return {
+   |
+help: Add explicit value for parameter `strict=`
+
+PLR0917 Too many positional arguments (8 > 5)
+   --> performance/investment_committee_pack_engine.py:454:9
+    |
+452 | class ExecutiveDashboardEngine:
+453 |     @staticmethod
+454 |     def build(
+    |         ^^^^^
+455 |         governance: pd.DataFrame,
+456 |         forecast: pd.DataFrame,
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> performance/investment_committee_pack_engine.py:553:30
+    |
+551 |         governance_committee = GovernanceCommitteeDashboardLoader.load()
+552 |
+553 |         alert_metrics = dict(zip(alert_governance["Metric"], alert_governance["Value"]))
+    |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+554 |
+555 |         scenarios = CommitteePackRepository.load_scenarios()
+    |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> performance/investment_committee_pack_engine.py:580:13
+    |
+579 |         governance_command_metrics = dict(
+580 |             zip(governance_committee["Metric"], governance_committee["Value"])
+    |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+581 |         )
+    |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+  --> performance/multi_horizon_forecast_engine.py:52:28
+   |
+51 |         if "Metric" in forecast.columns and "Value" in forecast.columns:
+52 |             metrics = dict(zip(forecast["Metric"], forecast["Value"]))
+   |                            ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+53 |
+54 |         else:
+   |
+help: Add explicit value for parameter `strict=`
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> performance/multi_horizon_forecast_engine.py:276:26
+    |
+274 |     macro_df = MacroRegimeLoader.load()
+275 |
+276 |     macro_metrics = dict(zip(macro_df["Metric"], macro_df["Value"]))
+    |                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+277 |
+278 |     metrics = ForecastMetricsExtractor.extract(forecast)
+    |
+help: Add explicit value for parameter `strict=`
+
+RET504 Unnecessary assignment to `forecast` before `return` statement
+   --> performance/performance_forecast_engine.py:351:16
+    |
+349 |         )
+350 |
+351 |         return forecast
+    |                ^^^^^^^^
+    |
+help: Remove unnecessary assignment
+
+F821 Undefined name `forecast_rank`
+   --> performance/performance_forecast_engine.py:800:26
+    |
+799 |         else:
+800 |             macro_rank = forecast_rank
+    |                          ^^^^^^^^^^^^^
+801 |
+802 |         forecast_rank = ranking.get(forecast_recommendation, 1)
+    |
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> performance/performance_forecast_engine.py:831:30
+    |
+829 |         macro_df = MacroRegimeLoader.load()
+830 |
+831 |         macro_metrics = dict(zip(macro_df["Metric"], macro_df["Value"]))
+    |                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+832 |
+833 |         regime_forecast = RegimeForecastEngine.calculate(regime_df)
+    |
+help: Add explicit value for parameter `strict=`
+
+PLR0917 Too many positional arguments (6 > 5)
+   --> performance/performance_surveillance_engine.py:156:9
+    |
+154 | class AlertFactory:
+155 |     @staticmethod
+156 |     def create(
+    |         ^^^^^^
+157 |         category: str, severity: str, metric: str, value, threshold, message: str
+158 |     ) -> dict:
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+F841 Local variable `z` is assigned to but never used
+   --> performance/portfolio_return_engine.py:630:13
+    |
+629 |         else:
+630 |             z = 1.645
+    |             ^
+631 |
+632 |             pdf = 0.103
+    |
+help: Remove assignment to unused variable `z`
+
+RET504 Unnecessary assignment to `dashboard` before `return` statement
+    --> performance/portfolio_return_engine.py:1113:16
+     |
+1111 |         )
+1112 |
+1113 |         return dashboard
+     |                ^^^^^^^^^
+     |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `audit` before `return` statement
+    --> performance/portfolio_return_engine.py:1139:16
+     |
+1137 |         )
+1138 |
+1139 |         return audit
+     |                ^^^^^
+     |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `probability_matrix` before `return` statement
+    --> performance/portfolio_return_engine.py:1310:16
+     |
+1308 |         probability_matrix = probability_matrix.round(4)
+1309 |
+1310 |         return probability_matrix
+     |                ^^^^^^^^^^^^^^^^^^
+     |
+help: Remove unnecessary assignment
+
+PLR0917 Too many positional arguments (12 > 5)
+    --> performance/portfolio_return_engine.py:1372:9
+     |
+1370 | class ExportEngine:
+1371 |     @staticmethod
+1372 |     def save(
+     |         ^^^^
+1373 |         performance_df: pd.DataFrame,
+1374 |         rolling_df: pd.DataFrame,
+     |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+F811 Redefinition of unused `ScenarioSummaryEngine` from line 339
+   --> performance/scenario_analysis_engine.py:364:7
+    |
+364 | class ScenarioSummaryEngine:
+    |       ^^^^^^^^^^^^^^^^^^^^^ `ScenarioSummaryEngine` redefined here
+365 |     @staticmethod
+366 |     def build(scenario_df: pd.DataFrame) -> pd.DataFrame:
+    |
+   ::: performance/scenario_analysis_engine.py:339:7
+    |
+339 | class ScenarioSummaryEngine:
+    |       --------------------- previous definition of `ScenarioSummaryEngine` here
+340 |     @staticmethod
+341 |     def build(scenario_df: pd.DataFrame) -> pd.DataFrame:
+    |
+help: Remove definition: `ScenarioSummaryEngine`
+
+RUF012 Mutable default value for class attribute
+  --> portfolio/portfolio_engine.py:17:24
+   |
+16 |   class PortfolioDataValidator:
+17 |       REQUIRED_COLUMNS = {
+   |  ________________________^
+18 | |         "ADV_20D": 1_000_000,
+19 | |         "Beta": 1.0,
+20 | |         "Volatility_252D": 0.25,
+21 | |         "Market_Cap": 1_000_000_000,
+22 | |         "Sector": "UNKNOWN",
+23 | |     }
+   | |_____^
+24 |
+25 |       @classmethod
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+PLR0917 Too many positional arguments (6 > 5)
+   --> reporting/chart_engine.py:300:9
+    |
+299 |     @classmethod
+300 |     def scatter(
+    |         ^^^^^^^
+301 |         cls,
+302 |         x,
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+B905 `zip()` without an explicit `strict=` parameter
+   --> reporting/powerpoint_report_engine.py:343:24
+    |
+341 |         slide.shapes.title.text = "Alert Governance"
+342 |
+343 |         metrics = dict(zip(alert_governance["Metric"], alert_governance["Value"]))
+    |                        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+344 |
+345 |         textbox = slide.shapes.add_textbox(
+    |
+help: Add explicit value for parameter `strict=`
+
+RET504 Unnecessary assignment to `portfolio_returns` before `return` statement
+  --> research/backtest_engine.py:40:16
+   |
+38 |         portfolio_returns = returns @ weights
+39 |
+40 |         return portfolio_returns
+   |                ^^^^^^^^^^^^^^^^^
+   |
+help: Remove unnecessary assignment
+
+RUF012 Mutable default value for class attribute
+  --> research/performance_engine.py:70:15
+   |
+69 |   class FactorAttributionEngine:
+70 |       FACTORS = [
+   |  _______________^
+71 | |         "Signal_Factor",
+72 | |         "Momentum_Factor",
+73 | |         "Quality_Factor",
+74 | |         "Value_Factor",
+75 | |         "Growth_Factor",
+76 | |         "Liquidity_Factor",
+77 | |         "LowVol_Factor",
+78 | |     ]
+   | |_____^
+79 |
+80 |       @classmethod
+   |
+help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
+
+RET504 Unnecessary assignment to `dashboard` before `return` statement
+   --> research/performance_engine.py:124:16
+    |
+122 |         }
+123 |
+124 |         return dashboard
+    |                ^^^^^^^^^
+    |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `repaired` before `return` statement
+  --> risk/risk_engine.py:26:16
+   |
+24 |         repaired = eigvecs @ np.diag(eigvals) @ eigvecs.T
+25 |
+26 |         return repaired
+   |                ^^^^^^^^
+27 |
+28 |     @staticmethod
+   |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `tracking_error` before `return` statement
+  --> risk/risk_engine.py:73:16
+   |
+71 |         tracking_error = np.sqrt(active_weights.T @ covariance_matrix @ active_weights)
+72 |
+73 |         return tracking_error
+   |                ^^^^^^^^^^^^^^
+   |
+help: Remove unnecessary assignment
+
+RET504 Unnecessary assignment to `risk_pct` before `return` statement
+  --> risk/risk_engine.py:93:16
+   |
+91 |         risk_pct = component_risk / component_risk.sum()
+92 |
+93 |         return risk_pct
+   |                ^^^^^^^^
+   |
+help: Remove unnecessary assignment
+
+N818 Exception name `AnalyticsProfileNotFound` should be named with an Error suffix
+  --> services/analytics_service.py:47:7
+   |
+47 | class AnalyticsProfileNotFound(AnalyticsError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^
+48 |     """Analytics profile not found."""
+   |
+
+N818 Exception name `AnalyticsEngineNotFound` should be named with an Error suffix
+  --> services/analytics_service.py:51:7
+   |
+51 | class AnalyticsEngineNotFound(AnalyticsError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^
+52 |     """Analytics engine not registered."""
+   |
+
+B026 Star-arg unpacking after a keyword argument is strongly discouraged
+   --> services/analytics_service.py:216:60
+    |
+214 |         analytics_engine = self._engines[engine]
+215 |
+216 |         return analytics_engine(profile=self.get(profile), *args, **kwargs)
+    |                                                            ^^^^^
+217 |
+218 |     # =====================================================
+    |
+
+PLR0917 Too many positional arguments (7 > 5)
+   --> services/audit_service.py:134:9
+    |
+132 |     # =====================================================
+133 |
+134 |     def record(
+    |         ^^^^^^
+135 |         self,
+136 |         event_type: str,
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+PLC0415 `import` should be at the top-level of a file
+   --> services/audit_service.py:456:9
+    |
+454 |         """
+455 |
+456 |         import json
+    |         ^^^^^^^^^^^
+457 |         from pathlib import Path
+    |
+
+PLC0415 `import` should be at the top-level of a file
+   --> services/audit_service.py:457:9
+    |
+456 |         import json
+457 |         from pathlib import Path
+    |         ^^^^^^^^^^^^^^^^^^^^^^^^
+458 |
+459 |         file = Path(path)
+    |
+
+N818 Exception name `BacktestProfileNotFound` should be named with an Error suffix
+  --> services/backtest_service.py:48:7
+   |
+48 | class BacktestProfileNotFound(BacktestError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^
+49 |     """Backtest profile not found."""
+   |
+
+N818 Exception name `BacktestEngineNotFound` should be named with an Error suffix
+  --> services/backtest_service.py:52:7
+   |
+52 | class BacktestEngineNotFound(BacktestError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^
+53 |     """Backtest engine not registered."""
+   |
+
+PLR0917 Too many positional arguments (7 > 5)
+   --> services/backtest_service.py:140:9
+    |
+138 |     # =====================================================
+139 |
+140 |     def register(
+    |         ^^^^^^^^
+141 |         self,
+142 |         name: str,
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+B026 Star-arg unpacking after a keyword argument is strongly discouraged
+   --> services/backtest_service.py:229:59
+    |
+227 |         backtest_engine = self._engines[engine]
+228 |
+229 |         return backtest_engine(profile=self.get(profile), *args, **kwargs)
+    |                                                           ^^^^^
+230 |
+231 |     # =====================================================
+    |
+
+N818 Exception name `CacheKeyNotFound` should be named with an Error suffix
+  --> services/cache_service.py:52:7
+   |
+52 | class CacheKeyNotFound(CacheServiceError):
+   |       ^^^^^^^^^^^^^^^^
+53 |     """Cache key does not exist."""
+   |
+
+N818 Exception name `ConfigurationNotFound` should be named with an Error suffix
+  --> services/config_service.py:52:7
+   |
+52 | class ConfigurationNotFound(ConfigServiceError):
+   |       ^^^^^^^^^^^^^^^^^^^^^
+53 |     """Raised when configuration section/key is missing."""
+   |
+
+B007 Loop control variable `section` not used within loop body
+   --> services/config_service.py:498:13
+    |
+496 |         """
+497 |
+498 |         for section, validator in self._validators.items():
+    |             ^^^^^^^
+499 |             validator()
+    |
+help: Rename unused `section` to `_section`
+
+N818 Exception name `ExecutionProfileNotFound` should be named with an Error suffix
+  --> services/execution_service.py:49:7
+   |
+49 | class ExecutionProfileNotFound(ExecutionError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^
+50 |     """Execution profile not found."""
+   |
+
+N818 Exception name `ExecutionEngineNotFound` should be named with an Error suffix
+  --> services/execution_service.py:53:7
+   |
+53 | class ExecutionEngineNotFound(ExecutionError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^
+54 |     """Execution engine not registered."""
+   |
+
+B026 Star-arg unpacking after a keyword argument is strongly discouraged
+   --> services/execution_service.py:229:65
+    |
+227 |         engine = self._engines[algorithm]
+228 |
+229 |         return engine(profile=execution_profile, orders=orders, *args, **kwargs)
+    |                                                                 ^^^^^
+230 |
+231 |     # =====================================================
+    |
+
+N818 Exception name `GovernanceProfileNotFound` should be named with an Error suffix
+  --> services/governance_service.py:48:7
+   |
+48 | class GovernanceProfileNotFound(GovernanceError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^
+49 |     """Governance profile not found."""
+   |
+
+N818 Exception name `GovernanceEngineNotFound` should be named with an Error suffix
+  --> services/governance_service.py:52:7
+   |
+52 | class GovernanceEngineNotFound(GovernanceError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^
+53 |     """Governance engine not registered."""
+   |
+
+B026 Star-arg unpacking after a keyword argument is strongly discouraged
+   --> services/governance_service.py:223:61
+    |
+221 |         governance_engine = self._engines[engine]
+222 |
+223 |         return governance_engine(profile=self.get(profile), *args, **kwargs)
+    |                                                             ^^^^^
+224 |
+225 |     # =====================================================
+    |
+
+N818 Exception name `DatasetNotLoaded` should be named with an Error suffix
+  --> services/market_data_service.py:47:7
+   |
+47 | class DatasetNotLoaded(MarketDataError):
+   |       ^^^^^^^^^^^^^^^^
+48 |     """Dataset not loaded."""
+   |
+
+N818 Exception name `DatasetAlreadyLoaded` should be named with an Error suffix
+  --> services/market_data_service.py:51:7
+   |
+51 | class DatasetAlreadyLoaded(MarketDataError):
+   |       ^^^^^^^^^^^^^^^^^^^^
+52 |     """Dataset already loaded."""
+   |
+
+N818 Exception name `ServiceAlreadyRegistered` should be named with an Error suffix
+  --> services/monitoring_service.py:47:7
+   |
+47 | class ServiceAlreadyRegistered(MonitoringError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^
+48 |     """Raised when service already exists."""
+   |
+
+N818 Exception name `ServiceNotFound` should be named with an Error suffix
+  --> services/monitoring_service.py:51:7
+   |
+51 | class ServiceNotFound(MonitoringError):
+   |       ^^^^^^^^^^^^^^^
+52 |     """Raised when service is unknown."""
+   |
+
+N818 Exception name `NotificationNotFound` should be named with an Error suffix
+  --> services/notification_service.py:49:7
+   |
+49 | class NotificationNotFound(NotificationError):
+   |       ^^^^^^^^^^^^^^^^^^^^
+50 |     """Notification not found."""
+   |
+
+UP042 Class NotificationChannel inherits from both `str` and `enum.Enum`
+  --> services/notification_service.py:58:7
+   |
+58 | class NotificationChannel(str, Enum):
+   |       ^^^^^^^^^^^^^^^^^^^
+59 |     EMAIL = "EMAIL"
+   |
+help: Inherit from `enum.StrEnum`
+
+UP042 Class NotificationStatus inherits from both `str` and `enum.Enum`
+  --> services/notification_service.py:77:7
+   |
+77 | class NotificationStatus(str, Enum):
+   |       ^^^^^^^^^^^^^^^^^^
+78 |     PENDING = "PENDING"
+   |
+help: Inherit from `enum.StrEnum`
+
+N818 Exception name `OptimizerNotFound` should be named with an Error suffix
+  --> services/optimization_service.py:48:7
+   |
+48 | class OptimizerNotFound(OptimizationError):
+   |       ^^^^^^^^^^^^^^^^^
+49 |     """Optimizer profile not found."""
+   |
+
+B026 Star-arg unpacking after a keyword argument is strongly discouraged
+   --> services/optimization_service.py:219:69
+    |
+217 |         engine = self._optimizers[optimizer]
+218 |
+219 |         return engine(profile=self.get(profile), universe=universe, *args, **kwargs)
+    |                                                                     ^^^^^
+220 |
+221 |     # =====================================================
+    |
+
+UP042 Class OrderSide inherits from both `str` and `enum.Enum`
+  --> services/order_service.py:44:7
+   |
+44 | class OrderSide(str, Enum):
+   |       ^^^^^^^^^
+45 |     BUY = "BUY"
+   |
+help: Inherit from `enum.StrEnum`
+
+UP042 Class OrderType inherits from both `str` and `enum.Enum`
+  --> services/order_service.py:50:7
+   |
+50 | class OrderType(str, Enum):
+   |       ^^^^^^^^^
+51 |     MARKET = "MARKET"
+   |
+help: Inherit from `enum.StrEnum`
+
+UP042 Class OrderStatus inherits from both `str` and `enum.Enum`
+  --> services/order_service.py:60:7
+   |
+60 | class OrderStatus(str, Enum):
+   |       ^^^^^^^^^^^
+61 |     NEW = "NEW"
+   |
+help: Inherit from `enum.StrEnum`
+
+N818 Exception name `OrderNotFound` should be named with an Error suffix
+  --> services/order_service.py:85:7
+   |
+85 | class OrderNotFound(OrderError):
+   |       ^^^^^^^^^^^^^
+86 |     """Order not found."""
+   |
+
+N818 Exception name `PerformanceProfileNotFound` should be named with an Error suffix
+  --> services/performance_service.py:46:7
+   |
+46 | class PerformanceProfileNotFound(PerformanceError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+47 |     """Performance profile not found."""
+   |
+
+B026 Star-arg unpacking after a keyword argument is strongly discouraged
+   --> services/performance_service.py:265:53
+    |
+263 |         analytics = self._engines[engine]
+264 |
+265 |         return analytics(profile=self.get(profile), *args, **kwargs)
+    |                                                     ^^^^^
+266 |
+267 |     def rolling_metrics(self, profile: str, *args, **kwargs):
+    |
+
+N818 Exception name `PortfolioNotFound` should be named with an Error suffix
+  --> services/portfolio_service.py:46:7
+   |
+46 | class PortfolioNotFound(PortfolioError):
+   |       ^^^^^^^^^^^^^^^^^
+47 |     """Portfolio does not exist."""
+   |
+
+PLR0917 Too many positional arguments (6 > 5)
+   --> services/portfolio_service.py:130:9
+    |
+128 |     # =====================================================
+129 |
+130 |     def register(
+    |         ^^^^^^^^
+131 |         self,
+132 |         name: str,
+    |
+help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
+
+N818 Exception name `RebalanceProfileNotFound` should be named with an Error suffix
+  --> services/rebalance_service.py:47:7
+   |
+47 | class RebalanceProfileNotFound(RebalanceError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^
+48 |     """Rebalance profile not found."""
+   |
+
+N818 Exception name `ReportProfileNotFound` should be named with an Error suffix
+  --> services/report_service.py:48:7
+   |
+48 | class ReportProfileNotFound(ReportError):
+   |       ^^^^^^^^^^^^^^^^^^^^^
+49 |     """Report profile not found."""
+   |
+
+N818 Exception name `ReportEngineNotFound` should be named with an Error suffix
+  --> services/report_service.py:52:7
+   |
+52 | class ReportEngineNotFound(ReportError):
+   |       ^^^^^^^^^^^^^^^^^^^^
+53 |     """Report engine not registered."""
+   |
+
+B026 Star-arg unpacking after a keyword argument is strongly discouraged
+   --> services/report_service.py:223:57
+    |
+221 |         report_engine = self._engines[engine]
+222 |
+223 |         return report_engine(profile=self.get(profile), *args, **kwargs)
+    |                                                         ^^^^^
+224 |
+225 |     # =====================================================
+    |
+
+N818 Exception name `RiskProfileNotFound` should be named with an Error suffix
+  --> services/risk_service.py:48:7
+   |
+48 | class RiskProfileNotFound(RiskError):
+   |       ^^^^^^^^^^^^^^^^^^^
+49 |     """Risk profile not found."""
+   |
+
+N818 Exception name `ServiceAlreadyRegistered` should be named with an Error suffix
+  --> services/service_factory.py:45:7
+   |
+45 | class ServiceAlreadyRegistered(ServiceFactoryError):
+   |       ^^^^^^^^^^^^^^^^^^^^^^^^
+46 |     """Service already exists."""
+   |
+
+N818 Exception name `ServiceNotRegistered` should be named with an Error suffix
+  --> services/service_factory.py:49:7
+   |
+49 | class ServiceNotRegistered(ServiceFactoryError):
+   |       ^^^^^^^^^^^^^^^^^^^^
+50 |     """Unknown service."""
+   |
+
+N818 Exception name `SignalNotFound` should be named with an Error suffix
+  --> services/signal_service.py:45:7
+   |
+45 | class SignalNotFound(SignalError):
+   |       ^^^^^^^^^^^^^^
+46 |     """Signal not available."""
+   |
+
+N818 Exception name `MetricAlreadyExists` should be named with an Error suffix
+  --> services/telemetry_service.py:48:7
+   |
+48 | class MetricAlreadyExists(TelemetryError):
+   |       ^^^^^^^^^^^^^^^^^^^
+49 |     """Metric already registered."""
+   |
+
+N818 Exception name `MetricNotFound` should be named with an Error suffix
+  --> services/telemetry_service.py:52:7
+   |
+52 | class MetricNotFound(TelemetryError):
+   |       ^^^^^^^^^^^^^^
+53 |     """Metric not found."""
+   |
+
+UP042 Class TradeSide inherits from both `str` and `enum.Enum`
+  --> services/trade_service.py:44:7
+   |
+44 | class TradeSide(str, Enum):
+   |       ^^^^^^^^^
+45 |     BUY = "BUY"
+   |
+help: Inherit from `enum.StrEnum`
+
+UP042 Class TradeStatus inherits from both `str` and `enum.Enum`
+  --> services/trade_service.py:50:7
+   |
+50 | class TradeStatus(str, Enum):
+   |       ^^^^^^^^^^^
+51 |     BOOKED = "BOOKED"
+   |
+help: Inherit from `enum.StrEnum`
+
+N818 Exception name `TradeNotFound` should be named with an Error suffix
+  --> services/trade_service.py:71:7
+   |
+71 | class TradeNotFound(TradeError):
+   |       ^^^^^^^^^^^^^
+72 |     """Trade not found."""
+   |
+
+Found 304 errors.
+[*] 1 fixable with the `--fix` option (107 hidden fixes can be enabled with the `--unsafe-fixes` option).

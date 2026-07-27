@@ -31,9 +31,7 @@ from execution.order import Order
 
 
 @dataclass(slots=True)
-class VWAPAlgorithm(
-    ExecutionAlgorithm
-):
+class VWAPAlgorithm(ExecutionAlgorithm):
     """
     Institutional VWAP execution algorithm.
     """
@@ -41,16 +39,10 @@ class VWAPAlgorithm(
     volume_profile: list[float]
 
     def __post_init__(
-
         self,
-
     ) -> None:
 
-        super().__init__(
-
-            name="VWAP"
-
-        )
+        super().__init__(name="VWAP")
 
         self.validate_profile()
 
@@ -59,160 +51,67 @@ class VWAPAlgorithm(
     # =====================================================
 
     def validate_profile(
-
         self,
-
     ) -> None:
 
         if not self.volume_profile:
+            raise ValueError("Volume profile cannot be empty.")
 
-            raise ValueError(
-
-                "Volume profile cannot be empty."
-
-            )
-
-        total = sum(
-
-            self.volume_profile
-
-        )
+        total = sum(self.volume_profile)
 
         if total <= 0:
-
-            raise ValueError(
-
-                "Volume profile must be positive."
-
-            )
+            raise ValueError("Volume profile must be positive.")
 
     # =====================================================
     # SCHEDULE
     # =====================================================
 
     def schedule(
-
         self,
-
         order: Order,
-
     ) -> list[float]:
 
-        total = sum(
+        total = sum(self.volume_profile)
 
-            self.volume_profile
-
-        )
-
-        return [
-
-            (
-
-                weight
-
-                / total
-
-            )
-
-            * order.quantity
-
-            for weight
-
-            in self.volume_profile
-
-        ]
+        return [(weight / total) * order.quantity for weight in self.volume_profile]
 
     # =====================================================
     # EXECUTE
     # =====================================================
 
     def execute(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
 
-        schedule = self.schedule(
-
-            order
-
-        )
+        schedule = self.schedule(order)
 
         report = ExecutionReport()
 
         report.order = order
 
-        report.executed_quantity = sum(
-
-            schedule
-
-        )
+        report.executed_quantity = sum(schedule)
 
         report.remaining_quantity = max(
-
             0.0,
-
-            order.quantity
-
-            -
-
-            report.executed_quantity,
-
+            order.quantity - report.executed_quantity,
         )
 
-        report.average_price = (
+        report.average_price = order.price if order.price is not None else 0.0
 
-            order.price
+        report.execution_value = report.executed_quantity * report.average_price
 
-            if order.price is not None
-
-            else 0.0
-
-        )
-
-        report.execution_value = (
-
-            report.executed_quantity
-
-            *
-
-            report.average_price
-
-        )
-
-        report.fill_ratio = (
-
-            report.executed_quantity
-
-            /
-
-            order.quantity
-
-        )
+        report.fill_ratio = report.executed_quantity / order.quantity
 
         report.algorithm = self.name
 
         report.status = "FILLED"
 
-        report.message = (
+        report.message = "VWAP execution completed."
 
-            "VWAP execution completed."
+        report.metadata["Slices"] = schedule
 
-        )
-
-        report.metadata[
-
-            "Slices"
-
-        ] = schedule
-
-        report.metadata[
-
-            "Volume_Profile"
-
-        ] = self.volume_profile
+        report.metadata["Volume_Profile"] = self.volume_profile
 
         return report
 
@@ -221,19 +120,9 @@ class VWAPAlgorithm(
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Intervals={len(self.volume_profile)}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Intervals={len(self.volume_profile)})"
 
     __str__ = __repr__

@@ -5,13 +5,12 @@
 
 from __future__ import annotations
 
-
 # ==========================================================
 # ENVIRONMENTS
 # ==========================================================
 
-class Environment:
 
+class Environment:
     DEVELOPMENT = "DEVELOPMENT"
 
     TESTING = "TESTING"
@@ -25,8 +24,8 @@ class Environment:
 # STATUS CODES
 # ==========================================================
 
-class Status:
 
+class Status:
     SUCCESS = "SUCCESS"
 
     FAILED = "FAILED"
@@ -39,12 +38,13 @@ class Status:
 
     REJECTED = "REJECTED"
 
+
 # ==========================================================
 # ORDER TYPES
 # ==========================================================
 
-class OrderType:
 
+class OrderType:
     MARKET = "MARKET"
 
     LIMIT = "LIMIT"
@@ -60,8 +60,8 @@ class OrderType:
 # TRADE ACTIONS
 # ==========================================================
 
-class TradeAction:
 
+class TradeAction:
     BUY = "BUY"
 
     SELL = "SELL"
@@ -73,8 +73,8 @@ class TradeAction:
 # REBALANCE FREQUENCY
 # ==========================================================
 
-class RebalanceFrequency:
 
+class RebalanceFrequency:
     DAILY = "DAILY"
 
     WEEKLY = "WEEKLY"
@@ -85,12 +85,13 @@ class RebalanceFrequency:
 
     YEARLY = "YEARLY"
 
+
 # ==========================================================
 # MARKET REGIMES
 # ==========================================================
 
-class MarketRegime:
 
+class MarketRegime:
     BULL = "BULL"
 
     BEAR = "BEAR"
@@ -106,8 +107,8 @@ class MarketRegime:
 # RISK LEVELS
 # ==========================================================
 
-class RiskLevel:
 
+class RiskLevel:
     LOW = "LOW"
 
     MEDIUM = "MEDIUM"
@@ -121,8 +122,8 @@ class RiskLevel:
 # REPORT TYPES
 # ==========================================================
 
-class ReportType:
 
+class ReportType:
     PORTFOLIO = "PORTFOLIO"
 
     RISK = "RISK"
@@ -133,12 +134,13 @@ class ReportType:
 
     GOVERNANCE = "GOVERNANCE"
 
+
 # ==========================================================
 # NSE SECTORS
 # ==========================================================
 
-class Sector:
 
+class Sector:
     BANKING = "BANKING"
 
     IT = "IT"
@@ -165,45 +167,32 @@ class Sector:
 
     INSURANCE = "INSURANCE"
 
-    FINANCIAL_SERVICES = (
-        "FINANCIAL_SERVICES"
-    )
+    FINANCIAL_SERVICES = "FINANCIAL_SERVICES"
 
 
 # ==========================================================
 # DATABASE TABLES
 # ==========================================================
 
+
 class TableName:
+    SECURITY_MASTER = "security_master"
 
-    SECURITY_MASTER = (
-        "security_master"
-    )
+    SIGNAL_MASTER = "signal_master"
 
-    SIGNAL_MASTER = (
-        "signal_master"
-    )
+    TARGET_PORTFOLIO = "target_portfolio"
 
-    TARGET_PORTFOLIO = (
-        "target_portfolio"
-    )
+    TRADE_LIST = "trade_list"
 
-    TRADE_LIST = (
-        "trade_list"
-    )
+    RISK_REPORT = "risk_report"
 
-    RISK_REPORT = (
-        "risk_report"
-    )
-
-    PERFORMANCE_REPORT = (
-        "performance_report"
-    )
+    PERFORMANCE_REPORT = "performance_report"
 
 
 # ==========================================================
 # RISK CONSTANTS
 # ==========================================================
+
 
 class RiskConstants:
     """
@@ -244,6 +233,4 @@ class RiskConstants:
 
     DEFAULT_BETA = 1.0
 
-    DEFAULT_CONFIDENCE_LEVEL = (
-        CONFIDENCE_LEVEL_95
-    )
+    DEFAULT_CONFIDENCE_LEVEL = CONFIDENCE_LEVEL_95

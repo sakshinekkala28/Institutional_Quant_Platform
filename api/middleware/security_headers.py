@@ -38,83 +38,41 @@ from collections.abc import Callable
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
 
-
 # ==========================================================
 # DEFAULT HEADERS
 # ==========================================================
 
 
 DEFAULT_SECURITY_HEADERS = {
-
-    "Strict-Transport-Security":
-
-        "max-age=31536000; includeSubDomains",
-
-    "X-Frame-Options":
-
-        "DENY",
-
-    "X-Content-Type-Options":
-
-        "nosniff",
-
-    "Referrer-Policy":
-
-        "strict-origin-when-cross-origin",
-
-    "Permissions-Policy":
-
-        (
-
-            "accelerometer=(), "
-
-            "camera=(), "
-
-            "geolocation=(), "
-
-            "gyroscope=(), "
-
-            "microphone=(), "
-
-            "payment=(), "
-
-            "usb=()"
-
-        ),
-
-    "X-XSS-Protection":
-
-        "1; mode=block",
-
-    "Cache-Control":
-
-        "no-store",
-
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "Referrer-Policy": "strict-origin-when-cross-origin",
+    "Permissions-Policy": (
+        "accelerometer=(), "
+        "camera=(), "
+        "geolocation=(), "
+        "gyroscope=(), "
+        "microphone=(), "
+        "payment=(), "
+        "usb=()"
+    ),
+    "X-XSS-Protection": "1; mode=block",
+    "Cache-Control": "no-store",
 }
 
 
 DEFAULT_CSP = (
-
     "default-src 'self'; "
-
     "script-src 'self'; "
-
     "style-src 'self' 'unsafe-inline'; "
-
     "img-src 'self' data:; "
-
     "font-src 'self'; "
-
     "connect-src 'self'; "
-
     "object-src 'none'; "
-
     "frame-ancestors 'none'; "
-
     "base-uri 'self'; "
-
     "form-action 'self';"
-
 )
 
 
@@ -131,57 +89,32 @@ class SecurityHeadersMiddleware(
     """
 
     async def dispatch(
-
         self,
-
         request: Request,
-
         call_next: Callable,
-
     ):
 
         response = await call_next(
-
             request,
-
         )
 
-        for header, value in (
+        for header, value in DEFAULT_SECURITY_HEADERS.items():
+            response.headers[header] = value
 
-            DEFAULT_SECURITY_HEADERS.items()
-
-        ):
-
-            response.headers[
-
-                header
-
-            ] = value
-
-        response.headers[
-
-            "Content-Security-Policy"
-
-        ] = DEFAULT_CSP
+        response.headers["Content-Security-Policy"] = DEFAULT_CSP
 
         # =============================================
         # Remove Information Disclosure
         # =============================================
 
         response.headers.pop(
-
             "Server",
-
             None,
-
         )
 
         response.headers.pop(
-
             "X-Powered-By",
-
             None,
-
         )
 
         return response
@@ -192,25 +125,16 @@ class SecurityHeadersMiddleware(
 # ==========================================================
 
 
-def security_headers(
-
-) -> dict:
-
+def security_headers() -> dict:
     """
     Return configured headers.
     """
 
     headers = dict(
-
         DEFAULT_SECURITY_HEADERS,
-
     )
 
-    headers[
-
-        "Content-Security-Policy"
-
-    ] = DEFAULT_CSP
+    headers["Content-Security-Policy"] = DEFAULT_CSP
 
     return headers
 
@@ -220,36 +144,21 @@ def security_headers(
 # ==========================================================
 
 
-def validate_headers(
-
-) -> bool:
+def validate_headers() -> bool:
     """
     Validate configuration.
     """
 
     required = [
-
         "Strict-Transport-Security",
-
         "X-Frame-Options",
-
         "X-Content-Type-Options",
-
         "Content-Security-Policy",
-
     ]
 
     configured = security_headers()
 
-    return all(
-
-        header in configured
-
-        for header
-
-        in required
-
-    )
+    return all(header in configured for header in required)
 
 
 # ==========================================================
@@ -257,9 +166,7 @@ def validate_headers(
 # ==========================================================
 
 
-def security_score(
-
-) -> dict:
+def security_score() -> dict:
     """
     Basic security assessment.
     """
@@ -269,91 +176,35 @@ def security_score(
     score = 0
 
     checks = {
-
-        "HSTS":
-
-            "Strict-Transport-Security",
-
-        "CSP":
-
-            "Content-Security-Policy",
-
-        "Frame Protection":
-
-            "X-Frame-Options",
-
-        "Content Type":
-
-            "X-Content-Type-Options",
-
-        "Referrer Policy":
-
-            "Referrer-Policy",
-
-        "Permissions Policy":
-
-            "Permissions-Policy",
-
-        "XSS Protection":
-
-            "X-XSS-Protection",
-
+        "HSTS": "Strict-Transport-Security",
+        "CSP": "Content-Security-Policy",
+        "Frame Protection": "X-Frame-Options",
+        "Content Type": "X-Content-Type-Options",
+        "Referrer Policy": "Referrer-Policy",
+        "Permissions Policy": "Permissions-Policy",
+        "XSS Protection": "X-XSS-Protection",
     }
 
     results = {}
 
     for name, header in checks.items():
-
-        enabled = (
-
-            header
-
-            in configured
-
-        )
+        enabled = header in configured
 
         results[name] = enabled
 
         if enabled:
-
             score += 1
 
     return {
-
-        "score":
-
-            score,
-
-        "maximum":
-
-            len(
-
-                checks,
-
-            ),
-
-        "percentage":
-
-            round(
-
-                score
-
-                /
-
-                len(checks)
-
-                *
-
-                100,
-
-                2,
-
-            ),
-
-        "checks":
-
-            results,
-
+        "score": score,
+        "maximum": len(
+            checks,
+        ),
+        "percentage": round(
+            score / len(checks) * 100,
+            2,
+        ),
+        "checks": results,
     }
 
 
@@ -363,17 +214,10 @@ def security_score(
 
 
 __all__ = [
-
-    "DEFAULT_SECURITY_HEADERS",
-
     "DEFAULT_CSP",
-
+    "DEFAULT_SECURITY_HEADERS",
     "SecurityHeadersMiddleware",
-
     "security_headers",
-
-    "validate_headers",
-
     "security_score",
-
+    "validate_headers",
 ]

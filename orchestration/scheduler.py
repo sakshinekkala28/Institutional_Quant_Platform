@@ -24,17 +24,14 @@ It delegates execution to MasterOrchestrator.
 
 from __future__ import annotations
 
-import threading
-import time
-
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
-from typing import Dict, List, Optional
+import threading
+import time
 
 from orchestration.master_orchestrator import (
     MasterOrchestrator,
 )
-
 from orchestration.models.master_result import (
     MasterResult,
 )
@@ -42,6 +39,7 @@ from orchestration.models.master_result import (
 # =========================================================
 # SCHEDULED JOB
 # =========================================================
+
 
 @dataclass(slots=True)
 class ScheduledJob:
@@ -61,21 +59,13 @@ class ScheduledJob:
 
     pipeline: str = "default"
 
-    metadata: Dict[str, str] = field(
-        default_factory=dict
-    )
+    metadata: dict[str, str] = field(default_factory=dict)
 
-    created_at: datetime = field(
-        default_factory=datetime.utcnow
-    )
+    created_at: datetime = field(default_factory=datetime.utcnow)
 
-    last_run: Optional[
-        datetime
-    ] = None
+    last_run: datetime | None = None
 
-    next_run: Optional[
-        datetime
-    ] = None
+    next_run: datetime | None = None
 
     run_count: int = 0
 
@@ -88,26 +78,17 @@ class ScheduledJob:
         self.run_count += 1
 
         if self.interval_seconds > 0:
-
-            self.next_run = (
-
-                self.last_run
-
-                + timedelta(
-
-                    seconds=self.interval_seconds
-
-                )
-
-            )
+            self.next_run = self.last_run + timedelta(seconds=self.interval_seconds)
 
     def mark_failed(self) -> None:
 
         self.failure_count += 1
 
+
 # =========================================================
 # JOB REGISTRY
 # =========================================================
+
 
 class JobRegistry:
     """
@@ -116,7 +97,7 @@ class JobRegistry:
 
     def __init__(self) -> None:
 
-        self._jobs: Dict[
+        self._jobs: dict[
             str,
             ScheduledJob,
         ] = {}
@@ -129,12 +110,7 @@ class JobRegistry:
     ) -> None:
 
         if job.name in self._jobs:
-
-            raise ValueError(
-
-                f"Job '{job.name}' already exists."
-
-            )
+            raise ValueError(f"Job '{job.name}' already exists.")
 
         self._jobs[job.name] = job
 
@@ -163,31 +139,17 @@ class JobRegistry:
 
     def jobs(
         self,
-    ) -> List[ScheduledJob]:
+    ) -> list[ScheduledJob]:
 
-        return list(
-
-            self._jobs.values()
-
-        )
+        return list(self._jobs.values())
 
     # -----------------------------------------------------
 
     def active_jobs(
         self,
-    ) -> List[ScheduledJob]:
+    ) -> list[ScheduledJob]:
 
-        return [
-
-            job
-
-            for job
-
-            in self._jobs.values()
-
-            if job.enabled
-
-        ]
+        return [job for job in self._jobs.values() if job.enabled]
 
     # -----------------------------------------------------
 
@@ -223,10 +185,12 @@ class JobRegistry:
     ) -> bool:
 
         return name in self._jobs
-    
+
+
 # =========================================================
 # SCHEDULER
 # =========================================================
+
 
 class Scheduler:
     """
@@ -241,13 +205,9 @@ class Scheduler:
 
         self._running = False
 
-        self._last_result: Optional[
-            MasterResult
-        ] = None
+        self._last_result: MasterResult | None = None
 
-        self._last_run: Optional[
-            datetime
-        ] = None
+        self._last_run: datetime | None = None
 
     # =====================================================
     # DEFAULT JOBS
@@ -258,43 +218,26 @@ class Scheduler:
     ) -> None:
 
         self.registry.register(
-
             ScheduledJob(
-
                 name="daily",
-
                 frequency="DAILY",
-
                 interval_seconds=86400,
-
             )
-
         )
 
         self.registry.register(
-
             ScheduledJob(
-
                 name="weekly",
-
                 frequency="WEEKLY",
-
                 interval_seconds=604800,
-
             )
-
         )
 
         self.registry.register(
-
             ScheduledJob(
-
                 name="monthly",
-
                 frequency="MONTHLY",
-
             )
-
         )
 
     # =====================================================
@@ -312,21 +255,13 @@ class Scheduler:
         job = self.registry.get(name)
 
         if not job.enabled:
-
-            raise RuntimeError(
-
-                f"Job '{name}' is disabled."
-
-            )
+            raise RuntimeError(f"Job '{name}' is disabled.")
 
         orchestrator = MasterOrchestrator(
-
             executor=job.executor,
-
         )
 
         try:
-
             result = orchestrator.run()
 
             job.mark_executed()
@@ -338,7 +273,6 @@ class Scheduler:
             return result
 
         except Exception:
-
             job.mark_failed()
 
             raise
@@ -349,25 +283,18 @@ class Scheduler:
 
     def run_all(
         self,
-    ) -> List[MasterResult]:
+    ) -> list[MasterResult]:
         """
         Execute all enabled jobs.
         """
 
-        results: List[
-            MasterResult
-        ] = []
+        results: list[MasterResult] = []
 
         for job in self.registry.active_jobs():
-
             results.append(
-
                 self.run_job(
-
                     job.name,
-
                 )
-
             )
 
         return results
@@ -384,31 +311,14 @@ class Scheduler:
         """
 
         while self._running:
-
             now = datetime.utcnow()
 
             for job in self.registry.active_jobs():
-
-                if (
-
-                    job.next_run is None
-
-                    or
-
-                    now >= job.next_run
-
-                ):
-
+                if job.next_run is None or now >= job.next_run:
                     try:
-
-                        self.run_job(
-
-                            job.name
-
-                        )
+                        self.run_job(job.name)
 
                     except Exception:
-
                         # Continue scheduling
                         # remaining jobs.
                         pass
@@ -427,19 +337,14 @@ class Scheduler:
         """
 
         if self._running:
-
             return
 
         self._running = True
 
         self._thread = threading.Thread(
-
             target=self._worker,
-
             daemon=True,
-
             name="PlatformScheduler",
-
         )
 
         self._thread.start()
@@ -458,7 +363,6 @@ class Scheduler:
         self._running = False
 
         if self._thread is not None:
-
             self._thread.join()
 
             self._thread = None
@@ -479,9 +383,7 @@ class Scheduler:
     @property
     def last_result(
         self,
-    ) -> Optional[
-        MasterResult
-    ]:
+    ) -> MasterResult | None:
 
         return self._last_result
 
@@ -490,9 +392,7 @@ class Scheduler:
     @property
     def last_run(
         self,
-    ) -> Optional[
-        datetime
-    ]:
+    ) -> datetime | None:
 
         return self._last_run
 
@@ -508,51 +408,17 @@ class Scheduler:
         """
 
         return {
-
-            "running":
-
-                self.running,
-
-            "registered_jobs":
-
-                len(
-
-                    self.registry,
-
-                ),
-
-            "active_jobs":
-
-                len(
-
-                    self.registry.active_jobs(),
-
-                ),
-
-            "last_run":
-
-                (
-
-                    self.last_run.isoformat()
-
-                    if self.last_run
-
-                    else None
-
-                ),
-
-            "last_status":
-
-                (
-
-                    self.last_result.status.value
-
-                    if self.last_result
-
-                    else "NOT_RUN"
-
-                ),
-
+            "running": self.running,
+            "registered_jobs": len(
+                self.registry,
+            ),
+            "active_jobs": len(
+                self.registry.active_jobs(),
+            ),
+            "last_run": (self.last_run.isoformat() if self.last_run else None),
+            "last_status": (
+                self.last_result.status.value if self.last_result else "NOT_RUN"
+            ),
         }
 
     # =====================================================
@@ -564,11 +430,7 @@ class Scheduler:
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"jobs={len(self.registry)}, "
-
             f"running={self.running})"
-
         )

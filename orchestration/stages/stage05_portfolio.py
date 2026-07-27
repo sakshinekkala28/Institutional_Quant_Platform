@@ -24,10 +24,10 @@ from orchestration.pipelines.portfolio_pipeline import (
     main as portfolio_pipeline,
 )
 
-
 # ==========================================================
 # STAGE
 # ==========================================================
+
 
 class PortfolioStage:
     """
@@ -38,9 +38,7 @@ class PortfolioStage:
 
     NAME = "Portfolio"
 
-    DESCRIPTION = (
-        "Portfolio construction and optimization."
-    )
+    DESCRIPTION = "Portfolio construction and optimization."
 
     PIPELINE = portfolio_pipeline
 
@@ -65,22 +63,11 @@ class PortfolioStage:
     def metadata(cls) -> dict:
 
         return {
-
-            "stage":
-                cls.STAGE,
-
-            "name":
-                cls.NAME,
-
-            "description":
-                cls.DESCRIPTION,
-
-            "dependencies":
-                cls.DEPENDENCIES,
-
-            "enabled":
-                cls.ENABLED,
-
+            "stage": cls.STAGE,
+            "name": cls.NAME,
+            "description": cls.DESCRIPTION,
+            "dependencies": cls.DEPENDENCIES,
+            "enabled": cls.ENABLED,
         }
 
     # =====================================================
@@ -93,15 +80,7 @@ class PortfolioStage:
         Validate stage configuration.
         """
 
-        return (
-
-            cls.ENABLED
-
-            and
-
-            callable(cls.PIPELINE)
-
-        )
+        return cls.ENABLED and callable(cls.PIPELINE)
 
     # =====================================================
     # SUMMARY
@@ -111,19 +90,9 @@ class PortfolioStage:
     def summary(cls) -> dict:
 
         return {
-
-            "stage":
-
-                cls.STAGE,
-
-            "pipeline":
-
-                cls.PIPELINE.__name__,
-
-            "enabled":
-
-                cls.ENABLED,
-
+            "stage": cls.STAGE,
+            "pipeline": cls.PIPELINE.__name__,
+            "enabled": cls.ENABLED,
         }
 
     # =====================================================
@@ -132,12 +101,4 @@ class PortfolioStage:
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"stage={self.STAGE}, "
-
-            f"name='{self.NAME}')"
-
-        )
+        return f"{self.__class__.__name__}(stage={self.STAGE}, name='{self.NAME}')"

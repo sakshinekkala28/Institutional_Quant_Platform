@@ -35,6 +35,7 @@ logger = logging.getLogger(__name__)
 # SLACK PLUGIN
 # ==========================================================
 
+
 class SlackPlugin(NotificationPlugin):
     """
     Slack notification plugin.
@@ -68,45 +69,23 @@ class SlackPlugin(NotificationPlugin):
         self,
         title: str,
         message: str,
-        severity: NotificationSeverity = (
-            NotificationSeverity.INFO
-        ),
+        severity: NotificationSeverity = (NotificationSeverity.INFO),
         **kwargs: Any,
     ) -> bool:
         """
         Send Slack notification.
         """
 
-        if (
-            not self.ENABLED
-            or not self.webhook_url
-        ):
+        if not self.ENABLED or not self.webhook_url:
             return False
 
-        payload = {
-
-            "text": (
-
-                f"*[{severity.value}]* "
-
-                f"{title}\n"
-
-                f"{message}"
-
-            )
-
-        }
+        payload = {"text": (f"*[{severity.value}]* {title}\n{message}")}
 
         try:
-
             response = requests.post(
-
                 self.webhook_url,
-
                 json=payload,
-
                 timeout=self.timeout,
-
             )
 
             response.raise_for_status()
@@ -116,12 +95,7 @@ class SlackPlugin(NotificationPlugin):
             return True
 
         except Exception:
-
-            logger.exception(
-
-                "Failed to send Slack notification."
-
-            )
+            logger.exception("Failed to send Slack notification.")
 
             return False
 
@@ -134,11 +108,7 @@ class SlackPlugin(NotificationPlugin):
         self,
     ) -> bool:
 
-        return bool(
-
-            self.webhook_url
-
-        )
+        return bool(self.webhook_url)
 
     # =====================================================
     # SUMMARY
@@ -149,17 +119,9 @@ class SlackPlugin(NotificationPlugin):
     ) -> dict:
 
         return {
-
             **super().summary(),
-
-            "configured":
-
-                self.configured,
-
-            "timeout":
-
-                self.timeout,
-
+            "configured": self.configured,
+            "timeout": self.timeout,
         }
 
     # =====================================================
@@ -170,10 +132,4 @@ class SlackPlugin(NotificationPlugin):
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"configured={self.configured})"
-
-        )
+        return f"{self.__class__.__name__}(configured={self.configured})"

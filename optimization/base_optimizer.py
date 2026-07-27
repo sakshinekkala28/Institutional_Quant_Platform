@@ -32,8 +32,7 @@ Inherited By
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 
 import numpy as np
 
@@ -47,17 +46,11 @@ class BaseOptimizer(ABC):
     """
 
     def __init__(
-
         self,
-
         long_only: bool = True,
-
         fully_invested: bool = True,
-
         max_weight: float = 1.0,
-
         min_weight: float = 0.0,
-
     ) -> None:
 
         self.long_only = long_only
@@ -73,50 +66,31 @@ class BaseOptimizer(ABC):
     # =====================================================
 
     def validate(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> None:
 
         if portfolio.is_empty:
-
-            raise ValueError(
-
-                "Portfolio cannot be empty."
-
-            )
+            raise ValueError("Portfolio cannot be empty.")
 
     # =====================================================
     # NORMALIZE
     # =====================================================
 
     def normalize(
-
         self,
-
         weights: np.ndarray,
-
     ) -> np.ndarray:
 
         weights = np.asarray(
-
             weights,
-
             dtype=np.float64,
-
         )
 
         total = weights.sum()
 
         if total <= 0:
-
-            raise ValueError(
-
-                "Weight sum must be positive."
-
-            )
+            raise ValueError("Weight sum must be positive.")
 
         return weights / total
 
@@ -125,21 +99,14 @@ class BaseOptimizer(ABC):
     # =====================================================
 
     def clip(
-
         self,
-
         weights: np.ndarray,
-
     ) -> np.ndarray:
 
         return np.clip(
-
             weights,
-
             self.min_weight,
-
             self.max_weight,
-
         )
 
     # =====================================================
@@ -147,67 +114,36 @@ class BaseOptimizer(ABC):
     # =====================================================
 
     def build_portfolio(
-
         self,
-
         portfolio: Portfolio,
-
         weights: np.ndarray,
-
     ) -> Portfolio:
 
-        weights = self.normalize(
-
-            self.clip(
-
-                weights
-
-            )
-
-        )
+        weights = self.normalize(self.clip(weights))
 
         positions = []
 
         for position, weight in zip(
-
             portfolio,
-
             weights,
-
             strict=True,
-
         ):
-
             positions.append(
-
                 PortfolioPosition(
-
                     symbol=position.symbol,
-
                     weight=float(weight),
-
                     sector=position.sector,
-
                     industry=position.industry,
-
                     alpha=position.alpha,
-
                     alpha_adjusted=position.alpha_adjusted,
-
                     market_cap=position.market_cap,
-
                     adv_20d=position.adv_20d,
-
                 )
-
             )
 
         return Portfolio(
-
             positions=positions,
-
             nav=portfolio.nav,
-
         )
 
     # =====================================================
@@ -216,11 +152,8 @@ class BaseOptimizer(ABC):
 
     @abstractmethod
     def optimize(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> Portfolio:
         """
         Execute optimizer.
@@ -233,21 +166,14 @@ class BaseOptimizer(ABC):
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"LongOnly={self.long_only}, "
-
             f"FullyInvested={self.fully_invested}"
-
             f")"
-
         )
 
     __str__ = __repr__

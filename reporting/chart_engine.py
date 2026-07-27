@@ -50,44 +50,26 @@ class ChartEngine:
 
     @staticmethod
     def _save(
-
         figure,
-
         filename: str | Path,
-
     ) -> None:
 
-        path = Path(
-
-            filename
-
-        )
+        path = Path(filename)
 
         path.parent.mkdir(
-
             parents=True,
-
             exist_ok=True,
-
         )
 
         figure.tight_layout()
 
         figure.savefig(
-
             path,
-
             dpi=300,
-
             bbox_inches="tight",
-
         )
 
-        plt.close(
-
-            figure
-
-        )
+        plt.close(figure)
 
     # =====================================================
     # EQUITY CURVE
@@ -95,61 +77,30 @@ class ChartEngine:
 
     @classmethod
     def equity_curve(
-
         cls,
-
         equity,
-
         filename,
-
         title="Equity Curve",
-
     ):
 
-        figure = plt.figure(
-
-            figsize=(10, 5)
-
-        )
+        figure = plt.figure(figsize=(10, 5))
 
         plt.plot(
-
             equity,
-
             linewidth=2,
-
         )
 
-        plt.title(
+        plt.title(title)
 
-            title
+        plt.xlabel("Time")
 
-        )
+        plt.ylabel("Portfolio Value")
 
-        plt.xlabel(
-
-            "Time"
-
-        )
-
-        plt.ylabel(
-
-            "Portfolio Value"
-
-        )
-
-        plt.grid(
-
-            alpha=0.30
-
-        )
+        plt.grid(alpha=0.30)
 
         cls._save(
-
             figure,
-
             filename,
-
         )
 
     # =====================================================
@@ -158,57 +109,28 @@ class ChartEngine:
 
     @classmethod
     def drawdown(
-
         cls,
-
         drawdown,
-
         filename,
-
         title="Drawdown",
-
     ):
 
-        figure = plt.figure(
-
-            figsize=(10, 4)
-
-        )
+        figure = plt.figure(figsize=(10, 4))
 
         plt.fill_between(
-
-            np.arange(
-
-                len(drawdown)
-
-            ),
-
+            np.arange(len(drawdown)),
             drawdown,
-
             color="red",
-
             alpha=0.30,
-
         )
 
-        plt.title(
+        plt.title(title)
 
-            title
-
-        )
-
-        plt.grid(
-
-            alpha=0.30
-
-        )
+        plt.grid(alpha=0.30)
 
         cls._save(
-
             figure,
-
             filename,
-
         )
 
     # =====================================================
@@ -217,57 +139,31 @@ class ChartEngine:
 
     @classmethod
     def rolling_sharpe(
-
         cls,
-
         sharpe,
-
         filename,
-
         title="Rolling Sharpe",
-
     ):
 
-        figure = plt.figure(
-
-            figsize=(10, 4)
-
-        )
+        figure = plt.figure(figsize=(10, 4))
 
         plt.plot(
-
             sharpe,
-
             linewidth=2,
-
         )
 
         plt.axhline(
-
             1.0,
-
             linestyle="--",
-
         )
 
-        plt.title(
+        plt.title(title)
 
-            title
-
-        )
-
-        plt.grid(
-
-            alpha=0.30
-
-        )
+        plt.grid(alpha=0.30)
 
         cls._save(
-
             figure,
-
             filename,
-
         )
 
     # =====================================================
@@ -276,49 +172,27 @@ class ChartEngine:
 
     @classmethod
     def allocation(
-
         cls,
-
         labels,
-
         weights,
-
         filename,
-
         title="Portfolio Allocation",
-
     ):
 
-        figure = plt.figure(
-
-            figsize=(7, 7)
-
-        )
+        figure = plt.figure(figsize=(7, 7))
 
         plt.pie(
-
             weights,
-
             labels=labels,
-
             autopct="%1.1f%%",
-
             startangle=90,
-
         )
 
-        plt.title(
-
-            title
-
-        )
+        plt.title(title)
 
         cls._save(
-
             figure,
-
             filename,
-
         )
 
     # =====================================================
@@ -327,69 +201,38 @@ class ChartEngine:
 
     @classmethod
     def bar(
-
         cls,
-
         labels,
-
         values,
-
         filename,
-
         title,
-
         ylabel,
-
     ):
 
-        figure = plt.figure(
-
-            figsize=(10, 5)
-
-        )
+        figure = plt.figure(figsize=(10, 5))
 
         plt.bar(
-
             labels,
-
             values,
-
         )
 
         plt.xticks(
-
             rotation=45,
-
             ha="right",
-
         )
 
-        plt.ylabel(
+        plt.ylabel(ylabel)
 
-            ylabel
-
-        )
-
-        plt.title(
-
-            title
-
-        )
+        plt.title(title)
 
         plt.grid(
-
             axis="y",
-
             alpha=0.30,
-
         )
 
         cls._save(
-
             figure,
-
             filename,
-
         )
 
     # =====================================================
@@ -398,51 +241,27 @@ class ChartEngine:
 
     @classmethod
     def histogram(
-
         cls,
-
         values,
-
         filename,
-
         bins=30,
-
         title="Distribution",
-
     ):
 
-        figure = plt.figure(
-
-            figsize=(8, 5)
-
-        )
+        figure = plt.figure(figsize=(8, 5))
 
         plt.hist(
-
             values,
-
             bins=bins,
-
         )
 
-        plt.title(
+        plt.title(title)
 
-            title
-
-        )
-
-        plt.grid(
-
-            alpha=0.30
-
-        )
+        plt.grid(alpha=0.30)
 
         cls._save(
-
             figure,
-
             filename,
-
         )
 
     # =====================================================
@@ -451,45 +270,26 @@ class ChartEngine:
 
     @classmethod
     def heatmap(
-
         cls,
-
         matrix,
-
         filename,
-
         title="Heatmap",
-
     ):
 
-        figure = plt.figure(
-
-            figsize=(8, 6)
-
-        )
+        figure = plt.figure(figsize=(8, 6))
 
         plt.imshow(
-
             matrix,
-
             aspect="auto",
-
         )
 
         plt.colorbar()
 
-        plt.title(
-
-            title
-
-        )
+        plt.title(title)
 
         cls._save(
-
             figure,
-
             filename,
-
         )
 
     # =====================================================
@@ -498,67 +298,33 @@ class ChartEngine:
 
     @classmethod
     def scatter(
-
         cls,
-
         x,
-
         y,
-
         filename,
-
         title="Scatter Plot",
-
         xlabel="",
-
         ylabel="",
-
     ):
 
-        figure = plt.figure(
-
-            figsize=(8, 5)
-
-        )
+        figure = plt.figure(figsize=(8, 5))
 
         plt.scatter(
-
             x,
-
             y,
-
         )
 
-        plt.xlabel(
+        plt.xlabel(xlabel)
 
-            xlabel
+        plt.ylabel(ylabel)
 
-        )
+        plt.title(title)
 
-        plt.ylabel(
-
-            ylabel
-
-        )
-
-        plt.title(
-
-            title
-
-        )
-
-        plt.grid(
-
-            alpha=0.30
-
-        )
+        plt.grid(alpha=0.30)
 
         cls._save(
-
             figure,
-
             filename,
-
         )
 
     # =====================================================
@@ -569,23 +335,14 @@ class ChartEngine:
     def supported_charts():
 
         return [
-
             "EquityCurve",
-
             "Drawdown",
-
             "RollingSharpe",
-
             "Allocation",
-
             "Bar",
-
             "Histogram",
-
             "Heatmap",
-
             "Scatter",
-
         ]
 
     # =====================================================
@@ -593,17 +350,9 @@ class ChartEngine:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ):
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"{len(self.supported_charts())} Charts)"
-
-        )
+        return f"{self.__class__.__name__}({len(self.supported_charts())} Charts)"
 
     __str__ = __repr__

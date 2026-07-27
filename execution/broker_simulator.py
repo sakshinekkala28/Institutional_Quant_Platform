@@ -46,37 +46,27 @@ class BrokerSimulator(Broker):
 
     connected: bool = False
 
-    orders: dict[str, Order] = field(
-
-        default_factory=dict
-
-    )
+    orders: dict[str, Order] = field(default_factory=dict)
 
     # =====================================================
     # CONNECTION
     # =====================================================
 
     def connect(
-
         self,
-
     ) -> None:
 
         self.connected = True
 
     def disconnect(
-
         self,
-
     ) -> None:
 
         self.connected = False
 
     @property
     def is_connected(
-
         self,
-
     ) -> bool:
 
         return self.connected
@@ -86,52 +76,26 @@ class BrokerSimulator(Broker):
     # =====================================================
 
     def submit_order(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
 
         if not self.connected:
+            raise RuntimeError("Broker is not connected.")
 
-            raise RuntimeError(
-
-                "Broker is not connected."
-
-            )
-
-        self.orders[
-
-            order.order_id
-
-        ] = order
+        self.orders[order.order_id] = order
 
         report = ExecutionReport()
 
         report.order = order
 
-        report.executed_quantity = (
-
-            order.quantity
-
-        )
+        report.executed_quantity = order.quantity
 
         report.remaining_quantity = 0.0
 
-        report.average_price = (
+        report.average_price = order.price or 0.0
 
-            order.price or 0.0
-
-        )
-
-        report.execution_value = (
-
-            (order.price or 0.0)
-
-            * order.quantity
-
-        )
+        report.execution_value = (order.price or 0.0) * order.quantity
 
         report.fill_ratio = 1.0
 
@@ -139,11 +103,7 @@ class BrokerSimulator(Broker):
 
         report.broker = self.name
 
-        report.message = (
-
-            "Paper trade executed."
-
-        )
+        report.message = "Paper trade executed."
 
         return report
 
@@ -152,22 +112,14 @@ class BrokerSimulator(Broker):
     # =====================================================
 
     def cancel_order(
-
         self,
-
         order_id: str,
-
     ) -> bool:
 
         if order_id not in self.orders:
-
             return False
 
-        del self.orders[
-
-            order_id
-
-        ]
+        del self.orders[order_id]
 
         return True
 
@@ -176,28 +128,14 @@ class BrokerSimulator(Broker):
     # =====================================================
 
     def modify_order(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
 
         if order.order_id not in self.orders:
+            raise KeyError(f"Unknown order {order.order_id}")
 
-            raise KeyError(
-
-                f"Unknown order "
-
-                f"{order.order_id}"
-
-            )
-
-        self.orders[
-
-            order.order_id
-
-        ] = order
+        self.orders[order.order_id] = order
 
         report = ExecutionReport()
 
@@ -207,11 +145,7 @@ class BrokerSimulator(Broker):
 
         report.broker = self.name
 
-        report.message = (
-
-            "Paper order modified."
-
-        )
+        report.message = "Paper order modified."
 
         return report
 
@@ -220,33 +154,14 @@ class BrokerSimulator(Broker):
     # =====================================================
 
     def account_info(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Broker":
-
-                self.name,
-
-            "Connected":
-
-                self.connected,
-
-            "Orders":
-
-                len(
-
-                    self.orders
-
-                ),
-
-            "Mode":
-
-                "PAPER",
-
+            "Broker": self.name,
+            "Connected": self.connected,
+            "Orders": len(self.orders),
+            "Mode": "PAPER",
         }
 
     # =====================================================
@@ -254,59 +169,30 @@ class BrokerSimulator(Broker):
     # =====================================================
 
     def open_orders(
-
         self,
-
     ) -> list[Order]:
 
-        return list(
-
-            self.orders.values()
-
-        )
+        return list(self.orders.values())
 
     # =====================================================
     # POSITIONS
     # =====================================================
 
     def positions(
-
         self,
-
     ) -> dict:
 
         positions: dict[str, float] = {}
 
         for order in self.orders.values():
+            quantity = order.quantity if order.is_buy else -order.quantity
 
-            quantity = (
-
-                order.quantity
-
-                if order.is_buy
-
-                else -order.quantity
-
-            )
-
-            positions[
-
-                order.symbol
-
-            ] = (
-
+            positions[order.symbol] = (
                 positions.get(
-
                     order.symbol,
-
                     0.0,
-
                 )
-
-                +
-
-                quantity
-
+                + quantity
             )
 
         return positions
@@ -316,9 +202,7 @@ class BrokerSimulator(Broker):
     # =====================================================
 
     def reset(
-
         self,
-
     ) -> None:
 
         self.orders.clear()
@@ -328,37 +212,14 @@ class BrokerSimulator(Broker):
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Broker":
-
-                self.name,
-
-            "Connected":
-
-                self.connected,
-
-            "Orders":
-
-                len(
-
-                    self.orders
-
-                ),
-
-            "Positions":
-
-                len(
-
-                    self.positions()
-
-                ),
-
+            "Broker": self.name,
+            "Connected": self.connected,
+            "Orders": len(self.orders),
+            "Positions": len(self.positions()),
         }
 
     # =====================================================
@@ -366,21 +227,14 @@ class BrokerSimulator(Broker):
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Orders={len(self.orders)}, "
-
             f"Connected={self.connected}"
-
             f")"
-
         )
 
     __str__ = __repr__

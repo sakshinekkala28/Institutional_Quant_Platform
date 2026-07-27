@@ -28,21 +28,15 @@ Responsibilities
 
 from __future__ import annotations
 
-from threading import Lock
-from threading import RLock
-
+from threading import Lock, RLock
 from typing import Any
-from typing import Dict
-from typing import Type
-from typing import Optional
-from typing import List
 
 from core.services.base_service import BaseService
-
 
 # ============================================================
 # Exceptions
 # ============================================================
+
 
 class ServiceFactoryError(Exception):
     """Base service factory exception."""
@@ -60,18 +54,10 @@ class ServiceNotRegistered(ServiceFactoryError):
 # Service Descriptor
 # ============================================================
 
+
 class ServiceDescriptor:
-
     def __init__(
-
-        self,
-
-        name: str,
-
-        service_type: Type[BaseService],
-
-        singleton: bool = True
-
+        self, name: str, service_type: type[BaseService], singleton: bool = True
     ):
 
         self.name = name
@@ -80,15 +66,15 @@ class ServiceDescriptor:
 
         self.singleton = singleton
 
-        self.instance: Optional[BaseService] = None
+        self.instance: BaseService | None = None
 
 
 # ============================================================
 # Service Factory
 # ============================================================
 
-class ServiceFactory:
 
+class ServiceFactory:
     """
     Enterprise Dependency Injection Container.
     """
@@ -97,47 +83,23 @@ class ServiceFactory:
 
     _instance_lock = Lock()
 
-    def __new__(
-
-        cls,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def __new__(cls, *args, **kwargs):
 
         if cls._instance is None:
-
             with cls._instance_lock:
-
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
 
-    def __init__(
+    def __init__(self):
 
-        self
-
-    ):
-
-        if getattr(
-
-            self,
-
-            "_initialized",
-
-            False
-
-        ):
-
+        if getattr(self, "_initialized", False):
             return
 
         self._lock = RLock()
 
-        self._services: Dict[str, ServiceDescriptor] = {}
+        self._services: dict[str, ServiceDescriptor] = {}
 
         self._initialized = True
 
@@ -146,74 +108,35 @@ class ServiceFactory:
     # =====================================================
 
     def register(
-
-        self,
-
-        name: str,
-
-        service: Type[BaseService],
-
-        singleton: bool = True
-
+        self, name: str, service: type[BaseService], singleton: bool = True
     ) -> None:
         """
         Register service.
         """
 
         with self._lock:
-
             if name in self._services:
+                raise ServiceAlreadyRegistered(name)
 
-                raise ServiceAlreadyRegistered(
-
-                    name
-
-                )
-
-            self._services[name] = ServiceDescriptor(
-
-                name,
-
-                service,
-
-                singleton
-
-            )
+            self._services[name] = ServiceDescriptor(name, service, singleton)
 
     # =====================================================
     # Resolution
     # =====================================================
 
-    def get(
-
-        self,
-
-        name: str
-
-    ) -> BaseService:
+    def get(self, name: str) -> BaseService:
         """
         Resolve service.
         """
 
         if name not in self._services:
-
-            raise ServiceNotRegistered(
-
-                name
-
-            )
+            raise ServiceNotRegistered(name)
 
         descriptor = self._services[name]
 
         if descriptor.singleton:
-
             if descriptor.instance is None:
-
-                descriptor.instance = (
-
-                    descriptor.service_type()
-
-                )
+                descriptor.instance = descriptor.service_type()
 
             return descriptor.instance
 
@@ -223,231 +146,115 @@ class ServiceFactory:
     # Discovery
     # =====================================================
 
-    def exists(
-
-        self,
-
-        name: str
-
-    ) -> bool:
+    def exists(self, name: str) -> bool:
 
         return name in self._services
 
-    def services(
+    def services(self) -> list[str]:
 
-        self
-
-    ) -> List[str]:
-
-        return sorted(
-
-            self._services.keys()
-
-        )
+        return sorted(self._services.keys())
 
     # =====================================================
     # Base Operations
     # =====================================================
 
-    def clear(
-
-        self
-
-    ) -> None:
+    def clear(self) -> None:
 
         self._services.clear()
 
-    def __len__(
+    def __len__(self) -> int:
 
-        self
-
-    ) -> int:
-
-        return len(
-
-            self._services
-
-        )
+        return len(self._services)
 
     # =====================================================
     # Dependency Registration
     # =====================================================
 
-    def register_dependency(
-
-        self,
-
-        service: str,
-
-        dependency: str
-
-    ) -> None:
+    def register_dependency(self, service: str, dependency: str) -> None:
         """
         Register a service dependency.
         """
 
         if service not in self._services:
-
             raise ServiceNotRegistered(service)
 
         if dependency not in self._services:
-
             raise ServiceNotRegistered(dependency)
 
         descriptor = self._services[service]
 
         if not hasattr(descriptor, "dependencies"):
-
             descriptor.dependencies = []
 
         if dependency not in descriptor.dependencies:
-
             descriptor.dependencies.append(dependency)
 
     # -----------------------------------------------------
 
-    def dependencies(
-
-        self,
-
-        service: str
-
-    ) -> List[str]:
+    def dependencies(self, service: str) -> list[str]:
 
         descriptor = self._services[service]
 
-        return list(
-
-            getattr(
-
-                descriptor,
-
-                "dependencies",
-
-                []
-
-            )
-
-        )
+        return list(getattr(descriptor, "dependencies", []))
 
     # =====================================================
     # Resolve By Type
     # =====================================================
 
-    def get_by_type(
-
-        self,
-
-        service_type: Type[BaseService]
-
-    ) -> BaseService:
+    def get_by_type(self, service_type: type[BaseService]) -> BaseService:
         """
         Resolve service by class.
         """
 
         for descriptor in self._services.values():
-
             if descriptor.service_type is service_type:
+                return self.get(descriptor.name)
 
-                return self.get(
-
-                    descriptor.name
-
-                )
-
-        raise ServiceNotRegistered(
-
-            service_type.__name__
-
-        )
+        raise ServiceNotRegistered(service_type.__name__)
 
     # =====================================================
     # Startup
     # =====================================================
 
-    def startup(
-
-        self
-
-    ) -> None:
+    def startup(self) -> None:
         """
         Start all registered services.
         """
 
         for descriptor in self._services.values():
+            service = self.get(descriptor.name)
 
-            service = self.get(
-
-                descriptor.name
-
-            )
-
-            startup = getattr(
-
-                service,
-
-                "startup",
-
-                None
-
-            )
+            startup = getattr(service, "startup", None)
 
             if callable(startup):
-
                 startup()
 
     # =====================================================
     # Shutdown
     # =====================================================
 
-    def shutdown(
-
-        self
-
-    ) -> None:
+    def shutdown(self) -> None:
         """
         Shutdown all services.
         """
 
-        services = list(
-
-            self._services.values()
-
-        )
+        services = list(self._services.values())
 
         services.reverse()
 
         for descriptor in services:
+            service = self.get(descriptor.name)
 
-            service = self.get(
-
-                descriptor.name
-
-            )
-
-            shutdown = getattr(
-
-                service,
-
-                "shutdown",
-
-                None
-
-            )
+            shutdown = getattr(service, "shutdown", None)
 
             if callable(shutdown):
-
                 shutdown()
 
     # =====================================================
     # Health
     # =====================================================
 
-    def health(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """
         Aggregate service health.
         """
@@ -455,34 +262,15 @@ class ServiceFactory:
         report = {}
 
         for descriptor in self._services.values():
+            service = self.get(descriptor.name)
 
-            service = self.get(
-
-                descriptor.name
-
-            )
-
-            health = getattr(
-
-                service,
-
-                "health",
-
-                None
-
-            )
+            health = getattr(service, "health", None)
 
             if callable(health):
-
                 report[descriptor.name] = health()
 
             else:
-
-                report[descriptor.name] = {
-
-                    "status": "UNKNOWN"
-
-                }
+                report[descriptor.name] = {"status": "UNKNOWN"}
 
         return report
 
@@ -490,103 +278,52 @@ class ServiceFactory:
     # Statistics
     # =====================================================
 
-    def statistics(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """
         Factory statistics.
         """
 
         singleton_count = sum(
-
-            1
-
-            for descriptor
-
-            in self._services.values()
-
-            if descriptor.singleton
-
+            1 for descriptor in self._services.values() if descriptor.singleton
         )
 
         instantiated = sum(
-
             1
-
-            for descriptor
-
-            in self._services.values()
-
+            for descriptor in self._services.values()
             if descriptor.instance is not None
-
         )
 
         return {
-
-            "registered_services":
-
-                len(self._services),
-
-            "singleton_services":
-
-                singleton_count,
-
-            "instantiated_services":
-
-                instantiated
-
+            "registered_services": len(self._services),
+            "singleton_services": singleton_count,
+            "instantiated_services": instantiated,
         }
 
     # =====================================================
     # Diagnostics
     # =====================================================
 
-    def diagnostics(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def diagnostics(self) -> dict[str, Any]:
         """
         Complete factory diagnostics.
         """
 
         return {
-
-            "services":
-
-                self.services(),
-
-            "statistics":
-
-                self.statistics(),
-
-            "health":
-
-                self.health()
-
+            "services": self.services(),
+            "statistics": self.statistics(),
+            "health": self.health(),
         }
 
     # =====================================================
     # Replace Service
     # =====================================================
 
-    def replace(
-
-        self,
-
-        name: str,
-
-        service_type: Type[BaseService]
-
-    ) -> None:
+    def replace(self, name: str, service_type: type[BaseService]) -> None:
         """
         Replace registered service.
         """
 
         if name not in self._services:
-
             raise ServiceNotRegistered(name)
 
         descriptor = self._services[name]
@@ -599,67 +336,31 @@ class ServiceFactory:
     # Warmup
     # =====================================================
 
-    def warmup(
-
-        self
-
-    ) -> None:
+    def warmup(self) -> None:
         """
         Instantiate all singleton services.
         """
 
         for descriptor in self._services.values():
-
             if descriptor.singleton:
-
-                self.get(
-
-                    descriptor.name
-
-                )
+                self.get(descriptor.name)
 
     # =====================================================
     # Magic Methods
     # =====================================================
 
-    def __contains__(
+    def __contains__(self, service: str) -> bool:
 
-        self,
+        return self.exists(service)
 
-        service: str
+    def __iter__(self):
 
-    ) -> bool:
+        return iter(self._services.keys())
 
-        return self.exists(
+    def __repr__(self) -> str:
 
-            service
+        return f"{self.__class__.__name__}(services={len(self._services)})"
 
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self._services.keys()
-
-        )
-
-    def __repr__(
-
-        self
-
-    ) -> str:
-
-        return (
-
-            f"{self.__class__.__name__}"
-
-            f"(services={len(self._services)})"
-        )
 
 # ============================================================
 # Global Factory

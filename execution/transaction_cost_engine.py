@@ -5,32 +5,22 @@
 # ==========================================================
 
 from __future__ import annotations
-from core.settings import (settings)
 
 from dataclasses import dataclass
+import logging
 from pathlib import Path
 
-import logging
 import numpy as np
 import pandas as pd
 
+from core.settings import settings
 
 # ==========================================================
 # LOGGING
 # ==========================================================
 
 logging.basicConfig(
-
-    level=logging.INFO,
-
-    format=(
-
-        "%(asctime)s | "
-        "%(levelname)s | "
-        "%(message)s"
-
-    )
-
+    level=logging.INFO, format=("%(asctime)s | %(levelname)s | %(message)s")
 )
 
 logger = logging.getLogger(__name__)
@@ -40,9 +30,9 @@ logger = logging.getLogger(__name__)
 # COST CONFIGURATION
 # ==========================================================
 
+
 @dataclass
 class CostConfig:
-
     # ------------------------------------------
     # COMMISSION
     # ------------------------------------------
@@ -92,9 +82,9 @@ class CostConfig:
 # COST INPUT MODEL
 # ==========================================================
 
+
 @dataclass
 class CostInput:
-
     symbol: str
 
     trade_value: float
@@ -112,9 +102,9 @@ class CostInput:
 # COST OUTPUT MODEL
 # ==========================================================
 
+
 @dataclass
 class CostOutput:
-
     symbol: str
 
     commission_bps: float
@@ -136,367 +126,138 @@ class CostOutput:
 # COMMISSION MODEL
 # ==========================================================
 
+
 class CommissionModel:
-
-    def __init__(
-
-        self,
-
-        config: CostConfig
-
-    ):
+    def __init__(self, config: CostConfig):
 
         self.config = config
 
-    def estimate(
+    def estimate(self, trade_value: float) -> float:
 
-        self,
-
-        trade_value: float
-
-    ) -> float:
-
-        return float(
-
-            self.config
-            .COMMISSION_BPS
-
-        )
+        return float(self.config.COMMISSION_BPS)
 
 
 # ==========================================================
 # SPREAD MODEL
 # ==========================================================
 
+
 class SpreadModel:
-
-    def __init__(
-
-        self,
-
-        config: CostConfig
-
-    ):
+    def __init__(self, config: CostConfig):
 
         self.config = config
 
-    def estimate(
+    def estimate(self, market_cap: float) -> float:
 
-        self,
-
-        market_cap: float
-
-    ) -> float:
-
-        if pd.isna(
-            market_cap
-        ):
-
-            return (
-
-                self.config
-                .MID_CAP_SPREAD_BPS
-
-            )
+        if pd.isna(market_cap):
+            return self.config.MID_CAP_SPREAD_BPS
 
         if market_cap >= 500000000000:
-
-            return (
-
-                self.config
-                .LARGE_CAP_SPREAD_BPS
-
-            )
+            return self.config.LARGE_CAP_SPREAD_BPS
 
         if market_cap >= 50000000000:
+            return self.config.MID_CAP_SPREAD_BPS
 
-            return (
-
-                self.config
-                .MID_CAP_SPREAD_BPS
-
-            )
-
-        return (
-
-            self.config
-            .SMALL_CAP_SPREAD_BPS
-
-        )
+        return self.config.SMALL_CAP_SPREAD_BPS
 
 
 # ==========================================================
 # TRADE VALIDATOR
 # ==========================================================
 
+
 class TradeValidator:
-
     @staticmethod
-    def validate(
-        trade_df: pd.DataFrame
-    ) -> None:
+    def validate(trade_df: pd.DataFrame) -> None:
 
-        required_columns = [
+        required_columns = ["Symbol", "Trade_Weight"]
 
-            "Symbol",
-
-            "Trade_Weight"
-
-        ]
-
-        missing = [
-
-            col
-
-            for col
-
-            in required_columns
-
-            if col
-
-            not in trade_df.columns
-
-        ]
+        missing = [col for col in required_columns if col not in trade_df.columns]
 
         if missing:
+            raise ValueError(f"Missing Columns: {missing}")
 
-            raise ValueError(
-
-                f"Missing Columns: "
-                f"{missing}"
-
-            )
-
-        logger.info(
-            "Trade Validation Passed"
-        )
+        logger.info("Trade Validation Passed")
 
 
 # ==========================================================
 # SECURITY MASTER LOADER
 # ==========================================================
 
+
 class SecurityMasterLoader:
+    def __init__(self, file_path: str | Path):
 
-    def __init__(
+        self.file_path = Path(file_path)
 
-        self,
+    def load(self) -> pd.DataFrame:
 
-        file_path: str | Path
+        logger.info("Loading Security Master")
 
-    ):
-
-        self.file_path = Path(
-            file_path
-        )
-
-    def load(
-        self
-    ) -> pd.DataFrame:
-
-        logger.info(
-            "Loading Security Master"
-        )
-
-        return pd.read_csv(
-            self.file_path
-        )
+        return pd.read_csv(self.file_path)
 
 
 # ==========================================================
 # VOLATILITY LOADER
 # ==========================================================
 
+
 class VolatilityLoader:
+    def __init__(self, file_path: str | Path):
 
-    def __init__(
+        self.file_path = Path(file_path)
 
-        self,
+    def load(self) -> pd.DataFrame:
 
-        file_path: str | Path
+        logger.info("Loading Volatility Data")
 
-    ):
-
-        self.file_path = Path(
-            file_path
-        )
-
-    def load(
-        self
-    ) -> pd.DataFrame:
-
-        logger.info(
-            "Loading Volatility Data"
-        )
-
-        return pd.read_csv(
-            self.file_path
-        )
+        return pd.read_csv(self.file_path)
 
 
 # ==========================================================
 # COST DATA PREPARATION
 # ==========================================================
 
-class CostDataPreparation:
 
+class CostDataPreparation:
     @staticmethod
     def prepare(
-
-        trades: pd.DataFrame,
-
-        security_master: pd.DataFrame,
-
-        volatility: pd.DataFrame
-
+        trades: pd.DataFrame, security_master: pd.DataFrame, volatility: pd.DataFrame
     ) -> pd.DataFrame:
 
-        merged = (
+        merged = trades.merge(security_master, on="Symbol", how="left")
 
-            trades
+        merged = merged.merge(volatility, on="Symbol", how="left")
 
-            .merge(
+        if "Trade_Value" not in merged.columns or merged["Trade_Value"].isna().all():
+            portfolio_nav = settings.portfolio.PORTFOLIO_NAV
 
-                security_master,
+            merged["Trade_Value"] = merged["Trade_Weight"].abs() * portfolio_nav
 
-                on="Symbol",
+        merged["Trade_Value"] = merged["Trade_Value"].clip(lower=1000)
 
-                how="left"
-
-            )
-
-        )
-
-        merged = (
-
-            merged
-
-            .merge(
-
-                volatility,
-
-                on="Symbol",
-
-                how="left"
-
-            )
-
-        )
-
-        if (
-
-            "Trade_Value" not in merged.columns
-
-            or
-
-            merged[
-                "Trade_Value"
-            ]
-
-            .isna()
-
-            .all()
-
-        ):
-
-            portfolio_nav = (
-
-                settings
-                .portfolio
-                .PORTFOLIO_NAV
-
-            )
-
-            merged[
-                "Trade_Value"
-            ] = (
-
-                merged[
-                    "Trade_Weight"
-                ]
-
-                .abs()
-
-                *
-
-                portfolio_nav
-
-            )
-
-        merged[
-            "Trade_Value"
-        ] = (
-
-            merged[
-                "Trade_Value"
-            ]
-
-            .clip(
-                lower=1000
-            )
-
-        )
-
-        logger.info(
-
-            f"Cost Universe: "
-
-            f"{len(merged):,}"
-
-        )
+        logger.info(f"Cost Universe: {len(merged):,}")
 
         return merged
+
 
 # ==========================================================
 # SLIPPAGE MODEL
 # ==========================================================
 
+
 class SlippageModel:
-
-    def __init__(
-
-        self,
-
-        config: CostConfig
-
-    ):
+    def __init__(self, config: CostConfig):
 
         self.config = config
 
-    def estimate(
+    def estimate(self, volatility: float) -> float:
 
-        self,
-
-        volatility: float
-
-    ) -> float:
-
-        if pd.isna(
-            volatility
-        ):
-
+        if pd.isna(volatility):
             volatility = 0.25
 
-        return (
-
-            self.config
-            .BASE_SLIPPAGE_BPS
-
-            +
-
-            (
-
-                volatility
-
-                * 100
-
-                *
-
-                self.config
-                .VOLATILITY_MULTIPLIER
-
-            )
-
+        return self.config.BASE_SLIPPAGE_BPS + (
+            volatility * 100 * self.config.VOLATILITY_MULTIPLIER
         )
 
 
@@ -504,149 +265,45 @@ class SlippageModel:
 # MARKET IMPACT MODEL
 # ==========================================================
 
+
 class MarketImpactModel:
-
-    def __init__(
-
-        self,
-
-        config: CostConfig
-
-    ):
+    def __init__(self, config: CostConfig):
 
         self.config = config
 
-    def estimate(
+    def estimate(self, trade_value: float, adv: float) -> float:
 
-        self,
+        if pd.isna(adv) or adv <= 0:
+            return self.config.IMPACT_COEFFICIENT
 
-        trade_value: float,
+        participation_rate = trade_value / adv
 
-        adv: float
+        impact = self.config.IMPACT_COEFFICIENT * np.sqrt(abs(participation_rate))
 
-    ) -> float:
-
-        if (
-
-            pd.isna(adv)
-
-            or
-
-            adv <= 0
-
-        ):
-
-            return (
-
-                self.config
-                .IMPACT_COEFFICIENT
-
-            )
-
-        participation_rate = (
-
-            trade_value
-
-            /
-
-            adv
-
-        )
-
-        impact = (
-
-            self.config
-            .IMPACT_COEFFICIENT
-
-            *
-
-            np.sqrt(
-
-                abs(
-                    participation_rate
-                )
-
-            )
-
-        )
-
-        return float(
-            impact
-        )
+        return float(impact)
 
 
 # ==========================================================
 # LIQUIDITY MODEL
 # ==========================================================
 
+
 class LiquidityModel:
-
-    def __init__(
-
-        self,
-
-        config: CostConfig
-
-    ):
+    def __init__(self, config: CostConfig):
 
         self.config = config
 
-    def classify(
+    def classify(self, trade_value: float, adv: float) -> str:
 
-        self,
-
-        trade_value: float,
-
-        adv: float
-
-    ) -> str:
-
-        if (
-
-            pd.isna(adv)
-
-            or
-
-            adv <= 0
-
-        ):
-
+        if pd.isna(adv) or adv <= 0:
             return "CRITICAL"
 
-        participation_rate = (
+        participation_rate = trade_value / adv
 
-            trade_value
-
-            /
-
-            adv
-
-        )
-
-        if (
-
-            participation_rate
-
-            >=
-
-            self.config
-            .ADV_CRITICAL_THRESHOLD
-
-        ):
-
+        if participation_rate >= self.config.ADV_CRITICAL_THRESHOLD:
             return "CRITICAL"
 
-        if (
-
-            participation_rate
-
-            >=
-
-            self.config
-            .ADV_WARNING_THRESHOLD
-
-        ):
-
+        if participation_rate >= self.config.ADV_WARNING_THRESHOLD:
             return "WARNING"
 
         return "NORMAL"
@@ -656,228 +313,76 @@ class LiquidityModel:
 # CAPACITY MODEL
 # ==========================================================
 
+
 class CapacityModel:
-
-    def __init__(
-
-        self,
-
-        config: CostConfig
-
-    ):
+    def __init__(self, config: CostConfig):
 
         self.config = config
 
-    def score(
+    def score(self, trade_value: float, adv: float) -> float:
 
-        self,
-
-        trade_value: float,
-
-        adv: float
-
-    ) -> float:
-
-        if (
-
-            pd.isna(adv)
-
-            or
-
-            adv <= 0
-
-        ):
-
+        if pd.isna(adv) or adv <= 0:
             return 0.0
 
-        participation_rate = (
+        participation_rate = trade_value / adv
 
-            trade_value
+        score = 100 / (1 + 10 * participation_rate)
 
-            /
-
-            adv
-
-        )
-
-        score = (
-
-            100
-
-            /
-
-            (
-
-                1
-
-                +
-
-                10
-
-                *
-
-                participation_rate
-
-            )
-
-        )
-
-        return round(
-            score,
-            2
-        )
+        return round(score, 2)
 
 
 # ==========================================================
 # COST SCORE ENGINE
 # ==========================================================
 
+
 class CostScoreEngine:
-
-    def __init__(
-
-        self,
-
-        config: CostConfig
-
-    ):
+    def __init__(self, config: CostConfig):
 
         self.config = config
 
     def total_cost(
-
         self,
-
         commission_bps: float,
-
         spread_bps: float,
-
         slippage_bps: float,
-
-        impact_bps: float
-
+        impact_bps: float,
     ) -> float:
 
-        total = (
+        total = commission_bps + spread_bps + slippage_bps + impact_bps
 
-            commission_bps
+        return round(total, 2)
 
-            +
+    def validate(self, total_cost_bps: float) -> bool:
 
-            spread_bps
-
-            +
-
-            slippage_bps
-
-            +
-
-            impact_bps
-
-        )
-
-        return round(
-            total,
-            2
-        )
-
-    def validate(
-
-        self,
-
-        total_cost_bps: float
-
-    ) -> bool:
-
-        return (
-
-            total_cost_bps
-
-            <=
-
-            self.config
-            .MAX_TOTAL_COST_BPS
-
-        )
+        return total_cost_bps <= self.config.MAX_TOTAL_COST_BPS
 
 
 # ==========================================================
 # COST ATTRIBUTION ENGINE
 # ==========================================================
 
+
 class CostAttributionEngine:
-
     @staticmethod
-    def build(
-
-        df: pd.DataFrame
-
-    ) -> pd.DataFrame:
+    def build(df: pd.DataFrame) -> pd.DataFrame:
 
         attribution = df.copy()
 
-        attribution[
-            "Commission_%"
-        ] = (
-
-            attribution[
-                "Commission_Cost_bps"
-            ]
-
-            /
-
-            attribution[
-                "Total_Cost_bps"
-            ]
-
+        attribution["Commission_%"] = (
+            attribution["Commission_Cost_bps"] / attribution["Total_Cost_bps"]
         )
 
-        attribution[
-            "Spread_%"
-        ] = (
-
-            attribution[
-                "Spread_Cost_bps"
-            ]
-
-            /
-
-            attribution[
-                "Total_Cost_bps"
-            ]
-
+        attribution["Spread_%"] = (
+            attribution["Spread_Cost_bps"] / attribution["Total_Cost_bps"]
         )
 
-        attribution[
-            "Slippage_%"
-        ] = (
-
-            attribution[
-                "Slippage_Cost_bps"
-            ]
-
-            /
-
-            attribution[
-                "Total_Cost_bps"
-            ]
-
+        attribution["Slippage_%"] = (
+            attribution["Slippage_Cost_bps"] / attribution["Total_Cost_bps"]
         )
 
-        attribution[
-            "Impact_%"
-        ] = (
-
-            attribution[
-                "Impact_Cost_bps"
-            ]
-
-            /
-
-            attribution[
-                "Total_Cost_bps"
-            ]
-
+        attribution["Impact_%"] = (
+            attribution["Impact_Cost_bps"] / attribution["Total_Cost_bps"]
         )
 
         return attribution
@@ -887,420 +392,126 @@ class CostAttributionEngine:
 # EXECUTION QUALITY ENGINE
 # ==========================================================
 
+
 class ExecutionQualityEngine:
-
     @staticmethod
-    def score(
+    def score(capacity_score: float, total_cost_bps: float) -> float:
 
-        capacity_score: float,
+        quality = capacity_score - (total_cost_bps * 0.50)
 
-        total_cost_bps: float
-
-    ) -> float:
-
-        quality = (
-
-            capacity_score
-
-            -
-
-            (
-
-                total_cost_bps
-
-                * 0.50
-
-            )
-
-        )
-
-        return round(
-
-            max(
-                quality,
-                0
-            ),
-
-            2
-
-        )
+        return round(max(quality, 0), 2)
 
 
 # ==========================================================
 # COST REPORTING UTILITIES
 # ==========================================================
 
+
 class CostReporting:
-
     @staticmethod
-    def summary(
-
-        cost_df: pd.DataFrame
-
-    ) -> dict:
+    def summary(cost_df: pd.DataFrame) -> dict:
 
         return {
-
-            "Trades":
-
-                len(cost_df),
-
-            "Average_Cost_bps":
-
-                round(
-
-                    cost_df[
-                        "Total_Cost_bps"
-                    ].mean(),
-
-                    2
-
-                ),
-
-            "Max_Cost_bps":
-
-                round(
-
-                    cost_df[
-                        "Total_Cost_bps"
-                    ].max(),
-
-                    2
-
-                ),
-
-            "Average_Capacity":
-
-                round(
-
-                    cost_df[
-                        "Capacity_Score"
-                    ].mean(),
-
-                    2
-
-                )
-
+            "Trades": len(cost_df),
+            "Average_Cost_bps": round(cost_df["Total_Cost_bps"].mean(), 2),
+            "Max_Cost_bps": round(cost_df["Total_Cost_bps"].max(), 2),
+            "Average_Capacity": round(cost_df["Capacity_Score"].mean(), 2),
         }
-    
+
+
 # ==========================================================
 # TRANSACTION COST ENGINE
 # ==========================================================
 
+
 class TransactionCostEngine:
+    def __init__(self, config: CostConfig | None = None):
 
-    def __init__(
+        self.config = config or CostConfig()
 
-        self,
+        self.commission_model = CommissionModel(self.config)
 
-        config: CostConfig | None = None
+        self.spread_model = SpreadModel(self.config)
 
-    ):
+        self.slippage_model = SlippageModel(self.config)
 
-        self.config = (
+        self.impact_model = MarketImpactModel(self.config)
 
-            config
+        self.capacity_model = CapacityModel(self.config)
 
-            or
+        self.liquidity_model = LiquidityModel(self.config)
 
-            CostConfig()
-
-        )
-
-        self.commission_model = (
-
-            CommissionModel(
-                self.config
-            )
-
-        )
-
-        self.spread_model = (
-
-            SpreadModel(
-                self.config
-            )
-
-        )
-
-        self.slippage_model = (
-
-            SlippageModel(
-                self.config
-            )
-
-        )
-
-        self.impact_model = (
-
-            MarketImpactModel(
-                self.config
-            )
-
-        )
-
-        self.capacity_model = (
-
-            CapacityModel(
-                self.config
-            )
-
-        )
-
-        self.liquidity_model = (
-
-            LiquidityModel(
-                self.config
-            )
-
-        )
-
-        self.cost_score_engine = (
-
-            CostScoreEngine(
-                self.config
-            )
-
-        )
+        self.cost_score_engine = CostScoreEngine(self.config)
 
     # ======================================================
     # SINGLE TRADE EVALUATION
     # ======================================================
 
-    def evaluate_trade(
+    def evaluate_trade(self, trade_row: pd.Series) -> dict:
 
-        self,
+        symbol = trade_row.get("Symbol")
 
-        trade_row: pd.Series
+        trade_value = abs(trade_row.get("Trade_Value", 0))
 
-    ) -> dict:
+        adv = trade_row.get("ADV")
 
-        symbol = trade_row.get(
-            "Symbol"
+        market_cap = trade_row.get("Market_Cap")
+
+        volatility = trade_row.get("Volatility_252D", 0.25)
+
+        commission_bps = self.commission_model.estimate(trade_value)
+
+        spread_bps = self.spread_model.estimate(market_cap)
+
+        slippage_bps = self.slippage_model.estimate(volatility)
+
+        impact_bps = self.impact_model.estimate(trade_value, adv)
+
+        total_cost_bps = self.cost_score_engine.total_cost(
+            commission_bps, spread_bps, slippage_bps, impact_bps
         )
 
-        trade_value = abs(
+        capacity_score = self.capacity_model.score(trade_value, adv)
 
-            trade_row.get(
+        liquidity_flag = self.liquidity_model.classify(trade_value, adv)
 
-                "Trade_Value",
-
-                0
-
-            )
-
-        )
-
-        adv = trade_row.get(
-            "ADV"
-        )
-
-        market_cap = trade_row.get(
-            "Market_Cap"
-        )
-
-        volatility = trade_row.get(
-            "Volatility_252D",
-            0.25
-        )
-
-        commission_bps = (
-
-            self.commission_model
-            .estimate(
-                trade_value
-            )
-
-        )
-
-        spread_bps = (
-
-            self.spread_model
-            .estimate(
-                market_cap
-            )
-
-        )
-
-        slippage_bps = (
-
-            self.slippage_model
-            .estimate(
-                volatility
-            )
-
-        )
-
-        impact_bps = (
-
-            self.impact_model
-            .estimate(
-
-                trade_value,
-
-                adv
-
-            )
-
-        )
-
-        total_cost_bps = (
-
-            self.cost_score_engine
-            .total_cost(
-
-                commission_bps,
-
-                spread_bps,
-
-                slippage_bps,
-
-                impact_bps
-
-            )
-
-        )
-
-        capacity_score = (
-
-            self.capacity_model
-            .score(
-
-                trade_value,
-
-                adv
-
-            )
-
-        )
-
-        liquidity_flag = (
-
-            self.liquidity_model
-            .classify(
-
-                trade_value,
-
-                adv
-
-            )
-
-        )
-
-        execution_quality = (
-
-            ExecutionQualityEngine
-            .score(
-
-                capacity_score,
-
-                total_cost_bps
-
-            )
-
-        )
+        execution_quality = ExecutionQualityEngine.score(capacity_score, total_cost_bps)
 
         return {
-
-            "Symbol":
-                symbol,
-
-            "Trade_Value":
-                trade_value,
-
-            "ADV":
-                adv,
-
-            "Market_Cap":
-                market_cap,
-
-            "Volatility_252D":
-                volatility,
-
-            "Sector":
-                trade_row.get(
-                    "Sector"
-                ),
-
-            "Industry":
-                trade_row.get(
-                    "Industry"
-                ),
-
-            "Market_Cap_Category":
-                trade_row.get(
-                    "Market_Cap_Category"
-                ),
-
-            "Commission_Cost_bps":
-                commission_bps,
-
-            "Spread_Cost_bps":
-                spread_bps,
-
-            "Slippage_Cost_bps":
-                slippage_bps,
-
-            "Impact_Cost_bps":
-                impact_bps,
-
-            "Total_Cost_bps":
-                total_cost_bps,
-
-            "Capacity_Score":
-                capacity_score,
-
-            "Liquidity_Flag":
-                liquidity_flag,
-
-            "Execution_Quality":
-                execution_quality
-
+            "Symbol": symbol,
+            "Trade_Value": trade_value,
+            "ADV": adv,
+            "Market_Cap": market_cap,
+            "Volatility_252D": volatility,
+            "Sector": trade_row.get("Sector"),
+            "Industry": trade_row.get("Industry"),
+            "Market_Cap_Category": trade_row.get("Market_Cap_Category"),
+            "Commission_Cost_bps": commission_bps,
+            "Spread_Cost_bps": spread_bps,
+            "Slippage_Cost_bps": slippage_bps,
+            "Impact_Cost_bps": impact_bps,
+            "Total_Cost_bps": total_cost_bps,
+            "Capacity_Score": capacity_score,
+            "Liquidity_Flag": liquidity_flag,
+            "Execution_Quality": execution_quality,
         }
-    
+
     # ======================================================
     # BATCH EVALUATION
     # ======================================================
 
-    def evaluate(
+    def evaluate(self, trades: pd.DataFrame) -> pd.DataFrame:
 
-        self,
-
-        trades: pd.DataFrame
-
-    ) -> pd.DataFrame:
-
-        TradeValidator.validate(
-            trades
-        )
+        TradeValidator.validate(trades)
 
         results = []
 
-        for _, row in (
+        for _, row in trades.iterrows():
+            results.append(self.evaluate_trade(row))
 
-            trades.iterrows()
+        cost_df = pd.DataFrame(results)
 
-        ):
-
-            results.append(
-
-                self.evaluate_trade(
-                    row
-                )
-
-            )
-
-        cost_df = pd.DataFrame(
-            results
-        )
-
-        logger.info(
-
-            f"Cost Evaluation Complete: "
-
-            f"{len(cost_df):,}"
-
-        )
+        logger.info(f"Cost Evaluation Complete: {len(cost_df):,}")
 
         return cost_df
 
@@ -1308,31 +519,9 @@ class TransactionCostEngine:
     # TRADE ENRICHMENT
     # ======================================================
 
-    def enrich_trades(
+    def enrich_trades(self, trades: pd.DataFrame, costs: pd.DataFrame) -> pd.DataFrame:
 
-        self,
-
-        trades: pd.DataFrame,
-
-        costs: pd.DataFrame
-
-    ) -> pd.DataFrame:
-
-        enriched = (
-
-            trades
-
-            .merge(
-
-                costs,
-
-                on="Symbol",
-
-                how="left"
-
-            )
-
-        )
+        enriched = trades.merge(costs, on="Symbol", how="left")
 
         return enriched
 
@@ -1341,73 +530,20 @@ class TransactionCostEngine:
 # PORTFOLIO COST AGGREGATOR
 # ==========================================================
 
+
 class PortfolioCostAggregator:
-
     @staticmethod
-    def aggregate(
-
-        cost_df: pd.DataFrame
-
-    ) -> dict:
+    def aggregate(cost_df: pd.DataFrame) -> dict:
 
         if len(cost_df) == 0:
-
             return {}
 
         return {
-
-            "Trades":
-
-                len(cost_df),
-
-            "Average_Cost_bps":
-
-                round(
-
-                    cost_df[
-                        "Total_Cost_bps"
-                    ].mean(),
-
-                    2
-
-                ),
-
-            "Median_Cost_bps":
-
-                round(
-
-                    cost_df[
-                        "Total_Cost_bps"
-                    ].median(),
-
-                    2
-
-                ),
-
-            "Max_Cost_bps":
-
-                round(
-
-                    cost_df[
-                        "Total_Cost_bps"
-                    ].max(),
-
-                    2
-
-                ),
-
-            "Average_Capacity":
-
-                round(
-
-                    cost_df[
-                        "Capacity_Score"
-                    ].mean(),
-
-                    2
-
-                )
-
+            "Trades": len(cost_df),
+            "Average_Cost_bps": round(cost_df["Total_Cost_bps"].mean(), 2),
+            "Median_Cost_bps": round(cost_df["Total_Cost_bps"].median(), 2),
+            "Max_Cost_bps": round(cost_df["Total_Cost_bps"].max(), 2),
+            "Average_Capacity": round(cost_df["Capacity_Score"].mean(), 2),
         }
 
 
@@ -1415,327 +551,127 @@ class PortfolioCostAggregator:
 # COST VALIDATION
 # ==========================================================
 
+
 class CostValidator:
-
     @staticmethod
-    def validate(
+    def validate(cost_df: pd.DataFrame):
 
-        cost_df: pd.DataFrame
+        required_columns = ["Symbol", "Total_Cost_bps", "Capacity_Score"]
 
-    ):
-
-        required_columns = [
-
-            "Symbol",
-
-            "Total_Cost_bps",
-
-            "Capacity_Score"
-
-        ]
-
-        missing = [
-
-            col
-
-            for col
-
-            in required_columns
-
-            if col
-
-            not in cost_df.columns
-
-        ]
+        missing = [col for col in required_columns if col not in cost_df.columns]
 
         if missing:
+            raise ValueError(f"Missing Columns: {missing}")
 
-            raise ValueError(
-
-                f"Missing Columns: "
-
-                f"{missing}"
-
-            )
-
-        logger.info(
-            "Cost Validation Passed"
-        )
+        logger.info("Cost Validation Passed")
 
 
 # ==========================================================
 # COST DATA ENRICHMENT
 # ==========================================================
 
+
 class CostUniverseBuilder:
+    def __init__(self, security_master_path, volatility_path):
 
-    def __init__(
+        self.security_master_loader = SecurityMasterLoader(security_master_path)
 
-        self,
+        self.volatility_loader = VolatilityLoader(volatility_path)
 
-        security_master_path,
+    def build(self, trades: pd.DataFrame) -> pd.DataFrame:
 
-        volatility_path
+        security_master = self.security_master_loader.load()
 
-    ):
+        volatility = self.volatility_loader.load()
 
-        self.security_master_loader = (
-
-            SecurityMasterLoader(
-                security_master_path
-            )
-
-        )
-
-        self.volatility_loader = (
-
-            VolatilityLoader(
-                volatility_path
-            )
-
-        )
-
-    def build(
-
-        self,
-
-        trades: pd.DataFrame
-
-    ) -> pd.DataFrame:
-
-        security_master = (
-
-            self.security_master_loader
-            .load()
-
-        )
-
-        volatility = (
-
-            self.volatility_loader
-            .load()
-
-        )
-
-        return (
-
-            CostDataPreparation
-            .prepare(
-
-                trades,
-
-                security_master,
-
-                volatility
-
-            )
-
-        )
+        return CostDataPreparation.prepare(trades, security_master, volatility)
 
 
 # ==========================================================
 # COST ANALYTICS
 # ==========================================================
 
+
 class CostAnalytics:
-
     @staticmethod
-    def build(
-
-        enriched_cost_df: pd.DataFrame
-
-    ) -> pd.DataFrame:
+    def build(enriched_cost_df: pd.DataFrame) -> pd.DataFrame:
 
         analytics = (
-
-            enriched_cost_df
-
-            .groupby(
-                "Liquidity_Flag"
-            )
-
+            enriched_cost_df.groupby("Liquidity_Flag")
             .agg(
-
-                Trades=(
-
-                    "Symbol",
-
-                    "count"
-
-                ),
-
-                Average_Cost=(
-
-                    "Total_Cost_bps",
-
-                    "mean"
-
-                ),
-
-                Average_Capacity=(
-
-                    "Capacity_Score",
-
-                    "mean"
-
-                )
-
+                Trades=("Symbol", "count"),
+                Average_Cost=("Total_Cost_bps", "mean"),
+                Average_Capacity=("Capacity_Score", "mean"),
             )
-
             .reset_index()
-
         )
 
         return analytics
-    
+
+
 # ==========================================================
 # AUDIT LOGGER
 # ==========================================================
 
+
 class CostAuditLogger:
+    def __init__(self, output_dir="data/execution"):
 
-    def __init__(
+        self.output_dir = Path(output_dir)
 
-        self,
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        output_dir="data/execution"
+    def save(self, audit_record):
 
-    ):
+        audit_file = self.output_dir / "transaction_cost_audit.csv"
 
-        self.output_dir = Path(
-            output_dir
-        )
-
-        self.output_dir.mkdir(
-
-            parents=True,
-
-            exist_ok=True
-
-        )
-
-    def save(
-        self,
-        audit_record
-    ):
-
-        audit_file = (
-
-            self.output_dir
-
-            /
-
-            "transaction_cost_audit.csv"
-
-        )
-
-        audit_df = pd.DataFrame(
-            [audit_record]
-        )
+        audit_df = pd.DataFrame([audit_record])
 
         if audit_file.exists():
+            existing = pd.read_csv(audit_file)
 
-            existing = pd.read_csv(
-                audit_file
-            )
+            audit_df = pd.concat([existing, audit_df], ignore_index=True)
 
-            audit_df = pd.concat(
+        audit_df.to_csv(audit_file, index=False)
 
-                [
-
-                    existing,
-
-                    audit_df
-
-                ],
-
-                ignore_index=True
-
-            )
-
-        audit_df.to_csv(
-
-            audit_file,
-
-            index=False
-
-        )
-
-        logger.info(
-            "Audit Log Saved"
-        )
+        logger.info("Audit Log Saved")
 
 
 # ==========================================================
 # MLFLOW INTEGRATION
 # ==========================================================
 
-class CostMLflowTracker:
 
+class CostMLflowTracker:
     @staticmethod
-    def log_metrics(
-        summary
-    ):
+    def log_metrics(summary):
 
         try:
-
             import mlflow
 
-            for key, value in (
-
-                summary.items()
-
-            ):
-
-                if isinstance(
-
-                    value,
-
-                    (
-                        int,
-                        float
-                    )
-
-                ):
-
-                    mlflow.log_metric(
-
-                        key,
-
-                        float(value)
-
-                    )
+            for key, value in summary.items():
+                if isinstance(value, (int, float)):
+                    mlflow.log_metric(key, float(value))
 
         except Exception as ex:
-
-            logger.warning(
-
-                f"MLflow Error: "
-
-                f"{ex}"
-
-            )
+            logger.warning(f"MLflow Error: {ex}")
 
 
 # ==========================================================
 # TELEMETRY
 # ==========================================================
 
-class CostTelemetry:
 
+class CostTelemetry:
     @staticmethod
     def track():
 
         try:
-
-            from telemetry.telemetry import (
-                PIPELINE_RUNS
-            )
+            from telemetry.telemetry import PIPELINE_RUNS
 
             PIPELINE_RUNS.add(1)
 
         except Exception:
-
             pass
 
 
@@ -1743,276 +679,92 @@ class CostTelemetry:
 # REPORT EXPORTER
 # ==========================================================
 
+
 class CostReportExporter:
+    def __init__(self, output_dir="data/execution"):
 
-    def __init__(
+        self.output_dir = Path(output_dir)
 
-        self,
+        self.output_dir.mkdir(parents=True, exist_ok=True)
 
-        output_dir="data/execution"
-
-    ):
-
-        self.output_dir = Path(
-            output_dir
-        )
-
-        self.output_dir.mkdir(
-
-            parents=True,
-
-            exist_ok=True
-
-        )
-
-    def export(
-
-        self,
-
-        enriched_cost_df,
-
-        analytics_df
-
-    ):
+    def export(self, enriched_cost_df, analytics_df):
 
         enriched_cost_df.to_csv(
-
-            self.output_dir
-
-            /
-
-            "transaction_cost_report.csv",
-
-            index=False
-
+            self.output_dir / "transaction_cost_report.csv", index=False
         )
 
         analytics_df.to_csv(
-
-            self.output_dir
-
-            /
-
-            "transaction_cost_analytics.csv",
-
-            index=False
-
+            self.output_dir / "transaction_cost_analytics.csv", index=False
         )
 
         enriched_cost_df.to_parquet(
-
-            self.output_dir
-
-            /
-
-            "transaction_cost_report.parquet",
-
-            index=False
-
+            self.output_dir / "transaction_cost_report.parquet", index=False
         )
 
-        logger.info(
-            "Reports Exported"
-        )
+        logger.info("Reports Exported")
 
 
 # ==========================================================
 # TRANSACTION COST PIPELINE
 # ==========================================================
 
+
 class TransactionCostPipeline:
+    def __init__(self, security_master_path, volatility_path):
 
-    def __init__(
+        self.engine = TransactionCostEngine()
 
-        self,
-
-        security_master_path,
-
-        volatility_path
-
-    ):
-
-        self.engine = (
-
-            TransactionCostEngine()
-
+        self.universe_builder = CostUniverseBuilder(
+            security_master_path, volatility_path
         )
 
-        self.universe_builder = (
+        self.audit_logger = CostAuditLogger()
 
-            CostUniverseBuilder(
+        self.exporter = CostReportExporter()
 
-                security_master_path,
+    def run(self, trades):
 
-                volatility_path
+        logger.info("Starting Transaction Cost Pipeline")
 
-            )
+        enriched_trades = self.universe_builder.build(trades)
 
-        )
+        cost_df = self.engine.evaluate(enriched_trades)
 
-        self.audit_logger = (
+        CostValidator.validate(cost_df)
 
-            CostAuditLogger()
+        final_df = self.engine.enrich_trades(enriched_trades, cost_df)
 
-        )
+        analytics_df = CostAnalytics.build(final_df)
 
-        self.exporter = (
+        summary = PortfolioCostAggregator.aggregate(final_df)
 
-            CostReportExporter()
+        audit_record = {"Run_Time": pd.Timestamp.now(), **summary}
 
-        )
+        self.audit_logger.save(audit_record)
 
-    def run(
+        self.exporter.export(final_df, analytics_df)
 
-        self,
-
-        trades
-
-    ):
-
-        logger.info(
-
-            "Starting Transaction Cost Pipeline"
-
-        )
-
-        enriched_trades = (
-
-            self.universe_builder
-            .build(
-                trades
-            )
-
-        )
-
-        cost_df = (
-
-            self.engine
-            .evaluate(
-                enriched_trades
-            )
-
-        )
-
-        CostValidator.validate(
-            cost_df
-        )
-
-        final_df = (
-
-            self.engine
-            .enrich_trades(
-
-                enriched_trades,
-
-                cost_df
-
-            )
-
-        )
-
-        analytics_df = (
-
-            CostAnalytics
-            .build(
-                final_df
-            )
-
-        )
-
-        summary = (
-
-            PortfolioCostAggregator
-            .aggregate(
-                final_df
-            )
-
-        )
-
-        audit_record = {
-
-            "Run_Time":
-
-                pd.Timestamp.now(),
-
-            **summary
-
-        }
-
-        self.audit_logger.save(
-            audit_record
-        )
-
-        self.exporter.export(
-
-            final_df,
-
-            analytics_df
-
-        )
-
-        CostMLflowTracker.log_metrics(
-            summary
-        )
+        CostMLflowTracker.log_metrics(summary)
 
         CostTelemetry.track()
 
-        logger.info(
+        logger.info("Transaction Cost Pipeline Complete")
 
-            "Transaction Cost Pipeline Complete"
-
-        )
-
-        return {
-
-            "costs":
-                final_df,
-
-            "analytics":
-                analytics_df,
-
-            "summary":
-                summary
-
-        }
+        return {"costs": final_df, "analytics": analytics_df, "summary": summary}
 
 
 # ==========================================================
 # MASTER REBALANCE ENGINE INTEGRATION
 # ==========================================================
 
+
 class RebalanceCostIntegration:
-
     @staticmethod
-    def apply(
+    def apply(trades, security_master_path, volatility_path):
 
-        trades,
+        pipeline = TransactionCostPipeline(security_master_path, volatility_path)
 
-        security_master_path,
-
-        volatility_path
-
-    ):
-
-        pipeline = (
-
-            TransactionCostPipeline(
-
-                security_master_path,
-
-                volatility_path
-
-            )
-
-        )
-
-        results = (
-
-            pipeline.run(
-                trades
-            )
-
-        )
+        results = pipeline.run(trades)
 
         return results
 
@@ -2021,51 +773,27 @@ class RebalanceCostIntegration:
 # CLI RUNNER
 # ==========================================================
 
+
 def run_example():
 
-    trade_file = Path(
-
-        "data/live/trade_list.csv"
-
-    )
+    trade_file = Path("data/live/trade_list.csv")
 
     if not trade_file.exists():
-
-        logger.warning(
-
-            "trade_list.csv not found"
-
-        )
+        logger.warning("trade_list.csv not found")
 
         return
 
-    trades = pd.read_csv(
-        trade_file
+    trades = pd.read_csv(trade_file)
+
+    pipeline = TransactionCostPipeline(
+        "data/raw/security_master.csv", "data/risk/stock_volatility.csv"
     )
 
-    pipeline = (
+    results = pipeline.run(trades)
 
-        TransactionCostPipeline(
+    print("\nTransaction Cost Summary")
 
-            "data/raw/security_master.csv",
-
-            "data/risk/stock_volatility.csv"
-
-        )
-
-    )
-
-    results = pipeline.run(
-        trades
-    )
-
-    print(
-        "\nTransaction Cost Summary"
-    )
-
-    print(
-        results["summary"]
-    )
+    print(results["summary"])
 
 
 # ==========================================================
@@ -2073,5 +801,4 @@ def run_example():
 # ==========================================================
 
 if __name__ == "__main__":
-
     run_example()

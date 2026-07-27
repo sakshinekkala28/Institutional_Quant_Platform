@@ -30,13 +30,9 @@ Produces
 from __future__ import annotations
 
 from core.models.portfolio import Portfolio
-
 from core.services.risk_service import RiskService
-
 from optimization.base_optimizer import BaseOptimizer
-
 from optimization.constraint_engine import ConstraintEngine
-
 from optimization.optimization_report import OptimizationReport
 
 
@@ -46,15 +42,10 @@ class OptimizationService:
     """
 
     def __init__(
-
         self,
-
         optimizer: BaseOptimizer,
-
         constraint_engine: ConstraintEngine,
-
         risk_service: RiskService,
-
     ) -> None:
 
         self.optimizer = optimizer
@@ -68,48 +59,26 @@ class OptimizationService:
     # =====================================================
 
     def validate(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> None:
 
-        self.constraint_engine.validate(
-
-            portfolio
-
-        )
+        self.constraint_engine.validate(portfolio)
 
     # =====================================================
     # OPTIMIZE
     # =====================================================
 
     def optimize(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> Portfolio:
 
-        self.validate(
+        self.validate(portfolio)
 
-            portfolio
+        optimized = self.optimizer.optimize(portfolio)
 
-        )
-
-        optimized = self.optimizer.optimize(
-
-            portfolio
-
-        )
-
-        self.constraint_engine.validate(
-
-            optimized
-
-        )
+        self.constraint_engine.validate(optimized)
 
         return optimized
 
@@ -118,27 +87,17 @@ class OptimizationService:
     # =====================================================
 
     def analyze(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> dict:
 
-        optimized = self.optimize(
-
-            portfolio
-
-        )
+        optimized = self.optimize(portfolio)
 
         risk = self.risk_service.summary()
 
         return {
-
             "portfolio": optimized,
-
             "risk": risk,
-
         }
 
     # =====================================================
@@ -146,18 +105,11 @@ class OptimizationService:
     # =====================================================
 
     def report(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> OptimizationReport:
 
-        optimized = self.optimize(
-
-            portfolio
-
-        )
+        optimized = self.optimize(portfolio)
 
         report = OptimizationReport()
 
@@ -165,11 +117,7 @@ class OptimizationService:
 
         report.optimized_portfolio = optimized
 
-        report.risk_summary = (
-
-            self.risk_service.summary()
-
-        )
+        report.risk_summary = self.risk_service.summary()
 
         return report
 
@@ -178,19 +126,11 @@ class OptimizationService:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
-            f"{self.__class__.__name__}("
-
-            f"Optimizer={self.optimizer.__class__.__name__}"
-
-            f")"
-
+            f"{self.__class__.__name__}(Optimizer={self.optimizer.__class__.__name__})"
         )
 
     __str__ = __repr__

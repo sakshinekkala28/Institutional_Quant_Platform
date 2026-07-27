@@ -32,8 +32,7 @@ Inherited From
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 from datetime import datetime
 
 from backtesting.event import Event
@@ -47,11 +46,7 @@ class MarketEvent(Event):
 
     symbol: str = ""
 
-    timestamp: datetime = field(
-
-        default_factory=datetime.utcnow
-
-    )
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
     open: float = 0.0
 
@@ -65,11 +60,7 @@ class MarketEvent(Event):
 
     adjusted_close: float = 0.0
 
-    metadata: dict = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict = field(default_factory=dict)
 
     __hash__ = None
 
@@ -79,9 +70,7 @@ class MarketEvent(Event):
 
     @property
     def event_type(
-
         self,
-
     ) -> str:
 
         return "MARKET"
@@ -91,37 +80,19 @@ class MarketEvent(Event):
     # =====================================================
 
     def __post_init__(
-
         self,
-
     ) -> None:
 
         if not self.symbol:
-
-            raise ValueError(
-
-                "Symbol cannot be empty."
-
-            )
+            raise ValueError("Symbol cannot be empty.")
 
         if self.high < self.low:
-
-            raise ValueError(
-
-                "High cannot be less than Low."
-
-            )
+            raise ValueError("High cannot be less than Low.")
 
         if self.volume < 0:
-
-            raise ValueError(
-
-                "Volume cannot be negative."
-
-            )
+            raise ValueError("Volume cannot be negative.")
 
         if self.adjusted_close == 0.0:
-
             self.adjusted_close = self.close
 
     # =====================================================
@@ -130,21 +101,14 @@ class MarketEvent(Event):
 
     @property
     def ohlc(
-
         self,
-
     ) -> tuple[float, float, float, float]:
 
         return (
-
             self.open,
-
             self.high,
-
             self.low,
-
             self.close,
-
         )
 
     # =====================================================
@@ -153,77 +117,30 @@ class MarketEvent(Event):
 
     @property
     def typical_price(
-
         self,
-
     ) -> float:
 
-        return (
-
-            self.high
-
-            +
-
-            self.low
-
-            +
-
-            self.close
-
-        ) / 3.0
+        return (self.high + self.low + self.close) / 3.0
 
     # =====================================================
     # EXPORT
     # =====================================================
 
     def to_dict(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Event":
-
-                self.event_type,
-
-            "Symbol":
-
-                self.symbol,
-
-            "Timestamp":
-
-                self.timestamp.isoformat(),
-
-            "Open":
-
-                self.open,
-
-            "High":
-
-                self.high,
-
-            "Low":
-
-                self.low,
-
-            "Close":
-
-                self.close,
-
-            "AdjustedClose":
-
-                self.adjusted_close,
-
-            "Volume":
-
-                self.volume,
-
-            "Metadata":
-
-                self.metadata,
-
+            "Event": self.event_type,
+            "Symbol": self.symbol,
+            "Timestamp": self.timestamp.isoformat(),
+            "Open": self.open,
+            "High": self.high,
+            "Low": self.low,
+            "Close": self.close,
+            "AdjustedClose": self.adjusted_close,
+            "Volume": self.volume,
+            "Metadata": self.metadata,
         }
 
     # =====================================================
@@ -231,29 +148,14 @@ class MarketEvent(Event):
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Symbol":
-
-                self.symbol,
-
-            "Close":
-
-                self.close,
-
-            "Volume":
-
-                self.volume,
-
-            "Timestamp":
-
-                self.timestamp,
-
+            "Symbol": self.symbol,
+            "Close": self.close,
+            "Volume": self.volume,
+            "Timestamp": self.timestamp,
         }
 
     # =====================================================
@@ -261,21 +163,9 @@ class MarketEvent(Event):
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"{self.symbol}, "
-
-            f"Close={self.close:.2f}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}({self.symbol}, Close={self.close:.2f})"
 
     __str__ = __repr__

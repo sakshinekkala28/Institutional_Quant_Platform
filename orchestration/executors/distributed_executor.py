@@ -25,11 +25,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Iterable
+from concurrent.futures import FIRST_EXCEPTION, ThreadPoolExecutor, wait
 import logging
-from concurrent.futures import FIRST_EXCEPTION
-from concurrent.futures import ThreadPoolExecutor
-from concurrent.futures import wait
-from typing import Iterable
 
 from orchestration.executors.base_executor import BaseExecutor
 from orchestration.models.engine_result import EngineResult
@@ -40,6 +38,7 @@ logger = logging.getLogger(__name__)
 # ==========================================================
 # DISTRIBUTED EXECUTOR
 # ==========================================================
+
 
 class DistributedExecutor(BaseExecutor):
     """
@@ -80,47 +79,30 @@ class DistributedExecutor(BaseExecutor):
         engines = list(engines)
 
         if not engines:
-
             return []
 
         logger.info(
-
             "DistributedExecutor starting %d engines.",
-
             len(engines),
-
         )
 
         results: list[EngineResult] = []
 
         with ThreadPoolExecutor(
-
             max_workers=self.max_workers,
-
             thread_name_prefix="distributed",
-
         ) as executor:
-
             futures = {
-
                 executor.submit(
-
                     self._execute_engine,
-
                     engine,
-
                 ): engine
-
                 for engine in engines
-
             }
 
             completed, pending = wait(
-
                 futures,
-
                 return_when=FIRST_EXCEPTION,
-
             )
 
             # -------------------------------------------------
@@ -128,25 +110,15 @@ class DistributedExecutor(BaseExecutor):
             # -------------------------------------------------
 
             for future in completed:
-
                 try:
-
-                    results.append(
-
-                        future.result()
-
-                    )
+                    results.append(future.result())
 
                 except Exception:
-
                     engine = futures[future]
 
                     logger.exception(
-
                         "Distributed execution failed: %s",
-
                         engine.name,
-
                     )
 
                     raise
@@ -156,14 +128,9 @@ class DistributedExecutor(BaseExecutor):
             # -------------------------------------------------
 
             for future in pending:
-
                 future.cancel()
 
-        logger.info(
-
-            "Distributed execution complete."
-
-        )
+        logger.info("Distributed execution complete.")
 
         return results
 
@@ -218,13 +185,9 @@ class DistributedExecutor(BaseExecutor):
     ) -> dict:
 
         return {
-
             "executor": self.NAME,
-
             "distributed": True,
-
             "max_workers": self.max_workers,
-
         }
 
     # ======================================================
@@ -235,10 +198,4 @@ class DistributedExecutor(BaseExecutor):
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"workers={self.max_workers})"
-
-        )
+        return f"{self.__class__.__name__}(workers={self.max_workers})"

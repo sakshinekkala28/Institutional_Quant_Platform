@@ -33,59 +33,38 @@ DuckDBLoader
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
-
-from dataclasses import dataclass
-from dataclasses import field
-
-from datetime import datetime
-from datetime import UTC
-
-from pathlib import Path
-
-from time import perf_counter
-
-from typing import Any
-from typing import Generic
-from typing import TypeVar
-from typing import final
-
+from abc import ABC, abstractmethod
+from dataclasses import dataclass, field
+from datetime import UTC, datetime
 import hashlib
+from pathlib import Path
+from time import perf_counter
+from typing import Any, Generic, TypeVar, final
 
 import pandas as pd
 
-from core.settings import settings
-
+from core.exceptions import DataLoadError, EmptyDatasetError, MissingColumnError
 from core.logging_manager import LoggingManager
-
-from core.exceptions import DataLoadError
-from core.exceptions import EmptyDatasetError
-from core.exceptions import MissingColumnError
 
 # ==========================================================
 # GENERICS
 # ==========================================================
 
-T = TypeVar(
-    "T"
-)
+T = TypeVar("T")
 
 # ==========================================================
 # LOGGER
 # ==========================================================
 
-logger = LoggingManager.get_logger(
-    __name__
-)
+logger = LoggingManager.get_logger(__name__)
 
 # ==========================================================
 # LOAD METADATA
 # ==========================================================
 
+
 @dataclass(slots=True)
 class LoadMetadata:
-
     source: Path
 
     loader_name: str
@@ -106,11 +85,8 @@ class LoadMetadata:
 
     dtypes: dict[str, str]
 
-    column_names: list[str] = field(
+    column_names: list[str] = field(default_factory=list)
 
-        default_factory=list
-
-    )
 
 # ==========================================================
 # LOAD RESULT
@@ -119,10 +95,10 @@ class LoadMetadata:
 
 @dataclass(slots=True)
 class LoadResult(Generic[T]):
-
     data: T
 
     metadata: LoadMetadata
+
 
 # ==========================================================
 # BASE LOADER
@@ -130,7 +106,6 @@ class LoadResult(Generic[T]):
 
 
 class BaseLoader(ABC):
-
     """
     Abstract Institutional Loader
 
@@ -147,27 +122,12 @@ class BaseLoader(ABC):
         DuckDBLoader
     """
 
-    def __init__(
+    def __init__(self, source: str | Path) -> None:
 
-        self,
-
-        source: str | Path
-
-    ) -> None:
-
-        source_path = Path(
-            source
-        )
+        source_path = Path(source)
 
         if not source_path.is_absolute():
-
-            source_path = (
-
-                Path.cwd()
-
-                / source_path
-
-            )
+            source_path = Path.cwd() / source_path
 
         self.source = source_path.resolve()
 
@@ -178,12 +138,7 @@ class BaseLoader(ABC):
     # ======================================================
 
     @final
-    def load(
-
-        self
-
-    ) -> LoadResult[pd.DataFrame]:
-
+    def load(self) -> LoadResult[pd.DataFrame]:
         """
         Standard loading pipeline.
 
@@ -204,323 +159,123 @@ class BaseLoader(ABC):
 
         self._validate_source()
 
-        logger.info(
-
-            "Loading %s",
-
-            self.source
-
-        )
+        logger.info("Loading %s", self.source)
 
         try:
-
             dataframe = self._read()
 
         except Exception as exc:
+            self.on_failure(exc)
 
-            self.on_failure(
+            logger.exception("Failed loading %s", self.source)
 
-                exc
+            raise DataLoadError(f"Unable to load {self.source}: {exc}") from exc
 
-            )
+        self._validate_dataframe(dataframe)
 
-            logger.exception(
+        metadata = self._build_metadata(dataframe)
 
+        result = LoadResult(data=dataframe, metadata=metadata)
 
-                "Failed loading %s",
+        self.after_load(dataframe)
 
-                self.source
+        result = self.cache(result)
 
-            )
+        self.audit(result)
 
-            raise DataLoadError(
+        logger.info("Loaded %s (%d rows)", self.source.name, len(dataframe))
 
-                f"Unable to load "
-
-                f"{self.source}: "
-
-                f"{exc}"
-
-            ) from exc
-
-        self._validate_dataframe(
-            dataframe
-        )
-
-        metadata = self._build_metadata(
-            dataframe
-        )
-
-        result = LoadResult(
-
-            data=dataframe,
-
-            metadata=metadata
-
-        )
-
-        self.after_load(
-            dataframe
-        )
-
-        result = self.cache(
-            result
-        )
-
-        self.audit(
-            result
-        )
-
-        logger.info(
-
-            "Loaded %s (%d rows)",
-
-            self.source.name,
-
-            len(dataframe)
-
-        )
-
-        self.on_success(
-
-            result
-
-        )
+        self.on_success(result)
 
         return result
-    
+
     # ======================================================
     # SOURCE VALIDATION
     # ======================================================
 
-    def _validate_source(
-
-        self
-
-    ) -> None:
-
+    def _validate_source(self) -> None:
         """
         Validate source file before loading.
         """
 
         if not self.source.exists():
-
-            raise DataLoadError(
-
-                f"File does not exist: {self.source}"
-
-            )
+            raise DataLoadError(f"File does not exist: {self.source}")
 
         if not self.source.is_file():
-
-            raise DataLoadError(
-
-                f"Not a valid file: {self.source}"
-
-            )
+            raise DataLoadError(f"Not a valid file: {self.source}")
 
         if self.source.stat().st_size == 0:
-
-            raise EmptyDatasetError(
-
-                f"File is empty: {self.source}"
-
-            )
+            raise EmptyDatasetError(f"File is empty: {self.source}")
 
     # ======================================================
     # DATAFRAME VALIDATION
     # ======================================================
 
-    def _validate_dataframe(
-
-        self,
-
-        dataframe: pd.DataFrame
-
-    ) -> None:
-
+    def _validate_dataframe(self, dataframe: pd.DataFrame) -> None:
         """
         Validate dataframe after loading.
         """
 
         if dataframe is None:
-
-            raise DataLoadError(
-
-                "Loader returned None."
-
-            )
+            raise DataLoadError("Loader returned None.")
 
         if dataframe.empty:
-
-            raise EmptyDatasetError(
-
-                f"{self.source.name} contains no records."
-
-            )
+            raise EmptyDatasetError(f"{self.source.name} contains no records.")
 
         if dataframe.columns.has_duplicates:
-
-            raise DataLoadError(
-
-                "Duplicate column names detected."
-
-            )
+            raise DataLoadError("Duplicate column names detected.")
 
     # ======================================================
     # REQUIRED COLUMN VALIDATION
     # ======================================================
 
-    def validate_columns(
-
-        dataframe: pd.DataFrame,
-
-        required_columns: list[str]
-
-    ) -> None:
-
+    def validate_columns(dataframe: pd.DataFrame, required_columns: list[str]) -> None:
         """
         Validate required columns.
         """
 
         missing = [
-
-            column
-
-            for column in required_columns
-
-            if column not in dataframe.columns
-
+            column for column in required_columns if column not in dataframe.columns
         ]
 
         if missing:
-
-            raise MissingColumnError(
-
-                f"Missing columns: {missing}"
-
-            )
+            raise MissingColumnError(f"Missing columns: {missing}")
 
     # ======================================================
     # CHECKSUM
     # ======================================================
 
-    def _generate_checksum(
-
-        self
-
-    ) -> str:
-
+    def _generate_checksum(self) -> str:
         """
         SHA256 checksum.
         """
 
-        with self.source.open(
-
-            "rb"
-
-        ) as stream:
-
-            return hashlib.file_digest(
-
-                stream,
-
-                "sha256"
-
-            ).hexdigest()
+        with self.source.open("rb") as stream:
+            return hashlib.file_digest(stream, "sha256").hexdigest()
 
     # ======================================================
     # METADATA
     # ======================================================
 
-    def _build_metadata(
-
-        self,
-
-        dataframe: pd.DataFrame
-
-    ) -> LoadMetadata:
-
+    def _build_metadata(self, dataframe: pd.DataFrame) -> LoadMetadata:
         """
         Build institutional metadata.
         """
 
-        elapsed = (
-
-            perf_counter()
-
-            - self.start_time
-
-        ) * 1000
+        elapsed = (perf_counter() - self.start_time) * 1000
 
         return LoadMetadata(
-
             source=self.source,
-
             loader_name=self.__class__.__name__,
-
-            loaded_at=datetime.now(
-
-                UTC
-
-            ),
-
-            elapsed_ms=round(
-
-                elapsed,
-
-                2
-
-            ),
-
+            loaded_at=datetime.now(UTC),
+            elapsed_ms=round(elapsed, 2),
             file_size_bytes=self.source.stat().st_size,
-
             checksum=self._generate_checksum(),
-
-            rows=len(
-
-                dataframe
-
-            ),
-
-            columns=len(
-
-                dataframe.columns
-
-            ),
-
-            column_names=list(
-
-                dataframe.columns
-
-            ),
-
-            memory_usage_bytes=int(
-
-                dataframe
-
-                .memory_usage(
-
-                    deep=True
-
-                )
-
-                .sum()
-
-            ),
-
-            dtypes={
-
-                column:
-
-                str(dtype)
-
-                for column, dtype
-
-                in dataframe.dtypes.items()
-
-            }
-
+            rows=len(dataframe),
+            columns=len(dataframe.columns),
+            column_names=list(dataframe.columns),
+            memory_usage_bytes=int(dataframe.memory_usage(deep=True).sum()),
+            dtypes={column: str(dtype) for column, dtype in dataframe.dtypes.items()},
         )
 
     # ======================================================
@@ -528,13 +283,7 @@ class BaseLoader(ABC):
     # ======================================================
 
     @abstractmethod
-
-    def _read(
-
-        self
-
-    ) -> pd.DataFrame:
-
+    def _read(self) -> pd.DataFrame:
         """
         Concrete loaders implement this.
 
@@ -550,19 +299,12 @@ class BaseLoader(ABC):
         """
 
         raise NotImplementedError
-    
+
     # ======================================================
     # DATA PROFILE
     # ======================================================
 
-    def profile(
-
-        self,
-
-        dataframe: pd.DataFrame
-
-    ) -> dict[str, Any]:
-
+    def profile(self, dataframe: pd.DataFrame) -> dict[str, Any]:
         """
         Build a lightweight statistical profile
         of the loaded dataset.
@@ -578,192 +320,61 @@ class BaseLoader(ABC):
         • Audit
         """
 
-        memory_mb = (
+        memory_mb = dataframe.memory_usage(deep=True).sum() / 1024 / 1024
 
-            dataframe
+        duplicate_rows = int(dataframe.duplicated().sum())
 
-            .memory_usage(
+        total_nulls = int(dataframe.isna().sum().sum())
 
-                deep=True
-
-            )
-
-            .sum()
-
-            / 1024
-
-            / 1024
-
-        )
-
-        duplicate_rows = int(
-
-            dataframe
-
-            .duplicated()
-
-            .sum()
-
-        )
-
-        total_nulls = int(
-
-            dataframe
-
-            .isna()
-
-            .sum()
-
-            .sum()
-
-        )
-
-        total_cells = (
-
-            dataframe.shape[0]
-
-            * dataframe.shape[1]
-
-        )
+        total_cells = dataframe.shape[0] * dataframe.shape[1]
 
         null_percentage = (
-
-            0.0
-
-            if total_cells == 0
-
-            else
-
-            round(
-
-                total_nulls
-
-                / total_cells
-
-                * 100,
-
-                2
-
-            )
-
+            0.0 if total_cells == 0 else round(total_nulls / total_cells * 100, 2)
         )
 
         return {
-
-            "rows":
-
-                len(
-
-                    dataframe
-
-                ),
-
-            "columns":
-
-                len(
-
-                    dataframe.columns
-
-                ),
-
-            "memory_mb":
-
-                round(
-
-                    memory_mb,
-
-                    3
-
-                ),
-
-            "duplicate_rows":
-
-                duplicate_rows,
-
-            "total_nulls":
-
-                total_nulls,
-
-            "null_percentage":
-
-                null_percentage,
-
-            "dtypes":
-
-                {
-
-                    column:
-
-                    str(dtype)
-
-                    for column, dtype
-
-                    in dataframe.dtypes.items()
-
-                }
-
+            "rows": len(dataframe),
+            "columns": len(dataframe.columns),
+            "memory_mb": round(memory_mb, 3),
+            "duplicate_rows": duplicate_rows,
+            "total_nulls": total_nulls,
+            "null_percentage": null_percentage,
+            "dtypes": {
+                column: str(dtype) for column, dtype in dataframe.dtypes.items()
+            },
         }
 
     # ======================================================
     # LOG DATASET
     # ======================================================
 
-    def log_statistics(
-
-        self,
-
-        dataframe: pd.DataFrame
-
-    ) -> None:
-
+    def log_statistics(self, dataframe: pd.DataFrame) -> None:
         """
         Log dataset statistics.
         """
 
-        stats = self.profile(
-
-            dataframe
-
-        )
+        stats = self.profile(dataframe)
 
         logger.info(
-
             "Dataset Statistics | "
-
             "Rows=%d | "
-
             "Columns=%d | "
-
             "Memory=%.3f MB | "
-
             "Duplicates=%d | "
-
             "Nulls=%d (%.2f%%)",
-
             stats["rows"],
-
             stats["columns"],
-
             stats["memory_mb"],
-
             stats["duplicate_rows"],
-
             stats["total_nulls"],
-
-            stats["null_percentage"]
-
+            stats["null_percentage"],
         )
 
     # ======================================================
     # CALLBACKS
     # ======================================================
 
-    def before_load(
-
-        self
-
-    ) -> None:
-
+    def before_load(self) -> None:
         """
         Hook executed before loading.
 
@@ -771,40 +382,22 @@ class BaseLoader(ABC):
         if required.
         """
 
-        return None
+        return
 
-    def after_load(
-
-        self,
-
-        dataframe: pd.DataFrame
-
-    ) -> None:
-
+    def after_load(self, dataframe: pd.DataFrame) -> None:
         """
         Hook executed after loading.
 
         Override if required.
         """
 
-        self.log_statistics(
-
-            dataframe
-
-        )
+        self.log_statistics(dataframe)
 
     # ======================================================
     # CACHE HOOK
     # ======================================================
 
-    def cache(
-
-        self,
-
-        result: LoadResult[pd.DataFrame]
-
-    ) -> LoadResult[pd.DataFrame]:
-
+    def cache(self, result: LoadResult[pd.DataFrame]) -> LoadResult[pd.DataFrame]:
         """
         Future cache integration.
 
@@ -829,14 +422,7 @@ class BaseLoader(ABC):
     # AUDIT HOOK
     # ======================================================
 
-    def audit(
-
-        self,
-
-        result: LoadResult[pd.DataFrame]
-
-    ) -> None:
-
+    def audit(self, result: LoadResult[pd.DataFrame]) -> None:
         """
         Future audit integration.
 
@@ -848,39 +434,18 @@ class BaseLoader(ABC):
         """
 
         logger.info(
-
-            "Audit | "
-
-            "Loader=%s | "
-
-            "Source=%s | "
-
-            "Rows=%d | "
-
-            "Elapsed=%.2f ms",
-
+            "Audit | Loader=%s | Source=%s | Rows=%d | Elapsed=%.2f ms",
             result.metadata.loader_name,
-
             result.metadata.source.name,
-
             result.metadata.rows,
-
-            result.metadata.elapsed_ms
-
+            result.metadata.elapsed_ms,
         )
 
     # ======================================================
     # SUCCESS CALLBACK
     # ======================================================
 
-    def on_success(
-
-        self,
-
-        result: LoadResult[pd.DataFrame]
-
-    ) -> None:
-
+    def on_success(self, result: LoadResult[pd.DataFrame]) -> None:
         """
         Called after a successful load.
 
@@ -895,26 +460,13 @@ class BaseLoader(ABC):
         • Future Telemetry
         """
 
-        logger.debug(
-
-            "Load completed successfully: %s",
-
-            result.metadata.source.name
-
-        )
+        logger.debug("Load completed successfully: %s", result.metadata.source.name)
 
     # ======================================================
     # FAILURE CALLBACK
     # ======================================================
 
-    def on_failure(
-
-        self,
-
-        exception: Exception
-
-    ) -> None:
-
+    def on_failure(self, exception: Exception) -> None:
         """
         Called when loading fails.
 
@@ -927,66 +479,39 @@ class BaseLoader(ABC):
         • Telemetry
         """
 
-        logger.error(
-
-            "Loader failed: %s",
-
-            exception
-
-        )
+        logger.error("Loader failed: %s", exception)
 
     # ======================================================
     # FILE INFORMATION
     # ======================================================
 
     @property
-    def exists(
-
-        self
-
-    ) -> bool:
-
+    def exists(self) -> bool:
         """
         Returns whether
         the source exists.
         """
 
         return self.source.exists()
-    
 
     @property
-    def filename(
-
-        self
-
-    ) -> str:
-
+    def filename(self) -> str:
         """
         Source filename.
         """
 
         return self.source.name
-    
+
     @property
-    def file_stem(
-
-        self
-
-    ) -> str:
-
+    def file_stem(self) -> str:
         """
         Filename without extension.
         """
 
         return self.source.stem
-    
+
     @property
-    def extension(
-
-        self
-
-    ) -> str:
-
+    def extension(self) -> str:
         """
         File extension.
         """
@@ -994,18 +519,12 @@ class BaseLoader(ABC):
         return self.source.suffix.lower()
 
     @property
-    def filesize(
-
-        self
-
-    ) -> int:
-
+    def filesize(self) -> int:
         """
         File size in bytes.
         """
 
         if not self.exists:
-
             return 0
 
         return self.source.stat().st_size
@@ -1015,42 +534,18 @@ class BaseLoader(ABC):
     # ======================================================
 
     @property
-    def elapsed_ms(
-
-        self
-
-    ) -> float:
-
+    def elapsed_ms(self) -> float:
         """
         Current elapsed time.
         """
 
-        return round(
-
-            (
-
-                perf_counter()
-
-                - self.start_time
-
-            )
-
-            * 1000,
-
-            2
-
-        )
+        return round((perf_counter() - self.start_time) * 1000, 2)
 
     # ======================================================
     # RESOURCE MANAGEMENT
     # ======================================================
 
-    def close(
-
-        self
-
-    ) -> None:
-
+    def close(self) -> None:
         """
         Resource cleanup hook.
 
@@ -1063,31 +558,17 @@ class BaseLoader(ABC):
         • File Handles
         """
 
-        return None
+        return
 
     # ======================================================
     # CONTEXT MANAGER
     # ======================================================
 
-    def __enter__(
-
-        self
-
-    ) -> "BaseLoader":
+    def __enter__(self) -> BaseLoader:
 
         return self
 
-    def __exit__(
-
-        self,
-
-        exc_type,
-
-        exc_value,
-
-        traceback
-
-    ) -> None:
+    def __exit__(self, exc_type, exc_value, traceback) -> None:
 
         self.close()
 
@@ -1095,22 +576,8 @@ class BaseLoader(ABC):
     # REPRESENTATION
     # ======================================================
 
-    def __repr__(
+    def __repr__(self) -> str:
 
-        self
-
-    ) -> str:
-
-        return (
-
-            f"{self.__class__.__name__}"
-
-            "("
-
-            f"source='{self.source}'"
-
-            ")"
-
-        )
+        return f"{self.__class__.__name__}(source='{self.source}')"
 
     __str__ = __repr__

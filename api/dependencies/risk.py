@@ -42,26 +42,24 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from risk.risk_engine import (
-    RiskEngine,
-    CovarianceEngine,
-    VolatilityEngine,
-    BetaEngine,
-    TrackingErrorEngine,
-    RiskContributionEngine,
-    FactorExposureEngine,
-    TailRiskEngine,
-)
-
 from risk.governance_engine import (
+    AuditEngine,
+    ConcentrationEngine,
     GovernanceEngine,
     PositionLimitEngine,
     SectorLimitEngine,
-    ConcentrationEngine,
     TurnoverGovernance,
-    AuditEngine,
 )
-
+from risk.risk_engine import (
+    BetaEngine,
+    CovarianceEngine,
+    FactorExposureEngine,
+    RiskContributionEngine,
+    RiskEngine,
+    TailRiskEngine,
+    TrackingErrorEngine,
+    VolatilityEngine,
+)
 
 # ==========================================================
 # RISK ENGINE
@@ -256,13 +254,9 @@ def risk_health() -> dict:
     """
 
     return {
-
         "engine": "RiskEngine",
-
         "status": "healthy",
-
         "singleton": True,
-
     }
 
 
@@ -277,41 +271,23 @@ def risk_summary() -> dict:
     """
 
     return {
-
         "services": [
-
             "RiskEngine",
-
             "CovarianceEngine",
-
             "VolatilityEngine",
-
             "BetaEngine",
-
             "TrackingErrorEngine",
-
             "RiskContributionEngine",
-
             "FactorExposureEngine",
-
             "TailRiskEngine",
-
             "GovernanceEngine",
-
             "PositionLimitEngine",
-
             "SectorLimitEngine",
-
             "ConcentrationEngine",
-
             "TurnoverGovernance",
-
             "AuditEngine",
-
         ],
-
         "count": 14,
-
     }
 
 
@@ -321,37 +297,20 @@ def risk_summary() -> dict:
 
 
 __all__ = [
-
-    "get_risk_engine",
-
-    "get_covariance_engine",
-
-    "get_volatility_engine",
-
-    "get_beta_engine",
-
-    "get_tracking_error_engine",
-
-    "get_risk_contribution_engine",
-
-    "get_factor_exposure_engine",
-
-    "get_tail_risk_engine",
-
-    "get_governance_engine",
-
-    "get_position_limit_engine",
-
-    "get_sector_limit_engine",
-
-    "get_concentration_engine",
-
-    "get_turnover_governance",
-
     "get_audit_engine",
-
+    "get_beta_engine",
+    "get_concentration_engine",
+    "get_covariance_engine",
+    "get_factor_exposure_engine",
+    "get_governance_engine",
+    "get_position_limit_engine",
+    "get_risk_contribution_engine",
+    "get_risk_engine",
+    "get_sector_limit_engine",
+    "get_tail_risk_engine",
+    "get_tracking_error_engine",
+    "get_turnover_governance",
+    "get_volatility_engine",
     "risk_health",
-
     "risk_summary",
-
 ]

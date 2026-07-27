@@ -34,9 +34,7 @@ from __future__ import annotations
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
-
 import statistics
-
 
 # ==========================================================
 # METRIC
@@ -91,16 +89,10 @@ class Telemetry:
     """
 
     def __init__(
-
         self,
-
     ) -> None:
 
-        self._metrics = defaultdict(
-
-            list
-
-        )
+        self._metrics = defaultdict(list)
 
         self._events = []
 
@@ -109,39 +101,19 @@ class Telemetry:
     # =====================================================
 
     def record_metric(
-
         self,
-
         name: str,
-
         value: float,
-
         **tags,
-
     ) -> None:
 
-        self._metrics[
-
-            name
-
-        ].append(
-
+        self._metrics[name].append(
             Metric(
-
                 name=name,
-
-                value=float(
-
-                    value
-
-                ),
-
+                value=float(value),
                 timestamp=datetime.utcnow(),
-
                 tags=tags,
-
             )
-
         )
 
     # =====================================================
@@ -149,35 +121,21 @@ class Telemetry:
     # =====================================================
 
     def record_event(
-
         self,
-
         name: str,
-
         message: str,
-
         severity: str = "INFO",
-
         **metadata,
-
     ) -> None:
 
         self._events.append(
-
             Event(
-
                 name=name,
-
                 message=message,
-
                 severity=severity.upper(),
-
                 timestamp=datetime.utcnow(),
-
                 metadata=metadata,
-
             )
-
         )
 
     # =====================================================
@@ -185,23 +143,15 @@ class Telemetry:
     # =====================================================
 
     def metric(
-
         self,
-
         name: str,
-
     ) -> list[Metric]:
 
         return list(
-
             self._metrics.get(
-
                 name,
-
                 [],
-
             )
-
         )
 
     # =====================================================
@@ -209,21 +159,13 @@ class Telemetry:
     # =====================================================
 
     def latest_metric(
-
         self,
-
         name: str,
-
     ) -> float | None:
 
-        metrics = self.metric(
-
-            name
-
-        )
+        metrics = self.metric(name)
 
         if not metrics:
-
             return None
 
         return metrics[-1].value
@@ -233,81 +175,22 @@ class Telemetry:
     # =====================================================
 
     def statistics(
-
         self,
-
         name: str,
-
     ) -> dict:
 
-        metrics = [
-
-            m.value
-
-            for m
-
-            in self.metric(
-
-                name
-
-            )
-
-        ]
+        metrics = [m.value for m in self.metric(name)]
 
         if not metrics:
-
             return {}
 
         return {
-
-            "Count":
-
-                len(
-
-                    metrics
-
-                ),
-
-            "Minimum":
-
-                min(
-
-                    metrics
-
-                ),
-
-            "Maximum":
-
-                max(
-
-                    metrics
-
-                ),
-
-            "Average":
-
-                statistics.mean(
-
-                    metrics
-
-                ),
-
-            "Median":
-
-                statistics.median(
-
-                    metrics
-
-                ),
-
-            "StdDev":
-
-                statistics.pstdev(
-
-                    metrics
-
-                ),
-
+            "Count": len(metrics),
+            "Minimum": min(metrics),
+            "Maximum": max(metrics),
+            "Average": statistics.mean(metrics),
+            "Median": statistics.median(metrics),
+            "StdDev": statistics.pstdev(metrics),
         }
 
     # =====================================================
@@ -316,16 +199,10 @@ class Telemetry:
 
     @property
     def events(
-
         self,
-
     ) -> list[Event]:
 
-        return list(
-
-            self._events
-
-        )
+        return list(self._events)
 
     # =====================================================
     # METRIC NAMES
@@ -333,25 +210,17 @@ class Telemetry:
 
     @property
     def metric_names(
-
         self,
-
     ) -> list[str]:
 
-        return sorted(
-
-            self._metrics.keys()
-
-        )
+        return sorted(self._metrics.keys())
 
     # =====================================================
     # CLEAR
     # =====================================================
 
     def clear(
-
         self,
-
     ) -> None:
 
         self._metrics.clear()
@@ -363,33 +232,13 @@ class Telemetry:
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Metrics":
-
-                len(
-
-                    self.metric_names
-
-                ),
-
-            "Events":
-
-                len(
-
-                    self._events
-
-                ),
-
-            "MetricNames":
-
-                self.metric_names,
-
+            "Metrics": len(self.metric_names),
+            "Events": len(self._events),
+            "MetricNames": self.metric_names,
         }
 
     # =====================================================
@@ -397,19 +246,13 @@ class Telemetry:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Metrics={len(self.metric_names)}, "
-
             f"Events={len(self._events)})"
-
         )
 
     __str__ = __repr__

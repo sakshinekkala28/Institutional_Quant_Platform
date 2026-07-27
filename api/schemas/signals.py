@@ -30,10 +30,7 @@ from datetime import datetime
 
 from pydantic import Field
 
-from api.schemas.base import APIModel
-from api.schemas.base import BaseResponse
-from api.schemas.base import SuccessResponse
-
+from api.schemas.base import APIModel, BaseResponse, SuccessResponse
 
 # ==========================================================
 # SIGNAL
@@ -58,9 +55,7 @@ class Signal(
     rank: int
 
     generated_at: datetime = Field(
-
         default_factory=datetime.utcnow,
-
     )
 
 
@@ -99,12 +94,8 @@ class SignalDetails(
 
     market_cap: float | None = None
 
-    factors: list[
-        FactorScore
-    ] = Field(
-
+    factors: list[FactorScore] = Field(
         default_factory=list,
-
     )
 
 
@@ -131,9 +122,7 @@ class SignalSummary(
     average_confidence: float
 
     generated_at: datetime = Field(
-
         default_factory=datetime.utcnow,
-
     )
 
 
@@ -257,9 +246,7 @@ class SignalHistoryResponse(
     History response.
     """
 
-    data: list[
-        SignalHistory
-    ]
+    data: list[SignalHistory]
 
 
 class UniverseResponse(
@@ -278,31 +265,17 @@ class UniverseResponse(
 
 
 __all__ = [
-
-    "Signal",
-
     "FactorScore",
-
+    "Signal",
     "SignalDetails",
-
-    "SignalSummary",
-
-    "SignalHistory",
-
     "SignalGenerationRequest",
-
     "SignalGenerationResponse",
-
-    "UniverseSummary",
-
-    "SignalResponse",
-
-    "SignalListResponse",
-
-    "SignalSummaryResponse",
-
+    "SignalHistory",
     "SignalHistoryResponse",
-
+    "SignalListResponse",
+    "SignalResponse",
+    "SignalSummary",
+    "SignalSummaryResponse",
     "UniverseResponse",
-
+    "UniverseSummary",
 ]

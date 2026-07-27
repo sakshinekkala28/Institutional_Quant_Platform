@@ -21,18 +21,12 @@ Responsibilities
 
 from __future__ import annotations
 
+from dataclasses import asdict, dataclass, field
+from datetime import datetime
 import json
 import logging
-
-from dataclasses import asdict
-from dataclasses import dataclass
-from dataclasses import field
-
-from datetime import datetime
 from pathlib import Path
 from typing import Any
-from typing import Dict
-from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +34,7 @@ logger = logging.getLogger(__name__)
 # =========================================================
 # AUDIT EVENT
 # =========================================================
+
 
 @dataclass(slots=True)
 class AuditEvent:
@@ -51,21 +46,18 @@ class AuditEvent:
 
     component: str
 
-    timestamp: datetime = field(
-        default_factory=datetime.utcnow
-    )
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
-    metadata: Dict[
+    metadata: dict[
         str,
         Any,
-    ] = field(
-        default_factory=dict
-    )
+    ] = field(default_factory=dict)
 
 
 # =========================================================
 # AUDIT LOGGER
 # =========================================================
+
 
 class AuditLogger:
     """
@@ -80,16 +72,11 @@ class AuditLogger:
         self.directory = Path(directory)
 
         self.directory.mkdir(
-
             parents=True,
-
             exist_ok=True,
-
         )
 
-        self._events: List[
-            AuditEvent
-        ] = []
+        self._events: list[AuditEvent] = []
 
     # =====================================================
     # RECORD
@@ -106,17 +93,11 @@ class AuditLogger:
         """
 
         self._events.append(
-
             AuditEvent(
-
                 event=event,
-
                 component=component,
-
                 metadata=metadata,
-
             )
-
         )
 
     # =====================================================
@@ -129,11 +110,8 @@ class AuditLogger:
     ) -> None:
 
         self.record(
-
             "ENGINE_STARTED",
-
             engine,
-
         )
 
     # -----------------------------------------------------
@@ -146,15 +124,10 @@ class AuditLogger:
     ) -> None:
 
         self.record(
-
             "ENGINE_FINISHED",
-
             engine,
-
             status=status,
-
             duration=duration,
-
         )
 
     # -----------------------------------------------------
@@ -165,11 +138,8 @@ class AuditLogger:
     ) -> None:
 
         self.record(
-
             "PIPELINE_STARTED",
-
             pipeline,
-
         )
 
     # -----------------------------------------------------
@@ -181,13 +151,9 @@ class AuditLogger:
     ) -> None:
 
         self.record(
-
             "PIPELINE_FINISHED",
-
             pipeline,
-
             status=status,
-
         )
 
     # -----------------------------------------------------
@@ -197,11 +163,8 @@ class AuditLogger:
     ) -> None:
 
         self.record(
-
             "PLATFORM_STARTED",
-
             "platform",
-
         )
 
     # -----------------------------------------------------
@@ -212,13 +175,9 @@ class AuditLogger:
     ) -> None:
 
         self.record(
-
             "PLATFORM_FINISHED",
-
             "platform",
-
             status=status,
-
         )
 
     # -----------------------------------------------------
@@ -230,13 +189,9 @@ class AuditLogger:
     ) -> None:
 
         self.record(
-
             "EXCEPTION",
-
             component,
-
             message=str(exception),
-
         )
 
     # =====================================================
@@ -252,59 +207,29 @@ class AuditLogger:
         """
 
         if filename is None:
-
-            filename = (
-
-                datetime.utcnow()
-
-                .strftime(
-
-                    "%Y%m%d_%H%M%S.json"
-
-                )
-
-            )
+            filename = datetime.utcnow().strftime("%Y%m%d_%H%M%S.json")
 
         path = self.directory / filename
 
         payload = [
-
             {
-
                 **asdict(event),
-
-                "timestamp":
-
-                    event.timestamp.isoformat(),
-
+                "timestamp": event.timestamp.isoformat(),
             }
-
-            for event
-
-            in self._events
-
+            for event in self._events
         ]
 
         path.write_text(
-
             json.dumps(
-
                 payload,
-
                 indent=4,
-
             ),
-
             encoding="utf-8",
-
         )
 
         logger.info(
-
             "Audit log written to %s",
-
             path,
-
         )
 
         return path
@@ -316,13 +241,9 @@ class AuditLogger:
     @property
     def events(
         self,
-    ) -> List[AuditEvent]:
+    ) -> list[AuditEvent]:
 
-        return list(
-
-            self._events
-
-        )
+        return list(self._events)
 
     # =====================================================
     # SUMMARY
@@ -333,23 +254,12 @@ class AuditLogger:
     ) -> dict:
 
         return {
-
-            "events":
-
-                len(
-
-                    self._events,
-
-                ),
-
-            "directory":
-
-                str(
-
-                    self.directory,
-
-                ),
-
+            "events": len(
+                self._events,
+            ),
+            "directory": str(
+                self.directory,
+            ),
         }
 
     # =====================================================
@@ -370,20 +280,10 @@ class AuditLogger:
         self,
     ) -> int:
 
-        return len(
-
-            self._events
-
-        )
+        return len(self._events)
 
     def __repr__(
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"events={len(self)})"
-
-        )
+        return f"{self.__class__.__name__}(events={len(self)})"

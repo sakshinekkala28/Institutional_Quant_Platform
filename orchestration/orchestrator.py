@@ -22,28 +22,23 @@ Internally delegates all work to MasterOrchestrator.
 
 from __future__ import annotations
 
-from typing import Optional
-
-from orchestration.master_orchestrator import (
-    MasterOrchestrator,
-)
-
 from orchestration.execution_context import (
     ExecutionContext,
 )
-
 from orchestration.execution_report import (
     ExecutionReport,
 )
-
+from orchestration.master_orchestrator import (
+    MasterOrchestrator,
+)
 from orchestration.models.master_result import (
     MasterResult,
 )
 
-
 # =========================================================
 # ORCHESTRATOR
 # =========================================================
+
 
 class Orchestrator:
     """
@@ -63,9 +58,7 @@ class Orchestrator:
     ) -> None:
 
         self._orchestrator = MasterOrchestrator(
-
             executor=executor,
-
         )
 
     # =====================================================
@@ -119,33 +112,14 @@ class Orchestrator:
     ) -> dict:
 
         return {
-
-            "executor":
-
-                self._orchestrator.executor_mode,
-
-            "status":
-
-                self.result.status.value,
-
-            "duration":
-
-                round(
-
-                    self.result.duration,
-
-                    3,
-
-                ),
-
-            "pipelines":
-
-                self.result.total_pipelines,
-
-            "engines":
-
-                self.result.total_engines,
-
+            "executor": self._orchestrator.executor_mode,
+            "status": self.result.status.value,
+            "duration": round(
+                self.result.duration,
+                3,
+            ),
+            "pipelines": self.result.total_pipelines,
+            "engines": self.result.total_engines,
         }
 
     # =====================================================
@@ -159,16 +133,10 @@ class Orchestrator:
         Reset orchestrator state.
         """
 
-        executor = (
-
-            self._orchestrator.executor_mode
-
-        )
+        executor = self._orchestrator.executor_mode
 
         self._orchestrator = MasterOrchestrator(
-
             executor=executor,
-
         )
 
     # =====================================================
@@ -180,9 +148,5 @@ class Orchestrator:
     ) -> str:
 
         return (
-
-            f"{self.__class__.__name__}("
-
-            f"executor='{self._orchestrator.executor_mode}')"
-
+            f"{self.__class__.__name__}(executor='{self._orchestrator.executor_mode}')"
         )

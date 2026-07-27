@@ -11,14 +11,13 @@ from pathlib import Path
 import duckdb
 import pandas as pd
 
-
 # ==========================================================
 # DATABASE CONFIG
 # ==========================================================
 
+
 @dataclass(frozen=True)
 class DatabaseConfig:
-
     DATABASE_NAME: str = "institutional_quant.db"
 
     READ_ONLY: bool = False
@@ -28,8 +27,8 @@ class DatabaseConfig:
 # DATABASE PATHS
 # ==========================================================
 
-class DatabasePaths:
 
+class DatabasePaths:
     def __init__(self):
 
         self.root = Path.cwd()
@@ -37,76 +36,43 @@ class DatabasePaths:
     @property
     def database_file(self):
 
-        return (
+        return self.root / "data" / "database" / "institutional_quant.db"
 
-            self.root
 
-            / "data"
-
-            / "database"
-
-            / "institutional_quant.db"
-
-        )
-    
 # ==========================================================
 # CONNECTION MANAGER
 # ==========================================================
 
+
 class ConnectionManager:
+    def __init__(self, config=None):
 
-    def __init__(
-
-        self,
-
-        config=None
-
-    ):
-
-        self.config = (
-
-            config
-
-            or DatabaseConfig()
-
-        )
+        self.config = config or DatabaseConfig()
 
         self.paths = DatabasePaths()
 
-        self.paths.database_file.parent.mkdir(
-
-            parents=True,
-
-            exist_ok=True
-
-        )
+        self.paths.database_file.parent.mkdir(parents=True, exist_ok=True)
 
         self.connection = None
 
     def connect(self):
 
-        self.connection = duckdb.connect(
-
-            str(
-                self.paths.database_file
-            )
-
-        )
+        self.connection = duckdb.connect(str(self.paths.database_file))
 
         return self.connection
 
     def close(self):
 
         if self.connection:
-
             self.connection.close()
+
 
 # ==========================================================
 # TABLE MANAGER
 # ==========================================================
 
-class TableManager:
 
+class TableManager:
     @staticmethod
     def save_dataframe(
         connection,
@@ -117,7 +83,6 @@ class TableManager:
         Save a pandas DataFrame into DuckDB with robust dtype normalization.
         """
 
-        import pandas as pd
         import numpy as np
 
         df = dataframe.copy()
@@ -129,7 +94,6 @@ class TableManager:
         df = df.convert_dtypes()
 
         for col in df.columns:
-
             # Category -> string
             if pd.api.types.is_categorical_dtype(df[col]):
                 df[col] = df[col].astype(str)
@@ -145,9 +109,7 @@ class TableManager:
             # Object columns containing NumPy scalar types
             elif df[col].dtype == object:
                 df[col] = df[col].apply(
-                    lambda x: x.item()
-                    if isinstance(x, np.generic)
-                    else x
+                    lambda x: x.item() if isinstance(x, np.generic) else x
                 )
 
         # Replace infinities with NULL
@@ -162,7 +124,6 @@ class TableManager:
         )
 
         try:
-
             connection.execute(
                 f"""
                 CREATE OR REPLACE TABLE {table_name}
@@ -173,10 +134,7 @@ class TableManager:
             )
 
         finally:
-
-            connection.unregister(
-                "temp_df"
-            )
+            connection.unregister("temp_df")
 
     @staticmethod
     def read_table(
@@ -187,15 +145,12 @@ class TableManager:
         Read a DuckDB table into a pandas DataFrame.
         """
 
-        return (
-            connection.execute(
-                f"""
+        return connection.execute(
+            f"""
                 SELECT *
                 FROM {table_name}
                 """
-            )
-            .fetchdf()
-        )
+        ).fetchdf()
 
     @staticmethod
     def table_exists(
@@ -216,92 +171,31 @@ class TableManager:
         ).fetchone()
 
         return result[0] > 0
-    
+
+
 # ==========================================================
 # DATABASE MANAGER
 # ==========================================================
 
-class DatabaseManager:
 
+class DatabaseManager:
     def __init__(self):
 
-        self.connection_manager = (
+        self.connection_manager = ConnectionManager()
 
-            ConnectionManager()
+        self.connection = self.connection_manager.connect()
 
-        )
+    def save(self, dataframe, table_name):
 
-        self.connection = (
+        TableManager.save_dataframe(self.connection, dataframe, table_name)
 
-            self.connection_manager
+    def load(self, table_name):
 
-            .connect()
+        return TableManager.read_table(self.connection, table_name)
 
-        )
+    def exists(self, table_name):
 
-    def save(
-
-        self,
-
-        dataframe,
-
-        table_name
-
-    ):
-
-        TableManager.save_dataframe(
-
-            self.connection,
-
-            dataframe,
-
-            table_name
-
-        )
-
-    def load(
-
-        self,
-
-        table_name
-
-    ):
-
-        return (
-
-            TableManager
-
-            .read_table(
-
-                self.connection,
-
-                table_name
-
-            )
-
-        )
-
-    def exists(
-
-        self,
-
-        table_name
-
-    ):
-
-        return (
-
-            TableManager
-
-            .table_exists(
-
-                self.connection,
-
-                table_name
-
-            )
-
-        )
+        return TableManager.table_exists(self.connection, table_name)
 
     def close(self):
 

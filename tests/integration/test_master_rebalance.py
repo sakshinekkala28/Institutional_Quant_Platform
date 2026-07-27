@@ -1,13 +1,9 @@
-from orchestration.master_rebalance_engine import (
-    MasterRebalanceEngine
-)
+from orchestration.master_rebalance_engine import MasterRebalanceEngine
 
 
 def test_rebalance_run():
 
-    engine = (
-        MasterRebalanceEngine()
-    )
+    engine = MasterRebalanceEngine()
 
     result = engine.run()
 

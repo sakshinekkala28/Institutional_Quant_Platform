@@ -21,38 +21,30 @@ import time
 import numpy as np
 import pandas as pd
 
-from orchestration.models.engine_result import EngineResult
-
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
-
-from config.settings import PLATFORM_NAME
-
-from config.settings import DATE_FORMAT
-
 from config.paths import (
-    UPDATED_STOCKS_FILE,
     STOCK_METADATA_FILE,
     STOCK_METADATA_HEALTH_FILE,
+    UPDATED_STOCKS_FILE,
 )
-
 from config.settings import (
-    DEFAULT_EXCHANGE,
+    DATE_FORMAT,
+    DEFAULT_ASSET_CLASS,
     DEFAULT_COUNTRY,
     DEFAULT_CURRENCY,
-    DEFAULT_ASSET_CLASS,
+    DEFAULT_EXCHANGE,
+    PLATFORM_NAME,
 )
-
 from config.thresholds import (
     LARGE_CAP_THRESHOLD,
     MID_CAP_THRESHOLD,
 )
-
+from orchestration.models.engine_result import EngineResult
+from orchestration.models.engine_status import (
+    EngineStatus,
+)
 from utils.file_utils import (
     ensure_parent_directory,
 )
-
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -67,6 +59,7 @@ ENGINE_NAME = "StockMetadata"
 # MAIN
 # =========================================================
 
+
 def main() -> EngineResult:
     """
     Stock Metadata Engine
@@ -75,24 +68,16 @@ def main() -> EngineResult:
     start_time = time.perf_counter()
 
     try:
-
         # =====================================================
         # LOAD
         # =====================================================
 
-        logger.info(
-            "\n📥 Loading Updated Universe..."
-        )
+        logger.info("\n📥 Loading Updated Universe...")
 
         if not UPDATED_STOCKS_FILE.exists():
+            raise FileNotFoundError(f"Missing file:\n{UPDATED_STOCKS_FILE}")
 
-            raise FileNotFoundError(
-                f"Missing file:\n{UPDATED_STOCKS_FILE}"
-            )
-
-        df = pd.read_csv(
-            UPDATED_STOCKS_FILE
-        )
+        df = pd.read_csv(UPDATED_STOCKS_FILE)
 
         # =====================================================
         # STANDARDIZE COLUMNS
@@ -108,11 +93,7 @@ def main() -> EngineResult:
         }
 
         df.rename(
-            columns={
-                k: v
-                for k, v in rename_map.items()
-                if k in df.columns
-            },
+            columns={k: v for k, v in rename_map.items() if k in df.columns},
             inplace=True,
         )
 
@@ -125,12 +106,8 @@ def main() -> EngineResult:
         ]
 
         for col in required_columns:
-
             if col not in df.columns:
-
-                raise ValueError(
-                    f"Missing required column: {col}"
-                )
+                raise ValueError(f"Missing required column: {col}")
 
         # =====================================================
         # DEFAULTS
@@ -145,55 +122,30 @@ def main() -> EngineResult:
         }
 
         for col, value in defaults.items():
-
             if col not in df.columns:
-
                 df[col] = value
 
         # =====================================================
         # CLEANING
         # =====================================================
 
-        df["Symbol"] = (
-            df["Symbol"]
-            .astype(str)
-            .str.upper()
-            .str.strip()
-        )
+        df["Symbol"] = df["Symbol"].astype(str).str.upper().str.strip()
 
-        df["Company_Name"] = (
-            df["Company_Name"]
-            .astype(str)
-            .str.strip()
-        )
+        df["Company_Name"] = df["Company_Name"].astype(str).str.strip()
 
-        df["Sector"] = (
-            df["Sector"]
-            .astype(str)
-            .str.strip()
-        )
+        df["Sector"] = df["Sector"].astype(str).str.strip()
 
-        df["Industry"] = (
-            df["Industry"]
-            .astype(str)
-            .str.strip()
-        )
+        df["Industry"] = df["Industry"].astype(str).str.strip()
 
-        df["Market_Cap"] = (
-            pd.to_numeric(
-                df["Market_Cap"],
-                errors="coerce",
-            )
-            .fillna(0)
-        )
+        df["Market_Cap"] = pd.to_numeric(
+            df["Market_Cap"],
+            errors="coerce",
+        ).fillna(0)
 
-        df["ADV"] = (
-            pd.to_numeric(
-                df["ADV"],
-                errors="coerce",
-            )
-            .fillna(0)
-        )
+        df["ADV"] = pd.to_numeric(
+            df["ADV"],
+            errors="coerce",
+        ).fillna(0)
 
         # =====================================================
         # STATIC METADATA
@@ -206,12 +158,10 @@ def main() -> EngineResult:
         df["Currency"] = DEFAULT_CURRENCY
 
         df["Asset_Class"] = DEFAULT_ASSET_CLASS
-        
+
         df["Metadata_Source"] = PLATFORM_NAME
 
-        df["Last_Updated"] = (
-            datetime.now().strftime(DATE_FORMAT)
-        )
+        df["Last_Updated"] = datetime.now().strftime(DATE_FORMAT)
 
         # =====================================================
         # MARKET CAP CLASSIFICATION
@@ -219,16 +169,10 @@ def main() -> EngineResult:
 
         df["Market_Cap_Category"] = np.select(
             [
-                df["Market_Cap"]
-                >= LARGE_CAP_THRESHOLD,
-
+                df["Market_Cap"] >= LARGE_CAP_THRESHOLD,
                 (
                     (df["Market_Cap"] >= MID_CAP_THRESHOLD)
-                    &
-                    (
-                        df["Market_Cap"]
-                        < LARGE_CAP_THRESHOLD
-                    )
+                    & (df["Market_Cap"] < LARGE_CAP_THRESHOLD)
                 ),
             ],
             [
@@ -245,15 +189,7 @@ def main() -> EngineResult:
         df["Liquidity_Category"] = np.select(
             [
                 df["ADV"] >= 100_000_000,
-
-                (
-                    (df["ADV"] >= 25_000_000)
-                    &
-                    (
-                        df["ADV"]
-                        < 100_000_000
-                    )
-                ),
+                ((df["ADV"] >= 25_000_000) & (df["ADV"] < 100_000_000)),
             ],
             [
                 "Highly Liquid",
@@ -266,26 +202,20 @@ def main() -> EngineResult:
         # SECTOR VALIDATION
         # =====================================================
 
-        df["Sector"] = (
-            df["Sector"]
-            .replace(
-                {
-                    "": "Unknown",
-                    "nan": "Unknown",
-                    "None": "Unknown",
-                }
-            )
+        df["Sector"] = df["Sector"].replace(
+            {
+                "": "Unknown",
+                "nan": "Unknown",
+                "None": "Unknown",
+            }
         )
 
-        df["Industry"] = (
-            df["Industry"]
-            .replace(
-                {
-                    "": "Unknown",
-                    "nan": "Unknown",
-                    "None": "Unknown",
-                }
-            )
+        df["Industry"] = df["Industry"].replace(
+            {
+                "": "Unknown",
+                "nan": "Unknown",
+                "None": "Unknown",
+            }
         )
 
         # =====================================================
@@ -303,22 +233,10 @@ def main() -> EngineResult:
                 ],
                 "Value": [
                     len(df),
-                    (
-                        df["Sector"]
-                        == "Unknown"
-                    ).sum(),
-                    (
-                        df["Industry"]
-                        == "Unknown"
-                    ).sum(),
-                    (
-                        df["Market_Cap"]
-                        <= 0
-                    ).sum(),
-                    (
-                        df["ADV"]
-                        <= 0
-                    ).sum(),
+                    (df["Sector"] == "Unknown").sum(),
+                    (df["Industry"] == "Unknown").sum(),
+                    (df["Market_Cap"] <= 0).sum(),
+                    (df["ADV"] <= 0).sum(),
                 ],
             }
         )
@@ -330,35 +248,23 @@ def main() -> EngineResult:
         original_rows = len(df)
 
         df = (
-            df
-            .sort_values(
+            df.sort_values(
                 "Market_Cap",
                 ascending=False,
             )
-            .drop_duplicates(
-                subset=["Symbol"]
-            )
-            .reset_index(
-                drop=True
-            )
+            .drop_duplicates(subset=["Symbol"])
+            .reset_index(drop=True)
         )
 
-        duplicates_removed = (
-            original_rows
-            - len(df)
-        )
+        duplicates_removed = original_rows - len(df)
 
         # =====================================================
         # SAVE
         # =====================================================
 
-        ensure_parent_directory(
-            STOCK_METADATA_FILE
-        )
+        ensure_parent_directory(STOCK_METADATA_FILE)
 
-        ensure_parent_directory(
-            STOCK_METADATA_HEALTH_FILE
-        )
+        ensure_parent_directory(STOCK_METADATA_HEALTH_FILE)
 
         df.to_csv(
             STOCK_METADATA_FILE,
@@ -376,16 +282,11 @@ def main() -> EngineResult:
 
         print("\n" + "=" * 70)
 
-        print(
-            "🏁 STOCK METADATA ENGINE COMPLETE"
-        )
+        print("🏁 STOCK METADATA ENGINE COMPLETE")
 
         print("=" * 70)
 
-        print(
-            f"Stocks              : "
-            f"{len(df):,}"
-        )
+        print(f"Stocks              : {len(df):,}")
 
         print(
             f"Large Cap           : "
@@ -393,8 +294,7 @@ def main() -> EngineResult:
         )
 
         print(
-            f"Mid Cap             : "
-            f"{(df['Market_Cap_Category'] == 'Mid Cap').sum():,}"
+            f"Mid Cap             : {(df['Market_Cap_Category'] == 'Mid Cap').sum():,}"
         )
 
         print(
@@ -407,23 +307,16 @@ def main() -> EngineResult:
             f"{(df['Liquidity_Category'] == 'Highly Liquid').sum():,}"
         )
 
-        print(
-            f"Liquid              : "
-            f"{(df['Liquidity_Category'] == 'Liquid').sum():,}"
-        )
+        print(f"Liquid              : {(df['Liquidity_Category'] == 'Liquid').sum():,}")
 
         print(
             f"Less Liquid         : "
             f"{(df['Liquidity_Category'] == 'Less Liquid').sum():,}"
         )
 
-        print(
-            f"\nSaved:\n{STOCK_METADATA_FILE}"
-        )
+        print(f"\nSaved:\n{STOCK_METADATA_FILE}")
 
-        print(
-            f"\nHealth Report:\n{STOCK_METADATA_HEALTH_FILE}"
-        )
+        print(f"\nHealth Report:\n{STOCK_METADATA_HEALTH_FILE}")
 
         print("=" * 70)
 
@@ -431,49 +324,18 @@ def main() -> EngineResult:
         # BUILD EXECUTION METADATA
         # =====================================================
 
-        duration = (
-            time.perf_counter()
-            - start_time
-        )
+        duration = time.perf_counter() - start_time
 
         execution_metadata = {
             "total_stocks": len(df),
-            "unique_symbols": (
-                df["Symbol"].nunique()
-            ),
-            "duplicates_removed": (
-                duplicates_removed
-            ),
-            "large_cap": (
-                df["Market_Cap_Category"]
-                .eq("Large Cap")
-                .sum()
-            ),
-            "mid_cap": (
-                df["Market_Cap_Category"]
-                .eq("Mid Cap")
-                .sum()
-            ),
-            "small_cap": (
-                df["Market_Cap_Category"]
-                .eq("Small Cap")
-                .sum()
-            ),
-            "highly_liquid": (
-                df["Liquidity_Category"]
-                .eq("Highly Liquid")
-                .sum()
-            ),
-            "liquid": (
-                df["Liquidity_Category"]
-                .eq("Liquid")
-                .sum()
-            ),
-            "less_liquid": (
-                df["Liquidity_Category"]
-                .eq("Less Liquid")
-                .sum()
-            ),
+            "unique_symbols": (df["Symbol"].nunique()),
+            "duplicates_removed": (duplicates_removed),
+            "large_cap": (df["Market_Cap_Category"].eq("Large Cap").sum()),
+            "mid_cap": (df["Market_Cap_Category"].eq("Mid Cap").sum()),
+            "small_cap": (df["Market_Cap_Category"].eq("Small Cap").sum()),
+            "highly_liquid": (df["Liquidity_Category"].eq("Highly Liquid").sum()),
+            "liquid": (df["Liquidity_Category"].eq("Liquid").sum()),
+            "less_liquid": (df["Liquidity_Category"].eq("Less Liquid").sum()),
         }
 
         # =====================================================
@@ -495,11 +357,7 @@ def main() -> EngineResult:
     # =========================================================
 
     except Exception as e:
-
-        duration = (
-            time.perf_counter()
-            - start_time
-        )
+        duration = time.perf_counter() - start_time
 
         return EngineResult(
             engine=ENGINE_NAME,
@@ -516,10 +374,6 @@ def main() -> EngineResult:
 # =========================================================
 
 if __name__ == "__main__":
-
     result = main()
 
-    print(
-        f"\nEngine Status : "
-        f"{result.status}"
-    )
+    print(f"\nEngine Status : {result.status}")

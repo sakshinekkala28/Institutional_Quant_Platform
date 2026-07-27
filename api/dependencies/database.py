@@ -38,7 +38,6 @@ import duckdb
 
 from api.dependencies.config import database_url
 
-
 # ==========================================================
 # DATABASE PATH
 # ==========================================================
@@ -52,23 +51,15 @@ def database_path() -> str:
     url = database_url()
 
     if url.startswith("sqlite:///"):
-
         return url.replace(
-
             "sqlite:///",
-
             "",
-
         )
 
     if url.startswith("duckdb:///"):
-
         return url.replace(
-
             "duckdb:///",
-
             "",
-
         )
 
     return url
@@ -87,11 +78,8 @@ def get_connection() -> duckdb.DuckDBPyConnection:
     path = database_path()
 
     return duckdb.connect(
-
         database=path,
-
         read_only=False,
-
     )
 
 
@@ -112,11 +100,9 @@ def get_database():
     connection = get_connection()
 
     try:
-
         yield connection
 
     finally:
-
         connection.close()
 
 
@@ -134,33 +120,18 @@ def transaction():
     connection = get_connection()
 
     try:
-
-        connection.execute(
-
-            "BEGIN TRANSACTION"
-
-        )
+        connection.execute("BEGIN TRANSACTION")
 
         yield connection
 
-        connection.execute(
-
-            "COMMIT"
-
-        )
+        connection.execute("COMMIT")
 
     except Exception:
-
-        connection.execute(
-
-            "ROLLBACK"
-
-        )
+        connection.execute("ROLLBACK")
 
         raise
 
     finally:
-
         connection.close()
 
 
@@ -175,41 +146,24 @@ def database_health() -> dict:
     """
 
     try:
-
         connection = get_connection()
 
-        connection.execute(
+        connection.execute("SELECT 1")
 
-            "SELECT 1"
-
-        )
-
-        version = connection.execute(
-
-            "SELECT version()"
-
-        ).fetchone()[0]
+        version = connection.execute("SELECT version()").fetchone()[0]
 
         connection.close()
 
         return {
-
             "healthy": True,
-
             "engine": "DuckDB",
-
             "version": version,
-
         }
 
     except Exception as exc:
-
         return {
-
             "healthy": False,
-
             "error": str(exc),
-
         }
 
 
@@ -224,9 +178,7 @@ def database_exists() -> bool:
     """
 
     return Path(
-
         database_path(),
-
     ).exists()
 
 
@@ -236,32 +188,22 @@ def database_exists() -> bool:
 
 
 def execute(
-
     sql: str,
-
     parameters: tuple | None = None,
-
 ):
     """
     Execute SQL.
     """
 
     with transaction() as connection:
-
         if parameters:
-
             return connection.execute(
-
                 sql,
-
                 parameters,
-
             )
 
         return connection.execute(
-
             sql,
-
         )
 
 
@@ -271,29 +213,19 @@ def execute(
 
 
 def fetch_all(
-
     sql: str,
-
     parameters: tuple | None = None,
-
 ):
 
     with transaction() as connection:
-
         if parameters:
-
             return connection.execute(
-
                 sql,
-
                 parameters,
-
             ).fetchall()
 
         return connection.execute(
-
             sql,
-
         ).fetchall()
 
 
@@ -303,29 +235,19 @@ def fetch_all(
 
 
 def fetch_one(
-
     sql: str,
-
     parameters: tuple | None = None,
-
 ):
 
     with transaction() as connection:
-
         if parameters:
-
             return connection.execute(
-
                 sql,
-
                 parameters,
-
             ).fetchone()
 
         return connection.execute(
-
             sql,
-
         ).fetchone()
 
 
@@ -335,23 +257,13 @@ def fetch_one(
 
 
 __all__ = [
-
-    "database_path",
-
-    "get_connection",
-
-    "get_database",
-
-    "transaction",
-
-    "database_health",
-
     "database_exists",
-
+    "database_health",
+    "database_path",
     "execute",
-
     "fetch_all",
-
     "fetch_one",
-
+    "get_connection",
+    "get_database",
+    "transaction",
 ]

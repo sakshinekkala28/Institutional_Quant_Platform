@@ -28,25 +28,19 @@ Responsibilities
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
-
-from threading import Lock
-from threading import RLock
-
+from collections.abc import Callable
+from dataclasses import dataclass, field
+from threading import Lock, RLock
 from typing import Any
-from typing import Dict
-from typing import Callable
-from typing import Optional
 
 import pandas as pd
 
 from core.services.base_service import BaseService
 
-
 # ============================================================
 # Exceptions
 # ============================================================
+
 
 class ExecutionError(Exception):
     """Base execution exception."""
@@ -64,34 +58,26 @@ class ExecutionEngineNotFound(ExecutionError):
 # Execution Profile
 # ============================================================
 
+
 @dataclass(slots=True)
 class ExecutionProfile:
-
     name: str
 
     broker: str
 
     algorithm: str
 
-    parameters: Dict[str, Any] = field(
+    parameters: dict[str, Any] = field(default_factory=dict)
 
-        default_factory=dict
-
-    )
-
-    metadata: Dict[str, Any] = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ============================================================
 # Execution Service
 # ============================================================
 
-class ExecutionService(BaseService):
 
+class ExecutionService(BaseService):
     """
     Institutional Execution Manager.
     """
@@ -100,87 +86,47 @@ class ExecutionService(BaseService):
 
     _instance_lock = Lock()
 
-    def __new__(
-
-        cls,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def __new__(cls, *args, **kwargs):
 
         if cls._instance is None:
-
             with cls._instance_lock:
-
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
 
-    def __init__(
+    def __init__(self):
 
-        self
-
-    ):
-
-        if getattr(
-
-            self,
-
-            "_initialized",
-
-            False
-
-        ):
-
+        if getattr(self, "_initialized", False):
             return
 
         super().__init__()
 
         self._lock = RLock()
 
-        self._profiles: Dict[str, ExecutionProfile] = {}
+        self._profiles: dict[str, ExecutionProfile] = {}
 
-        self._engines: Dict[str, Callable] = {}
+        self._engines: dict[str, Callable] = {}
 
         self._enabled = True
 
         self._initialized = True
 
-        self._logger.info(
-
-            "ExecutionService initialized."
-
-        )
+        self._logger.info("ExecutionService initialized.")
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def enable(
-
-        self
-
-    ):
+    def enable(self):
 
         self._enabled = True
 
-    def disable(
-
-        self
-
-    ):
+    def disable(self):
 
         self._enabled = False
 
-    def enabled(
-
-        self
-
-    ):
+    def enabled(self):
 
         return self._enabled
 
@@ -189,55 +135,33 @@ class ExecutionService(BaseService):
     # =====================================================
 
     def register(
-
         self,
-
         name: str,
-
         broker: str,
-
         algorithm: str,
-
-        parameters: Optional[Dict[str, Any]] = None,
-
-        metadata: Optional[Dict[str, Any]] = None
-
+        parameters: dict[str, Any] | None = None,
+        metadata: dict[str, Any] | None = None,
     ) -> None:
         """
         Register execution profile.
         """
 
         profile = ExecutionProfile(
-
             name=name,
-
             broker=broker,
-
             algorithm=algorithm,
-
             parameters=parameters or {},
-
-            metadata=metadata or {}
-
+            metadata=metadata or {},
         )
 
         with self._lock:
-
             self._profiles[name] = profile
 
     # =====================================================
     # Execution Engine
     # =====================================================
 
-    def register_engine(
-
-        self,
-
-        name: str,
-
-        engine: Callable
-
-    ) -> None:
+    def register_engine(self, name: str, engine: Callable) -> None:
         """
         Register execution engine.
         """
@@ -248,21 +172,10 @@ class ExecutionService(BaseService):
     # Retrieval
     # =====================================================
 
-    def get(
-
-        self,
-
-        profile: str
-
-    ) -> ExecutionProfile:
+    def get(self, profile: str) -> ExecutionProfile:
 
         if profile not in self._profiles:
-
-            raise ExecutionProfileNotFound(
-
-                profile
-
-            )
+            raise ExecutionProfileNotFound(profile)
 
         return self._profiles[profile]
 
@@ -270,371 +183,129 @@ class ExecutionService(BaseService):
     # BaseService
     # =====================================================
 
-    def run(
-
-        self
-
-    ):
+    def run(self):
 
         return self.statistics()
-    
+
     # =====================================================
     # Parameter Management
     # =====================================================
 
-    def update_parameter(
-
-        self,
-
-        profile: str,
-
-        name: str,
-
-        value: Any
-
-    ) -> None:
+    def update_parameter(self, profile: str, name: str, value: Any) -> None:
         """
         Update execution parameter.
         """
 
-        self.get(
+        self.get(profile).parameters[name] = value
 
-            profile
-
-        ).parameters[name] = value
-
-    def parameter(
-
-        self,
-
-        profile: str,
-
-        name: str,
-
-        default: Any = None
-
-    ) -> Any:
+    def parameter(self, profile: str, name: str, default: Any = None) -> Any:
         """
         Return execution parameter.
         """
 
-        return self.get(
-
-            profile
-
-        ).parameters.get(
-
-            name,
-
-            default
-
-        )
+        return self.get(profile).parameters.get(name, default)
 
     # =====================================================
     # Execution
     # =====================================================
 
     def execute(
-
-        self,
-
-        profile: str,
-
-        orders: pd.DataFrame,
-
-        *args,
-
-        **kwargs
-
+        self, profile: str, orders: pd.DataFrame, *args, **kwargs
     ) -> pd.DataFrame:
         """
         Execute orders using the configured
         execution algorithm.
         """
 
-        execution_profile = self.get(
-
-            profile
-
-        )
+        execution_profile = self.get(profile)
 
         algorithm = execution_profile.algorithm
 
         if algorithm not in self._engines:
+            raise ExecutionEngineNotFound(algorithm)
 
-            raise ExecutionEngineNotFound(
+        engine = self._engines[algorithm]
 
-                algorithm
-
-            )
-
-        engine = self._engines[
-
-            algorithm
-
-        ]
-
-        return engine(
-
-            profile=execution_profile,
-
-            orders=orders,
-
-            *args,
-
-            **kwargs
-
-        )
+        return engine(profile=execution_profile, orders=orders, *args, **kwargs)
 
     # =====================================================
     # Standard Execution Algorithms
     # =====================================================
 
     def market(
-
-        self,
-
-        profile: str,
-
-        orders: pd.DataFrame,
-
-        *args,
-
-        **kwargs
-
+        self, profile: str, orders: pd.DataFrame, *args, **kwargs
     ) -> pd.DataFrame:
 
-        return self.execute(
+        return self.execute(profile, orders, *args, **kwargs)
 
-            profile,
+    def vwap(self, profile: str, orders: pd.DataFrame, *args, **kwargs) -> pd.DataFrame:
 
-            orders,
+        return self.execute(profile, orders, *args, **kwargs)
 
-            *args,
+    def twap(self, profile: str, orders: pd.DataFrame, *args, **kwargs) -> pd.DataFrame:
 
-            **kwargs
+        return self.execute(profile, orders, *args, **kwargs)
 
-        )
+    def pov(self, profile: str, orders: pd.DataFrame, *args, **kwargs) -> pd.DataFrame:
 
-    def vwap(
-
-        self,
-
-        profile: str,
-
-        orders: pd.DataFrame,
-
-        *args,
-
-        **kwargs
-
-    ) -> pd.DataFrame:
-
-        return self.execute(
-
-            profile,
-
-            orders,
-
-            *args,
-
-            **kwargs
-
-        )
-
-    def twap(
-
-        self,
-
-        profile: str,
-
-        orders: pd.DataFrame,
-
-        *args,
-
-        **kwargs
-
-    ) -> pd.DataFrame:
-
-        return self.execute(
-
-            profile,
-
-            orders,
-
-            *args,
-
-            **kwargs
-
-        )
-
-    def pov(
-
-        self,
-
-        profile: str,
-
-        orders: pd.DataFrame,
-
-        *args,
-
-        **kwargs
-
-    ) -> pd.DataFrame:
-
-        return self.execute(
-
-            profile,
-
-            orders,
-
-            *args,
-
-            **kwargs
-
-        )
+        return self.execute(profile, orders, *args, **kwargs)
 
     def iceberg(
-
-        self,
-
-        profile: str,
-
-        orders: pd.DataFrame,
-
-        *args,
-
-        **kwargs
-
+        self, profile: str, orders: pd.DataFrame, *args, **kwargs
     ) -> pd.DataFrame:
 
-        return self.execute(
-
-            profile,
-
-            orders,
-
-            *args,
-
-            **kwargs
-
-        )
+        return self.execute(profile, orders, *args, **kwargs)
 
     # =====================================================
     # Slippage
     # =====================================================
 
-    def slippage(
-
-        self,
-
-        expected_price: float,
-
-        executed_price: float
-
-    ) -> float:
+    def slippage(self, expected_price: float, executed_price: float) -> float:
         """
         Calculate execution slippage.
         """
 
         if expected_price == 0:
-
             return 0.0
 
-        return (
-
-            executed_price
-
-            -
-
-            expected_price
-
-        ) / expected_price
+        return (executed_price - expected_price) / expected_price
 
     # =====================================================
     # Fill Statistics
     # =====================================================
 
-    def fill_rate(
-
-        self,
-
-        ordered_quantity: float,
-
-        executed_quantity: float
-
-    ) -> float:
+    def fill_rate(self, ordered_quantity: float, executed_quantity: float) -> float:
         """
         Fill percentage.
         """
 
         if ordered_quantity == 0:
-
             return 0.0
 
-        return (
-
-            executed_quantity
-
-            /
-
-            ordered_quantity
-
-        )
+        return executed_quantity / ordered_quantity
 
     def remaining_quantity(
-
-        self,
-
-        ordered_quantity: float,
-
-        executed_quantity: float
-
+        self, ordered_quantity: float, executed_quantity: float
     ) -> float:
         """
         Remaining quantity.
         """
 
-        return max(
-
-            0.0,
-
-            ordered_quantity
-
-            -
-
-            executed_quantity
-
-        )
+        return max(0.0, ordered_quantity - executed_quantity)
 
     # =====================================================
     # Validation
     # =====================================================
 
-    def validate(
-
-        self,
-
-        profile: str
-
-    ) -> bool:
+    def validate(self, profile: str) -> bool:
         """
         Validate execution profile.
         """
 
-        execution_profile = self.get(
-
-            profile
-
-        )
+        execution_profile = self.get(profile)
 
         if execution_profile.algorithm not in self._engines:
-
-            raise ExecutionEngineNotFound(
-
-                execution_profile.algorithm
-
-            )
+            raise ExecutionEngineNotFound(execution_profile.algorithm)
 
         return True
 
@@ -642,145 +313,64 @@ class ExecutionService(BaseService):
     # Statistics
     # =====================================================
 
-    def statistics(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """
         Execution statistics.
         """
 
         return {
-
-            "profiles":
-
-                len(
-
-                    self._profiles
-
-                ),
-
-            "engines":
-
-                len(
-
-                    self._engines
-
-                ),
-
-            "enabled":
-
-                self._enabled
-
+            "profiles": len(self._profiles),
+            "engines": len(self._engines),
+            "enabled": self._enabled,
         }
-    
+
     # =====================================================
     # Metadata
     # =====================================================
 
-    def metadata(
-
-        self,
-
-        profile: str
-
-    ) -> Dict[str, Any]:
+    def metadata(self, profile: str) -> dict[str, Any]:
         """
         Return execution metadata.
         """
 
-        return dict(
+        return dict(self.get(profile).metadata)
 
-            self.get(
-
-                profile
-
-            ).metadata
-
-        )
-
-    def update_metadata(
-
-        self,
-
-        profile: str,
-
-        **kwargs
-
-    ) -> None:
+    def update_metadata(self, profile: str, **kwargs) -> None:
         """
         Update execution metadata.
         """
 
-        self.get(
-
-            profile
-
-        ).metadata.update(
-
-            kwargs
-
-        )
+        self.get(profile).metadata.update(kwargs)
 
     # =====================================================
     # Registry
     # =====================================================
 
-    def exists(
-
-        self,
-
-        profile: str
-
-    ) -> bool:
+    def exists(self, profile: str) -> bool:
         """
         Check whether profile exists.
         """
 
         return profile in self._profiles
 
-    def names(
-
-        self
-
-    ) -> list[str]:
+    def names(self) -> list[str]:
         """
         Registered execution profiles.
         """
 
-        return sorted(
+        return sorted(self._profiles.keys())
 
-            self._profiles.keys()
-
-        )
-
-    def remove(
-
-        self,
-
-        profile: str
-
-    ) -> None:
+    def remove(self, profile: str) -> None:
         """
         Remove execution profile.
         """
 
         if profile not in self._profiles:
-
-            raise ExecutionProfileNotFound(
-
-                profile
-
-            )
+            raise ExecutionProfileNotFound(profile)
 
         del self._profiles[profile]
 
-    def clear(
-
-        self
-
-    ) -> None:
+    def clear(self) -> None:
         """
         Clear profiles and execution engines.
         """
@@ -793,192 +383,78 @@ class ExecutionService(BaseService):
     # Snapshot
     # =====================================================
 
-    def snapshot(
-
-        self,
-
-        profile: str
-
-    ) -> Dict[str, Any]:
+    def snapshot(self, profile: str) -> dict[str, Any]:
         """
         Execution profile snapshot.
         """
 
-        execution_profile = self.get(
-
-            profile
-
-        )
+        execution_profile = self.get(profile)
 
         return {
-
-            "name":
-
-                execution_profile.name,
-
-            "broker":
-
-                execution_profile.broker,
-
-            "algorithm":
-
-                execution_profile.algorithm,
-
-            "parameters":
-
-                dict(
-
-                    execution_profile.parameters
-
-                ),
-
-            "metadata":
-
-                dict(
-
-                    execution_profile.metadata
-
-                )
-
+            "name": execution_profile.name,
+            "broker": execution_profile.broker,
+            "algorithm": execution_profile.algorithm,
+            "parameters": dict(execution_profile.parameters),
+            "metadata": dict(execution_profile.metadata),
         }
 
     # =====================================================
     # Health
     # =====================================================
 
-    def health(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """
         Execution service health.
         """
 
         return {
-
-            "status":
-
-                "HEALTHY"
-
-                if self._enabled
-
-                else "DISABLED",
-
-            "enabled":
-
-                self._enabled,
-
-            "profiles":
-
-                len(
-
-                    self._profiles
-
-                ),
-
-            "execution_engines":
-
-                len(
-
-                    self._engines
-
-                )
-
+            "status": "HEALTHY" if self._enabled else "DISABLED",
+            "enabled": self._enabled,
+            "profiles": len(self._profiles),
+            "execution_engines": len(self._engines),
         }
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def startup(
-
-        self
-
-    ) -> None:
+    def startup(self) -> None:
 
         self.enable()
 
-        self._logger.info(
+        self._logger.info("ExecutionService started.")
 
-            "ExecutionService started."
-
-        )
-
-    def shutdown(
-
-        self
-
-    ) -> None:
+    def shutdown(self) -> None:
 
         self.clear()
 
         self.disable()
 
-        self._logger.info(
-
-            "ExecutionService shutdown."
-
-        )
+        self._logger.info("ExecutionService shutdown.")
 
     # =====================================================
     # Magic Methods
     # =====================================================
 
-    def __contains__(
+    def __contains__(self, profile: str) -> bool:
 
-        self,
+        return self.exists(profile)
 
-        profile: str
+    def __len__(self) -> int:
 
-    ) -> bool:
+        return len(self._profiles)
 
-        return self.exists(
+    def __iter__(self):
 
-            profile
+        return iter(self._profiles.items())
 
-        )
-
-    def __len__(
-
-        self
-
-    ) -> int:
-
-        return len(
-
-            self._profiles
-
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self._profiles.items()
-
-        )
-
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}"
-
             f"(profiles={len(self)}, "
-
             f"engines={len(self._engines)}, "
-
             f"enabled={self._enabled})"
-
         )
 
 

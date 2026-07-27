@@ -533,7 +533,6 @@ EngineResult
 
 ```python
 class FactorEngine(BaseEngine):
-
     NAME = "Factor Engine"
 
     def execute(self) -> EngineResult:

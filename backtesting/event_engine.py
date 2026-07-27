@@ -42,9 +42,7 @@ class EventEngine:
     """
 
     def __init__(
-
         self,
-
     ) -> None:
 
         self._queue: deque[Event] = deque()
@@ -56,87 +54,48 @@ class EventEngine:
     # =====================================================
 
     def register(
-
         self,
-
         event_type: str,
-
         handler,
-
     ) -> None:
 
-        self._handlers.setdefault(
-
-            event_type,
-
-            []
-
-        ).append(
-
-            handler
-
-        )
+        self._handlers.setdefault(event_type, []).append(handler)
 
     # =====================================================
     # UNREGISTER
     # =====================================================
 
     def unregister(
-
         self,
-
         event_type: str,
-
         handler,
-
     ) -> None:
 
-        handlers = self._handlers.get(
-
-            event_type,
-
-            []
-
-        )
+        handlers = self._handlers.get(event_type, [])
 
         if handler in handlers:
-
-            handlers.remove(
-
-                handler
-
-            )
+            handlers.remove(handler)
 
     # =====================================================
     # PUSH EVENT
     # =====================================================
 
     def publish(
-
         self,
-
         event: Event,
-
     ) -> None:
 
-        self._queue.append(
-
-            event
-
-        )
+        self._queue.append(event)
 
     # =====================================================
     # POP EVENT
     # =====================================================
 
     def next_event(
-
         self,
-
     ) -> Event | None:
 
         if not self._queue:
-
             return None
 
         return self._queue.popleft()
@@ -146,30 +105,19 @@ class EventEngine:
     # =====================================================
 
     def process_next(
-
         self,
-
     ) -> Event | None:
 
         event = self.next_event()
 
         if event is None:
-
             return None
 
         for handler in self._handlers.get(
-
             event.event_type,
-
             [],
-
         ):
-
-            handler(
-
-                event
-
-            )
+            handler(event)
 
         return event
 
@@ -178,13 +126,10 @@ class EventEngine:
     # =====================================================
 
     def run(
-
         self,
-
     ) -> None:
 
         while self.has_events:
-
             self.process_next()
 
     # =====================================================
@@ -192,9 +137,7 @@ class EventEngine:
     # =====================================================
 
     def clear(
-
         self,
-
     ) -> None:
 
         self._queue.clear()
@@ -205,62 +148,30 @@ class EventEngine:
 
     @property
     def has_events(
-
         self,
-
     ) -> bool:
 
-        return len(
-
-            self._queue
-
-        ) > 0
+        return len(self._queue) > 0
 
     @property
     def size(
-
         self,
-
     ) -> int:
 
-        return len(
-
-            self._queue
-
-        )
+        return len(self._queue)
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "QueuedEvents":
-
-                self.size,
-
-            "RegisteredHandlers":
-
-                len(
-
-                    self._handlers
-
-                ),
-
-            "EventTypes":
-
-                list(
-
-                    self._handlers.keys()
-
-                ),
-
+            "QueuedEvents": self.size,
+            "RegisteredHandlers": len(self._handlers),
+            "EventTypes": list(self._handlers.keys()),
         }
 
     # =====================================================
@@ -268,21 +179,14 @@ class EventEngine:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Queue={self.size}, "
-
             f"Handlers={len(self._handlers)}"
-
             f")"
-
         )
 
     __str__ = __repr__

@@ -28,13 +28,8 @@ Concrete Implementations
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
-
+from abc import ABC, abstractmethod
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
 
 from orchestration.base_engine import BaseEngine
 from orchestration.engine_registry import EngineRegistry
@@ -60,7 +55,7 @@ class BaseExecutor(ABC):
 
         self.context = context
 
-        self._results: List[EngineResult] = []
+        self._results: list[EngineResult] = []
 
     # =====================================================
     # ABSTRACT API
@@ -69,8 +64,8 @@ class BaseExecutor(ABC):
     @abstractmethod
     def execute(
         self,
-        engine_names: List[str],
-    ) -> List[EngineResult]:
+        engine_names: list[str],
+    ) -> list[EngineResult]:
         """
         Execute one or more engines.
         """
@@ -89,9 +84,7 @@ class BaseExecutor(ABC):
         Instantiate an engine.
         """
 
-        return self.registry.create(
-            engine_name
-        )
+        return self.registry.create(engine_name)
 
     # =====================================================
     # HOOKS
@@ -137,18 +130,14 @@ class BaseExecutor(ABC):
         result: EngineResult,
     ) -> None:
 
-        self._results.append(
-            result
-        )
+        self._results.append(result)
 
     @property
     def results(
         self,
-    ) -> List[EngineResult]:
+    ) -> list[EngineResult]:
 
-        return list(
-            self._results
-        )
+        return list(self._results)
 
     def clear_results(
         self,
@@ -171,7 +160,7 @@ class BaseExecutor(ABC):
     def get_context(
         self,
         key: str,
-        default: Optional[Any] = None,
+        default: Any | None = None,
     ) -> Any:
 
         return self.context.metadata.get(
@@ -189,18 +178,14 @@ class BaseExecutor(ABC):
         output: Any,
     ) -> None:
 
-        self.context.outputs[
-            engine_name
-        ] = output
+        self.context.outputs[engine_name] = output
 
     def register_artifact(
         self,
         path: str,
     ) -> None:
 
-        self.context.artifacts.add(
-            path
-        )
+        self.context.artifacts.add(path)
 
     # =====================================================
     # INFORMATION
@@ -218,9 +203,7 @@ class BaseExecutor(ABC):
         self,
     ) -> int:
 
-        return len(
-            self._results
-        )
+        return len(self._results)
 
     # =====================================================
     # DUNDER
@@ -230,9 +213,7 @@ class BaseExecutor(ABC):
         self,
     ) -> int:
 
-        return len(
-            self._results
-        )
+        return len(self._results)
 
     def __repr__(
         self,

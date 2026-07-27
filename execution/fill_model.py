@@ -33,7 +33,6 @@ from dataclasses import dataclass
 
 from execution.order import Order
 
-
 # =====================================================
 # FILL RESULT
 # =====================================================
@@ -67,11 +66,8 @@ class FillModel:
     """
 
     def __init__(
-
         self,
-
         allow_partial_fill: bool = True,
-
     ) -> None:
 
         self.allow_partial_fill = allow_partial_fill
@@ -81,63 +77,38 @@ class FillModel:
     # =====================================================
 
     def fill(
-
         self,
-
         order: Order,
-
     ) -> FillResult:
 
         if self.allow_partial_fill:
-
             executed = order.quantity
 
         else:
-
             executed = order.quantity
 
         remaining = max(
-
             0.0,
-
             order.quantity - executed,
-
         )
 
-        ratio = (
-
-            executed / order.quantity
-
-            if order.quantity > 0
-
-            else 0.0
-
-        )
+        ratio = executed / order.quantity if order.quantity > 0 else 0.0
 
         if executed == 0:
-
             status = "REJECTED"
 
         elif remaining > 0:
-
             status = "PARTIALLY_FILLED"
 
         else:
-
             status = "FILLED"
 
         return FillResult(
-
             executed_quantity=executed,
-
             remaining_quantity=remaining,
-
             average_price=order.price or 0.0,
-
             fill_ratio=ratio,
-
             status=status,
-
         )
 
     # =====================================================
@@ -145,19 +116,9 @@ class FillModel:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"PartialFill={self.allow_partial_fill}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(PartialFill={self.allow_partial_fill})"
 
     __str__ = __repr__

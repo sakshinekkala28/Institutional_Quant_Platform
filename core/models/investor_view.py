@@ -27,7 +27,6 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 
 import numpy as np
-
 import pandas as pd
 
 
@@ -45,11 +44,7 @@ class InvestorView:
 
     confidence: np.ndarray
 
-    metadata: dict = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict = field(default_factory=dict)
 
     __hash__ = None
 
@@ -57,34 +52,21 @@ class InvestorView:
     # INITIALIZATION
     # =====================================================
 
-    def __post_init__(
-
-        self
-
-    ) -> None:
+    def __post_init__(self) -> None:
 
         self.pick_matrix = np.asarray(
-
             self.pick_matrix,
-
             dtype=np.float64,
-
         )
 
         self.expected_returns = np.asarray(
-
             self.expected_returns,
-
             dtype=np.float64,
-
         )
 
         self.confidence = np.asarray(
-
             self.confidence,
-
             dtype=np.float64,
-
         )
 
         self.validate()
@@ -94,24 +76,12 @@ class InvestorView:
     # =====================================================
 
     @property
-    def number_of_assets(
+    def number_of_assets(self) -> int:
 
-        self
-
-    ) -> int:
-
-        return len(
-
-            self.symbols
-
-        )
+        return len(self.symbols)
 
     @property
-    def number_of_views(
-
-        self
-
-    ) -> int:
+    def number_of_views(self) -> int:
 
         return self.pick_matrix.shape[0]
 
@@ -119,140 +89,58 @@ class InvestorView:
     # VALIDATION
     # =====================================================
 
-    def validate(
-
-        self
-
-    ) -> None:
+    def validate(self) -> None:
 
         if self.pick_matrix.ndim != 2:
+            raise ValueError("Pick matrix must be two-dimensional.")
 
-            raise ValueError(
-
-                "Pick matrix must be two-dimensional."
-
-            )
-
-        if self.pick_matrix.shape[1] != len(
-
-            self.symbols
-
-        ):
-
-            raise ValueError(
-
-                "Pick matrix dimension mismatch."
-
-            )
+        if self.pick_matrix.shape[1] != len(self.symbols):
+            raise ValueError("Pick matrix dimension mismatch.")
 
         if self.expected_returns.shape[0] != self.number_of_views:
-
-            raise ValueError(
-
-                "Expected returns size mismatch."
-
-            )
+            raise ValueError("Expected returns size mismatch.")
 
         if self.confidence.shape[0] != self.number_of_views:
+            raise ValueError("Confidence vector size mismatch.")
 
-            raise ValueError(
+        if np.isnan(self.pick_matrix).any():
+            raise ValueError("Pick matrix contains NaN.")
 
-                "Confidence vector size mismatch."
+        if np.isnan(self.expected_returns).any():
+            raise ValueError("Expected returns contain NaN.")
 
-            )
-
-        if np.isnan(
-
-            self.pick_matrix
-
-        ).any():
-
-            raise ValueError(
-
-                "Pick matrix contains NaN."
-
-            )
-
-        if np.isnan(
-
-            self.expected_returns
-
-        ).any():
-
-            raise ValueError(
-
-                "Expected returns contain NaN."
-
-            )
-
-        if np.isnan(
-
-            self.confidence
-
-        ).any():
-
-            raise ValueError(
-
-                "Confidence contains NaN."
-
-            )
+        if np.isnan(self.confidence).any():
+            raise ValueError("Confidence contains NaN.")
 
     # =====================================================
     # EXPORT
     # =====================================================
 
-    def to_dataframe(
-
-        self
-
-    ) -> pd.DataFrame:
+    def to_dataframe(self) -> pd.DataFrame:
 
         return pd.DataFrame(
-
             self.pick_matrix,
-
             columns=self.symbols,
-
         )
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         return {
-
-            "Assets":
-
-                self.number_of_assets,
-
-            "Views":
-
-                self.number_of_views,
-
+            "Assets": self.number_of_assets,
+            "Views": self.number_of_views,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Assets={self.number_of_assets}, "
-
             f"Views={self.number_of_views}"
-
             f")"
-
         )
 
     __str__ = __repr__

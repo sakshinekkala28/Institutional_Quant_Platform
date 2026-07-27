@@ -32,8 +32,7 @@ Consumed By
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
+from dataclasses import dataclass, field
 
 
 @dataclass(slots=True)
@@ -128,11 +127,7 @@ class BacktestReport:
     # METADATA
     # =====================================================
 
-    metadata: dict = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict = field(default_factory=dict)
 
     __hash__ = None
 
@@ -142,63 +137,31 @@ class BacktestReport:
 
     @property
     def net_profit(
-
         self,
-
     ) -> float:
 
-        return (
-
-            self.ending_capital
-
-            -
-
-            self.initial_capital
-
-        )
+        return self.ending_capital - self.initial_capital
 
     @property
     def total_cost(
-
         self,
-
     ) -> float:
 
         return (
-
             self.commissions
-
-            +
-
-            self.slippage
-
-            +
-
-            self.market_impact
-
-            +
-
-            self.transaction_cost
-
+            + self.slippage
+            + self.market_impact
+            + self.transaction_cost
         )
 
     @property
     def loss_rate(
-
         self,
-
     ) -> float:
 
         return max(
-
             0.0,
-
-            1.0
-
-            -
-
-            self.win_rate,
-
+            1.0 - self.win_rate,
         )
 
     # =====================================================
@@ -206,57 +169,21 @@ class BacktestReport:
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Initial Capital":
-
-                self.initial_capital,
-
-            "Ending Capital":
-
-                self.ending_capital,
-
-            "Net Profit":
-
-                self.net_profit,
-
-            "Total Return":
-
-                self.total_return,
-
-            "Annual Return":
-
-                self.annual_return,
-
-            "Sharpe":
-
-                self.sharpe_ratio,
-
-            "Sortino":
-
-                self.sortino_ratio,
-
-            "Max Drawdown":
-
-                self.max_drawdown,
-
-            "Win Rate":
-
-                self.win_rate,
-
-            "Trades":
-
-                self.total_trades,
-
-            "Total Cost":
-
-                self.total_cost,
-
+            "Initial Capital": self.initial_capital,
+            "Ending Capital": self.ending_capital,
+            "Net Profit": self.net_profit,
+            "Total Return": self.total_return,
+            "Annual Return": self.annual_return,
+            "Sharpe": self.sharpe_ratio,
+            "Sortino": self.sortino_ratio,
+            "Max Drawdown": self.max_drawdown,
+            "Win Rate": self.win_rate,
+            "Trades": self.total_trades,
+            "Total Cost": self.total_cost,
         }
 
     # =====================================================
@@ -264,23 +191,13 @@ class BacktestReport:
     # =====================================================
 
     def to_dict(
-
         self,
-
     ) -> dict:
 
         return {
-
             **self.__dict__,
-
-            "Net_Profit":
-
-                self.net_profit,
-
-            "Total_Cost":
-
-                self.total_cost,
-
+            "Net_Profit": self.net_profit,
+            "Total_Cost": self.total_cost,
         }
 
     # =====================================================
@@ -288,23 +205,15 @@ class BacktestReport:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Return={self.total_return:.2%}, "
-
             f"Sharpe={self.sharpe_ratio:.2f}, "
-
             f"MDD={self.max_drawdown:.2%}"
-
             f")"
-
         )
 
     __str__ = __repr__

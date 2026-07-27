@@ -10,9 +10,9 @@ Repositories abstract data persistence from business logic.
 
 from __future__ import annotations
 
-import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import logging
 from typing import Generic, TypeVar
 
 logger = logging.getLogger(__name__)
@@ -20,6 +20,7 @@ logger = logging.getLogger(__name__)
 # ======================================================================
 # Domain Model
 # ======================================================================
+
 
 @dataclass(slots=True, frozen=True)
 class Security:
@@ -41,6 +42,7 @@ T = TypeVar("T")
 # ======================================================================
 # Repository Contract
 # ======================================================================
+
 
 class Repository(ABC, Generic[T]):
     """
@@ -70,6 +72,7 @@ class Repository(ABC, Generic[T]):
 # ======================================================================
 # DuckDB Implementation
 # ======================================================================
+
 
 class DuckDBRepository(Repository[Security]):
     """
@@ -121,6 +124,7 @@ class DuckDBRepository(Repository[Security]):
 # PostgreSQL Implementation
 # ======================================================================
 
+
 class PostgreSQLRepository(Repository[Security]):
     """
     Future PostgreSQL implementation.
@@ -144,6 +148,7 @@ class PostgreSQLRepository(Repository[Security]):
 # ======================================================================
 # Repository Service
 # ======================================================================
+
 
 class SecurityService:
     """
@@ -181,6 +186,7 @@ class SecurityService:
 # ======================================================================
 # Example Usage
 # ======================================================================
+
 
 def main() -> None:
 

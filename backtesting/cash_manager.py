@@ -43,18 +43,11 @@ class CashManager:
     initial_cash: float
 
     def __post_init__(
-
         self,
-
     ) -> None:
 
         if self.initial_cash < 0:
-
-            raise ValueError(
-
-                "Initial cash cannot be negative."
-
-            )
+            raise ValueError("Initial cash cannot be negative.")
 
         self.cash = self.initial_cash
 
@@ -63,20 +56,12 @@ class CashManager:
     # =====================================================
 
     def deposit(
-
         self,
-
         amount: float,
-
     ) -> None:
 
         if amount < 0:
-
-            raise ValueError(
-
-                "Deposit must be positive."
-
-            )
+            raise ValueError("Deposit must be positive.")
 
         self.cash += amount
 
@@ -85,28 +70,15 @@ class CashManager:
     # =====================================================
 
     def withdraw(
-
         self,
-
         amount: float,
-
     ) -> None:
 
         if amount < 0:
-
-            raise ValueError(
-
-                "Withdrawal must be positive."
-
-            )
+            raise ValueError("Withdrawal must be positive.")
 
         if amount > self.cash:
-
-            raise ValueError(
-
-                "Insufficient cash."
-
-            )
+            raise ValueError("Insufficient cash.")
 
         self.cash -= amount
 
@@ -115,25 +87,16 @@ class CashManager:
     # =====================================================
 
     def settle(
-
         self,
-
         fill: FillEvent,
-
     ) -> None:
 
-        amount = (
-
-            fill.net_execution_value
-
-        )
+        amount = fill.net_execution_value
 
         if fill.side == "BUY":
-
             self.cash -= amount
 
         else:
-
             self.cash += amount
 
     # =====================================================
@@ -141,9 +104,7 @@ class CashManager:
     # =====================================================
 
     def reset(
-
         self,
-
     ) -> None:
 
         self.cash = self.initial_cash
@@ -154,35 +115,21 @@ class CashManager:
 
     @property
     def balance(
-
         self,
-
     ) -> float:
 
         return self.cash
 
     @property
     def invested_cash(
-
         self,
-
     ) -> float:
 
-        return (
-
-            self.initial_cash
-
-            -
-
-            self.cash
-
-        )
+        return self.initial_cash - self.cash
 
     @property
     def available_cash(
-
         self,
-
     ) -> float:
 
         return self.cash
@@ -192,29 +139,14 @@ class CashManager:
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "InitialCash":
-
-                self.initial_cash,
-
-            "CurrentCash":
-
-                self.cash,
-
-            "InvestedCash":
-
-                self.invested_cash,
-
-            "AvailableCash":
-
-                self.available_cash,
-
+            "InitialCash": self.initial_cash,
+            "CurrentCash": self.cash,
+            "InvestedCash": self.invested_cash,
+            "AvailableCash": self.available_cash,
         }
 
     # =====================================================
@@ -222,19 +154,9 @@ class CashManager:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Cash={self.cash:,.2f}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Cash={self.cash:,.2f})"
 
     __str__ = __repr__

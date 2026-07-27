@@ -37,7 +37,7 @@ class Timer:
     # CONTEXT MANAGER
     # =====================================================
 
-    def __enter__(self) -> "Timer":
+    def __enter__(self) -> Timer:
 
         self.start()
 
@@ -72,16 +72,9 @@ class Timer:
     def elapsed(self) -> float:
 
         if self._end == 0:
+            return perf_counter() - self._start
 
-            return (
-                perf_counter()
-                - self._start
-            )
-
-        return (
-            self._end
-            - self._start
-        )
+        return self._end - self._start
 
     @property
     def elapsed_ms(self) -> float:
@@ -107,6 +100,4 @@ class Timer:
         self,
     ) -> str:
 
-        return (
-            f"{self.elapsed:.2f}s"
-        )
+        return f"{self.elapsed:.2f}s"

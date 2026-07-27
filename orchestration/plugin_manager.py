@@ -31,29 +31,26 @@ Registry EventBus  HookManager
 
 from __future__ import annotations
 
+from collections.abc import Iterable
 from typing import Any
-from typing import Iterable
 
 from orchestration.events.event_bus import (
     EventBus,
 )
-
 from orchestration.hook_manager import (
     HookManager,
 )
-
 from orchestration.plugin_registry import (
     PluginRegistry,
 )
-
 from orchestration.plugins.base_plugin import (
     BasePlugin,
 )
 
-
 # =========================================================
 # PLUGIN MANAGER
 # =========================================================
+
 
 class PluginManager:
     """
@@ -82,11 +79,7 @@ class PluginManager:
         Register plugin.
         """
 
-        self.registry.register(
-
-            plugin
-
-        )
+        self.registry.register(plugin)
 
     # -----------------------------------------------------
 
@@ -96,12 +89,7 @@ class PluginManager:
     ) -> None:
 
         for plugin in plugins:
-
-            self.register(
-
-                plugin
-
-            )
+            self.register(plugin)
 
     # =====================================================
     # INITIALIZATION
@@ -132,11 +120,8 @@ class PluginManager:
     ) -> None:
 
         self.events.publish(
-
             event,
-
             **payload,
-
         )
 
     # =====================================================
@@ -150,11 +135,8 @@ class PluginManager:
     ) -> None:
 
         self.hooks.execute(
-
             hook,
-
             **payload,
-
         )
 
     # =====================================================
@@ -166,11 +148,7 @@ class PluginManager:
         module,
     ) -> None:
 
-        self.registry.discover(
-
-            module
-
-        )
+        self.registry.discover(module)
 
     # =====================================================
     # SUMMARY
@@ -181,31 +159,15 @@ class PluginManager:
     ) -> dict:
 
         return {
-
-            "plugins":
-
-                len(
-
-                    self.registry,
-
-                ),
-
-            "events":
-
-                len(
-
-                    self.events,
-
-                ),
-
-            "hooks":
-
-                len(
-
-                    self.hooks,
-
-                ),
-
+            "plugins": len(
+                self.registry,
+            ),
+            "events": len(
+                self.events,
+            ),
+            "hooks": len(
+                self.hooks,
+            ),
         }
 
     # =====================================================
@@ -217,13 +179,8 @@ class PluginManager:
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"plugins={len(self.registry)}, "
-
             f"events={len(self.events)}, "
-
             f"hooks={len(self.hooks)})"
-
         )

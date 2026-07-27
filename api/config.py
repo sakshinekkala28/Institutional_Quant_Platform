@@ -34,9 +34,7 @@ from functools import lru_cache
 from pathlib import Path
 
 from pydantic import Field
-from pydantic_settings import BaseSettings
-from pydantic_settings import SettingsConfigDict
-
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
 # ==========================================================
 # SETTINGS
@@ -55,27 +53,19 @@ class Settings(
     # =====================================================
 
     APP_NAME: str = Field(
-
         default="Institutional Quant Platform",
-
     )
 
     APP_VERSION: str = Field(
-
         default="1.0.0",
-
     )
 
     ENVIRONMENT: str = Field(
-
         default="development",
-
     )
 
     DEBUG: bool = Field(
-
         default=False,
-
     )
 
     # =====================================================
@@ -83,21 +73,15 @@ class Settings(
     # =====================================================
 
     API_HOST: str = Field(
-
         default="0.0.0.0",
-
     )
 
     API_PORT: int = Field(
-
         default=8000,
-
     )
 
     API_PREFIX: str = Field(
-
         default="/api/v1",
-
     )
 
     # =====================================================
@@ -105,15 +89,11 @@ class Settings(
     # =====================================================
 
     SECRET_KEY: str = Field(
-
         default="CHANGE_ME",
-
     )
 
     ACCESS_TOKEN_EXPIRE_MINUTES: int = Field(
-
         default=60,
-
     )
 
     # =====================================================
@@ -121,33 +101,21 @@ class Settings(
     # =====================================================
 
     ALLOWED_ORIGINS: list[str] = Field(
-
         default=[
-
             "*",
-
         ],
-
     )
 
     ALLOWED_METHODS: list[str] = Field(
-
         default=[
-
             "*",
-
         ],
-
     )
 
     ALLOWED_HEADERS: list[str] = Field(
-
         default=[
-
             "*",
-
         ],
-
     )
 
     # =====================================================
@@ -155,9 +123,7 @@ class Settings(
     # =====================================================
 
     DATABASE_URL: str = Field(
-
         default="sqlite:///institutional_quant.db",
-
     )
 
     # =====================================================
@@ -165,19 +131,13 @@ class Settings(
     # =====================================================
 
     LOG_LEVEL: str = Field(
-
         default="INFO",
-
     )
 
     LOG_DIRECTORY: Path = Field(
-
         default=Path(
-
             "logs",
-
         ),
-
     )
 
     # =====================================================
@@ -185,21 +145,15 @@ class Settings(
     # =====================================================
 
     ENABLE_METRICS: bool = Field(
-
         default=True,
-
     )
 
     ENABLE_TELEMETRY: bool = Field(
-
         default=True,
-
     )
 
     ENABLE_HEALTH_CHECK: bool = Field(
-
         default=True,
-
     )
 
     # =====================================================
@@ -207,15 +161,11 @@ class Settings(
     # =====================================================
 
     CACHE_ENABLED: bool = Field(
-
         default=True,
-
     )
 
     CACHE_TTL_SECONDS: int = Field(
-
         default=300,
-
     )
 
     # =====================================================
@@ -223,15 +173,10 @@ class Settings(
     # =====================================================
 
     model_config = SettingsConfigDict(
-
         env_file=".env",
-
         env_file_encoding="utf-8",
-
         case_sensitive=True,
-
         extra="ignore",
-
     )
 
 
@@ -241,9 +186,7 @@ class Settings(
 
 
 @lru_cache
-def get_settings(
-
-) -> Settings:
+def get_settings() -> Settings:
     """
     Cached settings instance.
     """
@@ -256,9 +199,7 @@ def get_settings(
 # ==========================================================
 
 
-def api_metadata(
-
-) -> dict:
+def api_metadata() -> dict:
     """
     FastAPI metadata.
     """
@@ -266,35 +207,12 @@ def api_metadata(
     settings = get_settings()
 
     return {
-
-        "title":
-
-            settings.APP_NAME,
-
-        "version":
-
-            settings.APP_VERSION,
-
-        "description":
-
-            (
-
-                "Institutional-grade "
-
-                "quantitative investment "
-
-                "platform."
-
-            ),
-
+        "title": settings.APP_NAME,
+        "version": settings.APP_VERSION,
+        "description": ("Institutional-grade quantitative investment platform."),
         "contact": {
-
-            "name":
-
-                "Institutional Quant Platform",
-
+            "name": "Institutional Quant Platform",
         },
-
     }
 
 
@@ -303,9 +221,7 @@ def api_metadata(
 # ==========================================================
 
 
-def cors_configuration(
-
-) -> dict:
+def cors_configuration() -> dict:
     """
     CORS settings.
     """
@@ -313,23 +229,10 @@ def cors_configuration(
     settings = get_settings()
 
     return {
-
-        "allow_origins":
-
-            settings.ALLOWED_ORIGINS,
-
-        "allow_credentials":
-
-            True,
-
-        "allow_methods":
-
-            settings.ALLOWED_METHODS,
-
-        "allow_headers":
-
-            settings.ALLOWED_HEADERS,
-
+        "allow_origins": settings.ALLOWED_ORIGINS,
+        "allow_credentials": True,
+        "allow_methods": settings.ALLOWED_METHODS,
+        "allow_headers": settings.ALLOWED_HEADERS,
     }
 
 
@@ -338,44 +241,17 @@ def cors_configuration(
 # ==========================================================
 
 
-def summary(
-
-) -> dict:
+def summary() -> dict:
 
     settings = get_settings()
 
     return {
-
-        "Application":
-
-            settings.APP_NAME,
-
-        "Version":
-
-            settings.APP_VERSION,
-
-        "Environment":
-
-            settings.ENVIRONMENT,
-
-        "Host":
-
-            settings.API_HOST,
-
-        "Port":
-
-            settings.API_PORT,
-
-        "Debug":
-
-            settings.DEBUG,
-
-        "Metrics":
-
-            settings.ENABLE_METRICS,
-
-        "Telemetry":
-
-            settings.ENABLE_TELEMETRY,
-
+        "Application": settings.APP_NAME,
+        "Version": settings.APP_VERSION,
+        "Environment": settings.ENVIRONMENT,
+        "Host": settings.API_HOST,
+        "Port": settings.API_PORT,
+        "Debug": settings.DEBUG,
+        "Metrics": settings.ENABLE_METRICS,
+        "Telemetry": settings.ENABLE_TELEMETRY,
     }

@@ -35,33 +35,14 @@ from __future__ import annotations
 from functools import lru_cache
 
 from alpha.signal_engine import (
-    SignalEngine,
-)
-
-from alpha.signal_engine import (
     AlphaEngine,
-)
-
-from alpha.signal_engine import (
+    FactorDiagnostics,
     FactorEngine,
-)
-
-from alpha.signal_engine import (
+    RegimeEngine,
+    SelectionScoreEngine,
+    SignalEngine,
     UniverseBuilder,
 )
-
-from alpha.signal_engine import (
-    RegimeEngine,
-)
-
-from alpha.signal_engine import (
-    SelectionScoreEngine,
-)
-
-from alpha.signal_engine import (
-    FactorDiagnostics,
-)
-
 
 # ==========================================================
 # SIGNAL ENGINE
@@ -69,9 +50,7 @@ from alpha.signal_engine import (
 
 
 @lru_cache
-def get_signal_engine(
-
-) -> SignalEngine:
+def get_signal_engine() -> SignalEngine:
     """
     Signal engine singleton.
     """
@@ -85,9 +64,7 @@ def get_signal_engine(
 
 
 @lru_cache
-def get_alpha_engine(
-
-) -> AlphaEngine:
+def get_alpha_engine() -> AlphaEngine:
     """
     Alpha engine.
     """
@@ -101,9 +78,7 @@ def get_alpha_engine(
 
 
 @lru_cache
-def get_factor_engine(
-
-) -> FactorEngine:
+def get_factor_engine() -> FactorEngine:
     """
     Factor engine.
     """
@@ -117,9 +92,7 @@ def get_factor_engine(
 
 
 @lru_cache
-def get_universe_builder(
-
-) -> UniverseBuilder:
+def get_universe_builder() -> UniverseBuilder:
     """
     Universe builder.
     """
@@ -133,9 +106,7 @@ def get_universe_builder(
 
 
 @lru_cache
-def get_regime_engine(
-
-) -> RegimeEngine:
+def get_regime_engine() -> RegimeEngine:
     """
     Market regime engine.
     """
@@ -149,9 +120,7 @@ def get_regime_engine(
 
 
 @lru_cache
-def get_selection_engine(
-
-) -> SelectionScoreEngine:
+def get_selection_engine() -> SelectionScoreEngine:
     """
     Selection engine.
     """
@@ -165,9 +134,7 @@ def get_selection_engine(
 
 
 @lru_cache
-def get_factor_diagnostics(
-
-) -> FactorDiagnostics:
+def get_factor_diagnostics() -> FactorDiagnostics:
     """
     Diagnostics engine.
     """
@@ -180,21 +147,15 @@ def get_factor_diagnostics(
 # ==========================================================
 
 
-def signal_health(
-
-) -> dict:
+def signal_health() -> dict:
     """
     Dependency health.
     """
 
     return {
-
         "engine": "SignalEngine",
-
         "status": "healthy",
-
         "singleton": True,
-
     }
 
 
@@ -203,35 +164,22 @@ def signal_health(
 # ==========================================================
 
 
-def signal_summary(
-
-) -> dict:
+def signal_summary() -> dict:
     """
     Registered services.
     """
 
     return {
-
         "services": [
-
             "SignalEngine",
-
             "AlphaEngine",
-
             "FactorEngine",
-
             "UniverseBuilder",
-
             "RegimeEngine",
-
             "SelectionScoreEngine",
-
             "FactorDiagnostics",
-
         ],
-
         "count": 7,
-
     }
 
 
@@ -241,23 +189,13 @@ def signal_summary(
 
 
 __all__ = [
-
-    "get_signal_engine",
-
     "get_alpha_engine",
-
-    "get_factor_engine",
-
-    "get_universe_builder",
-
-    "get_regime_engine",
-
-    "get_selection_engine",
-
     "get_factor_diagnostics",
-
+    "get_factor_engine",
+    "get_regime_engine",
+    "get_selection_engine",
+    "get_signal_engine",
+    "get_universe_builder",
     "signal_health",
-
     "signal_summary",
-
 ]

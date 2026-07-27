@@ -25,10 +25,10 @@ from typing import Any
 from orchestration.audit_logger import AuditLogger
 from orchestration.plugins.base_plugin import BasePlugin
 
-
 # ==========================================================
 # AUDIT PLUGIN
 # ==========================================================
+
 
 class AuditPlugin(BasePlugin):
     """
@@ -58,11 +58,8 @@ class AuditPlugin(BasePlugin):
     def initialize(self) -> None:
 
         self.audit.record(
-
             event="PLUGIN_INITIALIZED",
-
             component=self.NAME,
-
         )
 
     # -----------------------------------------------------
@@ -70,11 +67,8 @@ class AuditPlugin(BasePlugin):
     def shutdown(self) -> None:
 
         self.audit.record(
-
             event="PLUGIN_SHUTDOWN",
-
             component=self.NAME,
-
         )
 
         self.audit.save()
@@ -98,15 +92,10 @@ class AuditPlugin(BasePlugin):
     ) -> None:
 
         self.audit.platform_finished(
-
             payload.get(
-
                 "status",
-
                 "SUCCESS",
-
             )
-
         )
 
     # -----------------------------------------------------
@@ -117,13 +106,9 @@ class AuditPlugin(BasePlugin):
     ) -> None:
 
         self.audit.record(
-
             event="PLATFORM_FAILED",
-
             component="Platform",
-
             **payload,
-
         )
 
     # =====================================================
@@ -136,11 +121,7 @@ class AuditPlugin(BasePlugin):
         **payload: Any,
     ) -> None:
 
-        self.audit.pipeline_started(
-
-            pipeline
-
-        )
+        self.audit.pipeline_started(pipeline)
 
     # -----------------------------------------------------
 
@@ -151,17 +132,11 @@ class AuditPlugin(BasePlugin):
     ) -> None:
 
         self.audit.pipeline_finished(
-
             pipeline,
-
             payload.get(
-
                 "status",
-
                 "SUCCESS",
-
             ),
-
         )
 
     # -----------------------------------------------------
@@ -173,13 +148,9 @@ class AuditPlugin(BasePlugin):
     ) -> None:
 
         self.audit.record(
-
             event="PIPELINE_FAILED",
-
             component=pipeline,
-
             **payload,
-
         )
 
     # =====================================================
@@ -192,11 +163,7 @@ class AuditPlugin(BasePlugin):
         **payload: Any,
     ) -> None:
 
-        self.audit.engine_started(
-
-            engine
-
-        )
+        self.audit.engine_started(engine)
 
     # -----------------------------------------------------
 
@@ -207,25 +174,15 @@ class AuditPlugin(BasePlugin):
     ) -> None:
 
         self.audit.engine_finished(
-
             engine,
-
             payload.get(
-
                 "status",
-
                 "SUCCESS",
-
             ),
-
             payload.get(
-
                 "duration",
-
                 0.0,
-
             ),
-
         )
 
     # -----------------------------------------------------
@@ -237,13 +194,9 @@ class AuditPlugin(BasePlugin):
     ) -> None:
 
         self.audit.record(
-
             event="ENGINE_FAILED",
-
             component=engine,
-
             **payload,
-
         )
 
     # =====================================================
@@ -257,17 +210,11 @@ class AuditPlugin(BasePlugin):
     ) -> None:
 
         self.audit.exception(
-
             payload.get(
-
                 "component",
-
                 "Unknown",
-
             ),
-
             exception,
-
         )
 
     # =====================================================
@@ -277,27 +224,12 @@ class AuditPlugin(BasePlugin):
     def summary(self) -> dict:
 
         return {
-
-            "plugin":
-
-                self.NAME,
-
-            "version":
-
-                self.VERSION,
-
-            "enabled":
-
-                self.ENABLED,
-
-            "events":
-
-                len(
-
-                    self.audit,
-
-                ),
-
+            "plugin": self.NAME,
+            "version": self.VERSION,
+            "enabled": self.ENABLED,
+            "events": len(
+                self.audit,
+            ),
         }
 
     # =====================================================
@@ -306,10 +238,4 @@ class AuditPlugin(BasePlugin):
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"events={len(self.audit)})"
-
-        )
+        return f"{self.__class__.__name__}(events={len(self.audit)})"

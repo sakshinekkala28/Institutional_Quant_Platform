@@ -31,20 +31,14 @@ for configuration throughout the platform.
 from __future__ import annotations
 
 from copy import deepcopy
+import json
+import os
 from pathlib import Path
 from threading import RLock
 from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Set
 
-import json
-import os
-
-from core.settings import settings
 from core.services.base_service import BaseService
-
+from core.settings import settings
 
 # ============================================================
 # Exceptions
@@ -84,7 +78,7 @@ class ConfigService(BaseService):
     • Health checks
     """
 
-    _instance: Optional["ConfigService"] = None
+    _instance: ConfigService | None = None
 
     _instance_lock = RLock()
 
@@ -93,11 +87,8 @@ class ConfigService(BaseService):
     def __new__(cls, *args, **kwargs):
 
         if cls._instance is None:
-
             with cls._instance_lock:
-
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
@@ -107,24 +98,23 @@ class ConfigService(BaseService):
     def __init__(self) -> None:
 
         if getattr(self, "_initialized", False):
-
             return
 
         super().__init__()
 
         self._settings = settings
 
-        self._runtime_overrides: Dict[str, Any] = {}
+        self._runtime_overrides: dict[str, Any] = {}
 
-        self._validators: Dict[str, Any] = {}
+        self._validators: dict[str, Any] = {}
 
-        self._feature_flags: Dict[str, bool] = {}
+        self._feature_flags: dict[str, bool] = {}
 
         self._lock = RLock()
 
-        self._configuration_registry: Dict[str, Any] = {}
+        self._configuration_registry: dict[str, Any] = {}
 
-        self._registered_sections: Set[str] = set()
+        self._registered_sections: set[str] = set()
 
         self._initialized = True
 
@@ -132,9 +122,7 @@ class ConfigService(BaseService):
 
         self._register_default_validators()
 
-        self._logger.info(
-            "Configuration service initialized."
-        )
+        self._logger.info("Configuration service initialized.")
 
     # ========================================================
     # Registry
@@ -146,25 +134,15 @@ class ConfigService(BaseService):
         """
 
         registry = {
-
             "environment": self._settings.environment,
-
             "portfolio": self._settings.portfolio,
-
             "risk": self._settings.risk,
-
             "execution": self._settings.execution,
-
             "governance": self._settings.governance,
-
             "database": self._settings.database,
-
             "surveillance": self._settings.surveillance,
-
             "performance": self._settings.performance,
-
             "regime": self._settings.regime,
-
             "forecast": self._settings.forecast,
         }
 
@@ -182,17 +160,11 @@ class ConfigService(BaseService):
         """
 
         self._validators = {
-
             "portfolio": self._validate_portfolio,
-
             "risk": self._validate_risk,
-
             "execution": self._validate_execution,
-
             "governance": self._validate_governance,
-
             "database": self._validate_database,
-
             "environment": self._validate_environment,
         }
 
@@ -200,55 +172,28 @@ class ConfigService(BaseService):
     # Registration API
     # ========================================================
 
-    def register_validator(
-
-        self,
-
-        section: str,
-
-        validator
-
-    ) -> None:
+    def register_validator(self, section: str, validator) -> None:
         """
         Register custom validator.
         """
 
         with self._lock:
-
             self._validators[section] = validator
 
-    def register_feature_flag(
-
-        self,
-
-        name: str,
-
-        enabled: bool
-
-    ) -> None:
+    def register_feature_flag(self, name: str, enabled: bool) -> None:
         """
         Register feature flag.
         """
 
         with self._lock:
-
             self._feature_flags[name] = enabled
 
-    def register_section(
-
-        self,
-
-        name: str,
-
-        configuration: Any
-
-    ) -> None:
+    def register_section(self, name: str, configuration: Any) -> None:
         """
         Register additional configuration section.
         """
 
         with self._lock:
-
             self._configuration_registry[name] = configuration
 
             self._registered_sections.add(name)
@@ -257,44 +202,22 @@ class ConfigService(BaseService):
     # Runtime Overrides
     # ========================================================
 
-    def set_runtime_override(
-
-        self,
-
-        key: str,
-
-        value: Any
-
-    ) -> None:
+    def set_runtime_override(self, key: str, value: Any) -> None:
         """
         Override a configuration value at runtime.
         """
 
         with self._lock:
-
             self._runtime_overrides[key] = value
 
-            self._logger.info(
+            self._logger.info("Runtime override applied: %s", key)
 
-                "Runtime override applied: %s",
-
-                key
-
-            )
-
-    def clear_runtime_override(
-
-        self,
-
-        key: str
-
-    ) -> None:
+    def clear_runtime_override(self, key: str) -> None:
         """
         Remove runtime override.
         """
 
         with self._lock:
-
             self._runtime_overrides.pop(key, None)
 
     def clear_all_runtime_overrides(self) -> None:
@@ -303,7 +226,6 @@ class ConfigService(BaseService):
         """
 
         with self._lock:
-
             self._runtime_overrides.clear()
 
     # ========================================================
@@ -311,59 +233,36 @@ class ConfigService(BaseService):
     # ========================================================
 
     @property
-    def sections(self) -> List[str]:
+    def sections(self) -> list[str]:
 
-        return sorted(
-
-            self._registered_sections
-
-        )
+        return sorted(self._registered_sections)
 
     @property
-    def runtime_overrides(self) -> Dict[str, Any]:
+    def runtime_overrides(self) -> dict[str, Any]:
 
-        return deepcopy(
-
-            self._runtime_overrides
-
-        )
+        return deepcopy(self._runtime_overrides)
 
     @property
-    def feature_flags(self) -> Dict[str, bool]:
+    def feature_flags(self) -> dict[str, bool]:
 
-        return deepcopy(
-
-            self._feature_flags
-
-        )
+        return deepcopy(self._feature_flags)
 
     # ========================================================
     # Service Entry Point
     # ========================================================
 
     def run(self):
-
         """
         BaseService entry point.
         """
 
         return self.snapshot()
-    
+
     # ========================================================
     # Configuration Lookup
     # ========================================================
 
-    def get(
-
-        self,
-
-        section: str,
-
-        key: Optional[str] = None,
-
-        default: Any = None
-
-    ) -> Any:
+    def get(self, section: str, key: str | None = None, default: Any = None) -> Any:
         """
         Retrieve a configuration value.
 
@@ -378,27 +277,19 @@ class ConfigService(BaseService):
         section = section.lower()
 
         if section not in self._configuration_registry:
-
             if default is not None:
-
                 return default
 
-            raise ConfigurationNotFound(
-
-                f"Unknown configuration section '{section}'."
-
-            )
+            raise ConfigurationNotFound(f"Unknown configuration section '{section}'.")
 
         configuration = self._configuration_registry[section]
 
         if key is None:
-
             return configuration
 
         override_key = f"{section}.{key}"
 
         if override_key in self._runtime_overrides:
-
             return self._runtime_overrides[override_key]
 
         env_key = override_key.upper().replace(".", "_")
@@ -406,36 +297,21 @@ class ConfigService(BaseService):
         env_value = os.getenv(env_key)
 
         if env_value is not None:
-
             return self._cast_environment_value(env_value)
 
         if hasattr(configuration, key):
-
             return getattr(configuration, key)
 
         if default is not None:
-
             return default
 
-        raise ConfigurationNotFound(
-
-            f"Configuration '{override_key}' not found."
-
-        )
+        raise ConfigurationNotFound(f"Configuration '{override_key}' not found.")
 
     # ========================================================
     # Exists
     # ========================================================
 
-    def exists(
-
-        self,
-
-        section: str,
-
-        key: Optional[str] = None
-
-    ) -> bool:
+    def exists(self, section: str, key: str | None = None) -> bool:
         """
         Determine whether a configuration exists.
         """
@@ -443,11 +319,9 @@ class ConfigService(BaseService):
         section = section.lower()
 
         if section not in self._configuration_registry:
-
             return False
 
         if key is None:
-
             return True
 
         configuration = self._configuration_registry[section]
@@ -502,25 +376,11 @@ class ConfigService(BaseService):
     # Section Utilities
     # ========================================================
 
-    def list_sections(
+    def list_sections(self) -> list[str]:
 
-        self
+        return sorted(self._registered_sections)
 
-    ) -> List[str]:
-
-        return sorted(
-
-            self._registered_sections
-
-        )
-
-    def list_keys(
-
-        self,
-
-        section: str
-
-    ) -> List[str]:
+    def list_keys(self, section: str) -> list[str]:
         """
         List configuration keys.
         """
@@ -528,245 +388,104 @@ class ConfigService(BaseService):
         configuration = self.get(section)
 
         return sorted(
-
             [
-
                 attribute
-
                 for attribute in vars(configuration)
-
                 if not attribute.startswith("_")
-
             ]
-
         )
 
     # ========================================================
     # Environment Helpers
     # ========================================================
 
-    def environment(
+    def environment(self) -> str:
 
-        self
+        return self.get("environment", "ENVIRONMENT")
 
-    ) -> str:
+    def is_production(self) -> bool:
 
-        return self.get(
+        return self.environment().upper() == "PRODUCTION"
 
-            "environment",
+    def is_development(self) -> bool:
 
-            "ENVIRONMENT"
+        return self.environment().upper() == "DEVELOPMENT"
 
-        )
+    def is_testing(self) -> bool:
 
-    def is_production(
+        return self.environment().upper() == "TESTING"
 
-        self
+    def debug_enabled(self) -> bool:
 
-    ) -> bool:
-
-        return (
-
-            self.environment().upper()
-
-            == "PRODUCTION"
-
-        )
-
-    def is_development(
-
-        self
-
-    ) -> bool:
-
-        return (
-
-            self.environment().upper()
-
-            == "DEVELOPMENT"
-
-        )
-
-    def is_testing(
-
-        self
-
-    ) -> bool:
-
-        return (
-
-            self.environment().upper()
-
-            == "TESTING"
-
-        )
-
-    def debug_enabled(
-
-        self
-
-    ) -> bool:
-
-        return bool(
-
-            self.get(
-
-                "environment",
-
-                "DEBUG"
-
-            )
-
-        )
+        return bool(self.get("environment", "DEBUG"))
 
     # ========================================================
     # Feature Flags
     # ========================================================
 
-    def feature_enabled(
-
-        self,
-
-        name: str
-
-    ) -> bool:
+    def feature_enabled(self, name: str) -> bool:
         """
         Determine whether a feature flag is enabled.
         """
 
-        return bool(
-
-            self._feature_flags.get(
-
-                name,
-
-                False
-
-            )
-
-        )
+        return bool(self._feature_flags.get(name, False))
 
     # ========================================================
     # Path Resolution
     # ========================================================
 
-    def root_directory(
+    def root_directory(self) -> Path:
 
-        self
+        return self.get("environment", "ROOT_DIR")
 
-    ) -> Path:
-
-        return self.get(
-
-            "environment",
-
-            "ROOT_DIR"
-
-        )
-
-    def resolve_path(
-
-        self,
-
-        *paths: str
-
-    ) -> Path:
+    def resolve_path(self, *paths: str) -> Path:
         """
         Resolve a path relative to project root.
         """
 
-        return (
+        return self.root_directory().joinpath(*paths).resolve()
 
-            self.root_directory()
+    def data_directory(self) -> Path:
 
-            .joinpath(*paths)
+        return self.resolve_path("data")
 
-            .resolve()
+    def logs_directory(self) -> Path:
 
-        )
+        return self.resolve_path("logs")
 
-    def data_directory(
+    def reports_directory(self) -> Path:
 
-        self
-
-    ) -> Path:
-
-        return self.resolve_path(
-
-            "data"
-
-        )
-
-    def logs_directory(
-
-        self
-
-    ) -> Path:
-
-        return self.resolve_path(
-
-            "logs"
-
-        )
-
-    def reports_directory(
-
-        self
-
-    ) -> Path:
-
-        return self.resolve_path(
-
-            "data",
-
-            "reports"
-
-        )
+        return self.resolve_path("data", "reports")
 
     # ========================================================
     # Internal Helpers
     # ========================================================
 
     @staticmethod
-    def _cast_environment_value(
-
-        value: str
-
-    ) -> Any:
+    def _cast_environment_value(value: str) -> Any:
         """
         Convert environment variables into native types.
         """
 
         lowered = value.lower()
 
-        if lowered in {
-
-            "true",
-
-            "false"
-
-        }:
-
+        if lowered in {"true", "false"}:
             return lowered == "true"
 
         try:
-
             return int(value)
 
         except ValueError:
-
             pass
 
         try:
-
             return float(value)
 
         except ValueError:
-
             pass
 
         return value
-    
+
     # ========================================================
     # Validation
     # ========================================================
@@ -777,14 +496,9 @@ class ConfigService(BaseService):
         """
 
         for section, validator in self._validators.items():
-
             validator()
 
-        self._logger.info(
-
-            "Configuration validation completed successfully."
-
-        )
+        self._logger.info("Configuration validation completed successfully.")
 
         return True
 
@@ -793,21 +507,13 @@ class ConfigService(BaseService):
         environment = self.get_environment()
 
         if environment.ENVIRONMENT not in {
-
             "DEVELOPMENT",
-
             "TESTING",
-
             "UAT",
-
             "PRODUCTION",
-
         }:
-
             raise ConfigurationValidationError(
-
                 f"Invalid environment '{environment.ENVIRONMENT}'."
-
             )
 
     def _validate_portfolio(self) -> None:
@@ -815,33 +521,18 @@ class ConfigService(BaseService):
         portfolio = self.get_portfolio()
 
         if portfolio.MIN_POSITION_WEIGHT <= 0:
-
             raise ConfigurationValidationError(
-
                 "Minimum position weight must be positive."
-
             )
 
-        if (
-
-            portfolio.MAX_POSITION_WEIGHT
-
-            <= portfolio.MIN_POSITION_WEIGHT
-
-        ):
-
+        if portfolio.MAX_POSITION_WEIGHT <= portfolio.MIN_POSITION_WEIGHT:
             raise ConfigurationValidationError(
-
                 "Maximum position weight must exceed minimum position weight."
-
             )
 
         if portfolio.TARGET_HOLDINGS <= 0:
-
             raise ConfigurationValidationError(
-
                 "Target holdings must be greater than zero."
-
             )
 
     def _validate_risk(self) -> None:
@@ -849,19 +540,11 @@ class ConfigService(BaseService):
         risk = self.get_risk()
 
         if risk.MIN_BETA >= risk.MAX_BETA:
-
-            raise ConfigurationValidationError(
-
-                "MIN_BETA must be less than MAX_BETA."
-
-            )
+            raise ConfigurationValidationError("MIN_BETA must be less than MAX_BETA.")
 
         if not (0.0 < risk.VAR_CONFIDENCE < 1.0):
-
             raise ConfigurationValidationError(
-
                 "VAR_CONFIDENCE must be between 0 and 1."
-
             )
 
     def _validate_execution(self) -> None:
@@ -869,42 +552,27 @@ class ConfigService(BaseService):
         execution = self.get_execution()
 
         if execution.MAX_PARTICIPATION_RATE <= 0:
-
-            raise ConfigurationValidationError(
-
-                "Participation rate must be positive."
-
-            )
+            raise ConfigurationValidationError("Participation rate must be positive.")
 
     def _validate_governance(self) -> None:
 
         governance = self.get_governance()
 
         if governance.MAX_TURNOVER <= 0:
-
-            raise ConfigurationValidationError(
-
-                "MAX_TURNOVER must be positive."
-
-            )
+            raise ConfigurationValidationError("MAX_TURNOVER must be positive.")
 
     def _validate_database(self) -> None:
 
         database = self.get_database()
 
         if not database.DATABASE_NAME:
-
-            raise ConfigurationValidationError(
-
-                "Database name cannot be empty."
-
-            )
+            raise ConfigurationValidationError("Database name cannot be empty.")
 
     # ========================================================
     # Snapshot
     # ========================================================
 
-    def snapshot(self) -> Dict[str, Any]:
+    def snapshot(self) -> dict[str, Any]:
         """
         Return a complete immutable configuration snapshot.
         """
@@ -912,22 +580,13 @@ class ConfigService(BaseService):
         snapshot = {}
 
         for section in self.list_sections():
-
             configuration = self.get(section)
 
             snapshot[section] = vars(configuration).copy()
 
-        snapshot["runtime_overrides"] = deepcopy(
+        snapshot["runtime_overrides"] = deepcopy(self._runtime_overrides)
 
-            self._runtime_overrides
-
-        )
-
-        snapshot["feature_flags"] = deepcopy(
-
-            self._feature_flags
-
-        )
+        snapshot["feature_flags"] = deepcopy(self._feature_flags)
 
         return snapshot
 
@@ -935,51 +594,27 @@ class ConfigService(BaseService):
     # Export
     # ========================================================
 
-    def export_json(
-
-        self,
-
-        output_file: Path
-
-    ) -> Path:
+    def export_json(self, output_file: Path) -> Path:
         """
         Export configuration snapshot to JSON.
         """
 
         output_file.parent.mkdir(
-
             parents=True,
-
             exist_ok=True,
-
         )
 
-        with output_file.open(
-
-            "w",
-
-            encoding="utf-8"
-
-        ) as handle:
-
+        with output_file.open("w", encoding="utf-8") as handle:
             json.dump(
-
                 self.snapshot(),
-
                 handle,
-
                 indent=4,
-
                 default=str,
-
             )
 
         self._logger.info(
-
             "Configuration exported to %s",
-
             output_file,
-
         )
 
         return output_file
@@ -994,16 +629,11 @@ class ConfigService(BaseService):
         """
 
         with self._lock:
-
             self._build_registry()
 
             self.validate()
 
-            self._logger.info(
-
-                "Configuration registry reloaded."
-
-            )
+            self._logger.info("Configuration registry reloaded.")
 
     def reset(self) -> None:
         """
@@ -1011,151 +641,78 @@ class ConfigService(BaseService):
         """
 
         with self._lock:
-
             self._runtime_overrides.clear()
 
             self._feature_flags.clear()
 
-            self._logger.info(
-
-                "Runtime configuration reset."
-
-            )
+            self._logger.info("Runtime configuration reset.")
 
     # ========================================================
     # Health
     # ========================================================
 
-    def health(self) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """
         Configuration service health report.
         """
 
         try:
-
             self.validate()
 
             status = "HEALTHY"
 
         except Exception as exc:
-
             status = "FAILED"
 
             return {
-
                 "status": status,
-
                 "error": str(exc),
-
             }
 
         return {
-
             "status": status,
-
             "environment": self.environment(),
-
-            "registered_sections": len(
-
-                self._registered_sections
-
-            ),
-
-            "runtime_overrides": len(
-
-                self._runtime_overrides
-
-            ),
-
-            "feature_flags": len(
-
-                self._feature_flags
-
-            ),
-
+            "registered_sections": len(self._registered_sections),
+            "runtime_overrides": len(self._runtime_overrides),
+            "feature_flags": len(self._feature_flags),
         }
 
     # ========================================================
     # Diagnostics
     # ========================================================
 
-    def statistics(self) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """
         Service statistics.
         """
 
         return {
-
             "service": self.__class__.__name__,
-
             "sections": self.list_sections(),
-
-            "section_count": len(
-
-                self._registered_sections
-
-            ),
-
-            "validator_count": len(
-
-                self._validators
-
-            ),
-
-            "runtime_override_count": len(
-
-                self._runtime_overrides
-
-            ),
-
-            "feature_flag_count": len(
-
-                self._feature_flags
-
-            ),
-
+            "section_count": len(self._registered_sections),
+            "validator_count": len(self._validators),
+            "runtime_override_count": len(self._runtime_overrides),
+            "feature_flag_count": len(self._feature_flags),
         }
 
     # ========================================================
     # Magic Methods
     # ========================================================
 
-    def __contains__(
-
-        self,
-
-        section: str
-
-    ) -> bool:
+    def __contains__(self, section: str) -> bool:
 
         return self.exists(section)
 
-    def __len__(
+    def __len__(self) -> int:
 
-        self
+        return len(self._registered_sections)
 
-    ) -> int:
-
-        return len(
-
-            self._registered_sections
-
-        )
-
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}"
-
             f"(environment='{self.environment()}', "
-
             f"sections={len(self)})"
-
         )
 
 

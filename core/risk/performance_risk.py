@@ -41,7 +41,6 @@ from core.math.drawdown import (
     maximum_drawdown,
     recovery_period,
 )
-
 from core.math.performance import (
     calmar_ratio,
     downside_capture_ratio,
@@ -53,17 +52,11 @@ from core.math.performance import (
     treynor_ratio,
     upside_capture_ratio,
 )
-
 from core.models.risk_report import RiskReport
-
 from core.risk.base_risk_model import BaseRiskModel
 
 
-class PerformanceRisk(
-
-    BaseRiskModel
-
-):
+class PerformanceRisk(BaseRiskModel):
     """
     Institutional performance risk model.
     """
@@ -73,58 +66,28 @@ class PerformanceRisk(
     # =====================================================
 
     @property
-    def sharpe_ratio(
+    def sharpe_ratio(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return sharpe_ratio(
-
-            self.portfolio_returns,
-
-            self.risk_free_rate
-
-        )
+        return sharpe_ratio(self.portfolio_returns, self.risk_free_rate)
 
     # =====================================================
     # SORTINO
     # =====================================================
 
     @property
-    def sortino_ratio(
+    def sortino_ratio(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return sortino_ratio(
-
-            self.portfolio_returns,
-
-            self.risk_free_rate
-
-        )
+        return sortino_ratio(self.portfolio_returns, self.risk_free_rate)
 
     # =====================================================
     # TREYNOR
     # =====================================================
 
     @property
-    def treynor_ratio(
-
-        self
-
-    ) -> float:
+    def treynor_ratio(self) -> float:
 
         return treynor_ratio(
-
-            self.portfolio_returns,
-
-            self.benchmark_returns,
-
-            self.risk_free_rate
-
+            self.portfolio_returns, self.benchmark_returns, self.risk_free_rate
         )
 
     # =====================================================
@@ -132,186 +95,96 @@ class PerformanceRisk(
     # =====================================================
 
     @property
-    def information_ratio(
+    def information_ratio(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return information_ratio(
-
-            self.portfolio_returns,
-
-            self.benchmark_returns
-
-        )
+        return information_ratio(self.portfolio_returns, self.benchmark_returns)
 
     # =====================================================
     # CALMAR
     # =====================================================
 
     @property
-    def calmar_ratio(
+    def calmar_ratio(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return calmar_ratio(
-
-            self.portfolio_returns
-
-        )
+        return calmar_ratio(self.portfolio_returns)
 
     # =====================================================
     # OMEGA
     # =====================================================
 
     @property
-    def omega_ratio(
+    def omega_ratio(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return omega_ratio(
-
-            self.portfolio_returns
-
-        )
+        return omega_ratio(self.portfolio_returns)
 
     # =====================================================
     # GAIN / LOSS
     # =====================================================
 
     @property
-    def gain_loss_ratio(
+    def gain_loss_ratio(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return gain_loss_ratio(
-
-            self.portfolio_returns
-
-        )
+        return gain_loss_ratio(self.portfolio_returns)
 
     # =====================================================
     # MAXIMUM DRAWDOWN
     # =====================================================
 
     @property
-    def maximum_drawdown(
+    def maximum_drawdown(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return maximum_drawdown(
-
-            self.portfolio_returns
-
-        )
+        return maximum_drawdown(self.portfolio_returns)
 
     # =====================================================
     # AVERAGE DRAWDOWN
     # =====================================================
 
     @property
-    def average_drawdown(
+    def average_drawdown(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return average_drawdown(
-
-            self.portfolio_returns
-
-        )
+        return average_drawdown(self.portfolio_returns)
 
     # =====================================================
     # DRAWDOWN DURATION
     # =====================================================
 
     @property
-    def drawdown_duration(
+    def drawdown_duration(self) -> int:
 
-        self
-
-    ) -> int:
-
-        return drawdown_duration(
-
-            self.portfolio_returns
-
-        )
+        return drawdown_duration(self.portfolio_returns)
 
     # =====================================================
     # RECOVERY PERIOD
     # =====================================================
 
     @property
-    def recovery_period(
+    def recovery_period(self) -> int:
 
-        self
-
-    ) -> int:
-
-        return recovery_period(
-
-            self.portfolio_returns
-
-        )
+        return recovery_period(self.portfolio_returns)
 
     # =====================================================
     # UPSIDE CAPTURE
     # =====================================================
 
     @property
-    def upside_capture_ratio(
+    def upside_capture_ratio(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return upside_capture_ratio(
-
-            self.portfolio_returns,
-
-            self.benchmark_returns
-
-        )
+        return upside_capture_ratio(self.portfolio_returns, self.benchmark_returns)
 
     # =====================================================
     # DOWNSIDE CAPTURE
     # =====================================================
 
     @property
-    def downside_capture_ratio(
+    def downside_capture_ratio(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return downside_capture_ratio(
-
-            self.portfolio_returns,
-
-            self.benchmark_returns
-
-        )
+        return downside_capture_ratio(self.portfolio_returns, self.benchmark_returns)
 
     # =====================================================
     # CALCULATE
     # =====================================================
 
-    def calculate(
-
-        self
-
-    ) -> RiskReport:
+    def calculate(self) -> RiskReport:
 
         report = self.create_report()
 
@@ -321,76 +194,26 @@ class PerformanceRisk(
 
         report.treynor_ratio = self.treynor_ratio
 
-        report.information_ratio = (
+        report.information_ratio = self.information_ratio
 
-            self.information_ratio
+        report.calmar_ratio = self.calmar_ratio
 
-        )
+        report.omega_ratio = self.omega_ratio
 
-        report.calmar_ratio = (
+        report.gain_loss_ratio = self.gain_loss_ratio
 
-            self.calmar_ratio
+        report.maximum_drawdown = self.maximum_drawdown
 
-        )
+        report.average_drawdown = self.average_drawdown
 
-        report.omega_ratio = (
+        report.drawdown_duration = self.drawdown_duration
 
-            self.omega_ratio
+        report.recovery_period = self.recovery_period
 
-        )
+        report.upside_capture_ratio = self.upside_capture_ratio
 
-        report.gain_loss_ratio = (
+        report.downside_capture_ratio = self.downside_capture_ratio
 
-            self.gain_loss_ratio
-
-        )
-
-        report.maximum_drawdown = (
-
-            self.maximum_drawdown
-
-        )
-
-        report.average_drawdown = (
-
-            self.average_drawdown
-
-        )
-
-        report.drawdown_duration = (
-
-            self.drawdown_duration
-
-        )
-
-        report.recovery_period = (
-
-            self.recovery_period
-
-        )
-
-        report.upside_capture_ratio = (
-
-            self.upside_capture_ratio
-
-        )
-
-        report.downside_capture_ratio = (
-
-            self.downside_capture_ratio
-
-        )
-
-        report.metadata.update(
-
-            {
-
-                "risk_model":
-
-                    self.__class__.__name__
-
-            }
-
-        )
+        report.metadata.update({"risk_model": self.__class__.__name__})
 
         return report

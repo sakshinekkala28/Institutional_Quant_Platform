@@ -6,17 +6,16 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-import pandas as pd
-import numpy as np
 
+import pandas as pd
 
 # ==========================================================
 # GOVERNANCE POLICY
 # ==========================================================
 
+
 @dataclass
 class GovernancePolicy:
-
     MAX_POSITION_WEIGHT: float = 0.05
 
     MAX_SECTOR_WEIGHT: float = 0.30
@@ -36,82 +35,37 @@ class GovernancePolicy:
 # POSITION LIMIT ENGINE
 # ==========================================================
 
+
 class PositionLimitEngine:
-
     @staticmethod
-    def validate(
-        portfolio,
-        policy
-    ):
+    def validate(portfolio, policy):
 
-        max_position = (
-
-            portfolio[
-                "Target_Weight"
-            ].max()
-
-        )
+        max_position = portfolio["Target_Weight"].max()
 
         return {
-
-            "Rule":
-            "Position Limit",
-
-            "Limit":
-            policy.MAX_POSITION_WEIGHT,
-
-            "Actual":
-            max_position,
-
-            "Pass":
-            max_position
-            <=
-            policy.MAX_POSITION_WEIGHT
-
+            "Rule": "Position Limit",
+            "Limit": policy.MAX_POSITION_WEIGHT,
+            "Actual": max_position,
+            "Pass": max_position <= policy.MAX_POSITION_WEIGHT,
         }
-    
+
+
 # ==========================================================
 # SECTOR LIMIT ENGINE
 # ==========================================================
 
+
 class SectorLimitEngine:
-
     @staticmethod
-    def validate(
-        portfolio,
-        policy
-    ):
+    def validate(portfolio, policy):
 
-        sector_weight = (
-
-            portfolio
-
-            .groupby("Sector")
-
-            ["Target_Weight"]
-
-            .sum()
-
-            .max()
-
-        )
+        sector_weight = portfolio.groupby("Sector")["Target_Weight"].sum().max()
 
         return {
-
-            "Rule":
-            "Sector Limit",
-
-            "Limit":
-            policy.MAX_SECTOR_WEIGHT,
-
-            "Actual":
-            sector_weight,
-
-            "Pass":
-            sector_weight
-            <=
-            policy.MAX_SECTOR_WEIGHT
-
+            "Rule": "Sector Limit",
+            "Limit": policy.MAX_SECTOR_WEIGHT,
+            "Actual": sector_weight,
+            "Pass": sector_weight <= policy.MAX_SECTOR_WEIGHT,
         }
 
 
@@ -119,134 +73,53 @@ class SectorLimitEngine:
 # BETA LIMIT ENGINE
 # ==========================================================
 
+
 class BetaLimitEngine:
-
     @staticmethod
-    def validate(
-        portfolio,
-        policy
-    ):
+    def validate(portfolio, policy):
 
-        beta = (
-
-            portfolio[
-                "Target_Weight"
-            ]
-
-            *
-
-            portfolio[
-                "Beta"
-            ]
-
-        ).sum()
+        beta = (portfolio["Target_Weight"] * portfolio["Beta"]).sum()
 
         return {
-
-            "Rule":
-            "Portfolio Beta",
-
-            "Lower":
-            policy.MIN_PORTFOLIO_BETA,
-
-            "Upper":
-            policy.MAX_PORTFOLIO_BETA,
-
-            "Actual":
-            beta,
-
-            "Pass":
-            (
-                policy.MIN_PORTFOLIO_BETA
-                <= beta
-                <= policy.MAX_PORTFOLIO_BETA
-            )
-
+            "Rule": "Portfolio Beta",
+            "Lower": policy.MIN_PORTFOLIO_BETA,
+            "Upper": policy.MAX_PORTFOLIO_BETA,
+            "Actual": beta,
+            "Pass": (policy.MIN_PORTFOLIO_BETA <= beta <= policy.MAX_PORTFOLIO_BETA),
         }
-    
+
+
 # ==========================================================
 # CONCENTRATION ENGINE
 # ==========================================================
 
+
 class ConcentrationEngine:
+    @staticmethod
+    def hhi(weights):
+
+        return (weights**2).sum()
 
     @staticmethod
-    def hhi(
-        weights
-    ):
+    def effective_holdings(weights):
 
-        return (
+        hhi = ConcentrationEngine.hhi(weights)
 
-            weights ** 2
-
-        ).sum()
+        return 1 / max(hhi, 1e-9)
 
     @staticmethod
-    def effective_holdings(
-        weights
-    ):
+    def validate(portfolio, policy):
 
-        hhi = (
+        hhi = ConcentrationEngine.hhi(portfolio["Target_Weight"])
 
-            ConcentrationEngine
-            .hhi(weights)
-        )
-
-        return 1 / max(
-            hhi,
-            1e-9
-        )
-
-    @staticmethod
-    def validate(
-        portfolio,
-        policy
-    ):
-
-        hhi = (
-
-            ConcentrationEngine
-            .hhi(
-                portfolio[
-                    "Target_Weight"
-                ]
-            )
-        )
-
-        effective = (
-
-            ConcentrationEngine
-            .effective_holdings(
-                portfolio[
-                    "Target_Weight"
-                ]
-            )
-        )
+        effective = ConcentrationEngine.effective_holdings(portfolio["Target_Weight"])
 
         return {
-
-            "Rule":
-            "Concentration",
-
-            "HHI":
-            hhi,
-
-            "Effective_Holdings":
-            effective,
-
-            "Pass":
-            (
-                hhi
-                <=
-                policy.MAX_HHI
-            )
-            and
-            (
-                effective
-                >=
-                policy.MIN_EFFECTIVE_HOLDINGS
-            )
-
+            "Rule": "Concentration",
+            "HHI": hhi,
+            "Effective_Holdings": effective,
+            "Pass": (hhi <= policy.MAX_HHI)
+            and (effective >= policy.MIN_EFFECTIVE_HOLDINGS),
         }
 
 
@@ -254,151 +127,61 @@ class ConcentrationEngine:
 # TURNOVER GOVERNANCE
 # ==========================================================
 
-class TurnoverGovernance:
 
+class TurnoverGovernance:
     @staticmethod
-    def validate(
-        turnover,
-        policy
-    ):
+    def validate(turnover, policy):
 
         return {
-
-            "Rule":
-            "Turnover",
-
-            "Limit":
-            policy.MAX_TURNOVER,
-
-            "Actual":
-            turnover,
-
-            "Pass":
-            turnover
-            <=
-            policy.MAX_TURNOVER
-
+            "Rule": "Turnover",
+            "Limit": policy.MAX_TURNOVER,
+            "Actual": turnover,
+            "Pass": turnover <= policy.MAX_TURNOVER,
         }
-    
+
+
 # ==========================================================
 # AUDIT ENGINE
 # ==========================================================
 
+
 class AuditEngine:
-
     @staticmethod
-    def build_report(
-        checks
-    ):
+    def build_report(checks):
 
-        return pd.DataFrame(
-            checks
-        )
+        return pd.DataFrame(checks)
 
 
 # ==========================================================
 # GOVERNANCE ENGINE
 # ==========================================================
 
-class GovernanceEngine:
 
+class GovernanceEngine:
     def __init__(self):
 
-        self.policy = (
-            GovernancePolicy()
-        )
+        self.policy = GovernancePolicy()
 
-    def evaluate(
-        self,
-        portfolio,
-        turnover=0.0
-    ):
+    def evaluate(self, portfolio, turnover=0.0):
 
         checks = []
 
-        checks.append(
+        checks.append(PositionLimitEngine.validate(portfolio, self.policy))
 
-            PositionLimitEngine
-            .validate(
-                portfolio,
-                self.policy
-            )
+        checks.append(SectorLimitEngine.validate(portfolio, self.policy))
 
-        )
+        checks.append(BetaLimitEngine.validate(portfolio, self.policy))
 
-        checks.append(
+        checks.append(ConcentrationEngine.validate(portfolio, self.policy))
 
-            SectorLimitEngine
-            .validate(
-                portfolio,
-                self.policy
-            )
+        checks.append(TurnoverGovernance.validate(turnover, self.policy))
 
-        )
+        report = AuditEngine.build_report(checks)
 
-        checks.append(
+        overall_pass = report["Pass"].fillna(False).all()
 
-            BetaLimitEngine
-            .validate(
-                portfolio,
-                self.policy
-            )
+        print("\n✓ Governance Review Complete")
 
-        )
+        print(f"Overall Pass: {overall_pass}")
 
-        checks.append(
-
-            ConcentrationEngine
-            .validate(
-                portfolio,
-                self.policy
-            )
-
-        )
-
-        checks.append(
-
-            TurnoverGovernance
-            .validate(
-                turnover,
-                self.policy
-            )
-
-        )
-
-        report = (
-
-            AuditEngine
-            .build_report(
-                checks
-            )
-        )
-
-        overall_pass = (
-
-            report["Pass"]
-
-            .fillna(False)
-
-            .all()
-
-        )
-
-        print(
-            "\n✓ Governance Review Complete"
-        )
-
-        print(
-            f"Overall Pass: "
-            f"{overall_pass}"
-        )
-
-        return {
-
-            "Governance_Report":
-            report,
-
-            "Approved":
-            overall_pass
-
-        }
+        return {"Governance_Report": report, "Approved": overall_pass}

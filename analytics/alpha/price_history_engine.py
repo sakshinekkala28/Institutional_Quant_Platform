@@ -39,26 +39,11 @@ MAX_WORKERS = 2
 
 ROOT = Path(__file__).resolve().parents[2]
 
-METADATA_FILE = (
-    ROOT
-    / "data"
-    / "raw"
-    / "stock_metadata.csv"
-)
+METADATA_FILE = ROOT / "data" / "raw" / "stock_metadata.csv"
 
-PRICE_DIR = (
-    ROOT
-    / "data"
-    / "raw"
-    / "prices"
-)
+PRICE_DIR = ROOT / "data" / "raw" / "prices"
 
-FAILURE_FILE = (
-    ROOT
-    / "data"
-    / "logs"
-    / "price_history_failures.csv"
-)
+FAILURE_FILE = ROOT / "data" / "logs" / "price_history_failures.csv"
 
 PRICE_DIR.mkdir(
     parents=True,
@@ -79,13 +64,7 @@ print("\n📥 Loading Stock Metadata...")
 metadata = pd.read_csv(METADATA_FILE)
 
 symbols = (
-    metadata["Symbol"]
-    .dropna()
-    .astype(str)
-    .str.upper()
-    .str.strip()
-    .unique()
-    .tolist()
+    metadata["Symbol"].dropna().astype(str).str.upper().str.strip().unique().tolist()
 )
 
 print(f"Universe Size : {len(symbols):,}")
@@ -94,16 +73,9 @@ print(f"Universe Size : {len(symbols):,}")
 # CACHE CHECK
 # =========================================================
 
-existing_symbols = {
-    file.stem.upper()
-    for file in PRICE_DIR.glob("*.parquet")
-}
+existing_symbols = {file.stem.upper() for file in PRICE_DIR.glob("*.parquet")}
 
-symbols_to_download = [
-    s
-    for s in symbols
-    if s not in existing_symbols
-]
+symbols_to_download = [s for s in symbols if s not in existing_symbols]
 
 print(f"Already Cached : {len(existing_symbols):,}")
 print(f"Need Download  : {len(symbols_to_download):,}")
@@ -131,7 +103,6 @@ def download_symbol(symbol):
         return "CACHED"
 
     try:
-
         df = yf.download(
             f"{symbol}.NS",
             period=f"{YEARS_HISTORY}y",
@@ -146,15 +117,9 @@ def download_symbol(symbol):
         df = df.reset_index()
 
         if isinstance(df.columns, pd.MultiIndex):
-            df.columns = [
-                col[0]
-                for col in df.columns
-            ]
+            df.columns = [col[0] for col in df.columns]
 
-        df.columns = [
-            str(col).replace(" ", "_")
-            for col in df.columns
-        ]
+        df.columns = [str(col).replace(" ", "_") for col in df.columns]
 
         df["Symbol"] = symbol
 
@@ -166,7 +131,6 @@ def download_symbol(symbol):
         return "SUCCESS"
 
     except Exception as e:
-
         failures.append(
             {
                 "Symbol": symbol,
@@ -182,13 +146,9 @@ def download_symbol(symbol):
 # =========================================================
 
 if symbols_to_download:
-
     print("\n🚀 Downloading Price History...")
 
-    with ThreadPoolExecutor(
-        max_workers=MAX_WORKERS
-    ) as executor:
-
+    with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
         results = executor.map(
             download_symbol,
             symbols_to_download,
@@ -200,7 +160,6 @@ if symbols_to_download:
             results,
             start=1,
         ):
-
             if result == "SUCCESS":
                 success_count += 1
 
@@ -208,20 +167,14 @@ if symbols_to_download:
                 failure_count += 1
 
             if idx % 25 == 0:
-
-                print(
-                    f"{idx:,}/{total:,}"
-                )
+                print(f"{idx:,}/{total:,}")
 
 # =========================================================
 # SAVE FAILURES
 # =========================================================
 
 if failures:
-
-    pd.DataFrame(
-        failures
-    ).to_csv(
+    pd.DataFrame(failures).to_csv(
         FAILURE_FILE,
         index=False,
     )
@@ -230,11 +183,7 @@ if failures:
 # FINAL STATS
 # =========================================================
 
-total_files = len(
-    list(
-        PRICE_DIR.glob("*.parquet")
-    )
-)
+total_files = len(list(PRICE_DIR.glob("*.parquet")))
 
 # =========================================================
 # REPORT

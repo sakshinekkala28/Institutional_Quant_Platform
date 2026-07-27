@@ -46,56 +46,34 @@ class OrderBook:
     Institutional Order Book.
     """
 
-    orders: dict[str, Order] = field(
-
-        default_factory=dict
-
-    )
+    orders: dict[str, Order] = field(default_factory=dict)
 
     # =====================================================
     # ADD
     # =====================================================
 
     def add(
-
         self,
-
         order: Order,
-
     ) -> None:
 
         if order.order_id in self.orders:
+            raise ValueError(f"Order '{order.order_id}' already exists.")
 
-            raise ValueError(
-
-                f"Order '{order.order_id}' already exists."
-
-            )
-
-        self.orders[
-
-            order.order_id
-
-        ] = order
+        self.orders[order.order_id] = order
 
     # =====================================================
     # REMOVE
     # =====================================================
 
     def remove(
-
         self,
-
         order_id: str,
-
     ) -> None:
 
         self.orders.pop(
-
             order_id,
-
             None,
-
         )
 
     # =====================================================
@@ -103,87 +81,48 @@ class OrderBook:
     # =====================================================
 
     def get(
-
         self,
-
         order_id: str,
-
     ) -> Order:
 
         try:
-
-            return self.orders[
-
-                order_id
-
-            ]
+            return self.orders[order_id]
 
         except KeyError as exc:
-
-            raise KeyError(
-
-                f"Unknown order '{order_id}'."
-
-            ) from exc
+            raise KeyError(f"Unknown order '{order_id}'.") from exc
 
     # =====================================================
     # EXISTS
     # =====================================================
 
     def exists(
-
         self,
-
         order_id: str,
-
     ) -> bool:
 
-        return (
-
-            order_id
-
-            in self.orders
-
-        )
+        return order_id in self.orders
 
     # =====================================================
     # ACTIVE
     # =====================================================
 
     def active_orders(
-
         self,
-
     ) -> list[Order]:
 
         return [
-
             order
-
-            for order
-
-            in self.orders.values()
-
+            for order in self.orders.values()
             if getattr(
-
                 order,
-
                 "status",
-
                 "NEW",
-
             )
-
             not in {
-
                 "FILLED",
-
                 "CANCELLED",
-
                 "REJECTED",
-
             }
-
         ]
 
     # =====================================================
@@ -191,31 +130,18 @@ class OrderBook:
     # =====================================================
 
     def filled_orders(
-
         self,
-
     ) -> list[Order]:
 
         return [
-
             order
-
-            for order
-
-            in self.orders.values()
-
+            for order in self.orders.values()
             if getattr(
-
                 order,
-
                 "status",
-
                 "",
-
             )
-
             == "FILLED"
-
         ]
 
     # =====================================================
@@ -223,31 +149,18 @@ class OrderBook:
     # =====================================================
 
     def cancelled_orders(
-
         self,
-
     ) -> list[Order]:
 
         return [
-
             order
-
-            for order
-
-            in self.orders.values()
-
+            for order in self.orders.values()
             if getattr(
-
                 order,
-
                 "status",
-
                 "",
-
             )
-
             == "CANCELLED"
-
         ]
 
     # =====================================================
@@ -255,31 +168,18 @@ class OrderBook:
     # =====================================================
 
     def rejected_orders(
-
         self,
-
     ) -> list[Order]:
 
         return [
-
             order
-
-            for order
-
-            in self.orders.values()
-
+            for order in self.orders.values()
             if getattr(
-
                 order,
-
                 "status",
-
                 "",
-
             )
-
             == "REJECTED"
-
         ]
 
     # =====================================================
@@ -287,9 +187,7 @@ class OrderBook:
     # =====================================================
 
     def clear(
-
         self,
-
     ) -> None:
 
         self.orders.clear()
@@ -299,81 +197,31 @@ class OrderBook:
     # =====================================================
 
     def __len__(
-
         self,
-
     ) -> int:
 
-        return len(
-
-            self.orders
-
-        )
+        return len(self.orders)
 
     def __iter__(
-
         self,
-
     ):
 
-        return iter(
-
-            self.orders.values()
-
-        )
+        return iter(self.orders.values())
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Total":
-
-                len(
-
-                    self.orders
-
-                ),
-
-            "Active":
-
-                len(
-
-                    self.active_orders()
-
-                ),
-
-            "Filled":
-
-                len(
-
-                    self.filled_orders()
-
-                ),
-
-            "Cancelled":
-
-                len(
-
-                    self.cancelled_orders()
-
-                ),
-
-            "Rejected":
-
-                len(
-
-                    self.rejected_orders()
-
-                ),
-
+            "Total": len(self.orders),
+            "Active": len(self.active_orders()),
+            "Filled": len(self.filled_orders()),
+            "Cancelled": len(self.cancelled_orders()),
+            "Rejected": len(self.rejected_orders()),
         }
 
     # =====================================================
@@ -381,19 +229,9 @@ class OrderBook:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Orders={len(self.orders)}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Orders={len(self.orders)})"
 
     __str__ = __repr__

@@ -24,17 +24,12 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections import defaultdict
+from collections.abc import Iterable
 import importlib
 import inspect
 import logging
 import pkgutil
-
-from collections import defaultdict
-from typing import Dict
-from typing import List
-from typing import Optional
-from typing import Type
-from typing import Iterable
 
 from orchestration.base_engine import BaseEngine
 
@@ -67,23 +62,14 @@ class EngineRegistry:
     # =====================================================
 
     DEFAULT_PACKAGES = [
-
         "analytics",
-
         "alpha",
-
         "backtesting",
-
         "execution",
-
         "portfolio",
-
         "reporting",
-
         "research",
-
         "risk",
-
     ]
 
     # =====================================================
@@ -96,9 +82,9 @@ class EngineRegistry:
         # Primary registry
         # ---------------------------------------------
 
-        self._engines: Dict[
+        self._engines: dict[
             str,
-            Type[BaseEngine],
+            type[BaseEngine],
         ] = {}
 
         # ---------------------------------------------
@@ -131,31 +117,19 @@ class EngineRegistry:
         return len(self._engines)
 
     @property
-    def categories(self) -> List[str]:
+    def categories(self) -> list[str]:
 
-        return sorted(
-
-            self._categories.keys()
-
-        )
+        return sorted(self._categories.keys())
 
     @property
-    def stages(self) -> List[str]:
+    def stages(self) -> list[str]:
 
-        return sorted(
-
-            self._stages.keys()
-
-        )
+        return sorted(self._stages.keys())
 
     @property
-    def tags(self) -> List[str]:
+    def tags(self) -> list[str]:
 
-        return sorted(
-
-            self._tags.keys()
-
-        )
+        return sorted(self._tags.keys())
 
     # =====================================================
     # REGISTRATION
@@ -163,7 +137,7 @@ class EngineRegistry:
 
     def register(
         self,
-        engine: Type[BaseEngine],
+        engine: type[BaseEngine],
     ) -> None:
         """
         Register an engine class.
@@ -173,71 +147,42 @@ class EngineRegistry:
             engine,
             BaseEngine,
         ):
-
-            raise TypeError(
-
-                f"{engine} is not "
-                f"a BaseEngine."
-
-            )
+            raise TypeError(f"{engine} is not a BaseEngine.")
 
         if engine is BaseEngine:
-
             return
 
         if not engine.ENABLED:
-
             logger.info(
-
                 "Skipping disabled engine: %s",
-
                 engine.NAME,
-
             )
 
             return
 
         if engine.NAME in self._engines:
-
-            raise ValueError(
-
-                f"Duplicate engine "
-                f"'{engine.NAME}'."
-
-            )
+            raise ValueError(f"Duplicate engine '{engine.NAME}'.")
 
         # ---------------------------------------------
         # Register
         # ---------------------------------------------
 
-        self._engines[
-            engine.NAME
-        ] = engine
+        self._engines[engine.NAME] = engine
 
         # ---------------------------------------------
         # Build indexes
         # ---------------------------------------------
 
-        self._categories[
-            engine.CATEGORY
-        ].append(engine)
+        self._categories[engine.CATEGORY].append(engine)
 
-        self._stages[
-            engine.STAGE
-        ].append(engine)
+        self._stages[engine.STAGE].append(engine)
 
         for tag in engine.TAGS:
-
-            self._tags[tag].append(
-                engine
-            )
+            self._tags[tag].append(engine)
 
         logger.info(
-
             "Registered engine: %s",
-
             engine.NAME,
-
         )
 
     # =====================================================
@@ -253,116 +198,54 @@ class EngineRegistry:
         """
 
         if engine_name not in self._engines:
+            raise KeyError(f"Unknown engine '{engine_name}'.")
 
-            raise KeyError(
-
-                f"Unknown engine "
-                f"'{engine_name}'."
-
-            )
-
-        engine = self._engines.pop(
-            engine_name
-        )
+        engine = self._engines.pop(engine_name)
 
         # ---------------------------------------------
         # Remove from category index
         # ---------------------------------------------
 
-        if (
-            engine.CATEGORY
-            in self._categories
-        ):
-
-            self._categories[
-                engine.CATEGORY
-            ] = [
-
+        if engine.CATEGORY in self._categories:
+            self._categories[engine.CATEGORY] = [
                 cls
-
-                for cls
-
-                in self._categories[
-                    engine.CATEGORY
-                ]
-
-                if cls.NAME != engine_name
-
+                for cls in self._categories[engine.CATEGORY]
+                if engine_name != cls.NAME
             ]
 
-            if not self._categories[
-                engine.CATEGORY
-            ]:
-
-                del self._categories[
-                    engine.CATEGORY
-                ]
+            if not self._categories[engine.CATEGORY]:
+                del self._categories[engine.CATEGORY]
 
         # ---------------------------------------------
         # Remove from stage index
         # ---------------------------------------------
 
-        if (
-            engine.STAGE
-            in self._stages
-        ):
-
-            self._stages[
-                engine.STAGE
-            ] = [
-
-                cls
-
-                for cls
-
-                in self._stages[
-                    engine.STAGE
-                ]
-
-                if cls.NAME != engine_name
-
+        if engine.STAGE in self._stages:
+            self._stages[engine.STAGE] = [
+                cls for cls in self._stages[engine.STAGE] if engine_name != cls.NAME
             ]
 
-            if not self._stages[
-                engine.STAGE
-            ]:
-
-                del self._stages[
-                    engine.STAGE
-                ]
+            if not self._stages[engine.STAGE]:
+                del self._stages[engine.STAGE]
 
         # ---------------------------------------------
         # Remove tag index
         # ---------------------------------------------
 
         for tag in engine.TAGS:
-
             if tag not in self._tags:
-
                 continue
 
             self._tags[tag] = [
-
-                cls
-
-                for cls
-
-                in self._tags[tag]
-
-                if cls.NAME != engine_name
-
+                cls for cls in self._tags[tag] if engine_name != cls.NAME
             ]
 
             if not self._tags[tag]:
-
                 del self._tags[tag]
 
         logger.info(
-
             "Unregistered engine: %s",
-
             engine_name,
-
         )
 
     # =====================================================
@@ -371,65 +254,36 @@ class EngineRegistry:
 
     def discover(
         self,
-        packages: Optional[
-            Iterable[str]
-        ] = None,
+        packages: Iterable[str] | None = None,
     ) -> None:
         """
         Discover all BaseEngine implementations.
         """
 
-        packages = list(
-            packages
-            or self.DEFAULT_PACKAGES
-        )
+        packages = list(packages or self.DEFAULT_PACKAGES)
 
-        logger.info(
-
-            "Starting engine discovery."
-
-        )
+        logger.info("Starting engine discovery.")
 
         for package in packages:
-
-            self._discover_package(
-                package
-            )
+            self._discover_package(package)
 
         self._discovery_complete = True
 
-        logger.info(
-
-            "Engine discovery complete."
-
-        )
+        logger.info("Engine discovery complete.")
 
         logger.info(
-
             "Packages Scanned : %s",
-
-            len(
-                self._packages_scanned
-            ),
-
+            len(self._packages_scanned),
         )
 
         logger.info(
-
             "Modules Scanned : %s",
-
-            len(
-                self._modules_scanned
-            ),
-
+            len(self._modules_scanned),
         )
 
         logger.info(
-
             "Registered Engines : %s",
-
             self.engine_count,
-
         )
 
     # =====================================================
@@ -446,35 +300,23 @@ class EngineRegistry:
         """
 
         try:
-
-            package = importlib.import_module(
-                package_name
-            )
+            package = importlib.import_module(package_name)
 
         except Exception as exc:
-
             logger.warning(
-
-                "Unable to import "
-                "%s (%s)",
-
+                "Unable to import %s (%s)",
                 package_name,
-
                 exc,
-
             )
 
             return
 
-        self._packages_scanned.append(
-            package_name
-        )
+        self._packages_scanned.append(package_name)
 
         if not hasattr(
             package,
             "__path__",
         ):
-
             return
 
         for (
@@ -482,16 +324,10 @@ class EngineRegistry:
             module_name,
             _,
         ) in pkgutil.walk_packages(
-
             package.__path__,
-
             package.__name__ + ".",
-
         ):
-
-            self._discover_module(
-                module_name
-            )
+            self._discover_module(module_name)
 
     # =====================================================
     # MODULE DISCOVERY
@@ -507,32 +343,20 @@ class EngineRegistry:
         """
 
         try:
-
-            module = importlib.import_module(
-                module_name
-            )
+            module = importlib.import_module(module_name)
 
         except Exception as exc:
-
             logger.warning(
-
                 "Skipping module %s (%s)",
-
                 module_name,
-
                 exc,
-
             )
 
             return
 
-        self._modules_scanned.append(
-            module_name
-        )
+        self._modules_scanned.append(module_name)
 
-        self._register_module(
-            module
-        )
+        self._register_module(module)
 
     # =====================================================
     # MODULE REGISTRATION
@@ -551,22 +375,16 @@ class EngineRegistry:
             _,
             obj,
         ) in inspect.getmembers(
-
             module,
-
             inspect.isclass,
-
         ):
-
             if obj is BaseEngine:
-
                 continue
 
             if not issubclass(
                 obj,
                 BaseEngine,
             ):
-
                 continue
 
             self.register(obj)
@@ -590,25 +408,15 @@ class EngineRegistry:
     def get(
         self,
         engine_name: str,
-    ) -> Type[BaseEngine]:
+    ) -> type[BaseEngine]:
         """
         Return the registered engine class.
         """
 
-        if not self.exists(
-            engine_name
-        ):
+        if not self.exists(engine_name):
+            raise KeyError(f"Unknown engine '{engine_name}'.")
 
-            raise KeyError(
-
-                f"Unknown engine "
-                f"'{engine_name}'."
-
-            )
-
-        return self._engines[
-            engine_name
-        ]
+        return self._engines[engine_name]
 
     # -----------------------------------------------------
 
@@ -620,9 +428,7 @@ class EngineRegistry:
         Create a new engine instance.
         """
 
-        return self.get(
-            engine_name
-        )()
+        return self.get(engine_name)()
 
     # =====================================================
     # ENGINE COLLECTIONS
@@ -630,55 +436,35 @@ class EngineRegistry:
 
     def names(
         self,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Return engine names.
         """
 
-        return sorted(
-
-            self._engines.keys()
-
-        )
+        return sorted(self._engines.keys())
 
     # -----------------------------------------------------
 
     def classes(
         self,
-    ) -> List[
-        Type[BaseEngine]
-    ]:
+    ) -> list[type[BaseEngine]]:
         """
         Return all registered engine classes.
         """
 
-        return list(
-
-            self._engines.values()
-
-        )
+        return list(self._engines.values())
 
     # -----------------------------------------------------
 
     def instances(
         self,
-    ) -> List[
-        BaseEngine
-    ]:
+    ) -> list[BaseEngine]:
         """
         Create one instance
         of every engine.
         """
 
-        return [
-
-            engine()
-
-            for engine
-
-            in self.classes()
-
-        ]
+        return [engine() for engine in self.classes()]
 
     # =====================================================
     # CATEGORY QUERIES
@@ -687,26 +473,21 @@ class EngineRegistry:
     def by_category(
         self,
         category: str,
-    ) -> List[
-        Type[BaseEngine]
-    ]:
+    ) -> list[type[BaseEngine]]:
         """
         Return engines belonging
         to a category.
         """
 
         return sorted(
-
             self._categories.get(
                 category,
                 [],
             ),
-
             key=lambda cls: (
                 cls.PRIORITY,
                 cls.NAME,
             ),
-
         )
 
     # -----------------------------------------------------
@@ -714,25 +495,20 @@ class EngineRegistry:
     def by_stage(
         self,
         stage: str,
-    ) -> List[
-        Type[BaseEngine]
-    ]:
+    ) -> list[type[BaseEngine]]:
         """
         Return engines for a stage.
         """
 
         return sorted(
-
             self._stages.get(
                 stage,
                 [],
             ),
-
             key=lambda cls: (
                 cls.PRIORITY,
                 cls.NAME,
             ),
-
         )
 
     # -----------------------------------------------------
@@ -740,25 +516,20 @@ class EngineRegistry:
     def by_tag(
         self,
         tag: str,
-    ) -> List[
-        Type[BaseEngine]
-    ]:
+    ) -> list[type[BaseEngine]]:
         """
         Return engines matching a tag.
         """
 
         return sorted(
-
             self._tags.get(
                 tag,
                 [],
             ),
-
             key=lambda cls: (
                 cls.PRIORITY,
                 cls.NAME,
             ),
-
         )
 
     # =====================================================
@@ -767,94 +538,46 @@ class EngineRegistry:
 
     def enabled(
         self,
-    ) -> List[
-        Type[BaseEngine]
-    ]:
+    ) -> list[type[BaseEngine]]:
         """
         Return enabled engines.
         """
 
-        return [
-
-            engine
-
-            for engine
-
-            in self.classes()
-
-            if engine.ENABLED
-
-        ]
+        return [engine for engine in self.classes() if engine.ENABLED]
 
     # -----------------------------------------------------
 
     def disabled(
         self,
-    ) -> List[
-        Type[BaseEngine]
-    ]:
+    ) -> list[type[BaseEngine]]:
         """
         Return disabled engines.
         """
 
-        return [
-
-            engine
-
-            for engine
-
-            in self.classes()
-
-            if not engine.ENABLED
-
-        ]
+        return [engine for engine in self.classes() if not engine.ENABLED]
 
     # -----------------------------------------------------
 
     def critical(
         self,
-    ) -> List[
-        Type[BaseEngine]
-    ]:
+    ) -> list[type[BaseEngine]]:
         """
         Return critical engines.
         """
 
-        return [
-
-            engine
-
-            for engine
-
-            in self.classes()
-
-            if engine.CRITICAL
-
-        ]
+        return [engine for engine in self.classes() if engine.CRITICAL]
 
     # -----------------------------------------------------
 
     def parallelizable(
         self,
-    ) -> List[
-        Type[BaseEngine]
-    ]:
+    ) -> list[type[BaseEngine]]:
         """
         Return engines that
         may run concurrently.
         """
 
-        return [
-
-            engine
-
-            for engine
-
-            in self.classes()
-
-            if engine.PARALLELIZABLE
-
-        ]
+        return [engine for engine in self.classes() if engine.PARALLELIZABLE]
 
     # =====================================================
     # SORTING
@@ -862,56 +585,43 @@ class EngineRegistry:
 
     def sorted_by_priority(
         self,
-    ) -> List[
-        Type[BaseEngine]
-    ]:
+    ) -> list[type[BaseEngine]]:
         """
         Return engines sorted by
         execution priority.
         """
 
         return sorted(
-
             self.classes(),
-
             key=lambda cls: (
-
                 cls.PRIORITY,
-
                 cls.NAME,
-
             ),
-
         )
 
     # -----------------------------------------------------
 
     def sorted_by_name(
         self,
-    ) -> List[
-        Type[BaseEngine]
-    ]:
+    ) -> list[type[BaseEngine]]:
         """
         Return engines sorted alphabetically.
         """
 
         return sorted(
-
             self.classes(),
-
             key=lambda cls: cls.NAME,
-
         )
-    
+
     # =====================================================
     # METADATA
     # =====================================================
 
     def metadata(
         self,
-    ) -> Dict[
+    ) -> dict[
         str,
-        Dict,
+        dict,
     ]:
         """
         Return metadata for every
@@ -919,83 +629,71 @@ class EngineRegistry:
         """
 
         return {
-
             name: engine.metadata()
-
             for (
                 name,
                 engine,
             ) in self._engines.items()
-
         }
 
     # -----------------------------------------------------
 
     def outputs(
         self,
-    ) -> Dict[
+    ) -> dict[
         str,
-        List[str],
+        list[str],
     ]:
         """
         Return engine outputs.
         """
 
         return {
-
             name: engine.OUTPUTS
-
             for (
                 name,
                 engine,
             ) in self._engines.items()
-
         }
 
     # -----------------------------------------------------
 
     def inputs(
         self,
-    ) -> Dict[
+    ) -> dict[
         str,
-        List[str],
+        list[str],
     ]:
         """
         Return engine inputs.
         """
 
         return {
-
             name: engine.INPUTS
-
             for (
                 name,
                 engine,
             ) in self._engines.items()
-
         }
 
     # -----------------------------------------------------
 
     def dependencies(
         self,
-    ) -> Dict[
+    ) -> dict[
         str,
-        List[str],
+        list[str],
     ]:
         """
         Return dependency mapping.
         """
 
         return {
-
             name: engine.DEPENDS_ON
-
             for (
                 name,
                 engine,
             ) in self._engines.items()
-
         }
 
     # =====================================================
@@ -1004,33 +702,24 @@ class EngineRegistry:
 
     def validate_dependencies(
         self,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Validate dependency graph.
 
         Returns list of errors.
         """
 
-        errors: List[str] = []
+        errors: list[str] = []
 
         for engine in self.classes():
-
             for dependency in engine.DEPENDS_ON:
-
                 if dependency not in self._engines:
-
                     errors.append(
-
                         f"{engine.NAME} "
-
                         f"depends on "
-
                         f"'{dependency}' "
-
                         f"which is not "
-
                         f"registered."
-
                     )
 
         return errors
@@ -1039,39 +728,28 @@ class EngineRegistry:
 
     def validate_outputs(
         self,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Detect duplicate output files.
         """
 
-        errors: List[str] = []
+        errors: list[str] = []
 
         seen = {}
 
         for engine in self.classes():
-
             for output in engine.OUTPUTS:
-
                 if output in seen:
-
                     errors.append(
-
                         f"Duplicate output "
-
                         f"'{output}' "
-
                         f"generated by "
-
                         f"{engine.NAME} "
-
                         f"and "
-
                         f"{seen[output]}."
-
                     )
 
                 else:
-
                     seen[output] = engine.NAME
 
         return errors
@@ -1080,24 +758,16 @@ class EngineRegistry:
 
     def validate(
         self,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Run every registry validation.
         """
 
         errors = []
 
-        errors.extend(
+        errors.extend(self.validate_dependencies())
 
-            self.validate_dependencies()
-
-        )
-
-        errors.extend(
-
-            self.validate_outputs()
-
-        )
+        errors.extend(self.validate_outputs())
 
         return errors
 
@@ -1107,41 +777,20 @@ class EngineRegistry:
 
     def summary(
         self,
-    ) -> Dict[str, object]:
+    ) -> dict[str, object]:
         """
         Registry summary.
         """
 
         return {
-
-            "total_engines":
-                self.engine_count,
-
-            "categories":
-                self.categories,
-
-            "stages":
-                self.stages,
-
-            "tags":
-                self.tags,
-
-            "packages_scanned":
-                len(
-                    self._packages_scanned
-                ),
-
-            "modules_scanned":
-                len(
-                    self._modules_scanned
-                ),
-
-            "discovery_complete":
-                self._discovery_complete,
-
-            "validation_errors":
-                self.validate(),
-
+            "total_engines": self.engine_count,
+            "categories": self.categories,
+            "stages": self.stages,
+            "tags": self.tags,
+            "packages_scanned": len(self._packages_scanned),
+            "modules_scanned": len(self._modules_scanned),
+            "discovery_complete": self._discovery_complete,
+            "validation_errors": self.validate(),
         }
 
     # =====================================================
@@ -1161,9 +810,7 @@ class EngineRegistry:
         engine_name: str,
     ) -> bool:
 
-        return self.exists(
-            engine_name
-        )
+        return self.exists(engine_name)
 
     # -----------------------------------------------------
 
@@ -1171,11 +818,7 @@ class EngineRegistry:
         self,
     ):
 
-        return iter(
-
-            self.sorted_by_priority()
-
-        )
+        return iter(self.sorted_by_priority())
 
     # -----------------------------------------------------
 
@@ -1184,15 +827,10 @@ class EngineRegistry:
     ) -> str:
 
         return (
-
             f"EngineRegistry("
-
             f"engines={self.engine_count}, "
-
             f"categories={len(self.categories)}, "
-
             f"stages={len(self.stages)})"
-
         )
 
 
@@ -1200,9 +838,7 @@ class EngineRegistry:
 # SINGLETON
 # =========================================================
 
-_registry: Optional[
-    EngineRegistry
-] = None
+_registry: EngineRegistry | None = None
 
 
 def get_registry() -> EngineRegistry:
@@ -1215,7 +851,6 @@ def get_registry() -> EngineRegistry:
     global _registry
 
     if _registry is None:
-
         _registry = EngineRegistry()
 
         _registry.discover()

@@ -21,24 +21,20 @@ from __future__ import annotations
 
 from datetime import datetime
 from time import perf_counter
-from typing import Any
-from typing import List
 
 from orchestration.base_engine import (
     BaseEngine,
 )
-
 from orchestration.executors.base_executor import (
     BaseExecutor,
 )
-
 from orchestration.models.engine_result import (
     EngineResult,
 )
-
 from orchestration.models.engine_status import (
     EngineStatus,
 )
+
 
 class SequentialExecutor(BaseExecutor):
     """
@@ -52,11 +48,8 @@ class SequentialExecutor(BaseExecutor):
     ) -> None:
 
         super().__init__(
-
             registry,
-
             context,
-
         )
 
     # =====================================================
@@ -65,8 +58,8 @@ class SequentialExecutor(BaseExecutor):
 
     def execute(
         self,
-        engine_names: List[str],
-    ) -> List[EngineResult]:
+        engine_names: list[str],
+    ) -> list[EngineResult]:
         """
         Execute engines sequentially.
         """
@@ -76,27 +69,16 @@ class SequentialExecutor(BaseExecutor):
         self.before_execution()
 
         try:
-
             for engine_name in engine_names:
+                result = self.execute_engine(engine_name)
 
-                result = self.execute_engine(
-
-                    engine_name
-
-                )
-
-                self.add_result(
-
-                    result
-
-                )
+                self.add_result(result)
 
         finally:
-
             self.after_execution()
 
         return self.results
-    
+
     # =====================================================
     # ENGINE
     # =====================================================
@@ -109,98 +91,50 @@ class SequentialExecutor(BaseExecutor):
         Execute one engine.
         """
 
-        engine = self.create_engine(
-
-            engine_name
-
-        )
+        engine = self.create_engine(engine_name)
 
         timer = perf_counter()
 
         result = EngineResult(
-
             engine=engine.NAME,
-
             status=EngineStatus.RUNNING,
-
             duration=0.0,
-
         )
 
-        self.before_engine(
-
-            engine
-
-        )
+        self.before_engine(engine)
 
         try:
+            output = engine.run(self.context)
 
-            output = engine.run(
-
-                self.context
-
-            )
-
-            result.status = (
-
-                EngineStatus.SUCCESS
-
-            )
+            result.status = EngineStatus.SUCCESS
 
             result.output = output
 
             self.register_output(
-
                 engine.NAME,
-
                 output,
-
             )
 
             for path in engine.OUTPUTS:
-
-                self.register_artifact(
-
-                    path
-
-                )
+                self.register_artifact(path)
 
         except Exception as exc:
+            result.status = EngineStatus.FAILED
 
-            result.status = (
-
-                EngineStatus.FAILED
-
-            )
-
-            result.metadata["error"] = str(
-
-                exc
-
-            )
+            result.metadata["error"] = str(exc)
 
             raise
 
         finally:
-
-            result.duration = (
-
-                perf_counter()
-
-                - timer
-
-            )
+            result.duration = perf_counter() - timer
 
             self.after_engine(
-
                 engine,
-
                 result,
-
             )
 
         return result
-    
+
     # =====================================================
     # HOOKS
     # =====================================================
@@ -210,19 +144,13 @@ class SequentialExecutor(BaseExecutor):
     ) -> None:
 
         self.set_context(
-
             "executor",
-
             self.strategy,
-
         )
 
         self.set_context(
-
             "execution_started",
-
             datetime.utcnow().isoformat(),
-
         )
 
     # -----------------------------------------------------
@@ -232,11 +160,8 @@ class SequentialExecutor(BaseExecutor):
     ) -> None:
 
         self.set_context(
-
             "execution_finished",
-
             datetime.utcnow().isoformat(),
-
         )
 
     # =====================================================
@@ -249,11 +174,8 @@ class SequentialExecutor(BaseExecutor):
     ) -> None:
 
         self.set_context(
-
             "current_engine",
-
             engine.NAME,
-
         )
 
     # -----------------------------------------------------
@@ -264,17 +186,9 @@ class SequentialExecutor(BaseExecutor):
         result: EngineResult,
     ) -> None:
 
-        self.context.metadata[
+        self.context.metadata["last_engine"] = engine.NAME
 
-            "last_engine"
-
-        ] = engine.NAME
-
-        self.context.metadata[
-
-            "last_status"
-
-        ] = result.status.value
+        self.context.metadata["last_status"] = result.status.value
 
     # =====================================================
     # SUMMARY
@@ -285,51 +199,16 @@ class SequentialExecutor(BaseExecutor):
     ) -> dict:
 
         success = sum(
-
-            1
-
-            for result
-
-            in self.results
-
-            if (
-
-                result.status
-
-                == EngineStatus.SUCCESS
-
-            )
-
+            1 for result in self.results if (result.status == EngineStatus.SUCCESS)
         )
 
-        failed = len(
-
-            self.results
-
-        ) - success
+        failed = len(self.results) - success
 
         return {
-
-            "strategy":
-
-                self.strategy,
-
-            "executed":
-
-                len(
-
-                    self.results
-
-                ),
-
-            "successful":
-
-                success,
-
-            "failed":
-
-                failed,
-
+            "strategy": self.strategy,
+            "executed": len(self.results),
+            "successful": success,
+            "failed": failed,
         }
 
     # =====================================================
@@ -340,10 +219,4 @@ class SequentialExecutor(BaseExecutor):
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"executed={len(self.results)})"
-
-        )
+        return f"{self.__class__.__name__}(executed={len(self.results)})"

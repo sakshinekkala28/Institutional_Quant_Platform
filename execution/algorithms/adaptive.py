@@ -37,9 +37,7 @@ from execution.order import Order
 
 
 @dataclass(slots=True)
-class AdaptiveAlgorithm(
-    ExecutionAlgorithm
-):
+class AdaptiveAlgorithm(ExecutionAlgorithm):
     """
     Institutional adaptive execution algorithm.
     """
@@ -51,43 +49,29 @@ class AdaptiveAlgorithm(
     spread_threshold_bps: float = 10.0
 
     def __post_init__(
-
         self,
-
     ) -> None:
 
-        super().__init__(
-
-            name="Adaptive"
-
-        )
+        super().__init__(name="Adaptive")
 
     # =====================================================
     # STRATEGY SELECTION
     # =====================================================
 
     def select_strategy(
-
         self,
-
         liquidity: float,
-
         volatility: float,
-
         spread_bps: float,
-
     ) -> str:
 
         if liquidity < self.liquidity_threshold:
-
             return "ICEBERG"
 
         if volatility > self.volatility_threshold:
-
             return "TWAP"
 
         if spread_bps > self.spread_threshold_bps:
-
             return "VWAP"
 
         return "MARKET"
@@ -97,11 +81,8 @@ class AdaptiveAlgorithm(
     # =====================================================
 
     def execute(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
 
         #
@@ -117,46 +98,22 @@ class AdaptiveAlgorithm(
         spread_bps = 4.0
 
         strategy = self.select_strategy(
-
             liquidity,
-
             volatility,
-
             spread_bps,
-
         )
 
         report = ExecutionReport()
 
         report.order = order
 
-        report.executed_quantity = (
-
-            order.quantity
-
-        )
+        report.executed_quantity = order.quantity
 
         report.remaining_quantity = 0.0
 
-        report.average_price = (
+        report.average_price = order.price if order.price is not None else 0.0
 
-            order.price
-
-            if order.price is not None
-
-            else 0.0
-
-        )
-
-        report.execution_value = (
-
-            report.executed_quantity
-
-            *
-
-            report.average_price
-
-        )
+        report.execution_value = report.executed_quantity * report.average_price
 
         report.fill_ratio = 1.0
 
@@ -164,39 +121,15 @@ class AdaptiveAlgorithm(
 
         report.algorithm = self.name
 
-        report.message = (
+        report.message = f"Adaptive execution selected {strategy}."
 
-            f"Adaptive execution "
+        report.metadata["Strategy"] = strategy
 
-            f"selected "
+        report.metadata["Liquidity"] = liquidity
 
-            f"{strategy}."
+        report.metadata["Volatility"] = volatility
 
-        )
-
-        report.metadata[
-
-            "Strategy"
-
-        ] = strategy
-
-        report.metadata[
-
-            "Liquidity"
-
-        ] = liquidity
-
-        report.metadata[
-
-            "Volatility"
-
-        ] = volatility
-
-        report.metadata[
-
-            "Spread_bps"
-
-        ] = spread_bps
+        report.metadata["Spread_bps"] = spread_bps
 
         return report
 
@@ -205,25 +138,16 @@ class AdaptiveAlgorithm(
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"LiquidityThreshold="
-
             f"{self.liquidity_threshold:.2f}, "
-
             f"VolatilityThreshold="
-
             f"{self.volatility_threshold:.2f}"
-
             f")"
-
         )
 
     __str__ = __repr__

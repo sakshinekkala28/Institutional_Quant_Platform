@@ -16,9 +16,7 @@ from __future__ import annotations
 # PLATFORM
 # =========================================================
 
-PLATFORM_NAME = (
-    "Institutional Quant Platform"
-)
+PLATFORM_NAME = "Institutional Quant Platform"
 
 PLATFORM_VERSION = "1.0.0"
 

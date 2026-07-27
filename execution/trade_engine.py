@@ -6,103 +6,36 @@
 from __future__ import annotations
 
 import numpy as np
-import pandas as pd
-
 
 # ==========================================================
 # TRADE GENERATOR
 # ==========================================================
 
+
 class TradeGenerator:
-
     @staticmethod
-    def generate(
-        current_portfolio,
-        target_portfolio
-    ):
+    def generate(current_portfolio, target_portfolio):
 
-        if (
-            "Current_Weight" not in current_portfolio.columns
-        ):
-
-            if (
-                "Weight"
-                in current_portfolio.columns
-            ):
-
-                current_portfolio = (
-                    current_portfolio
-                    .rename(
-                        columns={
-                            "Weight":
-                            "Current_Weight"
-                        }
-                    )
+        if "Current_Weight" not in current_portfolio.columns:
+            if "Weight" in current_portfolio.columns:
+                current_portfolio = current_portfolio.rename(
+                    columns={"Weight": "Current_Weight"}
                 )
 
             else:
+                raise ValueError("Current portfolio missing Current_Weight column")
 
-                raise ValueError(
-                    "Current portfolio missing "
-                    "Current_Weight column"
-                )
+        current = current_portfolio[["Symbol", "Current_Weight"]].copy()
 
-        current = (
+        target = target_portfolio[["Symbol", "Target_Weight"]].copy()
 
-            current_portfolio[
+        trades = current.merge(target, on="Symbol", how="outer")
 
-                [
-                    "Symbol",
-                    "Current_Weight"
-                ]
+        trades["Current_Weight"] = trades["Current_Weight"].fillna(0)
 
-            ]
+        trades["Target_Weight"] = trades["Target_Weight"].fillna(0)
 
-            .copy()
-
-        )
-
-        target = target_portfolio[
-
-            ["Symbol", "Target_Weight"]
-
-        ].copy()
-
-        trades = current.merge(
-
-            target,
-
-            on="Symbol",
-
-            how="outer"
-
-        )
-
-        trades["Current_Weight"] = (
-
-            trades["Current_Weight"]
-
-            .fillna(0)
-
-        )
-
-        trades["Target_Weight"] = (
-
-            trades["Target_Weight"]
-
-            .fillna(0)
-
-        )
-
-        trades["Trade_Weight"] = (
-
-            trades["Target_Weight"]
-
-            -
-
-            trades["Current_Weight"]
-
-        )
+        trades["Trade_Weight"] = trades["Target_Weight"] - trades["Current_Weight"]
 
         return trades
 
@@ -111,243 +44,108 @@ class TradeGenerator:
 # REBALANCE ENGINE
 # ==========================================================
 
+
 class RebalanceEngine:
-
     @staticmethod
-    def classify(
-        trades
-    ):
+    def classify(trades):
 
-        conditions = [
+        conditions = [trades["Trade_Weight"] > 0, trades["Trade_Weight"] < 0]
 
-            trades["Trade_Weight"] > 0,
+        choices = ["BUY", "SELL"]
 
-            trades["Trade_Weight"] < 0
-
-        ]
-
-        choices = [
-
-            "BUY",
-
-            "SELL"
-
-        ]
-
-        trades["Action"] = np.select(
-
-            conditions,
-
-            choices,
-
-            default="HOLD"
-
-        )
+        trades["Action"] = np.select(conditions, choices, default="HOLD")
 
         return trades
-    
+
+
 # ==========================================================
 # TURNOVER ENGINE
 # ==========================================================
 
+
 class TurnoverEngine:
-
     @staticmethod
-    def calculate_turnover(
-        trades
-    ):
+    def calculate_turnover(trades):
 
-        turnover = (
-
-            trades[
-                "Trade_Weight"
-            ]
-
-            .abs()
-
-            .sum()
-
-        )
+        turnover = trades["Trade_Weight"].abs().sum()
 
         return turnover
 
     @staticmethod
-    def reduce_turnover(
-        trades,
-        threshold=0.001
-    ):
+    def reduce_turnover(trades, threshold=0.001):
 
         trades = trades.copy()
 
-        trades.loc[
+        trades.loc[trades["Trade_Weight"].abs() < threshold, "Trade_Weight"] = 0
 
-            trades[
-                "Trade_Weight"
-            ].abs()
-
-            < threshold,
-
-            "Trade_Weight"
-
-        ] = 0
-
-        trades = (
-
-            RebalanceEngine
-
-            .classify(trades)
-
-        )
+        trades = RebalanceEngine.classify(trades)
 
         return trades
 
     @staticmethod
-    def trade_count(
-        trades
-    ):
+    def trade_count(trades):
 
-        return (
+        return (trades["Action"] != "HOLD").sum()
 
-            trades["Action"]
 
-            != "HOLD"
-
-        ).sum()
-    
 # ==========================================================
 # TRANSACTION COST MODEL
 # ==========================================================
 
-class TransactionCostModel:
 
+class TransactionCostModel:
     @staticmethod
-    def estimate_cost(
-        trades
-    ):
+    def estimate_cost(trades):
 
         trades = trades.copy()
 
-        trades["Estimated_Cost_bps"] = (
+        trades["Estimated_Cost_bps"] = 5 + 10 * trades["Trade_Weight"].abs()
 
-            5
-
-            +
-
-            10
-
-            *
-
-            trades[
-                "Trade_Weight"
-            ]
-
-            .abs()
-
-        )
-
-        trades["Estimated_Cost"] = (
-
-            trades[
-                "Estimated_Cost_bps"
-            ]
-
-            / 10000
-
-        )
+        trades["Estimated_Cost"] = trades["Estimated_Cost_bps"] / 10000
 
         return trades
 
     @staticmethod
-    def total_cost(
-        trades
-    ):
+    def total_cost(trades):
 
-        return (
-
-            trades[
-                "Estimated_Cost"
-            ]
-
-            .sum()
-
-        )
+        return trades["Estimated_Cost"].sum()
 
 
 # ==========================================================
 # CAPACITY MODEL
 # ==========================================================
 
-class CapacityModel:
 
+class CapacityModel:
     @staticmethod
-    def participation_rate(
-        trades
-    ):
+    def participation_rate(trades):
 
         if "ADV_20D" not in trades.columns:
-
-            trades[
-                "Participation_Rate"
-            ] = np.nan
+            trades["Participation_Rate"] = np.nan
 
             return trades
 
-        trades[
-            "Participation_Rate"
-        ] = (
-
-            trades[
-                "Trade_Value"
-            ]
-
-            /
-
-            trades[
-                "ADV_20D"
-            ]
-
-        )
+        trades["Participation_Rate"] = trades["Trade_Value"] / trades["ADV_20D"]
 
         return trades
-    
+
+
 # ==========================================================
 # EXECUTION PRIORITY
 # ==========================================================
 
-class ExecutionPriorityModel:
 
+class ExecutionPriorityModel:
     @staticmethod
-    def prioritize(
-        trades
-    ):
+    def prioritize(trades):
 
         trades = trades.copy()
 
-        trades["Priority_Score"] = (
+        trades["Priority_Score"] = trades["Trade_Weight"].abs()
 
-            trades[
-                "Trade_Weight"
-            ]
+        trades = trades.sort_values("Priority_Score", ascending=False)
 
-            .abs()
-
-        )
-
-        trades = trades.sort_values(
-
-            "Priority_Score",
-
-            ascending=False
-
-        )
-
-        trades["Priority"] = np.arange(
-
-            1,
-
-            len(trades) + 1
-
-        )
+        trades["Priority"] = np.arange(1, len(trades) + 1)
 
         return trades
 
@@ -356,119 +154,32 @@ class ExecutionPriorityModel:
 # TRADE ENGINE
 # ==========================================================
 
+
 class TradeEngine:
+    def generate(self, current_portfolio, target_portfolio):
 
-    def generate(
+        trades = TradeGenerator.generate(current_portfolio, target_portfolio)
 
-        self,
+        trades = RebalanceEngine.classify(trades)
 
-        current_portfolio,
+        trades = TurnoverEngine.reduce_turnover(trades)
 
-        target_portfolio
+        trades = TransactionCostModel.estimate_cost(trades)
 
-    ):
+        trades = ExecutionPriorityModel.prioritize(trades)
 
-        trades = (
+        turnover = TurnoverEngine.calculate_turnover(trades)
 
-            TradeGenerator
+        trade_count = TurnoverEngine.trade_count(trades)
 
-            .generate(
+        total_cost = TransactionCostModel.total_cost(trades)
 
-                current_portfolio,
+        print("\n✓ Trade Generation Complete")
 
-                target_portfolio
+        print(f"Turnover: {turnover:.4f}")
 
-            )
+        print(f"Trades: {trade_count}")
 
-        )
-
-        trades = (
-
-            RebalanceEngine
-
-            .classify(
-                trades
-            )
-
-        )
-
-        trades = (
-
-            TurnoverEngine
-
-            .reduce_turnover(
-                trades
-            )
-
-        )
-
-        trades = (
-
-            TransactionCostModel
-
-            .estimate_cost(
-                trades
-            )
-
-        )
-
-        trades = (
-
-            ExecutionPriorityModel
-
-            .prioritize(
-                trades
-            )
-
-        )
-
-        turnover = (
-
-            TurnoverEngine
-
-            .calculate_turnover(
-                trades
-            )
-
-        )
-
-        trade_count = (
-
-            TurnoverEngine
-
-            .trade_count(
-                trades
-            )
-
-        )
-
-        total_cost = (
-
-            TransactionCostModel
-
-            .total_cost(
-                trades
-            )
-
-        )
-
-        print(
-            "\n✓ Trade Generation Complete"
-        )
-
-        print(
-            f"Turnover: "
-            f"{turnover:.4f}"
-        )
-
-        print(
-            f"Trades: "
-            f"{trade_count}"
-        )
-
-        print(
-            f"Cost: "
-            f"{total_cost:.4f}"
-        )
+        print(f"Cost: {total_cost:.4f}")
 
         return trades

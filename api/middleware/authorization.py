@@ -29,86 +29,47 @@ Used By
 
 from __future__ import annotations
 
-from collections.abc import Callable
-
-from fastapi import HTTPException
-from fastapi import Request
-
+from fastapi import HTTPException, Request
 
 # ==========================================================
 # ROLE DEFINITIONS
 # ==========================================================
 
 ROLES = {
-
     "admin": {
-
         "*",
-
     },
-
     "portfolio_manager": {
-
         "portfolio:read",
-
         "portfolio:write",
-
         "signals:read",
-
         "execution:read",
-
         "execution:write",
-
         "risk:read",
-
         "optimization:run",
-
         "backtest:run",
-
         "monitoring:read",
-
     },
-
     "trader": {
-
         "portfolio:read",
-
         "signals:read",
-
         "execution:read",
-
         "execution:write",
-
         "risk:read",
-
     },
-
     "analyst": {
-
         "portfolio:read",
-
         "signals:read",
-
         "risk:read",
-
         "backtest:run",
-
         "optimization:run",
-
     },
-
     "viewer": {
-
         "portfolio:read",
-
         "signals:read",
-
         "risk:read",
-
         "monitoring:read",
-
     },
-
 }
 
 
@@ -118,37 +79,19 @@ ROLES = {
 
 
 def has_permission(
-
     role: str,
-
     permission: str,
-
 ) -> bool:
     """
     Check whether a role has a permission.
     """
 
     permissions = ROLES.get(
-
         role,
-
         set(),
-
     )
 
-    return (
-
-        "*"
-
-        in permissions
-
-        or
-
-        permission
-
-        in permissions
-
-    )
+    return "*" in permissions or permission in permissions
 
 
 # ==========================================================
@@ -157,60 +100,37 @@ def has_permission(
 
 
 def require_role(
-
     *roles: str,
-
 ):
     """
     Role validator.
     """
 
     async def dependency(
-
         request: Request,
-
     ):
 
         user = getattr(
-
             request.state,
-
             "user",
-
             None,
-
         )
 
         if user is None:
-
             raise HTTPException(
-
                 status_code=401,
-
                 detail="Authentication required.",
-
             )
 
-        user_role = (
-
-            user.get(
-
-                "role",
-
-                "",
-
-            )
-
+        user_role = user.get(
+            "role",
+            "",
         )
 
         if user_role not in roles:
-
             raise HTTPException(
-
                 status_code=403,
-
                 detail="Access denied.",
-
             )
 
         return user
@@ -224,70 +144,40 @@ def require_role(
 
 
 def require_permission(
-
     permission: str,
-
 ):
     """
     Permission validator.
     """
 
     async def dependency(
-
         request: Request,
-
     ):
 
         user = getattr(
-
             request.state,
-
             "user",
-
             None,
-
         )
 
         if user is None:
-
             raise HTTPException(
-
                 status_code=401,
-
                 detail="Authentication required.",
-
             )
 
-        role = (
-
-            user.get(
-
-                "role",
-
-                "",
-
-            )
-
+        role = user.get(
+            "role",
+            "",
         )
 
         if not has_permission(
-
             role,
-
             permission,
-
         ):
-
             raise HTTPException(
-
                 status_code=403,
-
-                detail=(
-
-                    "Insufficient permissions."
-
-                ),
-
+                detail=("Insufficient permissions."),
             )
 
         return user
@@ -301,9 +191,7 @@ def require_permission(
 
 
 AdminOnly = require_role(
-
     "admin",
-
 )
 
 
@@ -313,13 +201,9 @@ AdminOnly = require_role(
 
 
 TraderOnly = require_role(
-
     "admin",
-
     "portfolio_manager",
-
     "trader",
-
 )
 
 
@@ -329,13 +213,9 @@ TraderOnly = require_role(
 
 
 AnalystOnly = require_role(
-
     "admin",
-
     "portfolio_manager",
-
     "analyst",
-
 )
 
 
@@ -345,17 +225,11 @@ AnalystOnly = require_role(
 
 
 ViewerOnly = require_role(
-
     "admin",
-
     "portfolio_manager",
-
     "analyst",
-
     "viewer",
-
     "trader",
-
 )
 
 
@@ -365,51 +239,35 @@ ViewerOnly = require_role(
 
 
 CanReadPortfolio = require_permission(
-
     "portfolio:read",
-
 )
 
 CanWritePortfolio = require_permission(
-
     "portfolio:write",
-
 )
 
 CanReadSignals = require_permission(
-
     "signals:read",
-
 )
 
 CanExecuteTrades = require_permission(
-
     "execution:write",
-
 )
 
 CanReadRisk = require_permission(
-
     "risk:read",
-
 )
 
 CanOptimize = require_permission(
-
     "optimization:run",
-
 )
 
 CanRunBacktest = require_permission(
-
     "backtest:run",
-
 )
 
 CanMonitor = require_permission(
-
     "monitoring:read",
-
 )
 
 
@@ -419,31 +277,21 @@ CanMonitor = require_permission(
 
 
 def current_role(
-
     request: Request,
-
 ) -> str:
 
     user = getattr(
-
         request.state,
-
         "user",
-
         None,
-
     )
 
     if user is None:
-
         return ""
 
     return user.get(
-
         "role",
-
         "",
-
     )
 
 
@@ -452,30 +300,11 @@ def current_role(
 # ==========================================================
 
 
-def authorization_summary(
-
-) -> dict:
+def authorization_summary() -> dict:
 
     return {
-
-        "roles":
-
-            sorted(
-
-                ROLES.keys(),
-
-            ),
-
-        "permissions":
-
-            sum(
-
-                len(v)
-
-                for v
-
-                in ROLES.values()
-
-            ),
-
+        "roles": sorted(
+            ROLES.keys(),
+        ),
+        "permissions": sum(len(v) for v in ROLES.values()),
     }

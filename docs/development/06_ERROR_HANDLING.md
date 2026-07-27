@@ -343,9 +343,7 @@ Every exception shall include
 Use
 
 ```python
-logger.exception(
-    "Portfolio optimization failed."
-)
+logger.exception("Portfolio optimization failed.")
 ```
 
 ---
@@ -514,22 +512,12 @@ Avoid
 
 ```python
 try:
-
     data = repository.load()
 
 except FileNotFoundError as exc:
+    logger.exception("Security master not found.")
 
-    logger.exception(
-
-        "Security master not found."
-
-    )
-
-    raise RepositoryError(
-
-        "Unable to load security master."
-
-    ) from exc
+    raise RepositoryError("Unable to load security master.") from exc
 ```
 
 ---

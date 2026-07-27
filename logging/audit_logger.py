@@ -36,7 +36,6 @@ from datetime import datetime
 import json
 from pathlib import Path
 
-
 # ==========================================================
 # AUDIT EVENT
 # ==========================================================
@@ -63,41 +62,17 @@ class AuditEvent:
     source: str
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Timestamp":
-
-                self.timestamp.isoformat(),
-
-            "User":
-
-                self.user,
-
-            "Action":
-
-                self.action,
-
-            "Resource":
-
-                self.resource,
-
-            "Success":
-
-                self.success,
-
-            "Source":
-
-                self.source,
-
-            "Details":
-
-                self.details,
-
+            "Timestamp": self.timestamp.isoformat(),
+            "User": self.user,
+            "Action": self.action,
+            "Resource": self.resource,
+            "Success": self.success,
+            "Source": self.source,
+            "Details": self.details,
         }
 
 
@@ -112,9 +87,7 @@ class AuditLogger:
     """
 
     def __init__(
-
         self,
-
     ) -> None:
 
         self._events: list[AuditEvent] = []
@@ -124,163 +97,81 @@ class AuditLogger:
     # =====================================================
 
     def log(
-
         self,
-
         user: str,
-
         action: str,
-
         resource: str,
-
         success: bool,
-
         source: str = "SYSTEM",
-
         **details,
-
     ) -> None:
 
         event = AuditEvent(
-
             timestamp=datetime.utcnow(),
-
             user=user,
-
             action=action,
-
             resource=resource,
-
             details=details,
-
             success=success,
-
             source=source,
-
         )
 
-        self._events.append(
-
-            event
-
-        )
+        self._events.append(event)
 
     # =====================================================
     # FILTER USER
     # =====================================================
 
     def by_user(
-
         self,
-
         user: str,
-
     ) -> list[AuditEvent]:
 
-        return [
-
-            event
-
-            for event
-
-            in self._events
-
-            if event.user == user
-
-        ]
+        return [event for event in self._events if event.user == user]
 
     # =====================================================
     # FILTER ACTION
     # =====================================================
 
     def by_action(
-
         self,
-
         action: str,
-
     ) -> list[AuditEvent]:
 
-        return [
-
-            event
-
-            for event
-
-            in self._events
-
-            if event.action == action
-
-        ]
+        return [event for event in self._events if event.action == action]
 
     # =====================================================
     # FILTER RESOURCE
     # =====================================================
 
     def by_resource(
-
         self,
-
         resource: str,
-
     ) -> list[AuditEvent]:
 
-        return [
-
-            event
-
-            for event
-
-            in self._events
-
-            if event.resource == resource
-
-        ]
+        return [event for event in self._events if event.resource == resource]
 
     # =====================================================
     # EXPORT JSON
     # =====================================================
 
     def export(
-
         self,
-
         filename: str | Path,
-
     ) -> None:
 
-        path = Path(
+        path = Path(filename)
 
-            filename
-
-        )
-
-        payload = [
-
-            event.summary()
-
-            for event
-
-            in self._events
-
-        ]
+        payload = [event.summary() for event in self._events]
 
         with path.open(
-
             "w",
-
             encoding="utf-8",
-
         ) as file:
-
             json.dump(
-
                 payload,
-
                 file,
-
                 indent=4,
-
             )
 
     # =====================================================
@@ -288,9 +179,7 @@ class AuditLogger:
     # =====================================================
 
     def clear(
-
         self,
-
     ) -> None:
 
         self._events.clear()
@@ -301,70 +190,30 @@ class AuditLogger:
 
     @property
     def events(
-
         self,
-
     ) -> list[AuditEvent]:
 
-        return list(
-
-            self._events
-
-        )
+        return list(self._events)
 
     @property
     def count(
-
         self,
-
     ) -> int:
 
-        return len(
-
-            self._events
-
-        )
+        return len(self._events)
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
     def summary(
-
         self,
-
     ) -> dict:
 
         return {
-
-            "Events":
-
-                self.count,
-
-            "Successful":
-
-                sum(
-
-                    event.success
-
-                    for event
-
-                    in self._events
-
-                ),
-
-            "Failed":
-
-                sum(
-
-                    not event.success
-
-                    for event
-
-                    in self._events
-
-                ),
-
+            "Events": self.count,
+            "Successful": sum(event.success for event in self._events),
+            "Failed": sum(not event.success for event in self._events),
         }
 
     # =====================================================
@@ -372,17 +221,9 @@ class AuditLogger:
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Events={self.count})"
-
-        )
+        return f"{self.__class__.__name__}(Events={self.count})"
 
     __str__ = __repr__

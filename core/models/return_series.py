@@ -28,12 +28,9 @@ Used By
 from __future__ import annotations
 
 from dataclasses import dataclass
-
 from datetime import datetime
-
 from math import sqrt
-from statistics import fmean
-from statistics import stdev
+from statistics import fmean, stdev
 
 
 @dataclass(slots=True, frozen=True)
@@ -65,262 +62,115 @@ class ReturnSeries:
     # COLLECTION PROTOCOL
     # =====================================================
 
-    def __iter__(
+    def __iter__(self):
 
-        self
+        return iter(self.observations)
 
-    ):
+    def __len__(self) -> int:
 
-        return iter(
+        return len(self.observations)
 
-            self.observations
-
-        )
-
-    def __len__(
-
-        self
-
-    ) -> int:
-
-        return len(
-
-            self.observations
-
-        )
-
-    def __getitem__(
-
-        self,
-
-        index: int
-
-    ) -> ReturnObservation:
+    def __getitem__(self, index: int) -> ReturnObservation:
 
         return self.observations[index]
 
-    def __bool__(
+    def __bool__(self) -> bool:
 
-        self
-
-    ) -> bool:
-
-        return len(
-
-            self
-
-        ) > 0
+        return len(self) > 0
 
     # =====================================================
     # BASIC
     # =====================================================
 
     @property
-    def values(
+    def values(self) -> list[float]:
 
-        self
-
-    ) -> list[float]:
-
-        return [
-
-            observation.value
-
-            for observation
-
-            in self
-
-        ]
+        return [observation.value for observation in self]
 
     @property
-    def dates(
+    def dates(self) -> list[datetime]:
 
-        self
-
-    ) -> list[datetime]:
-
-        return [
-
-            observation.timestamp
-
-            for observation
-
-            in self
-
-        ]
+        return [observation.timestamp for observation in self]
 
     @property
-    def count(
+    def count(self) -> int:
 
-        self
-
-    ) -> int:
-
-        return len(
-
-            self
-
-        )
+        return len(self)
 
     @property
-    def is_empty(
+    def is_empty(self) -> bool:
 
-        self
-
-    ) -> bool:
-
-        return len(
-
-            self
-
-        ) == 0
+        return len(self) == 0
 
     # =====================================================
     # STATISTICS
     # =====================================================
 
     @property
-    def mean(
-
-        self
-
-    ) -> float:
+    def mean(self) -> float:
 
         if self.is_empty:
-
             return 0.0
 
-        return fmean(
-
-            self.values
-
-        )
+        return fmean(self.values)
 
     @property
-    def volatility(
-
-        self
-
-    ) -> float:
+    def volatility(self) -> float:
 
         if self.count < 2:
-
             return 0.0
 
-        return stdev(
-
-            self.values
-
-        )
+        return stdev(self.values)
 
     @property
-    def variance(
-
-        self
-
-    ) -> float:
+    def variance(self) -> float:
 
         sigma = self.volatility
 
         return sigma * sigma
 
     @property
-    def annualization_factor(
-
-        self
-
-    ) -> int:
+    def annualization_factor(self) -> int:
 
         mapping = {
-
             "daily": 252,
-
             "weekly": 52,
-
             "monthly": 12,
-
             "quarterly": 4,
-
-            "yearly": 1
-
+            "yearly": 1,
         }
 
-        return mapping.get(
-
-            self.frequency,
-
-            252
-
-        )
+        return mapping.get(self.frequency, 252)
 
     @property
-    def annualized_return(
+    def annualized_return(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return (
-
-            self.mean
-
-            * self.annualization_factor
-
-        )
+        return self.mean * self.annualization_factor
 
     @property
-    def annualized_volatility(
+    def annualized_volatility(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return (
-
-            self.volatility
-
-            * sqrt(
-
-                self.annualization_factor
-
-            )
-
-        )
+        return self.volatility * sqrt(self.annualization_factor)
 
     # =====================================================
     # RISK
     # =====================================================
 
     @property
-    def sharpe_ratio(
-
-        self
-
-    ) -> float:
+    def sharpe_ratio(self) -> float:
 
         sigma = self.annualized_volatility
 
         if sigma <= 0:
-
             return 0.0
 
-        return (
-
-            self.annualized_return
-
-            - self.risk_free_rate
-
-        ) / sigma
+        return (self.annualized_return - self.risk_free_rate) / sigma
 
     # =====================================================
     # EXPORT
     # =====================================================
 
-    def to_list(
-
-        self
-
-    ) -> list[float]:
+    def to_list(self) -> list[float]:
 
         return self.values.copy()
 
@@ -328,50 +178,24 @@ class ReturnSeries:
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         return {
-
             "count": self.count,
-
             "frequency": self.frequency,
-
             "mean": self.mean,
-
             "volatility": self.volatility,
-
             "annualized_return": self.annualized_return,
-
             "annualized_volatility": self.annualized_volatility,
-
-            "sharpe_ratio": self.sharpe_ratio
-
+            "sharpe_ratio": self.sharpe_ratio,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
+    def __repr__(self) -> str:
 
-        self
-
-    ) -> str:
-
-        return (
-
-            f"ReturnSeries("
-
-            f"count={self.count}, "
-
-            f"frequency='{self.frequency}'"
-
-            f")"
-
-        )
+        return f"ReturnSeries(count={self.count}, frequency='{self.frequency}')"
 
     __str__ = __repr__

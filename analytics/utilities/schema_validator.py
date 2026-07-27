@@ -15,8 +15,8 @@ Used by:
 =========================================================
 """
 
+from collections.abc import Iterable
 from pathlib import Path
-from typing import Iterable
 
 import pandas as pd
 
@@ -31,9 +31,7 @@ def validate_file_exists(file_path: Path) -> None:
     """
 
     if not file_path.exists():
-        raise FileNotFoundError(
-            f"\n❌ File Not Found:\n{file_path}"
-        )
+        raise FileNotFoundError(f"\n❌ File Not Found:\n{file_path}")
 
 
 # =========================================================
@@ -47,9 +45,7 @@ def validate_not_empty(df: pd.DataFrame, file_path: Path) -> None:
     """
 
     if df.empty:
-        raise ValueError(
-            f"\n❌ Empty File:\n{file_path}"
-        )
+        raise ValueError(f"\n❌ Empty File:\n{file_path}")
 
 
 # =========================================================
@@ -66,14 +62,9 @@ def validate_required_columns(
     Validate required columns exist.
     """
 
-    missing = [
-        col
-        for col in required_columns
-        if col not in df.columns
-    ]
+    missing = [col for col in required_columns if col not in df.columns]
 
     if missing:
-
         raise ValueError(
             "\n❌ Missing Required Columns\n"
             f"File: {file_path}\n"
@@ -98,11 +89,8 @@ def validate_no_duplicates(
     duplicates = df[column].duplicated().sum()
 
     if duplicates > 0:
-
         raise ValueError(
-            f"\n❌ Duplicate Values Found\n"
-            f"Column: {column}\n"
-            f"Count: {duplicates}"
+            f"\n❌ Duplicate Values Found\nColumn: {column}\nCount: {duplicates}"
         )
 
 
@@ -120,7 +108,6 @@ def validate_numeric_columns(
     """
 
     for col in columns:
-
         if col not in df.columns:
             continue
 
@@ -131,11 +118,7 @@ def validate_numeric_columns(
             )
 
         except Exception as exc:
-
-            raise ValueError(
-                f"\n❌ Non-Numeric Values Found\n"
-                f"Column: {col}"
-            ) from exc
+            raise ValueError(f"\n❌ Non-Numeric Values Found\nColumn: {col}") from exc
 
 
 # =========================================================
@@ -214,10 +197,7 @@ def remove_duplicate_symbols(
     Remove duplicate symbols.
     """
 
-    return (
-        df.drop_duplicates(
-            subset=[column],
-            keep="first",
-        )
-        .reset_index(drop=True)
-    )
+    return df.drop_duplicates(
+        subset=[column],
+        keep="first",
+    ).reset_index(drop=True)

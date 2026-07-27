@@ -38,35 +38,27 @@ from functools import lru_cache
 from backtesting.backtest_engine import (
     BacktestEngine,
 )
-
-from backtesting.performance_engine import (
-    PerformanceEngine,
-)
-
-from backtesting.benchmark_engine import (
-    BenchmarkEngine,
-)
-
 from backtesting.backtest_report import (
     BacktestReport,
 )
-
-from backtesting.portfolio_tracker import (
-    PortfolioTracker,
+from backtesting.benchmark_engine import (
+    BenchmarkEngine,
 )
-
-from backtesting.position_manager import (
-    PositionManager,
-)
-
 from backtesting.cash_manager import (
     CashManager,
 )
-
 from backtesting.event_engine import (
     EventEngine,
 )
-
+from backtesting.performance_engine import (
+    PerformanceEngine,
+)
+from backtesting.portfolio_tracker import (
+    PortfolioTracker,
+)
+from backtesting.position_manager import (
+    PositionManager,
+)
 
 # ==========================================================
 # BACKTEST ENGINE
@@ -183,13 +175,9 @@ def backtest_health() -> dict:
     """
 
     return {
-
         "engine": "BacktestEngine",
-
         "status": "healthy",
-
         "singleton": True,
-
     }
 
 
@@ -204,29 +192,17 @@ def backtest_summary() -> dict:
     """
 
     return {
-
         "services": [
-
             "BacktestEngine",
-
             "PerformanceEngine",
-
             "BenchmarkEngine",
-
             "BacktestReport",
-
             "PortfolioTracker",
-
             "PositionManager",
-
             "CashManager",
-
             "EventEngine",
-
         ],
-
         "count": 8,
-
     }
 
 
@@ -236,25 +212,14 @@ def backtest_summary() -> dict:
 
 
 __all__ = [
-
-    "get_backtest_engine",
-
-    "get_performance_engine",
-
-    "get_benchmark_engine",
-
-    "get_backtest_report",
-
-    "get_portfolio_tracker",
-
-    "get_position_manager",
-
-    "get_cash_manager",
-
-    "get_event_engine",
-
     "backtest_health",
-
     "backtest_summary",
-
+    "get_backtest_engine",
+    "get_backtest_report",
+    "get_benchmark_engine",
+    "get_cash_manager",
+    "get_event_engine",
+    "get_performance_engine",
+    "get_portfolio_tracker",
+    "get_position_manager",
 ]

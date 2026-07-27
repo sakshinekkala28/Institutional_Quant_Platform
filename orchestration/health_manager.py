@@ -21,14 +21,11 @@ Responsibilities
 
 from __future__ import annotations
 
-import logging
-
 from dataclasses import dataclass
 from datetime import datetime
 from enum import Enum
+import logging
 from typing import Any
-from typing import Dict
-from typing import List
 
 logger = logging.getLogger(__name__)
 
@@ -37,8 +34,8 @@ logger = logging.getLogger(__name__)
 # HEALTH STATUS
 # =========================================================
 
-class HealthStatus(str, Enum):
 
+class HealthStatus(str, Enum):
     HEALTHY = "HEALTHY"
 
     WARNING = "WARNING"
@@ -52,9 +49,9 @@ class HealthStatus(str, Enum):
 # HEALTH RECORD
 # =========================================================
 
+
 @dataclass(slots=True)
 class HealthRecord:
-
     component: str
 
     status: HealthStatus
@@ -63,12 +60,13 @@ class HealthRecord:
 
     timestamp: datetime = datetime.utcnow()
 
-    metadata: Dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
 
 
 # =========================================================
 # HEALTH MANAGER
 # =========================================================
+
 
 class HealthManager:
     """
@@ -77,12 +75,12 @@ class HealthManager:
 
     def __init__(self) -> None:
 
-        self._checks: Dict[
+        self._checks: dict[
             str,
             callable,
         ] = {}
 
-        self._results: Dict[
+        self._results: dict[
             str,
             HealthRecord,
         ] = {}
@@ -112,63 +110,36 @@ class HealthManager:
     ) -> HealthRecord:
 
         if name not in self._checks:
-
-            raise KeyError(
-
-                f"Unknown health check '{name}'."
-
-            )
+            raise KeyError(f"Unknown health check '{name}'.")
 
         try:
-
             result = self._checks[name]()
 
             if isinstance(
-
                 result,
-
                 HealthRecord,
-
             ):
-
                 record = result
 
             elif result:
-
                 record = HealthRecord(
-
                     component=name,
-
                     status=HealthStatus.HEALTHY,
-
                 )
 
             else:
-
                 record = HealthRecord(
-
                     component=name,
-
                     status=HealthStatus.UNHEALTHY,
-
                 )
 
         except Exception as exc:
-
-            logger.exception(
-
-                "Health check failed."
-
-            )
+            logger.exception("Health check failed.")
 
             record = HealthRecord(
-
                 component=name,
-
                 status=HealthStatus.UNHEALTHY,
-
                 message=str(exc),
-
             )
 
         self._results[name] = record
@@ -181,21 +152,9 @@ class HealthManager:
 
     def check_all(
         self,
-    ) -> List[HealthRecord]:
+    ) -> list[HealthRecord]:
 
-        return [
-
-            self.check(name)
-
-            for name
-
-            in sorted(
-
-                self._checks
-
-            )
-
-        ]
+        return [self.check(name) for name in sorted(self._checks)]
 
     # =====================================================
     # READY
@@ -208,15 +167,7 @@ class HealthManager:
         self.check_all()
 
         return all(
-
-            record.status
-
-            == HealthStatus.HEALTHY
-
-            for record
-
-            in self._results.values()
-
+            record.status == HealthStatus.HEALTHY for record in self._results.values()
         )
 
     # =====================================================
@@ -228,73 +179,31 @@ class HealthManager:
     ) -> dict:
 
         healthy = sum(
-
             1
-
-            for record
-
-            in self._results.values()
-
-            if record.status
-
-            == HealthStatus.HEALTHY
-
+            for record in self._results.values()
+            if record.status == HealthStatus.HEALTHY
         )
 
         unhealthy = sum(
-
             1
-
-            for record
-
-            in self._results.values()
-
-            if record.status
-
-            == HealthStatus.UNHEALTHY
-
+            for record in self._results.values()
+            if record.status == HealthStatus.UNHEALTHY
         )
 
         warning = sum(
-
             1
-
-            for record
-
-            in self._results.values()
-
-            if record.status
-
-            == HealthStatus.WARNING
-
+            for record in self._results.values()
+            if record.status == HealthStatus.WARNING
         )
 
         return {
-
-            "registered":
-
-                len(
-
-                    self._checks,
-
-                ),
-
-            "healthy":
-
-                healthy,
-
-            "warning":
-
-                warning,
-
-            "unhealthy":
-
-                unhealthy,
-
-            "ready":
-
-                self.is_ready(),
-
+            "registered": len(
+                self._checks,
+            ),
+            "healthy": healthy,
+            "warning": warning,
+            "unhealthy": unhealthy,
+            "ready": self.is_ready(),
         }
 
     # =====================================================
@@ -304,13 +213,9 @@ class HealthManager:
     @property
     def results(
         self,
-    ) -> Dict[str, HealthRecord]:
+    ) -> dict[str, HealthRecord]:
 
-        return dict(
-
-            self._results
-
-        )
+        return dict(self._results)
 
     # =====================================================
     # DUNDER
@@ -320,22 +225,12 @@ class HealthManager:
         self,
     ) -> int:
 
-        return len(
-
-            self._checks
-
-        )
+        return len(self._checks)
 
     def __repr__(
         self,
     ) -> str:
 
         return (
-
-            f"{self.__class__.__name__}("
-
-            f"checks={len(self)}, "
-
-            f"healthy={self.is_ready()})"
-
+            f"{self.__class__.__name__}(checks={len(self)}, healthy={self.is_ready()})"
         )

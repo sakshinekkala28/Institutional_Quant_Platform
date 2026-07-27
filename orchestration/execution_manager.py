@@ -25,14 +25,13 @@ from time import perf_counter
 from orchestration.execution_report import (
     ExecutionReport,
 )
-
+from orchestration.models.engine_status import (
+    EngineStatus,
+)
 from orchestration.models.pipeline_result import (
     PipelineResult,
 )
 
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
 
 class ExecutionManager:
     """
@@ -64,21 +63,11 @@ class ExecutionManager:
         results = []
 
         for level in pipeline.execution_levels:
+            result = self.execute_level(level)
 
-            result = self.execute_level(
-
-                level
-
-            )
-
-            results.append(
-
-                result
-
-            )
+            results.append(result)
 
         return results
-    
 
     # =====================================================
     # LEVEL
@@ -90,57 +79,27 @@ class ExecutionManager:
     ) -> PipelineResult:
 
         pipeline = PipelineResult(
-
             pipeline="Execution Level",
-
             status=EngineStatus.RUNNING,
-
         )
 
         timer = perf_counter()
 
-        engine_results = self.executor.execute(
+        engine_results = self.executor.execute(engines)
 
-            engines
-
-        )
-
-        pipeline.duration = (
-
-            perf_counter()
-
-            - timer
-
-        )
+        pipeline.duration = perf_counter() - timer
 
         for result in engine_results:
+            pipeline.add_engine(result)
 
-            pipeline.add_engine(
-
-                result
-
-            )
-
-            self.report.add_engine_result(
-
-                result
-
-            )
+            self.report.add_engine_result(result)
 
         pipeline.status = (
-
             EngineStatus.SUCCESS
-
             if pipeline.failed_engines == 0
-
             else EngineStatus.FAILED
-
         )
 
-        self.report.add_pipeline_result(
-
-            pipeline
-
-        )
+        self.report.add_pipeline_result(pipeline)
 
         return pipeline

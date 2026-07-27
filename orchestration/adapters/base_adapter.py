@@ -31,16 +31,13 @@ Implemented By
 
 from __future__ import annotations
 
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from typing import Any
-from typing import Dict
-from typing import Optional
-
 
 # =========================================================
 # BASE ADAPTER
 # =========================================================
+
 
 class BaseAdapter(ABC):
     """
@@ -132,9 +129,7 @@ class BaseAdapter(ABC):
         Check whether a resource exists.
         """
 
-        raise NotImplementedError(
-            f"{self.NAME} does not implement exists()."
-        )
+        raise NotImplementedError(f"{self.NAME} does not implement exists().")
 
     # -----------------------------------------------------
 
@@ -147,9 +142,7 @@ class BaseAdapter(ABC):
         Delete a resource.
         """
 
-        raise NotImplementedError(
-            f"{self.NAME} does not implement delete()."
-        )
+        raise NotImplementedError(f"{self.NAME} does not implement delete().")
 
     # -----------------------------------------------------
 
@@ -169,16 +162,12 @@ class BaseAdapter(ABC):
     @classmethod
     def metadata(
         cls,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
 
         return {
-
             "name": cls.NAME,
-
             "description": cls.DESCRIPTION,
-
             "version": cls.VERSION,
-
         }
 
     # =====================================================
@@ -187,7 +176,7 @@ class BaseAdapter(ABC):
 
     def __enter__(
         self,
-    ) -> "BaseAdapter":
+    ) -> BaseAdapter:
 
         self.connect()
 
@@ -213,11 +202,5 @@ class BaseAdapter(ABC):
     ) -> str:
 
         return (
-
-            f"{self.__class__.__name__}("
-
-            f"name='{self.NAME}', "
-
-            f"connected={self.connected})"
-
+            f"{self.__class__.__name__}(name='{self.NAME}', connected={self.connected})"
         )

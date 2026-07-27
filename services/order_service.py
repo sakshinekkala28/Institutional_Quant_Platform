@@ -28,38 +28,26 @@ Responsibilities
 
 from __future__ import annotations
 
-from dataclasses import dataclass
-from dataclasses import field
-
+from dataclasses import dataclass, field
 from datetime import datetime
-
 from enum import Enum
-
-from threading import Lock
-from threading import RLock
-
+from threading import Lock, RLock
 from typing import Any
-from typing import Dict
-from typing import Optional
-
-import pandas as pd
 
 from core.services.base_service import BaseService
-
 
 # ============================================================
 # Enums
 # ============================================================
 
-class OrderSide(str, Enum):
 
+class OrderSide(str, Enum):
     BUY = "BUY"
 
     SELL = "SELL"
 
 
 class OrderType(str, Enum):
-
     MARKET = "MARKET"
 
     LIMIT = "LIMIT"
@@ -70,7 +58,6 @@ class OrderType(str, Enum):
 
 
 class OrderStatus(str, Enum):
-
     NEW = "NEW"
 
     VALIDATED = "VALIDATED"
@@ -90,6 +77,7 @@ class OrderStatus(str, Enum):
 # Exceptions
 # ============================================================
 
+
 class OrderError(Exception):
     """Base order exception."""
 
@@ -102,9 +90,9 @@ class OrderNotFound(OrderError):
 # Order Model
 # ============================================================
 
+
 @dataclass(slots=True)
 class Order:
-
     order_id: str
 
     symbol: str
@@ -115,7 +103,7 @@ class Order:
 
     order_type: OrderType
 
-    limit_price: Optional[float] = None
+    limit_price: float | None = None
 
     executed_quantity: float = 0.0
 
@@ -125,25 +113,17 @@ class Order:
 
     broker: str = ""
 
-    created_at: datetime = field(
+    created_at: datetime = field(default_factory=datetime.utcnow)
 
-        default_factory=datetime.utcnow
-
-    )
-
-    metadata: Dict[str, Any] = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ============================================================
 # Order Service
 # ============================================================
 
-class OrderService(BaseService):
 
+class OrderService(BaseService):
     """
     Enterprise Order Manager.
     """
@@ -152,77 +132,41 @@ class OrderService(BaseService):
 
     _instance_lock = Lock()
 
-    def __new__(
-
-        cls,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def __new__(cls, *args, **kwargs):
 
         if cls._instance is None:
-
             with cls._instance_lock:
-
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
 
-    def __init__(
+    def __init__(self):
 
-        self
-
-    ):
-
-        if getattr(
-
-            self,
-
-            "_initialized",
-
-            False
-
-        ):
-
+        if getattr(self, "_initialized", False):
             return
 
         super().__init__()
 
         self._lock = RLock()
 
-        self._orders: Dict[str, Order] = {}
+        self._orders: dict[str, Order] = {}
 
         self._enabled = True
 
         self._initialized = True
 
-        self._logger.info(
-
-            "OrderService initialized."
-
-        )
+        self._logger.info("OrderService initialized.")
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def enable(
-
-        self
-
-    ):
+    def enable(self):
 
         self._enabled = True
 
-    def disable(
-
-        self
-
-    ):
+    def disable(self):
 
         self._enabled = False
 
@@ -230,117 +174,51 @@ class OrderService(BaseService):
     # Registration
     # =====================================================
 
-    def create(
-
-        self,
-
-        order: Order
-
-    ) -> None:
+    def create(self, order: Order) -> None:
         """
         Register a new order.
         """
 
         with self._lock:
-
-            self._orders[
-
-                order.order_id
-
-            ] = order
+            self._orders[order.order_id] = order
 
     # =====================================================
     # Retrieval
     # =====================================================
 
-    def get(
-
-        self,
-
-        order_id: str
-
-    ) -> Order:
+    def get(self, order_id: str) -> Order:
 
         if order_id not in self._orders:
+            raise OrderNotFound(order_id)
 
-            raise OrderNotFound(
-
-                order_id
-
-            )
-
-        return self._orders[
-
-            order_id
-
-        ]
+        return self._orders[order_id]
 
     # =====================================================
     # BaseService
     # =====================================================
 
-    def run(
-
-        self
-
-    ):
+    def run(self):
 
         return self.statistics()
-    
+
     # =====================================================
     # Validation
     # =====================================================
 
-    def validate(
-
-        self,
-
-        order_id: str
-
-    ) -> bool:
+    def validate(self, order_id: str) -> bool:
         """
         Validate order.
         """
 
-        order = self.get(
-
-            order_id
-
-        )
+        order = self.get(order_id)
 
         if order.quantity <= 0:
+            raise OrderError("Quantity must be greater than zero.")
 
-            raise OrderError(
+        if order.order_type == OrderType.LIMIT and order.limit_price is None:
+            raise OrderError("Limit price is required.")
 
-                "Quantity must be greater than zero."
-
-            )
-
-        if (
-
-            order.order_type
-
-            ==
-
-            OrderType.LIMIT
-
-            and
-
-            order.limit_price is None
-
-        ):
-
-            raise OrderError(
-
-                "Limit price is required."
-
-            )
-
-        order.status = (
-
-            OrderStatus.VALIDATED
-
-        )
+        order.status = OrderStatus.VALIDATED
 
         return True
 
@@ -348,648 +226,241 @@ class OrderService(BaseService):
     # Routing
     # =====================================================
 
-    def route(
-
-        self,
-
-        order_id: str,
-
-        broker: str
-
-    ) -> None:
+    def route(self, order_id: str, broker: str) -> None:
         """
         Route order to broker.
         """
 
-        order = self.get(
+        order = self.get(order_id)
 
-            order_id
-
-        )
-
-        self.validate(
-
-            order_id
-
-        )
+        self.validate(order_id)
 
         order.broker = broker
 
-        order.status = (
-
-            OrderStatus.ROUTED
-
-        )
+        order.status = OrderStatus.ROUTED
 
     # =====================================================
     # Amendment
     # =====================================================
 
-    def amend(
-
-        self,
-
-        order_id: str,
-
-        **updates
-
-    ) -> None:
+    def amend(self, order_id: str, **updates) -> None:
         """
         Amend order.
         """
 
-        order = self.get(
+        order = self.get(order_id)
 
-            order_id
-
-        )
-
-        if order.status in (
-
-            OrderStatus.FILLED,
-
-            OrderStatus.CANCELLED
-
-        ):
-
-            raise OrderError(
-
-                "Cannot amend completed order."
-
-            )
+        if order.status in (OrderStatus.FILLED, OrderStatus.CANCELLED):
+            raise OrderError("Cannot amend completed order.")
 
         for key, value in updates.items():
-
-            if hasattr(
-
-                order,
-
-                key
-
-            ):
-
-                setattr(
-
-                    order,
-
-                    key,
-
-                    value
-
-                )
+            if hasattr(order, key):
+                setattr(order, key, value)
 
     # =====================================================
     # Cancellation
     # =====================================================
 
-    def cancel(
-
-        self,
-
-        order_id: str
-
-    ) -> None:
+    def cancel(self, order_id: str) -> None:
         """
         Cancel order.
         """
 
-        order = self.get(
-
-            order_id
-
-        )
+        order = self.get(order_id)
 
         if order.status == OrderStatus.FILLED:
+            raise OrderError("Filled order cannot be cancelled.")
 
-            raise OrderError(
-
-                "Filled order cannot be cancelled."
-
-            )
-
-        order.status = (
-
-            OrderStatus.CANCELLED
-
-        )
+        order.status = OrderStatus.CANCELLED
 
     # =====================================================
     # Fill Processing
     # =====================================================
 
-    def record_fill(
-
-        self,
-
-        order_id: str,
-
-        quantity: float,
-
-        price: float
-
-    ) -> None:
+    def record_fill(self, order_id: str, quantity: float, price: float) -> None:
         """
         Record execution fill.
         """
 
-        order = self.get(
+        order = self.get(order_id)
 
-            order_id
+        previous_quantity = order.executed_quantity
 
-        )
+        previous_value = previous_quantity * order.average_price
 
-        previous_quantity = (
+        new_value = quantity * price
 
-            order.executed_quantity
-
-        )
-
-        previous_value = (
-
-            previous_quantity
-
-            *
-
-            order.average_price
-
-        )
-
-        new_value = (
-
-            quantity
-
-            *
-
-            price
-
-        )
-
-        total_quantity = (
-
-            previous_quantity
-
-            +
-
-            quantity
-
-        )
+        total_quantity = previous_quantity + quantity
 
         if total_quantity > order.quantity:
+            raise OrderError("Fill exceeds order quantity.")
 
-            raise OrderError(
-
-                "Fill exceeds order quantity."
-
-            )
-
-        order.executed_quantity = (
-
-            total_quantity
-
-        )
+        order.executed_quantity = total_quantity
 
         if total_quantity > 0:
-
-            order.average_price = (
-
-                previous_value
-
-                +
-
-                new_value
-
-            ) / total_quantity
+            order.average_price = (previous_value + new_value) / total_quantity
 
         if total_quantity == order.quantity:
-
-            order.status = (
-
-                OrderStatus.FILLED
-
-            )
+            order.status = OrderStatus.FILLED
 
         else:
-
-            order.status = (
-
-                OrderStatus.PARTIALLY_FILLED
-
-            )
+            order.status = OrderStatus.PARTIALLY_FILLED
 
     # =====================================================
     # Rejection
     # =====================================================
 
-    def reject(
-
-        self,
-
-        order_id: str,
-
-        reason: str = ""
-
-    ) -> None:
+    def reject(self, order_id: str, reason: str = "") -> None:
         """
         Reject order.
         """
 
-        order = self.get(
+        order = self.get(order_id)
 
-            order_id
+        order.status = OrderStatus.REJECTED
 
-        )
-
-        order.status = (
-
-            OrderStatus.REJECTED
-
-        )
-
-        order.metadata[
-
-            "rejection_reason"
-
-        ] = reason
+        order.metadata["rejection_reason"] = reason
 
     # =====================================================
     # Quantities
     # =====================================================
 
-    def remaining_quantity(
-
-        self,
-
-        order_id: str
-
-    ) -> float:
+    def remaining_quantity(self, order_id: str) -> float:
         """
         Remaining quantity.
         """
 
-        order = self.get(
+        order = self.get(order_id)
 
-            order_id
+        return order.quantity - order.executed_quantity
 
-        )
-
-        return (
-
-            order.quantity
-
-            -
-
-            order.executed_quantity
-
-        )
-
-    def fill_percentage(
-
-        self,
-
-        order_id: str
-
-    ) -> float:
+    def fill_percentage(self, order_id: str) -> float:
         """
         Fill percentage.
         """
 
-        order = self.get(
-
-            order_id
-
-        )
+        order = self.get(order_id)
 
         if order.quantity == 0:
-
             return 0.0
 
-        return (
-
-            order.executed_quantity
-
-            /
-
-            order.quantity
-
-        )
+        return order.executed_quantity / order.quantity
 
     # =====================================================
     # Statistics
     # =====================================================
 
-    def statistics(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """
         OMS statistics.
         """
 
         return {
-
-            "orders":
-
-                len(
-
-                    self._orders
-
-                ),
-
-            "filled":
-
-                sum(
-
-                    order.status
-
-                    ==
-
-                    OrderStatus.FILLED
-
-                    for order
-
-                    in self._orders.values()
-
-                ),
-
-            "open":
-
-                sum(
-
-                    order.status
-
-                    in (
-
-                        OrderStatus.NEW,
-
-                        OrderStatus.VALIDATED,
-
-                        OrderStatus.ROUTED,
-
-                        OrderStatus.PARTIALLY_FILLED
-
-                    )
-
-                    for order
-
-                    in self._orders.values()
-
-                ),
-
-            "cancelled":
-
-                sum(
-
-                    order.status
-
-                    ==
-
-                    OrderStatus.CANCELLED
-
-                    for order
-
-                    in self._orders.values()
-
-                ),
-
-            "rejected":
-
-                sum(
-
-                    order.status
-
-                    ==
-
-                    OrderStatus.REJECTED
-
-                    for order
-
-                    in self._orders.values()
-
-                ),
-
-            "enabled":
-
-                self._enabled
-
+            "orders": len(self._orders),
+            "filled": sum(
+                order.status == OrderStatus.FILLED for order in self._orders.values()
+            ),
+            "open": sum(
+                order.status
+                in (
+                    OrderStatus.NEW,
+                    OrderStatus.VALIDATED,
+                    OrderStatus.ROUTED,
+                    OrderStatus.PARTIALLY_FILLED,
+                )
+                for order in self._orders.values()
+            ),
+            "cancelled": sum(
+                order.status == OrderStatus.CANCELLED for order in self._orders.values()
+            ),
+            "rejected": sum(
+                order.status == OrderStatus.REJECTED for order in self._orders.values()
+            ),
+            "enabled": self._enabled,
         }
-    
+
     # =====================================================
     # Query
     # =====================================================
 
-    def exists(
-
-        self,
-
-        order_id: str
-
-    ) -> bool:
+    def exists(self, order_id: str) -> bool:
         """
         Check whether order exists.
         """
 
         return order_id in self._orders
 
-    def orders(
-
-        self
-
-    ) -> list[Order]:
+    def orders(self) -> list[Order]:
         """
         Return all orders.
         """
 
-        return list(
+        return list(self._orders.values())
 
-            self._orders.values()
-
-        )
-
-    def orders_by_status(
-
-        self,
-
-        status: OrderStatus
-
-    ) -> list[Order]:
+    def orders_by_status(self, status: OrderStatus) -> list[Order]:
         """
         Orders filtered by status.
         """
 
-        return [
+        return [order for order in self._orders.values() if order.status == status]
 
-            order
-
-            for order
-
-            in self._orders.values()
-
-            if order.status == status
-
-        ]
-
-    def open_orders(
-
-        self
-
-    ) -> list[Order]:
+    def open_orders(self) -> list[Order]:
         """
         Active orders.
         """
 
         return (
-
-            self.orders_by_status(
-
-                OrderStatus.NEW
-
-            )
-
-            +
-
-            self.orders_by_status(
-
-                OrderStatus.VALIDATED
-
-            )
-
-            +
-
-            self.orders_by_status(
-
-                OrderStatus.ROUTED
-
-            )
-
-            +
-
-            self.orders_by_status(
-
-                OrderStatus.PARTIALLY_FILLED
-
-            )
-
+            self.orders_by_status(OrderStatus.NEW)
+            + self.orders_by_status(OrderStatus.VALIDATED)
+            + self.orders_by_status(OrderStatus.ROUTED)
+            + self.orders_by_status(OrderStatus.PARTIALLY_FILLED)
         )
 
-    def filled_orders(
+    def filled_orders(self) -> list[Order]:
 
-        self
+        return self.orders_by_status(OrderStatus.FILLED)
 
-    ) -> list[Order]:
+    def cancelled_orders(self) -> list[Order]:
 
-        return self.orders_by_status(
+        return self.orders_by_status(OrderStatus.CANCELLED)
 
-            OrderStatus.FILLED
+    def rejected_orders(self) -> list[Order]:
 
-        )
-
-    def cancelled_orders(
-
-        self
-
-    ) -> list[Order]:
-
-        return self.orders_by_status(
-
-            OrderStatus.CANCELLED
-
-        )
-
-    def rejected_orders(
-
-        self
-
-    ) -> list[Order]:
-
-        return self.orders_by_status(
-
-            OrderStatus.REJECTED
-
-        )
+        return self.orders_by_status(OrderStatus.REJECTED)
 
     # =====================================================
     # Metadata
     # =====================================================
 
-    def metadata(
-
-        self,
-
-        order_id: str
-
-    ) -> Dict[str, Any]:
+    def metadata(self, order_id: str) -> dict[str, Any]:
         """
         Return order metadata.
         """
 
-        return dict(
+        return dict(self.get(order_id).metadata)
 
-            self.get(
-
-                order_id
-
-            ).metadata
-
-        )
-
-    def update_metadata(
-
-        self,
-
-        order_id: str,
-
-        **kwargs
-
-    ) -> None:
+    def update_metadata(self, order_id: str, **kwargs) -> None:
         """
         Update order metadata.
         """
 
-        self.get(
-
-            order_id
-
-        ).metadata.update(
-
-            kwargs
-
-        )
+        self.get(order_id).metadata.update(kwargs)
 
     # =====================================================
     # Registry
     # =====================================================
 
-    def remove(
-
-        self,
-
-        order_id: str
-
-    ) -> None:
+    def remove(self, order_id: str) -> None:
         """
         Remove order.
         """
 
         if order_id not in self._orders:
+            raise OrderNotFound(order_id)
 
-            raise OrderNotFound(
+        del self._orders[order_id]
 
-                order_id
-
-            )
-
-        del self._orders[
-
-            order_id
-
-        ]
-
-    def clear(
-
-        self
-
-    ) -> None:
+    def clear(self) -> None:
         """
         Remove all orders.
         """
@@ -1000,215 +471,80 @@ class OrderService(BaseService):
     # Snapshot
     # =====================================================
 
-    def snapshot(
-
-        self,
-
-        order_id: str
-
-    ) -> Dict[str, Any]:
+    def snapshot(self, order_id: str) -> dict[str, Any]:
         """
         Order snapshot.
         """
 
-        order = self.get(
-
-            order_id
-
-        )
+        order = self.get(order_id)
 
         return {
-
-            "order_id":
-
-                order.order_id,
-
-            "symbol":
-
-                order.symbol,
-
-            "side":
-
-                order.side.value,
-
-            "quantity":
-
-                order.quantity,
-
-            "executed_quantity":
-
-                order.executed_quantity,
-
-            "remaining_quantity":
-
-                self.remaining_quantity(
-
-                    order_id
-
-                ),
-
-            "average_price":
-
-                order.average_price,
-
-            "status":
-
-                order.status.value,
-
-            "broker":
-
-                order.broker,
-
-            "created_at":
-
-                order.created_at.isoformat(),
-
-            "metadata":
-
-                dict(
-
-                    order.metadata
-
-                )
-
+            "order_id": order.order_id,
+            "symbol": order.symbol,
+            "side": order.side.value,
+            "quantity": order.quantity,
+            "executed_quantity": order.executed_quantity,
+            "remaining_quantity": self.remaining_quantity(order_id),
+            "average_price": order.average_price,
+            "status": order.status.value,
+            "broker": order.broker,
+            "created_at": order.created_at.isoformat(),
+            "metadata": dict(order.metadata),
         }
 
     # =====================================================
     # Health
     # =====================================================
 
-    def health(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
         """
         OMS health.
         """
 
         return {
-
-            "status":
-
-                "HEALTHY"
-
-                if self._enabled
-
-                else "DISABLED",
-
-            "enabled":
-
-                self._enabled,
-
-            "orders":
-
-                len(
-
-                    self._orders
-
-                ),
-
-            "open_orders":
-
-                len(
-
-                    self.open_orders()
-
-                )
-
+            "status": "HEALTHY" if self._enabled else "DISABLED",
+            "enabled": self._enabled,
+            "orders": len(self._orders),
+            "open_orders": len(self.open_orders()),
         }
 
     # =====================================================
     # Lifecycle
     # =====================================================
 
-    def startup(
-
-        self
-
-    ) -> None:
+    def startup(self) -> None:
 
         self.enable()
 
-        self._logger.info(
+        self._logger.info("OrderService started.")
 
-            "OrderService started."
-
-        )
-
-    def shutdown(
-
-        self
-
-    ) -> None:
+    def shutdown(self) -> None:
 
         self.clear()
 
         self.disable()
 
-        self._logger.info(
-
-            "OrderService shutdown."
-
-        )
+        self._logger.info("OrderService shutdown.")
 
     # =====================================================
     # Magic Methods
     # =====================================================
 
-    def __contains__(
+    def __contains__(self, order_id: str) -> bool:
 
-        self,
+        return self.exists(order_id)
 
-        order_id: str
+    def __len__(self) -> int:
 
-    ) -> bool:
+        return len(self._orders)
 
-        return self.exists(
+    def __iter__(self):
 
-            order_id
+        return iter(self._orders.values())
 
-        )
+    def __repr__(self) -> str:
 
-    def __len__(
-
-        self
-
-    ) -> int:
-
-        return len(
-
-            self._orders
-
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self._orders.values()
-
-        )
-
-    def __repr__(
-
-        self
-
-    ) -> str:
-
-        return (
-
-            f"{self.__class__.__name__}"
-
-            f"(orders={len(self)}, "
-
-            f"enabled={self._enabled})"
-
-        )
+        return f"{self.__class__.__name__}(orders={len(self)}, enabled={self._enabled})"
 
 
 # ============================================================

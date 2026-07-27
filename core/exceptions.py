@@ -3,84 +3,58 @@
 # Institutional Exception Framework
 # ==========================================================
 
-class PlatformException(Exception):
 
+class PlatformException(Exception):
     """Base exception for platform"""
 
+
+class ConfigurationError(PlatformException):
     pass
 
 
-class ConfigurationError(
-    PlatformException
-):
-
+class ValidationError(PlatformException):
     pass
 
 
-class ValidationError(
-    PlatformException
-):
-
+class DataError(PlatformException):
     pass
 
 
-class DataError(
-    PlatformException
-):
-
-    pass
 # ==========================================================
 # DATA EXCEPTIONS
 # ==========================================================
 
-class DataLoadError(
-    DataError
-):
 
+class DataLoadError(DataError):
     pass
 
 
-class DataQualityError(
-    DataError
-):
-
+class DataQualityError(DataError):
     pass
 
 
-class MissingColumnError(
-    DataError
-):
-
+class MissingColumnError(DataError):
     pass
 
 
-class EmptyDatasetError(
-    DataError
-):
-
+class EmptyDatasetError(DataError):
     pass
+
+
 # ==========================================================
 # PORTFOLIO EXCEPTIONS
 # ==========================================================
 
-class PortfolioError(
-    PlatformException
-):
 
+class PortfolioError(PlatformException):
     pass
 
 
-class PortfolioConstructionError(
-    PortfolioError
-):
-
+class PortfolioConstructionError(PortfolioError):
     pass
 
 
-class ConstraintViolationError(
-    PortfolioError
-):
-
+class ConstraintViolationError(PortfolioError):
     pass
 
 
@@ -88,47 +62,33 @@ class ConstraintViolationError(
 # RISK EXCEPTIONS
 # ==========================================================
 
-class RiskError(
-    PlatformException
-):
 
+class RiskError(PlatformException):
     pass
 
 
-class RiskLimitBreach(
-    RiskError
-):
-
+class RiskLimitBreach(RiskError):
     pass
 
 
-class TrackingErrorBreach(
-    RiskError
-):
-
+class TrackingErrorBreach(RiskError):
     pass
+
+
 # ==========================================================
 # GOVERNANCE EXCEPTIONS
 # ==========================================================
 
-class GovernanceError(
-    PlatformException
-):
 
+class GovernanceError(PlatformException):
     pass
 
 
-class ApprovalRequiredError(
-    GovernanceError
-):
-
+class ApprovalRequiredError(GovernanceError):
     pass
 
 
-class ComplianceFailure(
-    GovernanceError
-):
-
+class ComplianceFailure(GovernanceError):
     pass
 
 
@@ -136,22 +96,14 @@ class ComplianceFailure(
 # EXECUTION EXCEPTIONS
 # ==========================================================
 
-class ExecutionError(
-    PlatformException
-):
 
+class ExecutionError(PlatformException):
     pass
 
 
-class SlippageLimitExceeded(
-    ExecutionError
-):
-
+class SlippageLimitExceeded(ExecutionError):
     pass
 
 
-class MarketImpactExceeded(
-    ExecutionError
-):
-
+class MarketImpactExceeded(ExecutionError):
     pass

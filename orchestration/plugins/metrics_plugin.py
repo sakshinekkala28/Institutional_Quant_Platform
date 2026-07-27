@@ -30,10 +30,10 @@ from orchestration.plugins.base_plugin import (
     BasePlugin,
 )
 
-
 # ==========================================================
 # METRICS PLUGIN
 # ==========================================================
+
 
 class MetricsPlugin(BasePlugin):
     """
@@ -63,13 +63,9 @@ class MetricsPlugin(BasePlugin):
     def initialize(self) -> None:
 
         self.metrics.record(
-
             "plugin.initialized",
-
             1,
-
             plugin=self.NAME,
-
         )
 
     # -----------------------------------------------------
@@ -77,13 +73,9 @@ class MetricsPlugin(BasePlugin):
     def shutdown(self) -> None:
 
         self.metrics.record(
-
             "plugin.shutdown",
-
             1,
-
             plugin=self.NAME,
-
         )
 
     # =====================================================
@@ -96,11 +88,8 @@ class MetricsPlugin(BasePlugin):
     ) -> None:
 
         self.metrics.record(
-
             "platform.started",
-
             1,
-
         )
 
     # -----------------------------------------------------
@@ -111,18 +100,11 @@ class MetricsPlugin(BasePlugin):
     ) -> None:
 
         duration = payload.get(
-
             "duration",
-
             0.0,
-
         )
 
-        self.metrics.platform_runtime(
-
-            duration
-
-        )
+        self.metrics.platform_runtime(duration)
 
     # =====================================================
     # PIPELINE EVENTS
@@ -135,13 +117,9 @@ class MetricsPlugin(BasePlugin):
     ) -> None:
 
         self.metrics.record(
-
             "pipeline.started",
-
             1,
-
             pipeline=pipeline,
-
         )
 
     # -----------------------------------------------------
@@ -153,19 +131,13 @@ class MetricsPlugin(BasePlugin):
     ) -> None:
 
         duration = payload.get(
-
             "duration",
-
             0.0,
-
         )
 
         self.metrics.pipeline_runtime(
-
             pipeline,
-
             duration,
-
         )
 
     # =====================================================
@@ -179,13 +151,9 @@ class MetricsPlugin(BasePlugin):
     ) -> None:
 
         self.metrics.record(
-
             "engine.started",
-
             1,
-
             engine=engine,
-
         )
 
     # -----------------------------------------------------
@@ -197,19 +165,13 @@ class MetricsPlugin(BasePlugin):
     ) -> None:
 
         duration = payload.get(
-
             "duration",
-
             0.0,
-
         )
 
         self.metrics.engine_runtime(
-
             engine,
-
             duration,
-
         )
 
     # =====================================================
@@ -222,11 +184,7 @@ class MetricsPlugin(BasePlugin):
         **payload: Any,
     ) -> None:
 
-        self.metrics.records_processed(
-
-            records
-
-        )
+        self.metrics.records_processed(records)
 
     # =====================================================
     # RESOURCE USAGE
@@ -238,11 +196,7 @@ class MetricsPlugin(BasePlugin):
         **payload: Any,
     ) -> None:
 
-        self.metrics.memory_usage(
-
-            memory_mb
-
-        )
+        self.metrics.memory_usage(memory_mb)
 
     # -----------------------------------------------------
 
@@ -252,11 +206,7 @@ class MetricsPlugin(BasePlugin):
         **payload: Any,
     ) -> None:
 
-        self.metrics.cpu_usage(
-
-            cpu_percent
-
-        )
+        self.metrics.cpu_usage(cpu_percent)
 
     # =====================================================
     # RETRIES
@@ -278,11 +228,7 @@ class MetricsPlugin(BasePlugin):
         path: str,
     ) -> None:
 
-        self.metrics.save(
-
-            path
-
-        )
+        self.metrics.save(path)
 
     # =====================================================
     # SUMMARY
@@ -293,23 +239,10 @@ class MetricsPlugin(BasePlugin):
     ) -> dict:
 
         return {
-
-            "plugin":
-
-                self.NAME,
-
-            "version":
-
-                self.VERSION,
-
-            "enabled":
-
-                self.ENABLED,
-
-            "metrics":
-
-                self.metrics.summary(),
-
+            "plugin": self.NAME,
+            "version": self.VERSION,
+            "enabled": self.ENABLED,
+            "metrics": self.metrics.summary(),
         }
 
     # =====================================================
@@ -320,10 +253,4 @@ class MetricsPlugin(BasePlugin):
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"metrics={len(self.metrics)})"
-
-        )
+        return f"{self.__class__.__name__}(metrics={len(self.metrics)})"

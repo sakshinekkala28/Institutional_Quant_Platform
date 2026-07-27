@@ -32,14 +32,13 @@ Used By
 
 from __future__ import annotations
 
-import time
 from collections import defaultdict, deque
 from collections.abc import Callable
+import time
 
 from fastapi import Request
 from fastapi.responses import JSONResponse
 from starlette.middleware.base import BaseHTTPMiddleware
-
 
 # ==========================================================
 # RATE LIMITER
@@ -52,13 +51,9 @@ class RateLimiter:
     """
 
     def __init__(
-
         self,
-
         requests: int = 100,
-
         window_seconds: int = 60,
-
     ):
 
         self.requests = requests
@@ -66,9 +61,7 @@ class RateLimiter:
         self.window = window_seconds
 
         self.storage = defaultdict(
-
             deque,
-
         )
 
     # =====================================================
@@ -76,87 +69,35 @@ class RateLimiter:
     # =====================================================
 
     def allow(
-
         self,
-
         key: str,
-
     ) -> tuple[bool, int]:
 
         now = time.time()
 
         queue = self.storage[key]
 
-        while (
-
-            queue
-
-            and
-
-            queue[0]
-
-            <=
-
-            now - self.window
-
-        ):
-
+        while queue and queue[0] <= now - self.window:
             queue.popleft()
 
-        if (
-
-            len(queue)
-
-            >=
-
-            self.requests
-
-        ):
-
-            retry_after = int(
-
-                self.window
-
-                -
-
-                (
-
-                    now
-
-                    -
-
-                    queue[0]
-
-                )
-
-            )
+        if len(queue) >= self.requests:
+            retry_after = int(self.window - (now - queue[0]))
 
             return (
-
                 False,
-
                 max(
-
                     retry_after,
-
                     1,
-
                 ),
-
             )
 
         queue.append(
-
             now,
-
         )
 
         return (
-
             True,
-
             0,
-
         )
 
     # =====================================================
@@ -164,43 +105,20 @@ class RateLimiter:
     # =====================================================
 
     def remaining(
-
         self,
-
         key: str,
-
     ) -> int:
 
         now = time.time()
 
         queue = self.storage[key]
 
-        while (
-
-            queue
-
-            and
-
-            queue[0]
-
-            <=
-
-            now - self.window
-
-        ):
-
+        while queue and queue[0] <= now - self.window:
             queue.popleft()
 
         return max(
-
-            self.requests
-
-            -
-
-            len(queue),
-
+            self.requests - len(queue),
             0,
-
         )
 
 
@@ -217,29 +135,19 @@ class RateLimitMiddleware(
     """
 
     def __init__(
-
         self,
-
         app,
-
         requests: int = 100,
-
         window_seconds: int = 60,
-
     ):
 
         super().__init__(
-
             app,
-
         )
 
         self.limiter = RateLimiter(
-
             requests,
-
             window_seconds,
-
         )
 
     # =====================================================
@@ -247,155 +155,71 @@ class RateLimitMiddleware(
     # =====================================================
 
     async def dispatch(
-
         self,
-
         request: Request,
-
         call_next: Callable,
-
     ):
 
         api_key = request.headers.get(
-
             "X-API-Key",
-
         )
 
         user = getattr(
-
             request.state,
-
             "user",
-
             None,
-
         )
 
         if api_key:
-
             key = f"apikey:{api_key}"
 
         elif user:
-
-            key = (
-
-                f"user:"
-
-                f"{user.get('username')}"
-
-            )
+            key = f"user:{user.get('username')}"
 
         else:
-
-            client = (
-
-                request.client.host
-
-                if request.client
-
-                else "unknown"
-
-            )
+            client = request.client.host if request.client else "unknown"
 
             key = f"ip:{client}"
 
-        allowed, retry = (
-
-            self.limiter.allow(
-
-                key,
-
-            )
-
+        allowed, retry = self.limiter.allow(
+            key,
         )
 
         if not allowed:
-
             return JSONResponse(
-
                 status_code=429,
-
                 headers={
-
-                    "Retry-After":
-
-                        str(
-
-                            retry,
-
-                        ),
-
-                    "X-RateLimit-Limit":
-
-                        str(
-
-                            self.limiter.requests,
-
-                        ),
-
-                    "X-RateLimit-Remaining":
-
-                        "0",
-
-                },
-
-                content={
-
-                    "success":
-
-                        False,
-
-                    "error":
-
-                        "Rate limit exceeded",
-
-                    "retry_after":
-
+                    "Retry-After": str(
                         retry,
-
+                    ),
+                    "X-RateLimit-Limit": str(
+                        self.limiter.requests,
+                    ),
+                    "X-RateLimit-Remaining": "0",
                 },
-
+                content={
+                    "success": False,
+                    "error": "Rate limit exceeded",
+                    "retry_after": retry,
+                },
             )
 
         response = await call_next(
-
             request,
-
         )
 
-        response.headers[
-
-            "X-RateLimit-Limit"
-
-        ] = str(
-
+        response.headers["X-RateLimit-Limit"] = str(
             self.limiter.requests,
-
         )
 
-        response.headers[
-
-            "X-RateLimit-Remaining"
-
-        ] = str(
-
+        response.headers["X-RateLimit-Remaining"] = str(
             self.limiter.remaining(
-
                 key,
-
             )
-
         )
 
-        response.headers[
-
-            "X-RateLimit-Window"
-
-        ] = str(
-
+        response.headers["X-RateLimit-Window"] = str(
             self.limiter.window,
-
         )
 
         return response
@@ -407,24 +231,17 @@ class RateLimitMiddleware(
 
 
 def create_rate_limiter(
-
     requests: int = 100,
-
     window_seconds: int = 60,
-
 ) -> RateLimitMiddleware:
     """
     Factory function.
     """
 
     return RateLimitMiddleware(
-
         app=None,
-
         requests=requests,
-
         window_seconds=window_seconds,
-
     )
 
 
@@ -434,29 +251,15 @@ def create_rate_limiter(
 
 
 def rate_limit_summary(
-
     limiter: RateLimiter,
-
 ) -> dict:
 
     return {
-
-        "requests":
-
-            limiter.requests,
-
-        "window_seconds":
-
-            limiter.window,
-
-        "tracked_clients":
-
-            len(
-
-                limiter.storage,
-
-            ),
-
+        "requests": limiter.requests,
+        "window_seconds": limiter.window,
+        "tracked_clients": len(
+            limiter.storage,
+        ),
     }
 
 
@@ -466,13 +269,8 @@ def rate_limit_summary(
 
 
 __all__ = [
-
-    "RateLimiter",
-
     "RateLimitMiddleware",
-
+    "RateLimiter",
     "create_rate_limiter",
-
     "rate_limit_summary",
-
 ]

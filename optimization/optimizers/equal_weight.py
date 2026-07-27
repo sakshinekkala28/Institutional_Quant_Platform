@@ -26,15 +26,10 @@ from __future__ import annotations
 import numpy as np
 
 from core.models.portfolio import Portfolio
-
 from optimization.base_optimizer import BaseOptimizer
 
 
-class EqualWeightOptimizer(
-
-    BaseOptimizer
-
-):
+class EqualWeightOptimizer(BaseOptimizer):
     """
     Equal-weight portfolio optimizer.
     """
@@ -44,49 +39,26 @@ class EqualWeightOptimizer(
     # =====================================================
 
     def optimize(
-
         self,
-
         portfolio: Portfolio,
-
     ) -> Portfolio:
 
-        self.validate(
+        self.validate(portfolio)
 
-            portfolio
-
-        )
-
-        holdings = len(
-
-            portfolio
-
-        )
+        holdings = len(portfolio)
 
         if holdings == 0:
-
-            raise ValueError(
-
-                "Portfolio is empty."
-
-            )
+            raise ValueError("Portfolio is empty.")
 
         weights = np.full(
-
             holdings,
-
             1.0 / holdings,
-
             dtype=np.float64,
-
         )
 
         return self.build_portfolio(
-
             portfolio,
-
             weights,
-
         )
 
     # =====================================================
@@ -95,9 +67,7 @@ class EqualWeightOptimizer(
 
     @property
     def name(
-
         self,
-
     ) -> str:
 
         return "Equal Weight"
@@ -107,19 +77,9 @@ class EqualWeightOptimizer(
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Equal Weight"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Equal Weight)"
 
     __str__ = __repr__

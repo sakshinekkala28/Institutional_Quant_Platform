@@ -18,8 +18,8 @@ This module defines:
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Callable
 
 from config.settings import (
     STOP_ON_FAILURE,
@@ -88,18 +88,13 @@ from orchestration.pipelines.data_pipeline import (
 # PIPELINE REGISTRY
 # =========================================================
 
-PIPELINE_REGISTRY: tuple[
-    PipelineDefinition,
-    ...
-] = (
-
+PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
     PipelineDefinition(
         name="Data Pipeline",
         stage=1,
         enabled=True,
         entrypoint=data_pipeline,
     ),
-
     #
     # PipelineDefinition(
     #     name="Factor Pipeline",
@@ -155,18 +150,11 @@ PIPELINE_REGISTRY: tuple[
 # EXECUTION SETTINGS
 # =========================================================
 
-PIPELINE_EXECUTION_ORDER = tuple(
-    pipeline.name
-    for pipeline in PIPELINE_REGISTRY
-)
+PIPELINE_EXECUTION_ORDER = tuple(pipeline.name for pipeline in PIPELINE_REGISTRY)
 
-TOTAL_PIPELINES = len(
-    PIPELINE_REGISTRY
-)
+TOTAL_PIPELINES = len(PIPELINE_REGISTRY)
 
-STOP_PLATFORM_ON_FAILURE = (
-    STOP_ON_FAILURE
-)
+STOP_PLATFORM_ON_FAILURE = STOP_ON_FAILURE
 
 # =========================================================
 # HELPERS
@@ -179,11 +167,7 @@ def enabled_pipelines() -> list[PipelineDefinition]:
     in execution order.
     """
 
-    return [
-        pipeline
-        for pipeline in PIPELINE_REGISTRY
-        if pipeline.enabled
-    ]
+    return [pipeline for pipeline in PIPELINE_REGISTRY if pipeline.enabled]
 
 
 def pipeline_names() -> list[str]:
@@ -191,10 +175,7 @@ def pipeline_names() -> list[str]:
     Return pipeline names.
     """
 
-    return [
-        pipeline.name
-        for pipeline in enabled_pipelines()
-    ]
+    return [pipeline.name for pipeline in enabled_pipelines()]
 
 
 def pipeline_count() -> int:
@@ -202,6 +183,4 @@ def pipeline_count() -> int:
     Number of enabled pipelines.
     """
 
-    return len(
-        enabled_pipelines()
-    )
+    return len(enabled_pipelines())

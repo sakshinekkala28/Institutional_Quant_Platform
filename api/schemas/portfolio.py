@@ -30,10 +30,7 @@ from datetime import datetime
 
 from pydantic import Field
 
-from api.schemas.base import APIModel
-from api.schemas.base import BaseResponse
-from api.schemas.base import SuccessResponse
-
+from api.schemas.base import APIModel, BaseResponse, SuccessResponse
 
 # ==========================================================
 # POSITION
@@ -108,9 +105,7 @@ class PortfolioSummary(
     turnover: float
 
     updated_at: datetime = Field(
-
         default_factory=datetime.utcnow,
-
     )
 
 
@@ -313,33 +308,18 @@ class PerformanceResponse(
 
 
 __all__ = [
-
-    "Position",
-
-    "Holding",
-
-    "PortfolioSummary",
-
-    "SectorExposure",
-
     "FactorExposure",
-
-    "PortfolioPerformance",
-
-    "RebalanceRequest",
-
-    "RebalanceResponse",
-
-    "PortfolioResponse",
-
-    "HoldingsResponse",
-
-    "PositionsResponse",
-
-    "SectorExposureResponse",
-
     "FactorExposureResponse",
-
+    "Holding",
+    "HoldingsResponse",
     "PerformanceResponse",
-
+    "PortfolioPerformance",
+    "PortfolioResponse",
+    "PortfolioSummary",
+    "Position",
+    "PositionsResponse",
+    "RebalanceRequest",
+    "RebalanceResponse",
+    "SectorExposure",
+    "SectorExposureResponse",
 ]

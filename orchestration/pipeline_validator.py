@@ -21,19 +21,14 @@ Responsibilities
 
 from __future__ import annotations
 
-from typing import Dict
-from typing import List
-
-from orchestration.pipeline_builder import (
-    PipelineDefinition,
-)
-
 from orchestration.dependency_graph import (
     DependencyGraph,
 )
-
 from orchestration.engine_registry import (
     EngineRegistry,
+)
+from orchestration.pipeline_builder import (
+    PipelineDefinition,
 )
 
 
@@ -60,13 +55,13 @@ class PipelineValidator:
     # GRAPH VALIDATION
     # =====================================================
 
-    def validate_graph(self) -> Dict:
+    def validate_graph(self) -> dict:
         """
         Validate dependency graph.
         """
 
         return self.graph.validate()
-    
+
     # =====================================================
     # PIPELINE VALIDATION
     # =====================================================
@@ -74,61 +69,29 @@ class PipelineValidator:
     def validate_pipeline(
         self,
         pipeline: PipelineDefinition,
-    ) -> Dict:
+    ) -> dict:
         """
         Validate complete pipeline.
         """
 
         report = {
-
             "valid": True,
-
             "errors": [],
-
             "warnings": [],
-
         }
 
-        report["errors"].extend(
+        report["errors"].extend(self.validate_duplicates(pipeline))
 
-            self.validate_duplicates(
-                pipeline
-            )
+        report["errors"].extend(self.validate_dependencies(pipeline))
 
-        )
+        report["errors"].extend(self.validate_inputs(pipeline))
 
-        report["errors"].extend(
+        report["errors"].extend(self.validate_outputs(pipeline))
 
-            self.validate_dependencies(
-                pipeline
-            )
-
-        )
-
-        report["errors"].extend(
-
-            self.validate_inputs(
-                pipeline
-            )
-
-        )
-
-        report["errors"].extend(
-
-            self.validate_outputs(
-                pipeline
-            )
-
-        )
-
-        report["valid"] = (
-
-            len(report["errors"]) == 0
-
-        )
+        report["valid"] = len(report["errors"]) == 0
 
         return report
-    
+
     # =====================================================
     # DUPLICATE ENGINES
     # =====================================================
@@ -136,39 +99,25 @@ class PipelineValidator:
     def validate_duplicates(
         self,
         pipeline: PipelineDefinition,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Detect duplicate engines.
         """
 
-        names = [
-
-            engine.NAME
-
-            for engine
-
-            in pipeline.engines
-
-        ]
+        names = [engine.NAME for engine in pipeline.engines]
 
         duplicates = []
 
         seen = set()
 
         for name in names:
-
             if name in seen:
-
-                duplicates.append(
-
-                    f"Duplicate engine: {name}"
-
-                )
+                duplicates.append(f"Duplicate engine: {name}")
 
             seen.add(name)
 
         return duplicates
-    
+
     # =====================================================
     # DEPENDENCY VALIDATION
     # =====================================================
@@ -176,41 +125,22 @@ class PipelineValidator:
     def validate_dependencies(
         self,
         pipeline: PipelineDefinition,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Validate pipeline dependencies.
         """
 
-        available = {
-
-            engine.NAME
-
-            for engine
-
-            in pipeline.engines
-
-        }
+        available = {engine.NAME for engine in pipeline.engines}
 
         errors = []
 
         for engine in pipeline.engines:
-
             for dependency in engine.DEPENDS_ON:
-
                 if dependency not in available:
-
-                    errors.append(
-
-                        f"{engine.NAME} "
-
-                        f"requires "
-
-                        f"{dependency}"
-
-                    )
+                    errors.append(f"{engine.NAME} requires {dependency}")
 
         return errors
-    
+
     # =====================================================
     # INPUT VALIDATION
     # =====================================================
@@ -218,46 +148,28 @@ class PipelineValidator:
     def validate_inputs(
         self,
         pipeline: PipelineDefinition,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Validate declared input resources.
         """
 
-        errors: List[str] = []
+        errors: list[str] = []
 
         for engine in pipeline.engines:
-
             if not isinstance(
                 engine.INPUTS,
                 list,
             ):
-
-                errors.append(
-
-                    f"{engine.NAME}: "
-
-                    "INPUTS must be a list."
-
-                )
+                errors.append(f"{engine.NAME}: INPUTS must be a list.")
 
                 continue
 
             for resource in engine.INPUTS:
-
                 if not isinstance(
                     resource,
                     str,
                 ):
-
-                    errors.append(
-
-                        f"{engine.NAME}: "
-
-                        f"Invalid input "
-
-                        f"'{resource}'."
-
-                    )
+                    errors.append(f"{engine.NAME}: Invalid input '{resource}'.")
 
         return errors
 
@@ -268,57 +180,37 @@ class PipelineValidator:
     def validate_outputs(
         self,
         pipeline: PipelineDefinition,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Validate declared outputs.
         """
 
-        errors: List[str] = []
+        errors: list[str] = []
 
         produced = {}
 
         for engine in pipeline.engines:
-
             if not isinstance(
                 engine.OUTPUTS,
                 list,
             ):
-
-                errors.append(
-
-                    f"{engine.NAME}: "
-
-                    "OUTPUTS must be a list."
-
-                )
+                errors.append(f"{engine.NAME}: OUTPUTS must be a list.")
 
                 continue
 
             for output in engine.OUTPUTS:
-
                 if output in produced:
-
                     errors.append(
-
                         f"Duplicate output "
-
                         f"'{output}' "
-
                         f"generated by "
-
                         f"{produced[output]} "
-
                         f"and "
-
                         f"{engine.NAME}"
-
                     )
 
                 else:
-
-                    produced[
-                        output
-                    ] = engine.NAME
+                    produced[output] = engine.NAME
 
         return errors
 
@@ -329,24 +221,16 @@ class PipelineValidator:
     def validate_categories(
         self,
         pipeline: PipelineDefinition,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Validate engine categories.
         """
 
-        errors: List[str] = []
+        errors: list[str] = []
 
         for engine in pipeline.engines:
-
             if not engine.CATEGORY:
-
-                errors.append(
-
-                    f"{engine.NAME}: "
-
-                    "CATEGORY not defined."
-
-                )
+                errors.append(f"{engine.NAME}: CATEGORY not defined.")
 
         return errors
 
@@ -357,24 +241,16 @@ class PipelineValidator:
     def validate_stages(
         self,
         pipeline: PipelineDefinition,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Validate stage assignments.
         """
 
-        errors: List[str] = []
+        errors: list[str] = []
 
         for engine in pipeline.engines:
-
             if not engine.STAGE:
-
-                errors.append(
-
-                    f"{engine.NAME}: "
-
-                    "STAGE not defined."
-
-                )
+                errors.append(f"{engine.NAME}: STAGE not defined.")
 
         return errors
 
@@ -385,70 +261,31 @@ class PipelineValidator:
     def validate_execution_order(
         self,
         pipeline: PipelineDefinition,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Validate dependency order.
         """
 
-        errors: List[str] = []
+        errors: list[str] = []
 
-        order = {
-
-            engine: index
-
-            for index, engine
-
-            in enumerate(
-
-                pipeline.execution_order
-
-            )
-
-        }
+        order = {engine: index for index, engine in enumerate(pipeline.execution_order)}
 
         for engine in pipeline.engines:
-
-            current = order.get(
-                engine.NAME
-            )
+            current = order.get(engine.NAME)
 
             if current is None:
-
-                errors.append(
-
-                    f"{engine.NAME} "
-
-                    "missing from "
-
-                    "execution order."
-
-                )
+                errors.append(f"{engine.NAME} missing from execution order.")
 
                 continue
 
             for dependency in engine.DEPENDS_ON:
-
-                parent = order.get(
-                    dependency
-                )
+                parent = order.get(dependency)
 
                 if parent is None:
-
                     continue
 
                 if parent > current:
-
-                    errors.append(
-
-                        f"{dependency} "
-
-                        f"must execute "
-
-                        f"before "
-
-                        f"{engine.NAME}"
-
-                    )
+                    errors.append(f"{dependency} must execute before {engine.NAME}")
 
         return errors
 
@@ -459,59 +296,31 @@ class PipelineValidator:
     def validate_execution_levels(
         self,
         pipeline: PipelineDefinition,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Validate execution levels.
         """
 
-        errors: List[str] = []
+        errors: list[str] = []
 
         assigned = set()
 
         for level in pipeline.execution_levels:
-
             for engine in level:
-
                 if engine in assigned:
-
-                    errors.append(
-
-                        f"{engine} "
-
-                        "appears in "
-
-                        "multiple levels."
-
-                    )
+                    errors.append(f"{engine} appears in multiple levels.")
 
                 assigned.add(engine)
 
-        expected = {
-
-            engine.NAME
-
-            for engine
-
-            in pipeline.engines
-
-        }
+        expected = {engine.NAME for engine in pipeline.engines}
 
         missing = expected - assigned
 
         if missing:
-
-            errors.append(
-
-                "Missing execution "
-
-                f"levels: "
-
-                f"{sorted(missing)}"
-
-            )
+            errors.append(f"Missing execution levels: {sorted(missing)}")
 
         return errors
-    
+
     # =====================================================
     # PIPELINE WARNINGS
     # =====================================================
@@ -519,82 +328,42 @@ class PipelineValidator:
     def warnings(
         self,
         pipeline: PipelineDefinition,
-    ) -> List[str]:
+    ) -> list[str]:
         """
         Generate non-fatal pipeline warnings.
         """
 
-        warnings: List[str] = []
+        warnings: list[str] = []
 
         # ---------------------------------------------
         # Single engine pipeline
         # ---------------------------------------------
 
         if pipeline.engine_count == 1:
-
-            warnings.append(
-
-                "Pipeline contains "
-                "only one engine."
-
-            )
+            warnings.append("Pipeline contains only one engine.")
 
         # ---------------------------------------------
         # No outputs
         # ---------------------------------------------
 
         if not pipeline.outputs:
-
-            warnings.append(
-
-                "Pipeline produces "
-                "no declared outputs."
-
-            )
+            warnings.append("Pipeline produces no declared outputs.")
 
         # ---------------------------------------------
         # Multiple roots
         # ---------------------------------------------
 
-        roots = [
-
-            engine.NAME
-
-            for engine in pipeline.engines
-
-            if not engine.DEPENDS_ON
-
-        ]
+        roots = [engine.NAME for engine in pipeline.engines if not engine.DEPENDS_ON]
 
         if len(roots) > 5:
-
-            warnings.append(
-
-                f"Pipeline contains "
-                f"{len(roots)} "
-                f"root engines."
-
-            )
+            warnings.append(f"Pipeline contains {len(roots)} root engines.")
 
         # ---------------------------------------------
         # Long execution chain
         # ---------------------------------------------
 
-        if len(
-
-            pipeline.execution_levels
-
-        ) > 10:
-
-            warnings.append(
-
-                "Deep dependency chain "
-
-                "may reduce "
-
-                "parallel execution."
-
-            )
+        if len(pipeline.execution_levels) > 10:
+            warnings.append("Deep dependency chain may reduce parallel execution.")
 
         return warnings
 
@@ -613,33 +382,24 @@ class PipelineValidator:
         score = 100.0
 
         for engine in pipeline.engines:
-
             if not engine.INPUTS:
-
                 score -= 1
 
             if not engine.OUTPUTS:
-
                 score -= 1
 
             if not engine.CATEGORY:
-
                 score -= 2
 
             if not engine.STAGE:
-
                 score -= 2
 
             if not engine.DESCRIPTION:
-
                 score -= 1
 
         return max(
-
             round(score, 2),
-
             0.0,
-
         )
 
     # =====================================================
@@ -649,63 +409,22 @@ class PipelineValidator:
     def validation_summary(
         self,
         pipeline: PipelineDefinition,
-    ) -> Dict:
+    ) -> dict:
         """
         Complete validation report.
         """
 
-        report = self.validate_pipeline(
-            pipeline
-        )
+        report = self.validate_pipeline(pipeline)
 
         return {
-
-            "pipeline":
-
-                pipeline.name,
-
-            "valid":
-
-                report["valid"],
-
-            "engine_count":
-
-                pipeline.engine_count,
-
-            "error_count":
-
-                len(
-
-                    report["errors"]
-
-                ),
-
-            "warning_count":
-
-                len(
-
-                    self.warnings(
-                        pipeline
-                    )
-
-                ),
-
-            "warnings":
-
-                self.warnings(
-                    pipeline
-                ),
-
-            "errors":
-
-                report["errors"],
-
-            "quality_score":
-
-                self.completeness_score(
-                    pipeline
-                ),
-
+            "pipeline": pipeline.name,
+            "valid": report["valid"],
+            "engine_count": pipeline.engine_count,
+            "error_count": len(report["errors"]),
+            "warning_count": len(self.warnings(pipeline)),
+            "warnings": self.warnings(pipeline),
+            "errors": report["errors"],
+            "quality_score": self.completeness_score(pipeline),
         }
 
     # =====================================================
@@ -720,24 +439,18 @@ class PipelineValidator:
         Human-readable health status.
         """
 
-        report = self.validation_summary(
-            pipeline
-        )
+        report = self.validation_summary(pipeline)
 
         if not report["valid"]:
-
             return "FAILED"
 
         if report["quality_score"] >= 95:
-
             return "EXCELLENT"
 
         if report["quality_score"] >= 85:
-
             return "GOOD"
 
         if report["quality_score"] >= 70:
-
             return "FAIR"
 
         return "POOR"
@@ -749,49 +462,20 @@ class PipelineValidator:
     def summary(
         self,
         pipeline: PipelineDefinition,
-    ) -> Dict:
+    ) -> dict:
         """
         Validator summary.
         """
 
-        validation = self.validation_summary(
-            pipeline
-        )
+        validation = self.validation_summary(pipeline)
 
         return {
-
-            "pipeline":
-
-                pipeline.name,
-
-            "health":
-
-                self.health(
-                    pipeline
-                ),
-
-            "quality_score":
-
-                validation[
-                    "quality_score"
-                ],
-
-            "valid":
-
-                validation["valid"],
-
-            "errors":
-
-                validation[
-                    "error_count"
-                ],
-
-            "warnings":
-
-                validation[
-                    "warning_count"
-                ],
-
+            "pipeline": pipeline.name,
+            "health": self.health(pipeline),
+            "quality_score": validation["quality_score"],
+            "valid": validation["valid"],
+            "errors": validation["error_count"],
+            "warnings": validation["warning_count"],
         }
 
     # =====================================================
@@ -803,11 +487,7 @@ class PipelineValidator:
     ) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"registry={self.registry.engine_count}, "
-
             f"graph_nodes={self.graph.node_count})"
-
         )

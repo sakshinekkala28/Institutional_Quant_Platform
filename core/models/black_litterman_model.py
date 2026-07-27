@@ -58,74 +58,41 @@ class BlackLittermanModel:
     # VALIDATION
     # =====================================================
 
-    def __post_init__(
-
-        self
-
-    ) -> None:
+    def __post_init__(self) -> None:
 
         self.validate()
 
-    def validate(
-
-        self
-
-    ) -> None:
+    def validate(self) -> None:
 
         if self.tau <= 0.0:
-
-            raise ValueError(
-
-                "Tau must be positive."
-
-            )
+            raise ValueError("Tau must be positive.")
 
     # =====================================================
     # ALIASES
     # =====================================================
 
     @property
-    def sigma(
-
-        self
-
-    ) -> np.ndarray:
+    def sigma(self) -> np.ndarray:
 
         return self.covariance_matrix.matrix
 
     @property
-    def pi(
-
-        self
-
-    ) -> np.ndarray:
+    def pi(self) -> np.ndarray:
 
         return self.equilibrium_returns.values
 
     @property
-    def P(
-
-        self
-
-    ) -> np.ndarray:
+    def P(self) -> np.ndarray:
 
         return self.investor_view.pick_matrix
 
     @property
-    def Q(
-
-        self
-
-    ) -> np.ndarray:
+    def Q(self) -> np.ndarray:
 
         return self.investor_view.expected_returns
 
     @property
-    def omega(
-
-        self
-
-    ) -> np.ndarray:
+    def omega(self) -> np.ndarray:
 
         return self.confidence_matrix.matrix
 
@@ -134,68 +101,21 @@ class BlackLittermanModel:
     # =====================================================
 
     @property
-    def posterior_expected_returns(
-
-        self
-
-    ) -> ExpectedReturns:
+    def posterior_expected_returns(self) -> ExpectedReturns:
 
         sigma = self.sigma
 
         tau_sigma = self.tau * sigma
 
-        middle = np.linalg.inv(
+        middle = np.linalg.inv(self.P @ tau_sigma @ self.P.T + self.omega)
 
-            self.P
+        adjustment = tau_sigma @ self.P.T @ middle @ (self.Q - self.P @ self.pi)
 
-            @ tau_sigma
-
-            @ self.P.T
-
-            +
-
-            self.omega
-
-        )
-
-        adjustment = (
-
-            tau_sigma
-
-            @ self.P.T
-
-            @ middle
-
-            @ (
-
-                self.Q
-
-                -
-
-                self.P
-
-                @ self.pi
-
-            )
-
-        )
-
-        posterior = (
-
-            self.pi
-
-            +
-
-            adjustment
-
-        )
+        posterior = self.pi + adjustment
 
         return ExpectedReturns(
-
             symbols=self.equilibrium_returns.symbols,
-
             values=posterior,
-
         )
 
     # =====================================================
@@ -203,114 +123,50 @@ class BlackLittermanModel:
     # =====================================================
 
     @property
-    def posterior_covariance(
-
-        self
-
-    ) -> CovarianceMatrix:
+    def posterior_covariance(self) -> CovarianceMatrix:
 
         sigma = self.sigma
 
         tau_sigma = self.tau * sigma
 
-        middle = np.linalg.inv(
-
-            self.P
-
-            @ tau_sigma
-
-            @ self.P.T
-
-            +
-
-            self.omega
-
-        )
+        middle = np.linalg.inv(self.P @ tau_sigma @ self.P.T + self.omega)
 
         posterior = (
-
-            sigma
-
-            +
-
-            tau_sigma
-
-            -
-
-            tau_sigma
-
-            @ self.P.T
-
-            @ middle
-
-            @ self.P
-
-            @ tau_sigma
-
+            sigma + tau_sigma - tau_sigma @ self.P.T @ middle @ self.P @ tau_sigma
         )
 
         return CovarianceMatrix(
-
             symbols=self.equilibrium_returns.symbols,
-
             matrix=posterior,
-
         )
 
     # =====================================================
     # SUMMARY
     # =====================================================
 
-    def summary(
-
-        self
-
-    ) -> dict:
+    def summary(self) -> dict:
 
         posterior = self.posterior_expected_returns
 
         return {
-
-            "Assets":
-
-                posterior.size,
-
-            "Views":
-
-                self.investor_view.number_of_views,
-
-            "Tau":
-
-                self.tau,
-
-            "Posterior_Mean":
-
-                posterior.mean,
-
+            "Assets": posterior.size,
+            "Views": self.investor_view.number_of_views,
+            "Tau": self.tau,
+            "Posterior_Mean": posterior.mean,
         }
 
     # =====================================================
     # REPRESENTATION
     # =====================================================
 
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}("
-
             f"Assets={len(self.equilibrium_returns)}, "
-
             f"Views={self.investor_view.number_of_views}, "
-
             f"Tau={self.tau:.3f}"
-
             f")"
-
         )
 
     __str__ = __repr__

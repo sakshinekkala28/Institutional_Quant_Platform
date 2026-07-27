@@ -25,9 +25,7 @@ Provides
 
 from __future__ import annotations
 
-from fastapi import APIRouter
-from fastapi import HTTPException
-from fastapi import Query
+from fastapi import APIRouter, HTTPException, Query
 
 router = APIRouter()
 
@@ -36,6 +34,7 @@ router = APIRouter()
 # HEALTH
 # ==========================================================
 
+
 @router.get(
     "/health",
     summary="Optimization Health",
@@ -43,11 +42,8 @@ router = APIRouter()
 async def health():
 
     return {
-
         "module": "Optimization",
-
         "status": "Healthy",
-
     }
 
 
@@ -55,21 +51,17 @@ async def health():
 # SUMMARY
 # ==========================================================
 
+
 @router.get(
     "/summary",
 )
 async def summary():
 
     return {
-
         "optimizer": "Institutional Optimizer",
-
         "status": "Ready",
-
         "constraints": 0,
-
         "objective": "Max Sharpe",
-
     }
 
 
@@ -77,21 +69,19 @@ async def summary():
 # OPTIMIZE
 # ==========================================================
 
+
 @router.post(
     "/run",
 )
 async def optimize():
 
-    return {
-
-        "status": "Optimization Started"
-
-    }
+    return {"status": "Optimization Started"}
 
 
 # ==========================================================
 # STATUS
 # ==========================================================
+
 
 @router.get(
     "/status",
@@ -99,13 +89,9 @@ async def optimize():
 async def status():
 
     return {
-
         "running": False,
-
         "completed": False,
-
         "progress": 0,
-
     }
 
 
@@ -113,101 +99,84 @@ async def status():
 # EFFICIENT FRONTIER
 # ==========================================================
 
+
 @router.get(
     "/efficient-frontier",
 )
 async def efficient_frontier():
 
-    return {
-
-        "frontier": []
-
-    }
+    return {"frontier": []}
 
 
 # ==========================================================
 # OBJECTIVE
 # ==========================================================
 
+
 @router.get(
     "/objective",
 )
 async def objective():
 
-    return {
-
-        "objective": "Maximum Sharpe Ratio"
-
-    }
+    return {"objective": "Maximum Sharpe Ratio"}
 
 
 # ==========================================================
 # CONSTRAINTS
 # ==========================================================
 
+
 @router.get(
     "/constraints",
 )
 async def constraints():
 
-    return {
-
-        "constraints": []
-
-    }
+    return {"constraints": []}
 
 
 # ==========================================================
 # OPTIMIZED PORTFOLIO
 # ==========================================================
 
+
 @router.get(
     "/portfolio",
 )
 async def optimized_portfolio():
 
-    return {
-
-        "portfolio": []
-
-    }
+    return {"portfolio": []}
 
 
 # ==========================================================
 # WEIGHTS
 # ==========================================================
 
+
 @router.get(
     "/weights",
 )
 async def weights():
 
-    return {
-
-        "weights": []
-
-    }
+    return {"weights": []}
 
 
 # ==========================================================
 # RISK CONTRIBUTION
 # ==========================================================
 
+
 @router.get(
     "/risk-contribution",
 )
 async def risk_contribution():
 
-    return {
-
-        "risk_contribution": {}
-
-    }
+    return {"risk_contribution": {}}
 
 
 # ==========================================================
 # PERFORMANCE
 # ==========================================================
+
 
 @router.get(
     "/performance",
@@ -215,13 +184,9 @@ async def risk_contribution():
 async def performance():
 
     return {
-
         "expected_return": 0,
-
         "volatility": 0,
-
         "sharpe_ratio": 0,
-
     }
 
 
@@ -229,61 +194,47 @@ async def performance():
 # REPORT
 # ==========================================================
 
+
 @router.get(
     "/report",
 )
 async def report():
 
-    return {
-
-        "report": {}
-
-    }
+    return {"report": {}}
 
 
 # ==========================================================
 # PARAMETERS
 # ==========================================================
 
+
 @router.get(
     "/parameters",
 )
 async def parameters():
 
-    return {
-
-        "parameters": {}
-
-    }
+    return {"parameters": {}}
 
 
 # ==========================================================
 # HISTORY
 # ==========================================================
 
+
 @router.get(
     "/history",
 )
 async def history(
-
     limit: int = Query(
-
         default=20,
-
         ge=1,
-
         le=500,
-
     ),
-
 ):
 
     return {
-
         "history": [],
-
         "limit": limit,
-
     }
 
 
@@ -291,23 +242,15 @@ async def history(
 # DELETE OPTIMIZATION
 # ==========================================================
 
+
 @router.delete(
     "/{optimization_id}",
 )
 async def delete(
-
     optimization_id: str,
-
 ):
 
     raise HTTPException(
-
         status_code=501,
-
-        detail=(
-            f"Optimization "
-            f"{optimization_id} "
-            "deletion not implemented."
-        ),
-
+        detail=(f"Optimization {optimization_id} deletion not implemented."),
     )

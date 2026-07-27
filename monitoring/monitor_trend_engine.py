@@ -2,8 +2,6 @@ from __future__ import annotations
 
 import logging
 
-from pathlib import Path
-
 import pandas as pd
 
 from core.settings import settings
@@ -13,936 +11,351 @@ from core.settings import settings
 # ==========================================================
 
 logging.basicConfig(
-
-    level=logging.INFO,
-
-    format=(
-
-        "%(asctime)s | "
-
-        "%(levelname)s | "
-
-        "%(message)s"
-
-    )
-
+    level=logging.INFO, format=("%(asctime)s | %(levelname)s | %(message)s")
 )
 
-logger = logging.getLogger(
-
-    __name__
-
-)
+logger = logging.getLogger(__name__)
 
 # ==========================================================
 # PATHS
 # ==========================================================
 
-ROOT_DIR = (
+ROOT_DIR = settings.environment.ROOT_DIR
 
-    settings
-    .environment
-    .ROOT_DIR
+MONITORING_DIR = ROOT_DIR / "data" / "monitoring"
 
-)
+HISTORY_DIR = MONITORING_DIR / "history"
 
-MONITORING_DIR = (
+TREND_FILE = MONITORING_DIR / "monitor_trends.csv"
 
-    ROOT_DIR
-
-    / "data"
-
-    / "monitoring"
-
-)
-
-HISTORY_DIR = (
-
-    MONITORING_DIR
-
-    / "history"
-
-)
-
-TREND_FILE = (
-
-    MONITORING_DIR
-
-    / "monitor_trends.csv"
-
-)
-
-TREND_DASHBOARD_FILE = (
-
-    MONITORING_DIR
-
-    / "monitor_trend_dashboard.csv"
-
-)
+TREND_DASHBOARD_FILE = MONITORING_DIR / "monitor_trend_dashboard.csv"
 
 # ==========================================================
 # REPOSITORY
 # ==========================================================
 
-class TrendRepository:
 
+class TrendRepository:
     @staticmethod
     def load_history():
 
-        logger.info(
+        logger.info("Loading Monitor History")
 
-            "Loading Monitor History"
-
-        )
-
-        files = sorted(
-
-            HISTORY_DIR.glob(
-
-                "monitor_*.csv"
-
-            )
-
-        )
+        files = sorted(HISTORY_DIR.glob("monitor_*.csv"))
 
         if not files:
-
             return []
 
         return files
-    
+
+
 # ==========================================================
 # VALIDATOR
 # ==========================================================
 
+
 class TrendValidator:
-
     @staticmethod
-    def validate(
-
-        files
-
-    ):
+    def validate(files):
 
         if not files:
+            raise ValueError("No Monitoring History Found")
 
-            raise ValueError(
+        logger.info("Trend Validation Passed")
 
-                "No Monitoring History Found"
-
-            )
-
-        logger.info(
-
-            "Trend Validation Passed"
-
-        )
 
 # ==========================================================
 # SEVERITY MAPPING
 # ==========================================================
 
+
 class SeverityMapper:
-
-    MAP = {
-
-        "NORMAL": 0,
-
-        "WATCH": 1,
-
-        "WARNING": 2,
-
-        "CRITICAL": 3
-
-    }
+    MAP = {"NORMAL": 0, "WATCH": 1, "WARNING": 2, "CRITICAL": 3}
 
     @classmethod
-    def score(
+    def score(cls, status):
 
-        cls,
+        return cls.MAP.get(str(status), 0)
 
-        status
-
-    ):
-
-        return cls.MAP.get(
-
-            str(status),
-
-            0
-
-        )
 
 # ==========================================================
 # HISTORY LOADER ENGINE
 # ==========================================================
 
+
 class HistoryLoaderEngine:
-
     @staticmethod
-    def load(
+    def load(files):
 
-        files
-
-    ):
-
-        logger.info(
-
-            "Loading Historical Files"
-
-        )
+        logger.info("Loading Historical Files")
 
         records = []
 
         for file in files:
-
-            df = pd.read_csv(
-
-                file
-
-            )
+            df = pd.read_csv(file)
 
             row = df.iloc[0]
 
-            records.append(
+            records.append({"Date": row["Date"], "Status": row["Overall_Status"]})
 
-                {
+        return pd.DataFrame(records)
 
-                    "Date":
 
-                        row["Date"],
-
-                    "Status":
-
-                        row["Overall_Status"]
-
-                }
-
-            )
-
-        return pd.DataFrame(
-
-            records
-
-        )
-    
 # ==========================================================
 # TREND CALCULATION ENGINE
 # ==========================================================
 
+
 class TrendCalculationEngine:
-
     @staticmethod
-    def calculate(
+    def calculate(history):
 
-        history
+        logger.info("Calculating Trend Scores")
 
-    ):
+        history = history.copy()
 
-        logger.info(
-
-            "Calculating Trend Scores"
-
-        )
-
-        history = (
-
-            history
-
-            .copy()
-
-        )
-
-        history[
-
-            "Severity_Score"
-
-        ] = (
-
-            history[
-
-                "Status"
-
-            ]
-
-            .apply(
-
-                SeverityMapper.score
-
-            )
-
-        )
+        history["Severity_Score"] = history["Status"].apply(SeverityMapper.score)
 
         return history
+
 
 # ==========================================================
 # SEVERITY TREND ENGINE
 # ==========================================================
 
+
 class SeverityTrendEngine:
-
     @staticmethod
-    def build(
+    def build(history):
 
-        history
+        logger.info("Building Severity Trend")
 
-    ):
+        latest = history.iloc[-1]
 
-        logger.info(
+        avg_score = history["Severity_Score"].mean()
 
-            "Building Severity Trend"
-
-        )
-
-        latest = (
-
-            history
-
-            .iloc[-1]
-
-        )
-
-        avg_score = (
-
-            history[
-
-                "Severity_Score"
-
-            ]
-
-            .mean()
-
-        )
-
-        worst_score = (
-
-            history[
-
-                "Severity_Score"
-
-            ]
-
-            .max()
-
-        )
+        worst_score = history["Severity_Score"].max()
 
         return pd.DataFrame(
-
             [
-
-                {
-
-                    "Metric":
-
-                        "Latest_Status",
-
-                    "Value":
-
-                        latest["Status"]
-
-                },
-
-                {
-
-                    "Metric":
-
-                        "Average_Severity",
-
-                    "Value":
-
-                        round(
-
-                            avg_score,
-
-                            2
-
-                        )
-
-                },
-
-                {
-
-                    "Metric":
-
-                        "Worst_Severity",
-
-                    "Value":
-
-                        worst_score
-
-                },
-
-                {
-
-                    "Metric":
-
-                        "Observation_Count",
-
-                    "Value":
-
-                        len(
-
-                            history
-
-                        )
-
-                }
-
+                {"Metric": "Latest_Status", "Value": latest["Status"]},
+                {"Metric": "Average_Severity", "Value": round(avg_score, 2)},
+                {"Metric": "Worst_Severity", "Value": worst_score},
+                {"Metric": "Observation_Count", "Value": len(history)},
             ]
-
         )
-    
+
+
 # ==========================================================
 # TREND DIRECTION ENGINE
 # ==========================================================
 
+
 class TrendDirectionEngine:
-
     @staticmethod
-    def determine(
+    def determine(history):
 
-        history
-
-    ):
-
-        logger.info(
-
-            "Determining Trend Direction"
-
-        )
+        logger.info("Determining Trend Direction")
 
         if len(history) < 2:
-
             return "INSUFFICIENT_HISTORY"
 
-        first = (
+        first = history.iloc[0]["Severity_Score"]
 
-            history
-
-            .iloc[0][
-
-                "Severity_Score"
-
-            ]
-
-        )
-
-        last = (
-
-            history
-
-            .iloc[-1][
-
-                "Severity_Score"
-
-            ]
-
-        )
+        last = history.iloc[-1]["Severity_Score"]
 
         if last > first:
-
             return "DETERIORATING"
 
         if last < first:
-
             return "IMPROVING"
 
         return "STABLE"
-    
+
+
 # ==========================================================
 # ALERT FREQUENCY ENGINE
 # ==========================================================
 
+
 class AlertFrequencyEngine:
-
     @staticmethod
-    def build(
+    def build(history):
 
-        history
+        logger.info("Calculating Alert Frequency")
 
-    ):
-
-        logger.info(
-
-            "Calculating Alert Frequency"
-
-        )
-
-        counts = (
-
-            history
-
-            .groupby(
-
-                "Status"
-
-            )
-
-            .size()
-
-            .reset_index(
-
-                name="Count"
-
-            )
-
-        )
+        counts = history.groupby("Status").size().reset_index(name="Count")
 
         return counts
-    
+
+
 # ==========================================================
 # CATEGORY TREND ENGINE
 # ==========================================================
 
+
 class CategoryTrendEngine:
-
     @staticmethod
-    def build(
+    def build(history):
 
-        history
-
-    ):
-
-        logger.info(
-
-            "Building Category Trends"
-
-        )
+        logger.info("Building Category Trends")
 
         summary = []
 
-        for status in [
+        for status in ["NORMAL", "WATCH", "WARNING", "CRITICAL"]:
+            count = len(history[history["Status"] == status])
 
-            "NORMAL",
+            summary.append({"Status": status, "Occurrences": count})
 
-            "WATCH",
+        return pd.DataFrame(summary)
 
-            "WARNING",
 
-            "CRITICAL"
-
-        ]:
-
-            count = len(
-
-                history[
-
-                    history["Status"]
-
-                    ==
-
-                    status
-
-                ]
-
-            )
-
-            summary.append(
-
-                {
-
-                    "Status":
-
-                        status,
-
-                    "Occurrences":
-
-                        count
-
-                }
-
-            )
-
-        return pd.DataFrame(
-
-            summary
-
-        )
-    
 # ==========================================================
 # TREND DASHBOARD BUILDER
 # ==========================================================
 
+
 class TrendDashboardBuilder:
-
     @staticmethod
-    def build(
+    def build(trend_summary, trend_direction):
 
-        trend_summary,
+        logger.info("Building Trend Dashboard")
 
-        trend_direction
+        dashboard = trend_summary.copy()
 
-    ):
-
-        logger.info(
-
-            "Building Trend Dashboard"
-
-        )
-
-        dashboard = (
-
-            trend_summary
-
-            .copy()
-
-        )
-
-        dashboard.loc[
-
-            len(dashboard)
-
-        ] = [
-
-            "TREND_DIRECTION",
-
-            trend_direction
-
-        ]
+        dashboard.loc[len(dashboard)] = ["TREND_DIRECTION", trend_direction]
 
         return dashboard
-    
+
+
 # ==========================================================
 # TREND EXPORTER
 # ==========================================================
 
+
 class TrendExporter:
-
     @staticmethod
-    def export(
+    def export(trend_df):
 
-        trend_df
+        logger.info("Exporting Trends")
 
-    ):
-
-        logger.info(
-
-            "Exporting Trends"
-
-        )
-
-        trend_df.to_csv(
-
-            TREND_FILE,
-
-            index=False
-
-        )
+        trend_df.to_csv(TREND_FILE, index=False)
 
         return TREND_FILE
-    
+
+
 # ==========================================================
 # TREND DASHBOARD EXPORTER
 # ==========================================================
 
+
 class TrendDashboardExporter:
-
     @staticmethod
-    def export(
+    def export(dashboard):
 
-        dashboard
+        logger.info("Exporting Trend Dashboard")
 
-    ):
-
-        logger.info(
-
-            "Exporting Trend Dashboard"
-
-        )
-
-        dashboard.to_csv(
-
-            TREND_DASHBOARD_FILE,
-
-            index=False
-
-        )
+        dashboard.to_csv(TREND_DASHBOARD_FILE, index=False)
 
         return TREND_DASHBOARD_FILE
-    
+
+
 # ==========================================================
 # MONITOR TREND ENGINE
 # ==========================================================
 
+
 class MonitorTrendEngine:
+    def run(self):
 
-    def run(
+        logger.info("Starting Monitor Trend Analysis")
 
-        self
+        files = TrendRepository.load_history()
 
-    ):
+        TrendValidator.validate(files)
 
-        logger.info(
+        history = HistoryLoaderEngine.load(files)
 
-            "Starting Monitor Trend Analysis"
+        history = TrendCalculationEngine.calculate(history)
 
-        )
+        trend_summary = SeverityTrendEngine.build(history)
 
-        files = (
+        trend_direction = TrendDirectionEngine.determine(history)
 
-            TrendRepository
+        frequency = AlertFrequencyEngine.build(history)
 
-            .load_history()
+        category_trends = CategoryTrendEngine.build(history)
 
-        )
-
-        TrendValidator.validate(
-
-            files
-
-        )
-
-        history = (
-
-            HistoryLoaderEngine
-
-            .load(
-
-                files
-
-            )
-
-        )
-
-        history = (
-
-            TrendCalculationEngine
-
-            .calculate(
-
-                history
-
-            )
-
-        )
-
-        trend_summary = (
-
-            SeverityTrendEngine
-
-            .build(
-
-                history
-
-            )
-
-        )
-
-        trend_direction = (
-
-            TrendDirectionEngine
-
-            .determine(
-
-                history
-
-            )
-
-        )
-
-        frequency = (
-
-            AlertFrequencyEngine
-
-            .build(
-
-                history
-
-            )
-
-        )
-
-        category_trends = (
-
-            CategoryTrendEngine
-
-            .build(
-
-                history
-
-            )
-
-        )
-
-        dashboard = (
-
-            TrendDashboardBuilder
-
-            .build(
-
-                category_trends,
-
-                trend_direction
-
-            )
-
-        )
+        dashboard = TrendDashboardBuilder.build(category_trends, trend_direction)
 
         return {
-
-            "history":
-
-                history,
-
-            "trend_summary":
-
-                trend_summary,
-
-            "trend_direction":
-
-                trend_direction,
-
-            "frequency":
-
-                frequency,
-
-            "dashboard":
-
-                dashboard
-
+            "history": history,
+            "trend_summary": trend_summary,
+            "trend_direction": trend_direction,
+            "frequency": frequency,
+            "dashboard": dashboard,
         }
-    
+
+
 # ==========================================================
 # SUMMARY ENGINE
 # ==========================================================
 
+
 class TrendSummaryEngine:
-
     @staticmethod
-    def display(
+    def display(result):
 
-        result
-
-    ):
-
-        summary = (
-
-            result[
-
-                "trend_summary"
-
-            ]
-
-        )
+        summary = result["trend_summary"]
 
         print()
 
-        print(
+        print("=" * 80)
 
-            "=" * 80
+        print("MONITOR TREND ANALYSIS")
 
-        )
+        print("=" * 80)
 
-        print(
-
-            "MONITOR TREND ANALYSIS"
-
-        )
-
-        print(
-
-            "=" * 80
-
-        )
-
-        print(
-
-            summary
-
-        )
+        print(summary)
 
         print()
 
-        print(
+        print(f"Trend Direction: {result['trend_direction']}")
 
-            f"Trend Direction: "
+        print("=" * 80)
 
-            f"{result['trend_direction']}"
-
-        )
-
-        print(
-
-            "=" * 80
-
-        )
 
 # ==========================================================
 # RUNNER
 # ==========================================================
 
+
 def run_example():
 
-    result = (
+    result = MonitorTrendEngine().run()
 
-        MonitorTrendEngine()
+    TrendExporter.export(result["frequency"])
 
-        .run()
+    TrendDashboardExporter.export(result["dashboard"])
 
-    )
-
-    TrendExporter.export(
-
-        result[
-
-            "frequency"
-
-        ]
-
-    )
-
-    TrendDashboardExporter.export(
-
-        result[
-
-            "dashboard"
-
-        ]
-
-    )
-
-    TrendSummaryEngine.display(
-
-        result
-
-    )
+    TrendSummaryEngine.display(result)
 
     print()
 
-    print(
+    print("Generated Files")
 
-        "Generated Files"
+    print("-" * 40)
 
-    )
+    print(TREND_FILE)
 
-    print(
+    print(TREND_DASHBOARD_FILE)
 
-        "-" * 40
+    print("-" * 40)
 
-    )
-
-    print(
-
-        TREND_FILE
-
-    )
-
-    print(
-
-        TREND_DASHBOARD_FILE
-
-    )
-
-    print(
-
-        "-" * 40
-
-    )
 
 # ==========================================================
 # MAIN
 # ==========================================================
 
 if __name__ == "__main__":
-
     run_example()

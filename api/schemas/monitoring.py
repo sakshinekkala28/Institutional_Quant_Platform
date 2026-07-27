@@ -30,10 +30,7 @@ from typing import Literal
 
 from pydantic import Field
 
-from api.schemas.base import APIModel
-from api.schemas.base import BaseResponse
-from api.schemas.base import SuccessResponse
-
+from api.schemas.base import APIModel, BaseResponse, SuccessResponse
 
 # ==========================================================
 # HEALTH
@@ -56,9 +53,7 @@ class HealthStatus(
     ]
 
     timestamp: datetime = Field(
-
         default_factory=datetime.utcnow,
-
     )
 
 
@@ -123,15 +118,10 @@ class Alert(
     alert_id: str
 
     severity: Literal[
-
         "INFO",
-
         "WARNING",
-
         "ERROR",
-
         "CRITICAL",
-
     ]
 
     component: str
@@ -210,9 +200,7 @@ class MonitoringSummary(
     services_total: int
 
     updated_at: datetime = Field(
-
         default_factory=datetime.utcnow,
-
     )
 
 
@@ -261,9 +249,7 @@ class HealthResponse(
     Health response.
     """
 
-    data: list[
-        HealthStatus
-    ]
+    data: list[HealthStatus]
 
 
 class MonitoringSummaryResponse(
@@ -293,9 +279,7 @@ class TelemetryResponse(
     Telemetry response.
     """
 
-    data: list[
-        TelemetryMetric
-    ]
+    data: list[TelemetryMetric]
 
 
 class AlertResponse(
@@ -305,9 +289,7 @@ class AlertResponse(
     Alert response.
     """
 
-    data: list[
-        Alert
-    ]
+    data: list[Alert]
 
 
 class EventResponse(
@@ -317,9 +299,7 @@ class EventResponse(
     Event response.
     """
 
-    data: list[
-        MonitoringEvent
-    ]
+    data: list[MonitoringEvent]
 
 
 class ResourceUsageResponse(
@@ -338,37 +318,20 @@ class ResourceUsageResponse(
 
 
 __all__ = [
-
-    "HealthStatus",
-
-    "SystemMetrics",
-
-    "TelemetryMetric",
-
     "Alert",
-
-    "MonitoringEvent",
-
-    "ResourceUsage",
-
-    "MonitoringSummary",
-
-    "MonitoringRequest",
-
-    "MonitoringResponse",
-
-    "HealthResponse",
-
-    "MonitoringSummaryResponse",
-
-    "SystemMetricsResponse",
-
-    "TelemetryResponse",
-
     "AlertResponse",
-
     "EventResponse",
-
+    "HealthResponse",
+    "HealthStatus",
+    "MonitoringEvent",
+    "MonitoringRequest",
+    "MonitoringResponse",
+    "MonitoringSummary",
+    "MonitoringSummaryResponse",
+    "ResourceUsage",
     "ResourceUsageResponse",
-
+    "SystemMetrics",
+    "SystemMetricsResponse",
+    "TelemetryMetric",
+    "TelemetryResponse",
 ]

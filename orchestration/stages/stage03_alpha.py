@@ -23,10 +23,10 @@ from orchestration.pipelines.alpha_pipeline import (
     main as alpha_pipeline,
 )
 
-
 # ==========================================================
 # STAGE
 # ==========================================================
+
 
 class AlphaStage:
     """
@@ -37,9 +37,7 @@ class AlphaStage:
 
     NAME = "Alpha"
 
-    DESCRIPTION = (
-        "Alpha signal generation."
-    )
+    DESCRIPTION = "Alpha signal generation."
 
     PIPELINE = alpha_pipeline
 
@@ -64,22 +62,11 @@ class AlphaStage:
     def metadata(cls) -> dict:
 
         return {
-
-            "stage":
-                cls.STAGE,
-
-            "name":
-                cls.NAME,
-
-            "description":
-                cls.DESCRIPTION,
-
-            "dependencies":
-                cls.DEPENDENCIES,
-
-            "enabled":
-                cls.ENABLED,
-
+            "stage": cls.STAGE,
+            "name": cls.NAME,
+            "description": cls.DESCRIPTION,
+            "dependencies": cls.DEPENDENCIES,
+            "enabled": cls.ENABLED,
         }
 
     # =====================================================
@@ -88,10 +75,4 @@ class AlphaStage:
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"stage={self.STAGE})"
-
-        )
+        return f"{self.__class__.__name__}(stage={self.STAGE})"

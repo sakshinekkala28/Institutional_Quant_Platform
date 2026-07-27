@@ -36,6 +36,7 @@ logger = logging.getLogger(__name__)
 # WEBHOOK PLUGIN
 # ==========================================================
 
+
 class WebhookPlugin(NotificationPlugin):
     """
     Generic webhook notification plugin.
@@ -61,13 +62,7 @@ class WebhookPlugin(NotificationPlugin):
 
         self.timeout = timeout
 
-        self.headers = headers or {
-
-            "Content-Type":
-
-                "application/json"
-
-        }
+        self.headers = headers or {"Content-Type": "application/json"}
 
     # =====================================================
     # SEND
@@ -77,77 +72,38 @@ class WebhookPlugin(NotificationPlugin):
         self,
         title: str,
         message: str,
-        severity: NotificationSeverity = (
-            NotificationSeverity.INFO
-        ),
+        severity: NotificationSeverity = (NotificationSeverity.INFO),
         **kwargs: Any,
     ) -> bool:
 
-        if (
-
-            not self.ENABLED
-
-            or
-
-            not self.endpoint
-
-        ):
-
+        if not self.ENABLED or not self.endpoint:
             return False
 
         payload = {
-
-            "title":
-
-                title,
-
-            "message":
-
-                message,
-
-            "severity":
-
-                severity.value,
-
-            "metadata":
-
-                kwargs,
-
+            "title": title,
+            "message": message,
+            "severity": severity.value,
+            "metadata": kwargs,
         }
 
         try:
-
             response = requests.post(
-
                 self.endpoint,
-
                 json=payload,
-
                 headers=self.headers,
-
                 timeout=self.timeout,
-
             )
 
             response.raise_for_status()
 
             self.increment()
 
-            logger.info(
-
-                "Webhook notification delivered."
-
-            )
+            logger.info("Webhook notification delivered.")
 
             return True
 
         except Exception:
-
-            logger.exception(
-
-                "Webhook delivery failed."
-
-            )
+            logger.exception("Webhook delivery failed.")
 
             return False
 
@@ -160,11 +116,7 @@ class WebhookPlugin(NotificationPlugin):
         self,
     ) -> bool:
 
-        return bool(
-
-            self.endpoint
-
-        )
+        return bool(self.endpoint)
 
     # =====================================================
     # SUMMARY
@@ -175,21 +127,10 @@ class WebhookPlugin(NotificationPlugin):
     ) -> dict:
 
         return {
-
             **super().summary(),
-
-            "configured":
-
-                self.configured,
-
-            "endpoint":
-
-                self.endpoint,
-
-            "timeout":
-
-                self.timeout,
-
+            "configured": self.configured,
+            "endpoint": self.endpoint,
+            "timeout": self.timeout,
         }
 
     # =====================================================
@@ -200,10 +141,4 @@ class WebhookPlugin(NotificationPlugin):
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"configured={self.configured})"
-
-        )
+        return f"{self.__class__.__name__}(configured={self.configured})"

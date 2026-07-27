@@ -47,18 +47,12 @@ class EngineResult:
     @property
     def is_success(self) -> bool:
 
-        return (
-            self.status
-            == EngineStatus.SUCCESS
-        )
+        return self.status == EngineStatus.SUCCESS
 
     @property
     def is_failed(self) -> bool:
 
-        return (
-            self.status
-            == EngineStatus.FAILED
-        )
+        return self.status == EngineStatus.FAILED
 
     # =====================================================
     # SUMMARY
@@ -72,16 +66,8 @@ class EngineResult:
             "engine": self.engine,
             "status": self.status.value,
             "records": self.records,
-            "output": (
-                str(self.output)
-                if self.output
-                else None
-            ),
-            "report": (
-                str(self.report)
-                if self.report
-                else None
-            ),
+            "output": (str(self.output) if self.output else None),
+            "report": (str(self.report) if self.report else None),
             "duration": self.duration,
             "metadata": self.metadata,
         }

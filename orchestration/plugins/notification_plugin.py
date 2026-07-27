@@ -19,11 +19,9 @@ Responsibilities
 
 from __future__ import annotations
 
-import logging
-
-from abc import ABC
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from enum import Enum
+import logging
 from typing import Any
 
 from orchestration.plugins.base_plugin import (
@@ -37,8 +35,8 @@ logger = logging.getLogger(__name__)
 # SEVERITY
 # ==========================================================
 
-class NotificationSeverity(str, Enum):
 
+class NotificationSeverity(str, Enum):
     INFO = "INFO"
 
     WARNING = "WARNING"
@@ -51,6 +49,7 @@ class NotificationSeverity(str, Enum):
 # ==========================================================
 # BASE NOTIFICATION PLUGIN
 # ==========================================================
+
 
 class NotificationPlugin(
     BasePlugin,
@@ -87,9 +86,7 @@ class NotificationPlugin(
         self,
         title: str,
         message: str,
-        severity: NotificationSeverity = (
-            NotificationSeverity.INFO
-        ),
+        severity: NotificationSeverity = (NotificationSeverity.INFO),
         **kwargs: Any,
     ) -> bool:
         """
@@ -110,13 +107,9 @@ class NotificationPlugin(
     ) -> bool:
 
         return self.send(
-
             title,
-
             message,
-
             NotificationSeverity.INFO,
-
         )
 
     # -----------------------------------------------------
@@ -128,13 +121,9 @@ class NotificationPlugin(
     ) -> bool:
 
         return self.send(
-
             title,
-
             message,
-
             NotificationSeverity.WARNING,
-
         )
 
     # -----------------------------------------------------
@@ -146,13 +135,9 @@ class NotificationPlugin(
     ) -> bool:
 
         return self.send(
-
             title,
-
             message,
-
             NotificationSeverity.ERROR,
-
         )
 
     # -----------------------------------------------------
@@ -164,13 +149,9 @@ class NotificationPlugin(
     ) -> bool:
 
         return self.send(
-
             title,
-
             message,
-
             NotificationSeverity.CRITICAL,
-
         )
 
     # =====================================================
@@ -183,11 +164,8 @@ class NotificationPlugin(
     ) -> None:
 
         self.critical(
-
             "Platform Failure",
-
             str(payload),
-
         )
 
     # -----------------------------------------------------
@@ -199,11 +177,8 @@ class NotificationPlugin(
     ) -> None:
 
         self.error(
-
             f"Pipeline Failed: {pipeline}",
-
             str(payload),
-
         )
 
     # -----------------------------------------------------
@@ -215,11 +190,8 @@ class NotificationPlugin(
     ) -> None:
 
         self.error(
-
             f"Engine Failed: {engine}",
-
             str(payload),
-
         )
 
     # =====================================================
@@ -237,23 +209,10 @@ class NotificationPlugin(
     def summary(self) -> dict:
 
         return {
-
-            "plugin":
-
-                self.NAME,
-
-            "version":
-
-                self.VERSION,
-
-            "enabled":
-
-                self.ENABLED,
-
-            "notifications":
-
-                self.notifications_sent,
-
+            "plugin": self.NAME,
+            "version": self.VERSION,
+            "enabled": self.ENABLED,
+            "notifications": self.notifications_sent,
         }
 
     # =====================================================
@@ -262,10 +221,4 @@ class NotificationPlugin(
 
     def __repr__(self) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"notifications={self.notifications_sent})"
-
-        )
+        return f"{self.__class__.__name__}(notifications={self.notifications_sent})"

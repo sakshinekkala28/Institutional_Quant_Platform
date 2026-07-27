@@ -20,21 +20,17 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 import inspect
-from typing import Dict
-from typing import Iterator
-from typing import List
-from typing import Optional
-from typing import Type
 
 from orchestration.plugins.base_plugin import (
     BasePlugin,
 )
 
-
 # =========================================================
 # PLUGIN REGISTRY
 # =========================================================
+
 
 class PluginRegistry:
     """
@@ -43,7 +39,7 @@ class PluginRegistry:
 
     def __init__(self) -> None:
 
-        self._plugins: Dict[
+        self._plugins: dict[
             str,
             BasePlugin,
         ] = {}
@@ -63,12 +59,7 @@ class PluginRegistry:
         name = plugin.NAME.lower()
 
         if name in self._plugins:
-
-            raise ValueError(
-
-                f"Plugin '{plugin.NAME}' already registered."
-
-            )
+            raise ValueError(f"Plugin '{plugin.NAME}' already registered.")
 
         self._plugins[name] = plugin
 
@@ -83,11 +74,8 @@ class PluginRegistry:
         """
 
         self._plugins.pop(
-
             name.lower(),
-
             None,
-
         )
 
     # =====================================================
@@ -102,9 +90,7 @@ class PluginRegistry:
         Retrieve plugin.
         """
 
-        return self._plugins[
-            name.lower()
-        ]
+        return self._plugins[name.lower()]
 
     # -----------------------------------------------------
 
@@ -113,13 +99,7 @@ class PluginRegistry:
         name: str,
     ) -> bool:
 
-        return (
-
-            name.lower()
-
-            in self._plugins
-
-        )
+        return name.lower() in self._plugins
 
     # =====================================================
     # DISCOVERY
@@ -135,36 +115,22 @@ class PluginRegistry:
         """
 
         for _, cls in inspect.getmembers(
-
             module,
-
             inspect.isclass,
-
         ):
-
             if not issubclass(
-
                 cls,
-
                 BasePlugin,
-
             ):
-
                 continue
 
             if cls is BasePlugin:
-
                 continue
 
             if not cls.ENABLED:
-
                 continue
 
-            self.register(
-
-                cls()
-
-            )
+            self.register(cls())
 
     # =====================================================
     # LIFECYCLE
@@ -175,7 +141,6 @@ class PluginRegistry:
     ) -> None:
 
         for plugin in self.enabled_plugins():
-
             plugin.initialize()
 
     # -----------------------------------------------------
@@ -185,7 +150,6 @@ class PluginRegistry:
     ) -> None:
 
         for plugin in self.enabled_plugins():
-
             plugin.shutdown()
 
     # =====================================================
@@ -197,11 +161,7 @@ class PluginRegistry:
         name: str,
     ) -> None:
 
-        self.get(
-
-            name
-
-        ).ENABLED = True
+        self.get(name).ENABLED = True
 
     # -----------------------------------------------------
 
@@ -210,11 +170,7 @@ class PluginRegistry:
         name: str,
     ) -> None:
 
-        self.get(
-
-            name
-
-        ).ENABLED = False
+        self.get(name).ENABLED = False
 
     # =====================================================
     # QUERIES
@@ -222,31 +178,17 @@ class PluginRegistry:
 
     def plugins(
         self,
-    ) -> List[BasePlugin]:
+    ) -> list[BasePlugin]:
 
-        return list(
-
-            self._plugins.values()
-
-        )
+        return list(self._plugins.values())
 
     # -----------------------------------------------------
 
     def enabled_plugins(
         self,
-    ) -> List[BasePlugin]:
+    ) -> list[BasePlugin]:
 
-        return [
-
-            plugin
-
-            for plugin
-
-            in self._plugins.values()
-
-            if plugin.ENABLED
-
-        ]
+        return [plugin for plugin in self._plugins.values() if plugin.ENABLED]
 
     # =====================================================
     # SUMMARY
@@ -257,35 +199,13 @@ class PluginRegistry:
     ) -> dict:
 
         return {
-
-            "registered":
-
-                len(
-
-                    self._plugins,
-
-                ),
-
-            "enabled":
-
-                len(
-
-                    self.enabled_plugins(),
-
-                ),
-
-            "plugins":
-
-                [
-
-                    plugin.NAME
-
-                    for plugin
-
-                    in self.plugins()
-
-                ],
-
+            "registered": len(
+                self._plugins,
+            ),
+            "enabled": len(
+                self.enabled_plugins(),
+            ),
+            "plugins": [plugin.NAME for plugin in self.plugins()],
         }
 
     # =====================================================
@@ -296,11 +216,7 @@ class PluginRegistry:
         self,
     ) -> int:
 
-        return len(
-
-            self._plugins
-
-        )
+        return len(self._plugins)
 
     # -----------------------------------------------------
 
@@ -309,11 +225,7 @@ class PluginRegistry:
         name: str,
     ) -> bool:
 
-        return self.exists(
-
-            name
-
-        )
+        return self.exists(name)
 
     # -----------------------------------------------------
 
@@ -321,11 +233,7 @@ class PluginRegistry:
         self,
     ) -> Iterator[BasePlugin]:
 
-        return iter(
-
-            self._plugins.values()
-
-        )
+        return iter(self._plugins.values())
 
     # -----------------------------------------------------
 
@@ -333,10 +241,4 @@ class PluginRegistry:
         self,
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"plugins={len(self)})"
-
-        )
+        return f"{self.__class__.__name__}(plugins={len(self)})"

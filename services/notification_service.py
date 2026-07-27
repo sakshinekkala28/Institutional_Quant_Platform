@@ -28,28 +28,19 @@ Responsibilities
 
 from __future__ import annotations
 
+from dataclasses import dataclass, field
+from enum import Enum
+from threading import Lock, RLock
 import time
+from typing import Any
 import uuid
 
-from enum import Enum
-
-from dataclasses import dataclass
-from dataclasses import field
-
-from threading import Lock
-from threading import RLock
-
-from typing import Any
-from typing import Dict
-from typing import List
-from typing import Optional
-
 from core.services.base_service import BaseService
-
 
 # ============================================================
 # Exceptions
 # ============================================================
+
 
 class NotificationError(Exception):
     """Base notification exception."""
@@ -63,8 +54,8 @@ class NotificationNotFound(NotificationError):
 # Notification Channel
 # ============================================================
 
-class NotificationChannel(str, Enum):
 
+class NotificationChannel(str, Enum):
     EMAIL = "EMAIL"
 
     SLACK = "SLACK"
@@ -82,8 +73,8 @@ class NotificationChannel(str, Enum):
 # Notification Status
 # ============================================================
 
-class NotificationStatus(str, Enum):
 
+class NotificationStatus(str, Enum):
     PENDING = "PENDING"
 
     SENT = "SENT"
@@ -97,20 +88,12 @@ class NotificationStatus(str, Enum):
 # Notification Model
 # ============================================================
 
+
 @dataclass(slots=True)
 class Notification:
+    notification_id: str = field(default_factory=lambda: str(uuid.uuid4()))
 
-    notification_id: str = field(
-
-        default_factory=lambda: str(uuid.uuid4())
-
-    )
-
-    timestamp: float = field(
-
-        default_factory=time.time
-
-    )
+    timestamp: float = field(default_factory=time.time)
 
     channel: NotificationChannel = NotificationChannel.SYSTEM
 
@@ -124,19 +107,15 @@ class Notification:
 
     retries: int = 0
 
-    metadata: Dict[str, Any] = field(
-
-        default_factory=dict
-
-    )
+    metadata: dict[str, Any] = field(default_factory=dict)
 
 
 # ============================================================
 # Notification Service
 # ============================================================
 
-class NotificationService(BaseService):
 
+class NotificationService(BaseService):
     """
     Enterprise notification manager.
     """
@@ -145,55 +124,31 @@ class NotificationService(BaseService):
 
     _instance_lock = Lock()
 
-    def __new__(
-
-        cls,
-
-        *args,
-
-        **kwargs
-
-    ):
+    def __new__(cls, *args, **kwargs):
 
         if cls._instance is None:
-
             with cls._instance_lock:
-
                 if cls._instance is None:
-
                     cls._instance = super().__new__(cls)
 
         return cls._instance
 
     def __init__(self):
 
-        if getattr(
-
-            self,
-
-            "_initialized",
-
-            False
-
-        ):
-
+        if getattr(self, "_initialized", False):
             return
 
         super().__init__()
 
         self._lock = RLock()
 
-        self._notifications: List[Notification] = []
+        self._notifications: list[Notification] = []
 
         self._enabled = True
 
         self._initialized = True
 
-        self._logger.info(
-
-            "NotificationService initialized."
-
-        )
+        self._logger.info("NotificationService initialized.")
 
     # =====================================================
     # Lifecycle
@@ -216,42 +171,24 @@ class NotificationService(BaseService):
     # =====================================================
 
     def create(
-
         self,
-
         channel: NotificationChannel,
-
         recipient: str,
-
         subject: str,
-
         message: str,
-
-        metadata: Optional[Dict[str, Any]] = None
-
+        metadata: dict[str, Any] | None = None,
     ) -> Notification:
 
         notification = Notification(
-
             channel=channel,
-
             recipient=recipient,
-
             subject=subject,
-
             message=message,
-
-            metadata=metadata or {}
-
+            metadata=metadata or {},
         )
 
         with self._lock:
-
-            self._notifications.append(
-
-                notification
-
-            )
+            self._notifications.append(notification)
 
         return notification
 
@@ -259,25 +196,15 @@ class NotificationService(BaseService):
     # BaseService
     # =====================================================
 
-    def run(
-
-        self
-
-    ):
+    def run(self):
 
         return self.statistics()
-    
+
     # =====================================================
     # Delivery
     # =====================================================
 
-    def send(
-
-        self,
-
-        notification: Notification
-
-    ) -> Notification:
+    def send(self, notification: Notification) -> Notification:
         """
         Send notification.
 
@@ -286,40 +213,21 @@ class NotificationService(BaseService):
         """
 
         if not self._enabled:
-
-            notification.status = (
-
-                NotificationStatus.FAILED
-
-            )
+            notification.status = NotificationStatus.FAILED
 
             return notification
 
         try:
-
-            notification.status = (
-
-                NotificationStatus.SENT
-
-            )
+            notification.status = NotificationStatus.SENT
 
             self._logger.info(
-
                 "[%s] Notification delivered to %s",
-
                 notification.channel.value,
-
-                notification.recipient
-
+                notification.recipient,
             )
 
         except Exception:
-
-            notification.status = (
-
-                NotificationStatus.FAILED
-
-            )
+            notification.status = NotificationStatus.FAILED
 
             raise
 
@@ -330,492 +238,210 @@ class NotificationService(BaseService):
     # =====================================================
 
     def send_email(
-
         self,
-
         recipient: str,
-
         subject: str,
-
         message: str,
-
-        metadata: Optional[Dict[str, Any]] = None
-
+        metadata: dict[str, Any] | None = None,
     ) -> Notification:
 
         notification = self.create(
-
             channel=NotificationChannel.EMAIL,
-
             recipient=recipient,
-
             subject=subject,
-
             message=message,
-
-            metadata=metadata
-
+            metadata=metadata,
         )
 
-        return self.send(
-
-            notification
-
-        )
+        return self.send(notification)
 
     # =====================================================
     # Slack
     # =====================================================
 
     def send_slack(
-
-        self,
-
-        channel: str,
-
-        message: str,
-
-        metadata: Optional[Dict[str, Any]] = None
-
+        self, channel: str, message: str, metadata: dict[str, Any] | None = None
     ) -> Notification:
 
         notification = self.create(
-
             NotificationChannel.SLACK,
-
             recipient=channel,
-
             subject="",
-
             message=message,
-
-            metadata=metadata
-
+            metadata=metadata,
         )
 
-        return self.send(
-
-            notification
-
-        )
+        return self.send(notification)
 
     # =====================================================
     # Teams
     # =====================================================
 
     def send_teams(
-
-        self,
-
-        webhook: str,
-
-        message: str,
-
-        metadata: Optional[Dict[str, Any]] = None
-
+        self, webhook: str, message: str, metadata: dict[str, Any] | None = None
     ) -> Notification:
 
         notification = self.create(
-
             NotificationChannel.TEAMS,
-
             recipient=webhook,
-
             subject="",
-
             message=message,
-
-            metadata=metadata
-
+            metadata=metadata,
         )
 
-        return self.send(
-
-            notification
-
-        )
+        return self.send(notification)
 
     # =====================================================
     # SMS
     # =====================================================
 
     def send_sms(
-
-        self,
-
-        phone_number: str,
-
-        message: str,
-
-        metadata: Optional[Dict[str, Any]] = None
-
+        self, phone_number: str, message: str, metadata: dict[str, Any] | None = None
     ) -> Notification:
 
         notification = self.create(
-
             NotificationChannel.SMS,
-
             recipient=phone_number,
-
             subject="",
-
             message=message,
-
-            metadata=metadata
-
+            metadata=metadata,
         )
 
-        return self.send(
-
-            notification
-
-        )
+        return self.send(notification)
 
     # =====================================================
     # Webhook
     # =====================================================
 
-    def send_webhook(
-
-        self,
-
-        endpoint: str,
-
-        payload: Dict[str, Any]
-
-    ) -> Notification:
+    def send_webhook(self, endpoint: str, payload: dict[str, Any]) -> Notification:
 
         notification = self.create(
-
             NotificationChannel.WEBHOOK,
-
             recipient=endpoint,
-
             subject="Webhook",
-
             message=str(payload),
-
-            metadata=payload
-
+            metadata=payload,
         )
 
-        return self.send(
-
-            notification
-
-        )
+        return self.send(notification)
 
     # =====================================================
     # Status
     # =====================================================
 
-    def mark_sent(
+    def mark_sent(self, notification_id: str) -> None:
 
-        self,
+        notification = self.get(notification_id)
 
-        notification_id: str
+        notification.status = NotificationStatus.SENT
 
-    ) -> None:
+    def mark_failed(self, notification_id: str) -> None:
 
-        notification = self.get(
+        notification = self.get(notification_id)
 
-            notification_id
-
-        )
-
-        notification.status = (
-
-            NotificationStatus.SENT
-
-        )
-
-    def mark_failed(
-
-        self,
-
-        notification_id: str
-
-    ) -> None:
-
-        notification = self.get(
-
-            notification_id
-
-        )
-
-        notification.status = (
-
-            NotificationStatus.FAILED
-
-        )
+        notification.status = NotificationStatus.FAILED
 
     # =====================================================
     # Retry
     # =====================================================
 
-    def retry(
+    def retry(self, notification_id: str) -> Notification:
 
-        self,
-
-        notification_id: str
-
-    ) -> Notification:
-
-        notification = self.get(
-
-            notification_id
-
-        )
+        notification = self.get(notification_id)
 
         notification.retries += 1
 
-        notification.status = (
+        notification.status = NotificationStatus.RETRYING
 
-            NotificationStatus.RETRYING
-
-        )
-
-        return self.send(
-
-            notification
-
-        )
+        return self.send(notification)
 
     # =====================================================
     # Lookup
     # =====================================================
 
-    def get(
-
-        self,
-
-        notification_id: str
-
-    ) -> Notification:
+    def get(self, notification_id: str) -> Notification:
 
         for notification in self._notifications:
-
-            if (
-
-                notification.notification_id
-
-                ==
-
-                notification_id
-
-            ):
-
+            if notification.notification_id == notification_id:
                 return notification
 
-        raise NotificationNotFound(
+        raise NotificationNotFound(notification_id)
 
-            notification_id
+    def notifications(self) -> list[Notification]:
 
-        )
+        return list(self._notifications)
 
-    def notifications(
-
-        self
-
-    ) -> List[Notification]:
-
-        return list(
-
-            self._notifications
-
-        )
-
-    def pending(
-
-        self
-
-    ) -> List[Notification]:
+    def pending(self) -> list[Notification]:
 
         return [
-
             notification
-
-            for notification
-
-            in self._notifications
-
-            if
-
-            notification.status
-
-            ==
-
-            NotificationStatus.PENDING
-
+            for notification in self._notifications
+            if notification.status == NotificationStatus.PENDING
         ]
 
-    def failed(
-
-        self
-
-    ) -> List[Notification]:
+    def failed(self) -> list[Notification]:
 
         return [
-
             notification
-
-            for notification
-
-            in self._notifications
-
-            if
-
-            notification.status
-
-            ==
-
-            NotificationStatus.FAILED
-
+            for notification in self._notifications
+            if notification.status == NotificationStatus.FAILED
         ]
 
-    def sent(
-
-        self
-
-    ) -> List[Notification]:
+    def sent(self) -> list[Notification]:
 
         return [
-
             notification
-
-            for notification
-
-            in self._notifications
-
-            if
-
-            notification.status
-
-            ==
-
-            NotificationStatus.SENT
-
+            for notification in self._notifications
+            if notification.status == NotificationStatus.SENT
         ]
-    
+
     # =====================================================
     # Templates
     # =====================================================
 
-    def register_template(
-
-        self,
-
-        name: str,
-
-        subject: str,
-
-        message: str
-
-    ) -> None:
+    def register_template(self, name: str, subject: str, message: str) -> None:
         """
         Register notification template.
         """
 
-        if not hasattr(
-
-            self,
-
-            "_templates"
-
-        ):
-
+        if not hasattr(self, "_templates"):
             self._templates = {}
 
-        self._templates[name] = {
-
-            "subject": subject,
-
-            "message": message
-
-        }
+        self._templates[name] = {"subject": subject, "message": message}
 
     def send_template(
-
-        self,
-
-        template: str,
-
-        channel: NotificationChannel,
-
-        recipient: str,
-
-        **kwargs
-
+        self, template: str, channel: NotificationChannel, recipient: str, **kwargs
     ) -> Notification:
         """
         Send notification using template.
         """
 
-        if (
-
-            not hasattr(self, "_templates")
-
-            or
-
-            template not in self._templates
-
-        ):
-
-            raise NotificationError(
-
-                f"Unknown template '{template}'."
-
-            )
+        if not hasattr(self, "_templates") or template not in self._templates:
+            raise NotificationError(f"Unknown template '{template}'.")
 
         data = self._templates[template]
 
-        subject = data["subject"].format(
+        subject = data["subject"].format(**kwargs)
 
-            **kwargs
-
-        )
-
-        message = data["message"].format(
-
-            **kwargs
-
-        )
+        message = data["message"].format(**kwargs)
 
         notification = self.create(
-
-            channel=channel,
-
-            recipient=recipient,
-
-            subject=subject,
-
-            message=message
-
+            channel=channel, recipient=recipient, subject=subject, message=message
         )
 
-        return self.send(
-
-            notification
-
-        )
+        return self.send(notification)
 
     # =====================================================
     # Batch Notifications
     # =====================================================
 
     def broadcast(
-
         self,
-
         channel: NotificationChannel,
-
-        recipients: List[str],
-
+        recipients: list[str],
         subject: str,
-
-        message: str
-
-    ) -> List[Notification]:
+        message: str,
+    ) -> list[Notification]:
         """
         Broadcast notification.
         """
@@ -823,28 +449,9 @@ class NotificationService(BaseService):
         notifications = []
 
         for recipient in recipients:
+            notification = self.create(channel, recipient, subject, message)
 
-            notification = self.create(
-
-                channel,
-
-                recipient,
-
-                subject,
-
-                message
-
-            )
-
-            notifications.append(
-
-                self.send(
-
-                    notification
-
-                )
-
-            )
+            notifications.append(self.send(notification))
 
         return notifications
 
@@ -852,11 +459,7 @@ class NotificationService(BaseService):
     # Queue Processing
     # =====================================================
 
-    def process_queue(
-
-        self
-
-    ) -> int:
+    def process_queue(self) -> int:
         """
         Process pending notifications.
         """
@@ -864,12 +467,7 @@ class NotificationService(BaseService):
         processed = 0
 
         for notification in self.pending():
-
-            self.send(
-
-                notification
-
-            )
+            self.send(notification)
 
             processed += 1
 
@@ -879,163 +477,66 @@ class NotificationService(BaseService):
     # Statistics
     # =====================================================
 
-    def statistics(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def statistics(self) -> dict[str, Any]:
         """
         Notification statistics.
         """
 
-        sent = len(
+        sent = len(self.sent())
 
-            self.sent()
+        pending = len(self.pending())
 
-        )
+        failed = len(self.failed())
 
-        pending = len(
-
-            self.pending()
-
-        )
-
-        failed = len(
-
-            self.failed()
-
-        )
-
-        retries = sum(
-
-            notification.retries
-
-            for notification
-
-            in self._notifications
-
-        )
+        retries = sum(notification.retries for notification in self._notifications)
 
         return {
-
-            "total":
-
-                len(self._notifications),
-
-            "sent":
-
-                sent,
-
-            "pending":
-
-                pending,
-
-            "failed":
-
-                failed,
-
-            "retries":
-
-                retries
-
+            "total": len(self._notifications),
+            "sent": sent,
+            "pending": pending,
+            "failed": failed,
+            "retries": retries,
         }
 
     # =====================================================
     # Snapshot
     # =====================================================
 
-    def snapshot(
-
-        self
-
-    ) -> List[Dict[str, Any]]:
+    def snapshot(self) -> list[dict[str, Any]]:
         """
         Export notifications.
         """
 
         return [
-
             {
-
-                "id":
-
-                    notification.notification_id,
-
-                "timestamp":
-
-                    notification.timestamp,
-
-                "channel":
-
-                    notification.channel.value,
-
-                "recipient":
-
-                    notification.recipient,
-
-                "subject":
-
-                    notification.subject,
-
-                "status":
-
-                    notification.status.value,
-
-                "retries":
-
-                    notification.retries
-
+                "id": notification.notification_id,
+                "timestamp": notification.timestamp,
+                "channel": notification.channel.value,
+                "recipient": notification.recipient,
+                "subject": notification.subject,
+                "status": notification.status.value,
+                "retries": notification.retries,
             }
-
-            for notification
-
-            in self._notifications
-
+            for notification in self._notifications
         ]
 
     # =====================================================
     # Health
     # =====================================================
 
-    def health(
-
-        self
-
-    ) -> Dict[str, Any]:
+    def health(self) -> dict[str, Any]:
 
         return {
-
-            "status":
-
-                "HEALTHY"
-
-                if self._enabled
-
-                else "DISABLED",
-
-            "notifications":
-
-                len(self._notifications),
-
-            "failed":
-
-                len(
-
-                    self.failed()
-
-                )
-
+            "status": "HEALTHY" if self._enabled else "DISABLED",
+            "notifications": len(self._notifications),
+            "failed": len(self.failed()),
         }
 
     # =====================================================
     # Maintenance
     # =====================================================
 
-    def clear(
-
-        self
-
-    ) -> None:
+    def clear(self) -> None:
 
         self._notifications.clear()
 
@@ -1043,76 +544,36 @@ class NotificationService(BaseService):
     # Lifecycle
     # =====================================================
 
-    def startup(
-
-        self
-
-    ) -> None:
+    def startup(self) -> None:
 
         self.enable()
 
-        self._logger.info(
+        self._logger.info("Notification service started.")
 
-            "Notification service started."
-
-        )
-
-    def shutdown(
-
-        self
-
-    ) -> None:
+    def shutdown(self) -> None:
 
         self.disable()
 
-        self._logger.info(
-
-            "Notification service shutdown."
-
-        )
+        self._logger.info("Notification service shutdown.")
 
     # =====================================================
     # Magic Methods
     # =====================================================
 
-    def __len__(
+    def __len__(self) -> int:
 
-        self
+        return len(self._notifications)
 
-    ) -> int:
+    def __iter__(self):
 
-        return len(
+        return iter(self._notifications)
 
-            self._notifications
-
-        )
-
-    def __iter__(
-
-        self
-
-    ):
-
-        return iter(
-
-            self._notifications
-
-        )
-
-    def __repr__(
-
-        self
-
-    ) -> str:
+    def __repr__(self) -> str:
 
         return (
-
             f"{self.__class__.__name__}"
-
             f"(notifications={len(self)}, "
-
             f"enabled={self._enabled})"
-
         )
 
 

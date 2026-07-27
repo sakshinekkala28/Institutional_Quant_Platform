@@ -16,34 +16,29 @@ Responsibilities
 
 from __future__ import annotations
 
+# ==========================================================
+# EXECUTION ENGINES
+# ==========================================================
+from analytics.execution.execution_engine_v1 import (
+    main as execution_engine,
+)
+from analytics.execution.execution_quality_engine import (
+    main as execution_quality_engine,
+)
+from analytics.execution.transaction_cost_engine import (
+    main as transaction_cost_engine,
+)
 from orchestration.models.pipeline_result import (
     PipelineResult,
 )
-
 from orchestration.pipelines.base_pipeline import (
     BasePipeline,
 )
 
 # ==========================================================
-# EXECUTION ENGINES
-# ==========================================================
-
-from analytics.execution.execution_engine_v1 import (
-    main as execution_engine,
-)
-
-from analytics.execution.transaction_cost_engine import (
-    main as transaction_cost_engine,
-)
-
-from analytics.execution.execution_quality_engine import (
-    main as execution_quality_engine,
-)
-
-
-# ==========================================================
 # EXECUTION PIPELINE
 # ==========================================================
+
 
 class ExecutionPipeline(BasePipeline):
     """
@@ -58,22 +53,18 @@ class ExecutionPipeline(BasePipeline):
     EXECUTOR = "sequential"
 
     ENGINES = [
-
         (
             "Execution Engine",
             execution_engine,
         ),
-
         (
             "Transaction Cost Engine",
             transaction_cost_engine,
         ),
-
         (
             "Execution Quality Engine",
             execution_quality_engine,
         ),
-
     ]
 
     # =====================================================
@@ -91,17 +82,11 @@ class ExecutionPipeline(BasePipeline):
         result: PipelineResult,
     ) -> None:
 
-        print(
-            f"\nCompleted {self.NAME}"
-        )
+        print(f"\nCompleted {self.NAME}")
 
-        print(
-            f"Status   : {result.status.value}"
-        )
+        print(f"Status   : {result.status.value}")
 
-        print(
-            f"Duration : {result.duration:.2f}s"
-        )
+        print(f"Duration : {result.duration:.2f}s")
 
     # =====================================================
     # ENTRY POINT
@@ -119,6 +104,7 @@ class ExecutionPipeline(BasePipeline):
 # MODULE ENTRY
 # ==========================================================
 
+
 def main() -> PipelineResult:
 
     return ExecutionPipeline.main()
@@ -129,7 +115,6 @@ def main() -> PipelineResult:
 # ==========================================================
 
 if __name__ == "__main__":
-
     result = main()
 
     print(result)

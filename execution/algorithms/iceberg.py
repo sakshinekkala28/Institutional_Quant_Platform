@@ -30,9 +30,7 @@ from execution.order import Order
 
 
 @dataclass(slots=True)
-class IcebergAlgorithm(
-    ExecutionAlgorithm
-):
+class IcebergAlgorithm(ExecutionAlgorithm):
     """
     Institutional Iceberg execution algorithm.
     """
@@ -40,37 +38,21 @@ class IcebergAlgorithm(
     display_quantity: float
 
     def __post_init__(
-
         self,
-
     ) -> None:
 
-        super().__init__(
-
-            name="Iceberg"
-
-        )
+        super().__init__(name="Iceberg")
 
         if self.display_quantity <= 0.0:
-
-            raise ValueError(
-
-                "Display quantity "
-
-                "must be positive."
-
-            )
+            raise ValueError("Display quantity must be positive.")
 
     # =====================================================
     # ORDER SLICES
     # =====================================================
 
     def slices(
-
         self,
-
         order: Order,
-
     ) -> list[float]:
 
         slices: list[float] = []
@@ -78,20 +60,12 @@ class IcebergAlgorithm(
         remaining = order.quantity
 
         while remaining > 0.0:
-
             quantity = min(
-
                 remaining,
-
                 self.display_quantity,
-
             )
 
-            slices.append(
-
-                quantity
-
-            )
+            slices.append(quantity)
 
             remaining -= quantity
 
@@ -102,102 +76,40 @@ class IcebergAlgorithm(
     # =====================================================
 
     def execute(
-
         self,
-
         order: Order,
-
     ) -> ExecutionReport:
 
-        order_slices = self.slices(
-
-            order
-
-        )
+        order_slices = self.slices(order)
 
         report = ExecutionReport()
 
         report.order = order
 
-        report.executed_quantity = sum(
-
-            order_slices
-
-        )
+        report.executed_quantity = sum(order_slices)
 
         report.remaining_quantity = max(
-
             0.0,
-
-            order.quantity
-
-            -
-
-            report.executed_quantity,
-
+            order.quantity - report.executed_quantity,
         )
 
-        report.average_price = (
+        report.average_price = order.price if order.price is not None else 0.0
 
-            order.price
+        report.execution_value = report.executed_quantity * report.average_price
 
-            if order.price is not None
-
-            else 0.0
-
-        )
-
-        report.execution_value = (
-
-            report.executed_quantity
-
-            *
-
-            report.average_price
-
-        )
-
-        report.fill_ratio = (
-
-            report.executed_quantity
-
-            /
-
-            order.quantity
-
-        )
+        report.fill_ratio = report.executed_quantity / order.quantity
 
         report.algorithm = self.name
 
         report.status = "FILLED"
 
-        report.message = (
+        report.message = "Iceberg execution completed."
 
-            "Iceberg execution completed."
+        report.metadata["DisplayQuantity"] = self.display_quantity
 
-        )
+        report.metadata["NumberOfSlices"] = len(order_slices)
 
-        report.metadata[
-
-            "DisplayQuantity"
-
-        ] = self.display_quantity
-
-        report.metadata[
-
-            "NumberOfSlices"
-
-        ] = len(
-
-            order_slices
-
-        )
-
-        report.metadata[
-
-            "Slices"
-
-        ] = order_slices
+        report.metadata["Slices"] = order_slices
 
         return report
 
@@ -206,21 +118,9 @@ class IcebergAlgorithm(
     # =====================================================
 
     def __repr__(
-
         self,
-
     ) -> str:
 
-        return (
-
-            f"{self.__class__.__name__}("
-
-            f"Display="
-
-            f"{self.display_quantity:.2f}"
-
-            f")"
-
-        )
+        return f"{self.__class__.__name__}(Display={self.display_quantity:.2f})"
 
     __str__ = __repr__

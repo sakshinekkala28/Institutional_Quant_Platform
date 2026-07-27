@@ -28,9 +28,7 @@ Provides
 
 from __future__ import annotations
 
-from fastapi import APIRouter
-from fastapi import HTTPException
-from fastapi import Query
+from fastapi import APIRouter, HTTPException, Query
 
 router = APIRouter()
 
@@ -39,6 +37,7 @@ router = APIRouter()
 # HEALTH
 # ==========================================================
 
+
 @router.get(
     "/health",
     summary="Risk Health",
@@ -46,11 +45,8 @@ router = APIRouter()
 async def health():
 
     return {
-
         "module": "Risk",
-
         "status": "Healthy",
-
     }
 
 
@@ -58,23 +54,18 @@ async def health():
 # SUMMARY
 # ==========================================================
 
+
 @router.get(
     "/summary",
 )
 async def summary():
 
     return {
-
         "portfolio_risk": 0,
-
         "volatility": 0,
-
         "var": 0,
-
         "expected_shortfall": 0,
-
         "status": "Available",
-
     }
 
 
@@ -82,17 +73,15 @@ async def summary():
 # VAR
 # ==========================================================
 
+
 @router.get(
     "/var",
 )
 async def value_at_risk():
 
     return {
-
         "confidence": 0.95,
-
         "var": 0,
-
     }
 
 
@@ -100,17 +89,15 @@ async def value_at_risk():
 # EXPECTED SHORTFALL
 # ==========================================================
 
+
 @router.get(
     "/expected-shortfall",
 )
 async def expected_shortfall():
 
     return {
-
         "confidence": 0.95,
-
         "expected_shortfall": 0,
-
     }
 
 
@@ -118,15 +105,14 @@ async def expected_shortfall():
 # VOLATILITY
 # ==========================================================
 
+
 @router.get(
     "/volatility",
 )
 async def volatility():
 
     return {
-
         "annualized_volatility": 0,
-
     }
 
 
@@ -134,15 +120,14 @@ async def volatility():
 # BETA
 # ==========================================================
 
+
 @router.get(
     "/beta",
 )
 async def beta():
 
     return {
-
         "beta": 0,
-
     }
 
 
@@ -150,15 +135,14 @@ async def beta():
 # TRACKING ERROR
 # ==========================================================
 
+
 @router.get(
     "/tracking-error",
 )
 async def tracking_error():
 
     return {
-
         "tracking_error": 0,
-
     }
 
 
@@ -166,157 +150,125 @@ async def tracking_error():
 # FACTOR EXPOSURE
 # ==========================================================
 
+
 @router.get(
     "/factor-exposure",
 )
 async def factor_exposure():
 
-    return {
-
-        "factor_exposure": {}
-
-    }
+    return {"factor_exposure": {}}
 
 
 # ==========================================================
 # SECTOR EXPOSURE
 # ==========================================================
 
+
 @router.get(
     "/sector-exposure",
 )
 async def sector_exposure():
 
-    return {
-
-        "sector_exposure": {}
-
-    }
+    return {"sector_exposure": {}}
 
 
 # ==========================================================
 # STRESS TEST
 # ==========================================================
 
+
 @router.post(
     "/stress-test",
 )
 async def stress_test():
 
-    return {
-
-        "status": "Stress Test Started"
-
-    }
+    return {"status": "Stress Test Started"}
 
 
 # ==========================================================
 # SCENARIO ANALYSIS
 # ==========================================================
 
+
 @router.post(
     "/scenario-analysis",
 )
 async def scenario_analysis():
 
-    return {
-
-        "status": "Scenario Analysis Started"
-
-    }
+    return {"status": "Scenario Analysis Started"}
 
 
 # ==========================================================
 # CONCENTRATION
 # ==========================================================
 
+
 @router.get(
     "/concentration",
 )
 async def concentration():
 
-    return {
-
-        "concentration": {}
-
-    }
+    return {"concentration": {}}
 
 
 # ==========================================================
 # LIMITS
 # ==========================================================
 
+
 @router.get(
     "/limits",
 )
 async def limits():
 
-    return {
-
-        "limits": {}
-
-    }
+    return {"limits": {}}
 
 
 # ==========================================================
 # BREACHES
 # ==========================================================
 
+
 @router.get(
     "/breaches",
 )
 async def breaches():
 
-    return {
-
-        "breaches": []
-
-    }
+    return {"breaches": []}
 
 
 # ==========================================================
 # REPORT
 # ==========================================================
 
+
 @router.get(
     "/report",
 )
 async def report():
 
-    return {
-
-        "report": {}
-
-    }
+    return {"report": {}}
 
 
 # ==========================================================
 # HISTORY
 # ==========================================================
 
+
 @router.get(
     "/history",
 )
 async def history(
-
     limit: int = Query(
-
         default=20,
-
         ge=1,
-
         le=500,
-
     ),
-
 ):
 
     return {
-
         "history": [],
-
         "limit": limit,
-
     }
 
 
@@ -324,27 +276,15 @@ async def history(
 # DELETE REPORT
 # ==========================================================
 
+
 @router.delete(
     "/report/{report_id}",
 )
 async def delete_report(
-
     report_id: str,
-
 ):
 
     raise HTTPException(
-
         status_code=501,
-
-        detail=(
-
-            f"Risk report "
-
-            f"{report_id} "
-
-            "deletion not implemented."
-
-        ),
-
+        detail=(f"Risk report {report_id} deletion not implemented."),
     )

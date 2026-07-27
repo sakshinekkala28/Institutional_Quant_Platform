@@ -38,17 +38,11 @@ from core.math.covariance import (
     portfolio_volatility,
     risk_contribution,
 )
-
 from core.models.risk_report import RiskReport
-
 from core.risk.base_risk_model import BaseRiskModel
 
 
-class PortfolioRisk(
-
-    BaseRiskModel
-
-):
+class PortfolioRisk(BaseRiskModel):
     """
     Institutional portfolio risk model.
     """
@@ -58,12 +52,7 @@ class PortfolioRisk(
     # =====================================================
 
     @property
-    def covariance(
-
-        self
-
-    ):
-
+    def covariance(self):
         """
         Covariance matrix.
         """
@@ -75,74 +64,31 @@ class PortfolioRisk(
     # =====================================================
 
     @property
-    def portfolio_variance(
+    def portfolio_variance(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return portfolio_variance(
-
-            self.weights,
-
-            self.covariance
-
-        )
+        return portfolio_variance(self.weights, self.covariance)
 
     # =====================================================
     # PORTFOLIO VOLATILITY
     # =====================================================
 
     @property
-    def portfolio_volatility(
+    def portfolio_volatility(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return portfolio_volatility(
-
-            self.weights,
-
-            self.covariance
-
-        )
+        return portfolio_volatility(self.weights, self.covariance)
 
     # =====================================================
     # MARGINAL RISK
     # =====================================================
 
     @property
-    def marginal_risk(
+    def marginal_risk(self) -> dict[str, float]:
 
-        self
-
-    ) -> dict[str, float]:
-
-        values = marginal_risk(
-
-            self.weights,
-
-            self.covariance
-
-        )
+        values = marginal_risk(self.weights, self.covariance)
 
         return {
-
             symbol: float(value)
-
-            for symbol, value
-
-            in zip(
-
-                self.symbols,
-
-                values,
-
-                strict=True
-
-            )
-
+            for symbol, value in zip(self.symbols, values, strict=True)
         }
 
     # =====================================================
@@ -150,36 +96,13 @@ class PortfolioRisk(
     # =====================================================
 
     @property
-    def component_risk(
+    def component_risk(self) -> dict[str, float]:
 
-        self
-
-    ) -> dict[str, float]:
-
-        values = component_risk(
-
-            self.weights,
-
-            self.covariance
-
-        )
+        values = component_risk(self.weights, self.covariance)
 
         return {
-
             symbol: float(value)
-
-            for symbol, value
-
-            in zip(
-
-                self.symbols,
-
-                values,
-
-                strict=True
-
-            )
-
+            for symbol, value in zip(self.symbols, values, strict=True)
         }
 
     # =====================================================
@@ -187,36 +110,13 @@ class PortfolioRisk(
     # =====================================================
 
     @property
-    def risk_contribution(
+    def risk_contribution(self) -> dict[str, float]:
 
-        self
-
-    ) -> dict[str, float]:
-
-        values = risk_contribution(
-
-            self.weights,
-
-            self.covariance
-
-        )
+        values = risk_contribution(self.weights, self.covariance)
 
         return {
-
             symbol: float(value)
-
-            for symbol, value
-
-            in zip(
-
-                self.symbols,
-
-                values,
-
-                strict=True
-
-            )
-
+            for symbol, value in zip(self.symbols, values, strict=True)
         }
 
     # =====================================================
@@ -224,84 +124,35 @@ class PortfolioRisk(
     # =====================================================
 
     @property
-    def diversification_ratio(
+    def diversification_ratio(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return diversification_ratio(
-
-            self.weights,
-
-            self.covariance
-
-        )
+        return diversification_ratio(self.weights, self.covariance)
 
     # =====================================================
     # EFFECTIVE HOLDINGS
     # =====================================================
 
     @property
-    def effective_holdings(
+    def effective_holdings(self) -> float:
 
-        self
-
-    ) -> float:
-
-        return effective_holdings(
-
-            self.weights
-
-        )
+        return effective_holdings(self.weights)
 
     # =====================================================
     # CALCULATE
     # =====================================================
 
-    def calculate(
-
-        self
-
-    ) -> RiskReport:
+    def calculate(self) -> RiskReport:
 
         report = self.create_report()
 
-        report.portfolio_variance = (
+        report.portfolio_variance = self.portfolio_variance
 
-            self.portfolio_variance
+        report.portfolio_volatility = self.portfolio_volatility
 
-        )
+        report.diversification_ratio = self.diversification_ratio
 
-        report.portfolio_volatility = (
+        report.effective_holdings = self.effective_holdings
 
-            self.portfolio_volatility
-
-        )
-
-        report.diversification_ratio = (
-
-            self.diversification_ratio
-
-        )
-
-        report.effective_holdings = (
-
-            self.effective_holdings
-
-        )
-
-        report.metadata.update(
-
-            {
-
-                "risk_model":
-
-                    self.__class__.__name__
-
-            }
-
-        )
+        report.metadata.update({"risk_model": self.__class__.__name__})
 
         return report
-

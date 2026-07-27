@@ -23,66 +23,54 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.models.pipeline_result import (
-    PipelineResult,
+from analytics.risk.build_beta_master import (
+    main as beta_master_engine,
 )
-
-from orchestration.pipelines.base_pipeline import (
-    BasePipeline,
+from analytics.risk.build_beta_model import (
+    main as beta_model_engine,
 )
 
 # ==========================================================
 # RISK MODEL ENGINES
 # ==========================================================
-
 from analytics.risk.build_daily_returns import (
     main as daily_returns_engine,
 )
-
-from analytics.risk.build_beta_master import (
-    main as beta_master_engine,
-)
-
-from analytics.risk.build_beta_model import (
-    main as beta_model_engine,
-)
-
-from analytics.risk.build_volatility_model import (
-    main as volatility_model_engine,
-)
-
-from analytics.risk.build_factor_returns import (
-    main as factor_returns_engine,
-)
-
 from analytics.risk.build_factor_covariance import (
     main as factor_covariance_engine,
 )
-
-from analytics.risk.build_specific_risk import (
-    main as specific_risk_engine,
-)
-
 from analytics.risk.build_factor_exposure_matrix import (
     main as exposure_matrix_engine,
 )
-
+from analytics.risk.build_factor_returns import (
+    main as factor_returns_engine,
+)
 from analytics.risk.build_factor_risk_model import (
     main as factor_risk_model_builder,
 )
-
-from analytics.risk.factor_risk_model import (
-    main as factor_risk_model_engine,
+from analytics.risk.build_specific_risk import (
+    main as specific_risk_engine,
 )
-
+from analytics.risk.build_volatility_model import (
+    main as volatility_model_engine,
+)
 from analytics.risk.covariance_matrix_engine import (
     main as covariance_matrix_engine,
 )
-
+from analytics.risk.factor_risk_model import (
+    main as factor_risk_model_engine,
+)
+from orchestration.models.pipeline_result import (
+    PipelineResult,
+)
+from orchestration.pipelines.base_pipeline import (
+    BasePipeline,
+)
 
 # ==========================================================
 # RISK MODEL PIPELINE
 # ==========================================================
+
 
 class RiskModelPipeline(BasePipeline):
     """
@@ -97,62 +85,50 @@ class RiskModelPipeline(BasePipeline):
     EXECUTOR = "sequential"
 
     ENGINES = [
-
         (
             "Daily Returns",
             daily_returns_engine,
         ),
-
         (
             "Beta Master",
             beta_master_engine,
         ),
-
         (
             "Beta Model",
             beta_model_engine,
         ),
-
         (
             "Volatility Model",
             volatility_model_engine,
         ),
-
         (
             "Factor Returns",
             factor_returns_engine,
         ),
-
         (
             "Factor Covariance",
             factor_covariance_engine,
         ),
-
         (
             "Specific Risk",
             specific_risk_engine,
         ),
-
         (
             "Factor Exposure Matrix",
             exposure_matrix_engine,
         ),
-
         (
             "Factor Risk Model Builder",
             factor_risk_model_builder,
         ),
-
         (
             "Factor Risk Model",
             factor_risk_model_engine,
         ),
-
         (
             "Covariance Matrix",
             covariance_matrix_engine,
         ),
-
     ]
 
     # =====================================================
@@ -161,9 +137,7 @@ class RiskModelPipeline(BasePipeline):
 
     def before_run(self) -> None:
 
-        print(
-            "\nStarting Risk Model Pipeline..."
-        )
+        print("\nStarting Risk Model Pipeline...")
 
     # -----------------------------------------------------
 
@@ -172,17 +146,11 @@ class RiskModelPipeline(BasePipeline):
         result: PipelineResult,
     ) -> None:
 
-        print(
-            f"\nCompleted {self.NAME}"
-        )
+        print(f"\nCompleted {self.NAME}")
 
-        print(
-            f"Status   : {result.status.value}"
-        )
+        print(f"Status   : {result.status.value}")
 
-        print(
-            f"Duration : {result.duration:.2f}s"
-        )
+        print(f"Duration : {result.duration:.2f}s")
 
     # =====================================================
     # ENTRY POINT
@@ -200,6 +168,7 @@ class RiskModelPipeline(BasePipeline):
 # MODULE ENTRY
 # ==========================================================
 
+
 def main() -> PipelineResult:
 
     return RiskModelPipeline.main()
@@ -210,7 +179,6 @@ def main() -> PipelineResult:
 # ==========================================================
 
 if __name__ == "__main__":
-
     result = main()
 
     print(result)

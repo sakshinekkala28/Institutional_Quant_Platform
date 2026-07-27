@@ -15,30 +15,26 @@ Responsibilities
 
 from __future__ import annotations
 
+# ==========================================================
+# LIVE ENGINES
+# ==========================================================
+from analytics.live.build_factor_expected_returns import (
+    main as expected_returns_engine,
+)
+from analytics.live.live_rebalance_engine import (
+    main as live_rebalance_engine,
+)
 from orchestration.models.pipeline_result import (
     PipelineResult,
 )
-
 from orchestration.pipelines.base_pipeline import (
     BasePipeline,
 )
 
 # ==========================================================
-# LIVE ENGINES
-# ==========================================================
-
-from analytics.live.build_factor_expected_returns import (
-    main as expected_returns_engine,
-)
-
-from analytics.live.live_rebalance_engine import (
-    main as live_rebalance_engine,
-)
-
-
-# ==========================================================
 # LIVE PIPELINE
 # ==========================================================
+
 
 class LivePipeline(BasePipeline):
     """
@@ -53,17 +49,14 @@ class LivePipeline(BasePipeline):
     EXECUTOR = "sequential"
 
     ENGINES = [
-
         (
             "Expected Returns",
             expected_returns_engine,
         ),
-
         (
             "Live Rebalance",
             live_rebalance_engine,
         ),
-
     ]
 
     # =====================================================
@@ -72,9 +65,7 @@ class LivePipeline(BasePipeline):
 
     def before_run(self) -> None:
 
-        print(
-            "\nStarting Live Pipeline..."
-        )
+        print("\nStarting Live Pipeline...")
 
     # -----------------------------------------------------
 
@@ -83,17 +74,11 @@ class LivePipeline(BasePipeline):
         result: PipelineResult,
     ) -> None:
 
-        print(
-            f"\nCompleted {self.NAME}"
-        )
+        print(f"\nCompleted {self.NAME}")
 
-        print(
-            f"Status   : {result.status.value}"
-        )
+        print(f"Status   : {result.status.value}")
 
-        print(
-            f"Duration : {result.duration:.2f}s"
-        )
+        print(f"Duration : {result.duration:.2f}s")
 
     # =====================================================
     # ENTRY POINT
@@ -111,6 +96,7 @@ class LivePipeline(BasePipeline):
 # MODULE ENTRY
 # ==========================================================
 
+
 def main() -> PipelineResult:
 
     return LivePipeline.main()
@@ -121,7 +107,6 @@ def main() -> PipelineResult:
 # ==========================================================
 
 if __name__ == "__main__":
-
     result = main()
 
     print(result)

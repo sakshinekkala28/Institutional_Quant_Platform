@@ -17,38 +17,32 @@ Responsibilities
 
 from __future__ import annotations
 
+# ==========================================================
+# FACTOR ENGINES
+# ==========================================================
+from analytics.factors.build_fundamental_factor_master import (
+    main as build_factor_master_engine,
+)
+from analytics.factors.factor_engine import (
+    main as factor_engine,
+)
+from analytics.factors.factor_rank_engine import (
+    main as factor_rank_engine,
+)
+from analytics.factors.factor_snapshot_engine import (
+    main as factor_snapshot_engine,
+)
 from orchestration.models.pipeline_result import (
     PipelineResult,
 )
-
 from orchestration.pipelines.base_pipeline import (
     BasePipeline,
 )
 
 # ==========================================================
-# FACTOR ENGINES
-# ==========================================================
-
-from analytics.factors.build_fundamental_factor_master import (
-    main as build_factor_master_engine,
-)
-
-from analytics.factors.factor_engine import (
-    main as factor_engine,
-)
-
-from analytics.factors.factor_rank_engine import (
-    main as factor_rank_engine,
-)
-
-from analytics.factors.factor_snapshot_engine import (
-    main as factor_snapshot_engine,
-)
-
-
-# ==========================================================
 # FACTOR PIPELINE
 # ==========================================================
+
 
 class FactorPipeline(BasePipeline):
     """
@@ -63,27 +57,22 @@ class FactorPipeline(BasePipeline):
     EXECUTOR = "sequential"
 
     ENGINES = [
-
         (
             "Fundamental Factor Master",
             build_factor_master_engine,
         ),
-
         (
             "Factor Engine",
             factor_engine,
         ),
-
         (
             "Factor Ranking",
             factor_rank_engine,
         ),
-
         (
             "Factor Snapshot",
             factor_snapshot_engine,
         ),
-
     ]
 
     # =====================================================
@@ -101,17 +90,11 @@ class FactorPipeline(BasePipeline):
         result: PipelineResult,
     ) -> None:
 
-        print(
-            f"\nCompleted {self.NAME}"
-        )
+        print(f"\nCompleted {self.NAME}")
 
-        print(
-            f"Status   : {result.status.value}"
-        )
+        print(f"Status   : {result.status.value}")
 
-        print(
-            f"Duration : {result.duration:.2f}s"
-        )
+        print(f"Duration : {result.duration:.2f}s")
 
     # =====================================================
     # ENTRY POINT
@@ -129,6 +112,7 @@ class FactorPipeline(BasePipeline):
 # MODULE ENTRY
 # ==========================================================
 
+
 def main() -> PipelineResult:
 
     return FactorPipeline.main()
@@ -139,7 +123,6 @@ def main() -> PipelineResult:
 # ==========================================================
 
 if __name__ == "__main__":
-
     result = main()
 
     print(result)
