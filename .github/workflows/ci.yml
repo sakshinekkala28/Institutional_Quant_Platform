@@ -173,26 +173,23 @@ jobs:
   dockerfiles:
     name: Validate Dockerfiles
     runs-on: ubuntu-latest
-    timeout-minutes: 10
 
     steps:
-      - name: Checkout Source
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Lint API Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: docs/infrastructure/docker/Dockerfile.api
+      - name: Install Hadolint
+        run: |
+          wget -O hadolint \
+            https://github.com/hadolint/hadolint/releases/latest/download/hadolint-Linux-x86_64
+          chmod +x hadolint
+          sudo mv hadolint /usr/local/bin/
 
-      - name: Lint Analytics Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: docs/infrastructure/docker/Dockerfile.analytics
-
-      - name: Lint Dashboard Dockerfile
-        uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: docs/infrastructure/docker/Dockerfile.dashboard
+      - name: Lint All Dockerfiles
+        run: |
+          find . -name "Dockerfile*" | while read file; do
+            echo "Checking $file"
+            hadolint "$file"
+          done            
 
   yaml:
     name: Validate YAML Files
