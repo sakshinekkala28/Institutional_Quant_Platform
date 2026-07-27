@@ -1,209 +1,106 @@
 name: Daily Platform Run
 
 on:
-
   workflow_dispatch:
-
   schedule:
-
     - cron: "0 3 * * *"
 
 permissions:
-
   contents: write
 
 jobs:
-
   daily-run:
-
     runs-on: ubuntu-latest
 
     steps:
-
       - name: Checkout Repository
-
         uses: actions/checkout@v4
 
       - name: Setup Python
-
         uses: actions/setup-python@v5
-
         with:
-
           python-version: "3.12"
 
       - name: Install Dependencies
-
         run: |
-
           python -m pip install --upgrade pip
-
           pip install -r requirements.txt
 
-      # -------------------------
-      # PERFORMANCE LAYER
-      # -------------------------
-
       - name: Forecast Engine
-
-        run: |
-
-          python -m performance.performance_forecast_engine
+        run: python -m performance.performance_forecast_engine
 
       - name: Multi Horizon Forecast
-
-        run: |
-
-          python -m performance.multi_horizon_forecast_engine
+        run: python -m performance.multi_horizon_forecast_engine
 
       - name: Scenario Analysis
-
-        run: |
-
-          python -m performance.scenario_analysis_engine
+        run: python -m performance.scenario_analysis_engine
 
       - name: Stress Testing
-
-        run: |
-
-          python -m performance.stress_testing_engine
-
-      # -------------------------
-      # MONITORING LAYER
-      # -------------------------
+        run: python -m performance.stress_testing_engine
 
       - name: Live Monitoring
-
-        run: |
-
-          python -m monitoring.live_portfolio_monitor
+        run: python -m monitoring.live_portfolio_monitor
 
       - name: Monitor Trends
-
-        run: |
-
-          python -m monitoring.monitor_trend_engine
+        run: python -m monitoring.monitor_trend_engine
 
       - name: Alert History
-
-        run: |
-
-          python -m monitoring.alert_history_engine
+        run: python -m monitoring.alert_history_engine
 
       - name: Alert Trend Analytics
-
-        run: |
-
-          python -m monitoring.alert_trend_engine
+        run: python -m monitoring.alert_trend_engine
 
       - name: Alert Dashboard
-
-        run: |
-
-          python -m monitoring.alert_dashboard_engine
+        run: python -m monitoring.alert_dashboard_engine
 
       - name: Alert Governance
-
-        run: |
-
-          python -m monitoring.alert_governance_engine
+        run: python -m monitoring.alert_governance_engine
 
       - name: Governance Command Center
-
-        run: |
-
-          python -m monitoring.governance_command_center
+        run: python -m monitoring.governance_command_center
 
       - name: Governance Committee Integration
-
-        run: |
-
-          python -m performance.governance_committee_integration
+        run: python -m performance.governance_committee_integration
 
       - name: Final Decision Engine
+        run: python -m performance.final_decision_engine
 
-        run: |
-
-          python -m performance.final_decision_engine
-        
       - name: Final Decision Integration
-
-        run: |
-
-          python -m performance.final_decision_integration
-
-      # -------------------------
-      # COMMITTEE / REPORTING
-      # -------------------------
+        run: python -m performance.final_decision_integration
 
       - name: Investment Committee
-
-        run: |
-
-          python -m performance.investment_committee_pack_engine
+        run: python -m performance.investment_committee_pack_engine
 
       - name: PDF Report
-
-        run: |
-
-          python -m reporting.pdf_report_engine
+        run: python -m reporting.pdf_report_engine
 
       - name: PowerPoint Report
-
-        run: |
-
-          python -m reporting.powerpoint_report_engine
-
-      # -------------------------
-      # ARTIFACTS
-      # -------------------------
+        run: python -m reporting.powerpoint_report_engine
 
       - name: Upload PDF Report
-
         uses: actions/upload-artifact@v4
-
         with:
-
           name: investment-committee-pdf
-
           path: data/reports/*.pdf
 
       - name: Upload PowerPoint Report
-
         uses: actions/upload-artifact@v4
-
         with:
-
           name: investment-committee-ppt
-
           path: data/reports/*.pptx
 
       - name: Upload Monitoring Reports
-
         uses: actions/upload-artifact@v4
-
         with:
-
           name: monitoring-reports
-
           path: |
             data/monitoring/*.csv
             data/performance/*.csv
 
-      # -------------------------
-      # COMMIT CHANGES
-      # -------------------------
-
       - name: Commit Generated Files
-
         run: |
-
           git config --global user.name "github-actions"
-
           git config --global user.email "github-actions@github.com"
-
           git add data/
-
           git commit -m "Daily platform refresh" || echo "No changes"
-
           git push
