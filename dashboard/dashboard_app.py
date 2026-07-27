@@ -5,7 +5,7 @@
 
 import pandas as pd
 import requests
-
+import plotly.express as px
 import streamlit as st
 
 st.set_page_config(page_title="Institutional Quant Platform", layout="wide")
@@ -49,6 +49,20 @@ portfolio = APIClient.get("portfolio/live")
 if portfolio:
     portfolio_df = pd.DataFrame(portfolio)
 
+    weight_col = next(
+        (
+            c
+            for c in [
+                "Target_Weight",
+                "Current_Weight",
+                "Current_Weight_Old",
+                "Weight",
+            ]
+            if c in portfolio_df.columns
+        ),
+        None,
+    )
+
     st.dataframe(portfolio_df, use_container_width=True)
 
     col1, col2, col3 = st.columns(3)
@@ -57,12 +71,23 @@ if portfolio:
         st.metric("Holdings", len(portfolio_df))
 
     with col2:
-        st.metric("Weight Sum", round(portfolio_df["Weight"].sum(), 4))
+        if weight_col:
+            st.metric(
+                "Weight Sum",
+                round(portfolio_df[weight_col].fillna(0).sum(), 4),
+            )
+        else:
+            st.metric("Weight Sum", "N/A")
 
     with col3:
-        st.metric("Max Position", round(portfolio_df["Weight"].max(), 4))
+        if weight_col:
+            st.metric(
+                "Max Position",
+                round(portfolio_df[weight_col].fillna(0).max(), 4),
+            )
+        else:
+            st.metric("Max Position", "N/A")
 
-    import plotly.express as px
 
 # ==========================================================
 # RISK DASHBOARD
@@ -82,13 +107,22 @@ if risk:
 # ==========================================================
 
 if portfolio:
-    sector_weights = portfolio_df.groupby("Sector")["Weight"].sum().reset_index()
+    if weight_col:
+        sector_weights = (
+            portfolio_df.groupby("Sector", as_index=False)[weight_col]
+            .sum()
+            .sort_values(weight_col, ascending=False)
+        )
 
-    fig = px.pie(
-        sector_weights, names="Sector", values="Weight", title="Sector Allocation"
-    )
+        fig = px.pie(
+            sector_weights,
+            names="Sector",
+            values=weight_col,
+            title="Sector Allocation",
+        )
 
-    st.plotly_chart(fig, use_container_width=True)
+        st.plotly_chart(fig, use_container_width=True)
+
 
 # ==========================================================
 # PERFORMANCE

@@ -8,12 +8,40 @@ import plotly.express as px
 import plotly.graph_objects as go
 
 import streamlit as st
+import requests
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 
 sys.path.insert(0, str(ROOT_DIR))
 
 
+# ==========================================================
+# API
+# ==========================================================
+
+API_URL = "http://localhost:8000"
+
+
+class APIClient:
+    @staticmethod
+    def get(endpoint: str):
+
+        try:
+            response = requests.get(
+                f"{API_URL}/{endpoint}",
+                timeout=10,
+            )
+
+            response.raise_for_status()
+
+            return response.json()
+
+        except Exception as exc:
+
+            st.warning(f"Unable to fetch {endpoint}: {exc}")
+
+            return None
+        
 # ==========================================================
 # PAGE CONFIG
 # ==========================================================
@@ -72,6 +100,77 @@ class DashboardRepository:
 
 data = DashboardRepository.load_all()
 
+def render_api_response(response):
+
+    if response is None:
+        st.warning("No data returned.")
+        return
+
+    # ----------------------------
+    # List of records
+    # ----------------------------
+    if isinstance(response, list):
+
+        if len(response) == 0:
+            st.info("No records available.")
+            return
+
+        st.dataframe(
+            pd.DataFrame(response),
+            use_container_width=True,
+        )
+        return
+
+    # ----------------------------
+    # Dictionary response
+    # ----------------------------
+    if isinstance(response, dict):
+
+        # Nested tables
+        nested_tables = {
+            k: v
+            for k, v in response.items()
+            if isinstance(v, list)
+        }
+
+        # Scalar metrics
+        scalar_metrics = {
+            k: v
+            for k, v in response.items()
+            if not isinstance(v, (list, dict))
+        }
+
+        if scalar_metrics:
+
+            cols = st.columns(min(4, len(scalar_metrics)))
+
+            for i, (k, v) in enumerate(scalar_metrics.items()):
+                cols[i % len(cols)].metric(
+                    k.replace("_", " ").title(),
+                    v,
+                )
+
+        for name, table in nested_tables.items():
+
+            st.subheader(name.replace("_", " ").title())
+
+            st.dataframe(
+                pd.DataFrame(table),
+                use_container_width=True,
+            )
+
+        with st.expander("Raw API Response"):
+
+            st.json(response)
+
+        return
+
+    # ----------------------------
+    # Anything else
+    # ----------------------------
+    st.write(response)
+
+
 # ==========================================================
 # HEADER
 # ==========================================================
@@ -93,6 +192,10 @@ st.markdown(
 
 (
     executive_tab,
+    portfolio_tab,
+    signals_tab,
+    risk_tab,
+    performance_tab,
     forecast_tab,
     governance_tab,
     scenario_tab,
@@ -102,6 +205,10 @@ st.markdown(
 ) = st.tabs(
     [
         "Executive",
+        "Live Portfolio",
+        "Signals",
+        "Risk",
+        "Performance",
         "Forecast",
         "Governance",
         "Scenario Analysis",
@@ -191,6 +298,129 @@ with executive_tab:
 
         st.plotly_chart(fig, use_container_width=True)
 
+# ==========================================================
+# LIVE PORTFOLIO
+# ==========================================================
+
+with portfolio_tab:
+
+    st.subheader("Live Portfolio")
+
+    portfolio = APIClient.get("portfolio/live")
+
+    if portfolio:
+
+        portfolio_df = pd.DataFrame(portfolio)
+
+        weight_col = next(
+            (
+                c
+                for c in [
+                    "Target_Weight",
+                    "Current_Weight",
+                    "Current_Weight_Old",
+                ]
+                if c in portfolio_df.columns
+            ),
+            None,
+        )
+
+        col1, col2, col3, col4 = st.columns(4)
+
+        col1.metric(
+            "Holdings",
+            len(portfolio_df),
+        )
+
+        if weight_col:
+
+            col2.metric(
+                "Weight Sum",
+                f"{portfolio_df[weight_col].sum():.2%}",
+            )
+
+            col3.metric(
+                "Largest Position",
+                f"{portfolio_df[weight_col].max():.2%}",
+            )
+
+        if "Expected_Alpha" in portfolio_df:
+
+            col4.metric(
+                "Expected Alpha",
+                f"{portfolio_df['Expected_Alpha'].mean():.2%}",
+            )
+
+        st.dataframe(
+            portfolio_df,
+            use_container_width=True,
+        )
+
+        if (
+            weight_col
+            and "Sector" in portfolio_df.columns
+        ):
+
+            sector = (
+                portfolio_df.groupby(
+                    "Sector",
+                    as_index=False,
+                )[weight_col]
+                .sum()
+                .sort_values(
+                    weight_col,
+                    ascending=False,
+                )
+            )
+
+            fig = px.pie(
+                sector,
+                names="Sector",
+                values=weight_col,
+                title="Sector Allocation",
+            )
+
+            st.plotly_chart(
+                fig,
+                use_container_width=True,
+            )
+
+# ==========================================================
+# SIGNALS
+# ==========================================================
+
+with signals_tab:
+
+    st.subheader("Signals")
+
+    signals = APIClient.get("signals")
+
+    render_api_response(signals)
+
+# ==========================================================
+# RISK
+# ==========================================================
+
+with risk_tab:
+
+    st.subheader("Risk Dashboard")
+
+    risk = APIClient.get("risk/latest")
+
+    render_api_response(risk)
+
+# ==========================================================
+# PERFORMANCE
+# ==========================================================
+
+with performance_tab:
+
+    st.subheader("Performance")
+
+    performance = APIClient.get("performance")
+
+    render_api_response(performance)
+               
 # ==========================================================
 # FORECAST TAB
 # ==========================================================
