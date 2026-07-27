@@ -469,9 +469,11 @@ def main() -> EngineResult:
             status=EngineStatus.SUCCESS,
             records=(new_count + updated_count),
             output=PRICE_DIR,
-            report=PRICE_UPDATE_FAILURE_FILE
-            if PRICE_UPDATE_FAILURE_FILE.exists()
-            else None,
+            report=(
+                PRICE_UPDATE_FAILURE_FILE
+                if PRICE_UPDATE_FAILURE_FILE.exists()
+                else None
+            ),
             duration=duration,
             metadata=execution_metadata,
         )

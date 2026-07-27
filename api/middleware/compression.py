@@ -148,12 +148,14 @@ def estimated_savings(
         "original_bytes": original_size,
         "compressed_bytes": compressed,
         "saved_bytes": saved,
-        "saving_percent": round(
-            (saved / original_size) * 100,
-            2,
-        )
-        if original_size
-        else 0,
+        "saving_percent": (
+            round(
+                (saved / original_size) * 100,
+                2,
+            )
+            if original_size
+            else 0
+        ),
     }
 
 

@@ -179,11 +179,15 @@ class CommitteeSummaryEngine:
                     "Value": (
                         "STRONG_BUY"
                         if governance_row["Committee_Score"] >= 85
-                        else "BUY"
-                        if governance_row["Committee_Score"] >= 70
-                        else "HOLD"
-                        if governance_row["Committee_Score"] >= 50
-                        else "REDUCE"
+                        else (
+                            "BUY"
+                            if governance_row["Committee_Score"] >= 70
+                            else (
+                                "HOLD"
+                                if governance_row["Committee_Score"] >= 50
+                                else "REDUCE"
+                            )
+                        )
                     ),
                 },
                 {
@@ -501,11 +505,11 @@ class ExecutiveDashboardEngine:
                     "Value": (
                         "STRONG_BUY"
                         if pack_score >= 80
-                        else "BUY"
-                        if pack_score >= 65
-                        else "HOLD"
-                        if pack_score >= 50
-                        else "REDUCE"
+                        else (
+                            "BUY"
+                            if pack_score >= 65
+                            else "HOLD" if pack_score >= 50 else "REDUCE"
+                        )
                     ),
                 },
                 {
@@ -521,11 +525,11 @@ class ExecutiveDashboardEngine:
                     "Value": (
                         "A"
                         if pack_score >= 85
-                        else "B"
-                        if pack_score >= 70
-                        else "C"
-                        if pack_score >= 55
-                        else "D"
+                        else (
+                            "B"
+                            if pack_score >= 70
+                            else "C" if pack_score >= 55 else "D"
+                        )
                     ),
                 },
             ]
@@ -640,7 +644,7 @@ class ExportEngine:
 
 def run_example():
 
-    (committee_pack, executive_dashboard, pack_score) = (
+    committee_pack, executive_dashboard, pack_score = (
         InvestmentCommitteePackEngine().run()
     )
 

@@ -176,10 +176,7 @@ class DataStandardizer:
             elif right in df.columns:
                 df[final] = df[right]
 
-        duplicate_cols = [
-            c for c in df.columns
-            if c.endswith(("_x", "_y"))
-        ]
+        duplicate_cols = [c for c in df.columns if c.endswith(("_x", "_y"))]
 
         df = df.drop(columns=duplicate_cols, errors="ignore")
 
@@ -263,23 +260,31 @@ class CoverageAnalytics:
     def report(target: pd.DataFrame):
 
         metrics = {
-            "Sector Coverage": round(target["Sector"].notna().mean() * 100, 2)
-            if "Sector" in target.columns
-            else 0,
-            "Market Cap Coverage": round(target["Market_Cap"].notna().mean() * 100, 2)
-            if "Market_Cap" in target.columns
-            else 0,
-            "ADV Coverage": round(target["ADV_20D"].notna().mean() * 100, 2)
-            if "ADV_20D" in target.columns
-            else 0,
-            "Beta Coverage": round(target["Beta"].notna().mean() * 100, 2)
-            if "Beta" in target.columns
-            else 0,
-            "Volatility Coverage": round(
-                target["Volatility_252D"].notna().mean() * 100, 2
-            )
-            if "Volatility_252D" in target.columns
-            else 0,
+            "Sector Coverage": (
+                round(target["Sector"].notna().mean() * 100, 2)
+                if "Sector" in target.columns
+                else 0
+            ),
+            "Market Cap Coverage": (
+                round(target["Market_Cap"].notna().mean() * 100, 2)
+                if "Market_Cap" in target.columns
+                else 0
+            ),
+            "ADV Coverage": (
+                round(target["ADV_20D"].notna().mean() * 100, 2)
+                if "ADV_20D" in target.columns
+                else 0
+            ),
+            "Beta Coverage": (
+                round(target["Beta"].notna().mean() * 100, 2)
+                if "Beta" in target.columns
+                else 0
+            ),
+            "Volatility Coverage": (
+                round(target["Volatility_252D"].notna().mean() * 100, 2)
+                if "Volatility_252D" in target.columns
+                else 0
+            ),
         }
 
         report = pd.DataFrame(

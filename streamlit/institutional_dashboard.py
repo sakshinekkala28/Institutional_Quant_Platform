@@ -41,7 +41,8 @@ class APIClient:
             st.warning(f"Unable to fetch {endpoint}: {exc}")
 
             return None
-        
+
+
 # ==========================================================
 # PAGE CONFIG
 # ==========================================================
@@ -100,6 +101,7 @@ class DashboardRepository:
 
 data = DashboardRepository.load_all()
 
+
 def render_api_response(response):
 
     if response is None:
@@ -127,17 +129,11 @@ def render_api_response(response):
     if isinstance(response, dict):
 
         # Nested tables
-        nested_tables = {
-            k: v
-            for k, v in response.items()
-            if isinstance(v, list)
-        }
+        nested_tables = {k: v for k, v in response.items() if isinstance(v, list)}
 
         # Scalar metrics
         scalar_metrics = {
-            k: v
-            for k, v in response.items()
-            if not isinstance(v, (list, dict))
+            k: v for k, v in response.items() if not isinstance(v, (list, dict))
         }
 
         if scalar_metrics:
@@ -177,14 +173,12 @@ def render_api_response(response):
 
 st.title("📈 Institutional Quant Platform")
 
-st.markdown(
-    """
+st.markdown("""
     Portfolio Construction → Optimization →
     Performance → Risk → Forecast →
     Governance → Scenario Analysis →
     Stress Testing → Investment Committee
-    """
-)
+    """)
 
 # ==========================================================
 # TABS
@@ -356,10 +350,7 @@ with portfolio_tab:
             use_container_width=True,
         )
 
-        if (
-            weight_col
-            and "Sector" in portfolio_df.columns
-        ):
+        if weight_col and "Sector" in portfolio_df.columns:
 
             sector = (
                 portfolio_df.groupby(
@@ -420,7 +411,7 @@ with performance_tab:
     performance = APIClient.get("performance")
 
     render_api_response(performance)
-               
+
 # ==========================================================
 # FORECAST TAB
 # ==========================================================

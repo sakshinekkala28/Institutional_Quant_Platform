@@ -302,12 +302,14 @@ class RiskMonitor:
             threshold=threshold,
             timestamp=datetime.utcnow(),
             metadata={
-                "EffectiveHoldings": round(
-                    1 / hhi,
-                    2,
-                )
-                if hhi > 0
-                else 0,
+                "EffectiveHoldings": (
+                    round(
+                        1 / hhi,
+                        2,
+                    )
+                    if hhi > 0
+                    else 0
+                ),
             },
         )
 

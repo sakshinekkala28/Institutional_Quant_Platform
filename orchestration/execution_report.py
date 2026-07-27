@@ -776,9 +776,9 @@ class ExecutionReport:
                 self.runtime_seconds,
                 3,
             ),
-            "master_result": self.master_result.to_dict()
-            if self.master_result
-            else None,
+            "master_result": (
+                self.master_result.to_dict() if self.master_result else None
+            ),
             "statistics": self.statistics(),
             "metadata": dict(self.metadata),
             "outputs": list(self.outputs),
