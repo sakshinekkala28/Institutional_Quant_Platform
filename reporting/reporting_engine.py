@@ -108,18 +108,26 @@ class ExecutionReport:
 
         return {
             "Trades": len(execution_df),
-            "Average_Cost_bps": execution_df["Estimated_Cost_bps"].mean()
-            if ("Estimated_Cost_bps" in execution_df.columns)
-            else 0,
-            "Total_Cost": execution_df["Estimated_Cost"].sum()
-            if ("Estimated_Cost" in execution_df.columns)
-            else 0,
-            "Buy_Trades": (execution_df["Action"] == "BUY").sum()
-            if ("Action" in execution_df.columns)
-            else 0,
-            "Sell_Trades": (execution_df["Action"] == "SELL").sum()
-            if ("Action" in execution_df.columns)
-            else 0,
+            "Average_Cost_bps": (
+                execution_df["Estimated_Cost_bps"].mean()
+                if ("Estimated_Cost_bps" in execution_df.columns)
+                else 0
+            ),
+            "Total_Cost": (
+                execution_df["Estimated_Cost"].sum()
+                if ("Estimated_Cost" in execution_df.columns)
+                else 0
+            ),
+            "Buy_Trades": (
+                (execution_df["Action"] == "BUY").sum()
+                if ("Action" in execution_df.columns)
+                else 0
+            ),
+            "Sell_Trades": (
+                (execution_df["Action"] == "SELL").sum()
+                if ("Action" in execution_df.columns)
+                else 0
+            ),
         }
 
 

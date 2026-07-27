@@ -124,14 +124,12 @@ class TableManager:
         )
 
         try:
-            connection.execute(
-                f"""
+            connection.execute(f"""
                 CREATE OR REPLACE TABLE {table_name}
                 AS
                 SELECT *
                 FROM temp_df
-                """
-            )
+                """)
 
         finally:
             connection.unregister("temp_df")
@@ -145,12 +143,10 @@ class TableManager:
         Read a DuckDB table into a pandas DataFrame.
         """
 
-        return connection.execute(
-            f"""
+        return connection.execute(f"""
                 SELECT *
                 FROM {table_name}
-                """
-        ).fetchdf()
+                """).fetchdf()
 
     @staticmethod
     def table_exists(
@@ -206,21 +202,11 @@ class DatabaseManager:
         root = Path(__file__).resolve().parents[1]
 
         csv_map = {
-            "signal_master": (
-                root / "data" / "signals" / "signal_master.csv"
-            ),
-
+            "signal_master": (root / "data" / "signals" / "signal_master.csv"),
             # Live portfolio
-            "target_portfolio": (
-                root / "data" / "live" / "target_portfolio.csv"
-            ),
-            "rebalance_dashboard": (
-                root / "data" / "live" / "rebalance_dashboard.csv"
-            ),
-            "trade_list": (
-                root / "data" / "live" / "trade_list.csv"
-            ),
-
+            "target_portfolio": (root / "data" / "live" / "target_portfolio.csv"),
+            "rebalance_dashboard": (root / "data" / "live" / "rebalance_dashboard.csv"),
+            "trade_list": (root / "data" / "live" / "trade_list.csv"),
             # Performance
             "performance_report": (
                 root / "data" / "performance" / "performance_dashboard.csv"

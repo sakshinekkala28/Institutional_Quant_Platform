@@ -616,9 +616,11 @@ class TelemetryService(BaseService):
                     "count": len(metric.values),
                     "min": min(metric.values) if metric.values else 0,
                     "max": max(metric.values) if metric.values else 0,
-                    "mean": (sum(metric.values) / len(metric.values))
-                    if metric.values
-                    else 0,
+                    "mean": (
+                        (sum(metric.values) / len(metric.values))
+                        if metric.values
+                        else 0
+                    ),
                     "p95": self.p95(key) if metric.values else 0,
                 }
                 for key, metric in self._histograms.items()
