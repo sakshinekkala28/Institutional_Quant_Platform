@@ -234,7 +234,6 @@ jobs:
 
           echo "=============================================="
 
-
 ###############################################################################
 # Terraform Format
 ###############################################################################
@@ -334,7 +333,7 @@ jobs:
           category: tfsec
 
 ###############################################################################
-# Checkov
+# Run Checkov
 ###############################################################################
 
       - name: Run Checkov
@@ -386,9 +385,13 @@ jobs:
           ## Completed
 
           - Terraform fmt
+
           - Terraform validate
+
           - TFLint
+
           - tfsec
+
           - Checkov
 
           EOF
@@ -448,7 +451,6 @@ jobs:
           echo ""
 
           echo "=========================================="
-
 
 ###############################################################################
 # Terraform Plan
@@ -518,6 +520,9 @@ jobs:
       - name: Setup Infracost
 
         uses: infracost/actions/setup@v3
+        with:
+
+          api-key: ${{ secrets.INFRACOST_API_KEY }}
 
 ###############################################################################
 # Generate Cost Estimate
@@ -532,11 +537,8 @@ jobs:
         run: |
 
           infracost breakdown \
-
             --path=${{ env.TF_WORKING_DIRECTORY }} \
-
             --format=json \
-
             --out-file=infracost.json
 
 ###############################################################################
@@ -552,9 +554,7 @@ jobs:
         run: |
 
           infracost output \
-
             --path=infracost.json \
-
             --format=table > infracost.txt
 
 ###############################################################################
@@ -653,9 +653,13 @@ jobs:
           ## Completed
 
           - Terraform plan
+
           - JSON plan generated
+
           - Plan artifact uploaded
+
           - Infracost estimate generated
+
           - Pull request comment created (PR only)
 
           EOF
@@ -691,8 +695,7 @@ jobs:
           echo ""
 
           echo "=============================================="
-
-
+      
 ###############################################################################
 # Terraform Apply
 ###############################################################################
@@ -773,7 +776,9 @@ jobs:
           Exit Codes
 
           - 0 = No Drift
+
           - 1 = Error
+
           - 2 = Drift Detected
 
           EOF
@@ -835,15 +840,21 @@ jobs:
           ### Validation
 
           - Terraform fmt
+
           - Terraform validate
+
           - TFLint
+
           - tfsec
+
           - Checkov
 
           ### Planning
 
           - Terraform Plan
+
           - JSON Plan
+
           - Infracost Estimate
 
           ### Deployment
@@ -946,7 +957,6 @@ jobs:
 
           echo "================================================"
 
-
 ###############################################################################
 # Terraform Apply
 ###############################################################################
@@ -1027,7 +1037,9 @@ jobs:
           Exit Codes
 
           - 0 = No Drift
+
           - 1 = Error
+
           - 2 = Drift Detected
 
           EOF
@@ -1089,15 +1101,21 @@ jobs:
           ### Validation
 
           - Terraform fmt
+
           - Terraform validate
+
           - TFLint
+
           - tfsec
+
           - Checkov
 
           ### Planning
 
           - Terraform Plan
+
           - JSON Plan
+
           - Infracost Estimate
 
           ### Deployment
