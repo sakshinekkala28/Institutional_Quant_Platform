@@ -191,7 +191,60 @@ class DatabaseManager:
 
     def load(self, table_name):
 
-        return TableManager.read_table(self.connection, table_name)
+        # -------------------------
+        # Try DuckDB first
+        # -------------------------
+        if self.exists(table_name):
+            return TableManager.read_table(
+                self.connection,
+                table_name,
+            )
+
+        # -------------------------
+        # CSV fallback
+        # -------------------------
+        root = Path(__file__).resolve().parents[1]
+
+        csv_map = {
+            "signal_master": (
+                root / "data" / "signals" / "signal_master.csv"
+            ),
+
+            # Live portfolio
+            "target_portfolio": (
+                root / "data" / "live" / "target_portfolio.csv"
+            ),
+            "rebalance_dashboard": (
+                root / "data" / "live" / "rebalance_dashboard.csv"
+            ),
+            "trade_list": (
+                root / "data" / "live" / "trade_list.csv"
+            ),
+
+            # Performance
+            "performance_report": (
+                root / "data" / "performance" / "performance_dashboard.csv"
+            ),
+            "performance_dashboard": (
+                root / "data" / "performance" / "performance_dashboard.csv"
+            ),
+            "performance_summary": (
+                root / "data" / "performance" / "performance_summary.csv"
+            ),
+            "executive_dashboard": (
+                root / "data" / "performance" / "executive_dashboard.csv"
+            ),
+        }
+
+        csv_file = csv_map.get(table_name)
+
+        if csv_file and csv_file.exists():
+            return pd.read_csv(csv_file)
+
+        raise FileNotFoundError(
+            f"No DuckDB table or CSV found for '{table_name}'. "
+            f"Expected CSV: {csv_file}"
+        )
 
     def exists(self, table_name):
 
