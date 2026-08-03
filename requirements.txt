@@ -1,6 +1,4 @@
-
 # =============================================================================
-# Scanner Platform
 # Production Requirements
 # =============================================================================
 
@@ -26,6 +24,9 @@ requests>=2.32.4
 # Excel Support
 openpyxl>=3.1.5
 xlsxwriter>=3.2.5
+
+# PDF Generation
+reportlab>=4.4.3
 
 # Images
 pillow>=11.3.0
