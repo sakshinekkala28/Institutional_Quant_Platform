@@ -1,7 +1,7 @@
 Strategy,Score,Weight
 optimized_portfolio_v2_equity,100.0,0.285714
-live_portfolio_equity,58.333333333333336,0.166667
-portfolio_health_equity,58.333333333333336,0.166667
-portfolio_drift_equity,58.333333333333336,0.166667
-portfolio_history_equity,58.333333333333336,0.166667
+portfolio_history_equity,83.33333333333334,0.238095
+portfolio_drift_equity,50.0,0.142857
+live_portfolio_equity,50.0,0.142857
+portfolio_health_equity,50.0,0.142857
 optimized_portfolio_equity,16.666666666666664,0.047619
