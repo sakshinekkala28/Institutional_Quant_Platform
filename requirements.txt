@@ -1,1 +1,46 @@
--e .
+
+# =============================================================================
+# Scanner Platform
+# Production Requirements
+# =============================================================================
+
+# Core
+numpy>=2.3.0
+pandas>=2.3.0
+scipy>=1.16.0
+
+# Dashboard
+streamlit>=1.48.0
+plotly>=6.2.0
+
+# Database
+duckdb>=1.3.2
+
+# Technical Analysis
+ta>=0.11.0
+
+# Market Data
+yfinance>=0.2.65
+requests>=2.32.4
+
+# Excel Support
+openpyxl>=3.1.5
+xlsxwriter>=3.2.5
+
+# Images
+pillow>=11.3.0
+
+# Date & Time
+python-dateutil>=2.9.0
+tzdata>=2025.2
+
+# Performance
+pyarrow>=21.0.0
+
+# HTML/XML Parsing
+lxml>=6.0.0
+beautifulsoup4>=4.13.4
+
+# Utilities
+rich>=14.1.0
+tqdm>=4.67.1
