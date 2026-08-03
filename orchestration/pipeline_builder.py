@@ -127,7 +127,7 @@ class PipelineBuilder:
 
     def build(
         self,
-        pipeline_name: str,
+        pipeline_name: str = "Master Pipeline",
         stages: list[str] | None = None,
         categories: list[str] | None = None,
         engine_names: list[str] | None = None,

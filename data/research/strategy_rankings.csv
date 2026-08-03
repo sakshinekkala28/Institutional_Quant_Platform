@@ -1,7 +1,7 @@
 Metric,Value
 Strategies_Compared,6
-Best_Strategy,optimized_portfolio_v2_equity
-Best_CAGR,0.4612972314016899
-Best_Sharpe,2.335024086315689
-Run_Date,2026-07-25
+Best_Strategy,portfolio_history_equity
+Best_CAGR,0.8784132870946613
+Best_Sharpe,2.334267663060246
+Run_Date,2026-08-03
 Engine_Version,1.0.0
