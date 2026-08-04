@@ -1,6 +1,7 @@
 Metric,Value
-Snapshots,61
-Total_Rows,63452
-Unique_Securities,1498
-Run_Date,2026-06-13
+Snapshots,80
+Total_Rows,84512
+Unique_Securities,1500
+Failures,0
+Run_Date,2026-08-04
 Engine_Version,1.0.0

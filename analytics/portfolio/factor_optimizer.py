@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import cvxpy as cp
+from scipy.optimize import minimize
 import numpy as np
 import pandas as pd
 
@@ -147,94 +147,265 @@ universe = universe.merge(
 )
 
 # =====================================================
-# OPTIMIZATION VARIABLES
+# SCIPY OPTIMIZATION
 # =====================================================
 
 n = len(universe)
 
-w = cp.Variable(n)
+# -----------------------------------------------------
+# TRANSACTION COST
+# -----------------------------------------------------
 
-# =====================================================
-# OBJECTIVE
-# =====================================================
+transaction_cost = (
+    1
+    / np.sqrt(
+        universe["ADV_20D"].fillna(
+            universe["ADV_20D"].median()
+        )
+    )
+).values
 
-expected_return_term = mu @ w
+# -----------------------------------------------------
+# OBJECTIVE FUNCTION
+# -----------------------------------------------------
 
-risk_term = cp.quad_form(w, Sigma)
+def objective(weights: np.ndarray) -> float:
+    """
+    Institutional objective function.
 
-concentration_penalty = cp.sum_squares(w)
+    Minimize:
+        Risk
+      - Expected Return
+      + Turnover
+      + Transaction Cost
+      + Concentration
+    """
 
-turnover_term = cp.norm1(w - current_weights)
+    portfolio_return = np.dot(
+        mu,
+        weights,
+    )
 
-transaction_cost = 1 / np.sqrt(universe["ADV_20D"].fillna(universe["ADV_20D"].median()))
+    portfolio_variance = (
+        weights.T
+        @ Sigma
+        @ weights
+    )
 
-tc_term = transaction_cost.values @ w
+    turnover = np.sum(
+        (weights - current_weights) ** 2
+    )
 
-sector_penalty = 0
+    tc = np.dot(
+        transaction_cost,
+        weights,
+    )
 
-objective = cp.Maximize(
-    expected_return_term
-    - RISK_AVERSION * risk_term
-    - TURNOVER_PENALTY * turnover_term
-    - 0.05 * tc_term
-    - 0.10 * concentration_penalty
+    concentration = np.sum(
+        weights**2
+    )
+
+    return (
+        -portfolio_return
+        + RISK_AVERSION * portfolio_variance
+        + TURNOVER_PENALTY * turnover
+        + 0.05 * tc
+        + 0.10 * concentration
+    )
+
+# -----------------------------------------------------
+# INITIAL WEIGHTS
+# -----------------------------------------------------
+
+x0 = np.repeat(
+    1 / n,
+    n,
 )
 
-tracking_error = cp.quad_form(w - benchmark, Sigma)
+# -----------------------------------------------------
+# BOUNDS
+# -----------------------------------------------------
 
+bounds = [
+    (
+        0.0,
+        MAX_POSITION_WEIGHT,
+    )
+    for _ in range(n)
+]
 
-# =====================================================
+# -----------------------------------------------------
 # CONSTRAINTS
+# -----------------------------------------------------
+
+constraints = []
+
+# Fully Invested
+
+constraints.append(
+    {
+        "type": "eq",
+        "fun": lambda w: np.sum(w) - 1.0,
+    }
+)
+
+# Concentration
+
+constraints.append(
+    {
+        "type": "ineq",
+        "fun": lambda w: (
+            (1 / 25)
+            - np.sum(w**2)
+        ),
+    }
+)
+
+# Tracking Error
+
+constraints.append(
+    {
+        "type": "ineq",
+        "fun": lambda w: (
+            MAX_TRACKING_ERROR**2
+            - (
+                (w - benchmark).T
+                @ Sigma
+                @ (w - benchmark)
+            )
+        ),
+    }
+)
+
 # =====================================================
-
-constraints = [cp.sum(w) == 1, w >= 0, w <= MAX_POSITION_WEIGHT]
-
-constraints.append(cp.sum_squares(w) <= 1 / 25)
-
-constraints.append(tracking_error <= MAX_TRACKING_ERROR**2)
-
-
-# =====================================================
-# SECTOR CAPS
+# SECTOR CONSTRAINTS
 # =====================================================
 
 for sector in universe["Sector"].dropna().unique():
-    idx = np.where(universe["Sector"] == sector)[0]
 
-    constraints.append(cp.sum(w[idx]) <= MAX_SECTOR_WEIGHT)
+    idx = np.where(
+        universe["Sector"] == sector
+    )[0]
 
+    constraints.append(
+        {
+            "type": "ineq",
+            "fun": lambda w, idx=idx: (
+                MAX_SECTOR_WEIGHT
+                - np.sum(w[idx])
+            ),
+        }
+    )
+
+# =====================================================
+# FACTOR CONSTRAINTS
+# =====================================================
 
 for factor in factor_cols:
-    exposure_vector = universe[factor].fillna(0).values
 
-    constraints.append(exposure_vector @ w <= FACTOR_LIMIT)
+    exposure = (
+        universe[factor]
+        .fillna(0)
+        .values
+    )
 
-    constraints.append(exposure_vector @ w >= -FACTOR_LIMIT)
+    constraints.append(
+        {
+            "type": "ineq",
+            "fun": lambda w, e=exposure: (
+                FACTOR_LIMIT
+                - np.dot(e, w)
+            ),
+        }
+    )
 
-constraints.append(universe["Momentum"].fillna(0).values @ w <= 0.80)
+    constraints.append(
+        {
+            "type": "ineq",
+            "fun": lambda w, e=exposure: (
+                FACTOR_LIMIT
+                + np.dot(e, w)
+            ),
+        }
+    )
 
-constraints.append(universe["Growth"].fillna(0).values @ w <= 0.80)
+# Momentum
+
+momentum = (
+    universe["Momentum"]
+    .fillna(0)
+    .values
+)
+
+constraints.append(
+    {
+        "type": "ineq",
+        "fun": lambda w: (
+            0.80
+            - np.dot(momentum, w)
+        ),
+    }
+)
+
+# Growth
+
+growth = (
+    universe["Growth"]
+    .fillna(0)
+    .values
+)
+
+constraints.append(
+    {
+        "type": "ineq",
+        "fun": lambda w: (
+            0.80
+            - np.dot(growth, w)
+        ),
+    }
+)
 
 # =====================================================
 # SOLVE
 # =====================================================
 
-problem = cp.Problem(objective, constraints)
+result = minimize(
+    fun=objective,
+    x0=x0,
+    method="SLSQP",
+    bounds=bounds,
+    constraints=constraints,
+    options={
+        "maxiter": 500,
+        "ftol": 1e-9,
+        "disp": True,
+    },
+)
 
-problem.solve(solver=cp.CLARABEL, verbose=False)
+print("\nOptimization Success :", result.success)
 
-print("\nSolver Status:", problem.status)
+print("Status :", result.message)
 
-print("Objective Value:", problem.value)
+print("Iterations :", result.nit)
 
-if problem.status != "optimal":
-    raise RuntimeError("Optimizer failed.")
+if not result.success:
+
+    raise RuntimeError(
+        result.message
+    )
 
 # =====================================================
 # RESULTS
 # =====================================================
 
-universe["Weight"] = np.maximum(w.value, 0)
+weights = np.maximum(
+    result.x,
+    0.0,
+)
+
+weights /= weights.sum()
+
+universe["Weight"] = weights
 
 # =====================================================
 # FACTOR EXPOSURE ANALYSIS
