@@ -48,7 +48,7 @@ class ServiceAlreadyRegistered(MonitoringError):
     """Raised when service already exists."""
 
 
-class ServiceNotFound(MonitoringError):
+class ServiceNotFoundError(MonitoringError):
     """Raised when service is unknown."""
 
 
@@ -174,7 +174,7 @@ class MonitoringService(BaseService):
     def service(self, name: str) -> ServiceStatus:
 
         if name not in self._services:
-            raise ServiceNotFound(name)
+            raise ServiceNotFoundError(name)
 
         return self._services[name]
 

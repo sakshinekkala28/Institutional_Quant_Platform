@@ -142,19 +142,21 @@ for col in required_blotter_cols:
 # STANDARDIZE SYMBOLS
 # =========================================================
 
-
-def normalize_symbol(symbol):
+def normalize_symbol(symbol: object) -> str:
+    """
+    Normalize Yahoo symbols.
+    """
 
     if pd.isna(symbol):
         return ""
 
-    symbol = str(symbol).upper().strip()
-
-    symbol = symbol.replace(".NS", "")
-    symbol = symbol.replace(".BO", "")
-
-    return symbol
-
+    return (
+        str(symbol)
+        .upper()
+        .strip()
+        .replace(".NS", "")
+        .replace(".BO", "")
+    )
 
 orders["Symbol"] = orders["Symbol"].apply(normalize_symbol)
 

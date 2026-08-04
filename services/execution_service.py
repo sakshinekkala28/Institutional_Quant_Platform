@@ -46,11 +46,11 @@ class ExecutionError(Exception):
     """Base execution exception."""
 
 
-class ExecutionProfileNotFound(ExecutionError):
+class ExecutionProfileNotFoundError(ExecutionError):
     """Execution profile not found."""
 
 
-class ExecutionEngineNotFound(ExecutionError):
+class ExecutionEngineNotFoundError(ExecutionError):
     """Execution engine not registered."""
 
 
@@ -175,7 +175,7 @@ class ExecutionService(BaseService):
     def get(self, profile: str) -> ExecutionProfile:
 
         if profile not in self._profiles:
-            raise ExecutionProfileNotFound(profile)
+            raise ExecutionProfileNotFoundError(profile)
 
         return self._profiles[profile]
 
@@ -222,7 +222,7 @@ class ExecutionService(BaseService):
         algorithm = execution_profile.algorithm
 
         if algorithm not in self._engines:
-            raise ExecutionEngineNotFound(algorithm)
+            raise ExecutionEngineNotFoundError(algorithm)
 
         engine = self._engines[algorithm]
 
@@ -305,7 +305,7 @@ class ExecutionService(BaseService):
         execution_profile = self.get(profile)
 
         if execution_profile.algorithm not in self._engines:
-            raise ExecutionEngineNotFound(execution_profile.algorithm)
+            raise ExecutionEngineNotFoundError(execution_profile.algorithm)
 
         return True
 
@@ -366,7 +366,7 @@ class ExecutionService(BaseService):
         """
 
         if profile not in self._profiles:
-            raise ExecutionProfileNotFound(profile)
+            raise ExecutionProfileNotFoundError(profile)
 
         del self._profiles[profile]
 

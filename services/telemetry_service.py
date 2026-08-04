@@ -49,7 +49,7 @@ class MetricAlreadyExists(TelemetryError):
     """Metric already registered."""
 
 
-class MetricNotFound(TelemetryError):
+class MetricNotFoundError(TelemetryError):
     """Metric not found."""
 
 
@@ -279,7 +279,7 @@ class TelemetryService(BaseService):
         """
 
         if name not in self._counters:
-            raise MetricNotFound(name)
+            raise MetricNotFoundError(name)
 
         return self._counters[name].value
 
@@ -316,7 +316,7 @@ class TelemetryService(BaseService):
     def gauge_value(self, name: str) -> float:
 
         if name not in self._gauges:
-            raise MetricNotFound(name)
+            raise MetricNotFoundError(name)
 
         return self._gauges[name].value
 
@@ -338,7 +338,7 @@ class TelemetryService(BaseService):
     def histogram_values(self, name: str) -> list[float]:
 
         if name not in self._histograms:
-            raise MetricNotFound(name)
+            raise MetricNotFoundError(name)
 
         return list(self._histograms[name].values)
 
@@ -363,7 +363,7 @@ class TelemetryService(BaseService):
             timer = self._timers.get(name)
 
             if timer is None:
-                raise MetricNotFound(name)
+                raise MetricNotFoundError(name)
 
             elapsed = timer.stop()
 
@@ -376,7 +376,7 @@ class TelemetryService(BaseService):
         timer = self._timers.get(name)
 
         if timer is None:
-            raise MetricNotFound(name)
+            raise MetricNotFoundError(name)
 
         if timer.running:
             return time.perf_counter() - timer.started
@@ -453,7 +453,7 @@ class TelemetryService(BaseService):
         histogram = self._histograms.get(name)
 
         if histogram is None:
-            raise MetricNotFound(name)
+            raise MetricNotFoundError(name)
 
         return len(histogram.values)
 
@@ -462,7 +462,7 @@ class TelemetryService(BaseService):
         histogram = self._histograms.get(name)
 
         if histogram is None:
-            raise MetricNotFound(name)
+            raise MetricNotFoundError(name)
 
         if not histogram.values:
             return 0.0
@@ -474,7 +474,7 @@ class TelemetryService(BaseService):
         histogram = self._histograms.get(name)
 
         if histogram is None:
-            raise MetricNotFound(name)
+            raise MetricNotFoundError(name)
 
         if not histogram.values:
             return 0.0
@@ -486,7 +486,7 @@ class TelemetryService(BaseService):
         histogram = self._histograms.get(name)
 
         if histogram is None:
-            raise MetricNotFound(name)
+            raise MetricNotFoundError(name)
 
         if not histogram.values:
             return 0.0
@@ -505,7 +505,7 @@ class TelemetryService(BaseService):
         histogram = self._histograms.get(name)
 
         if histogram is None:
-            raise MetricNotFound(name)
+            raise MetricNotFoundError(name)
 
         if not histogram.values:
             return 0.0

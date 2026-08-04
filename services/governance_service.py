@@ -45,11 +45,11 @@ class GovernanceError(Exception):
     """Base governance exception."""
 
 
-class GovernanceProfileNotFound(GovernanceError):
+class GovernanceProfileNotFoundError(GovernanceError):
     """Governance profile not found."""
 
 
-class GovernanceEngineNotFound(GovernanceError):
+class GovernanceEngineNotFoundError(GovernanceError):
     """Governance engine not registered."""
 
 
@@ -176,7 +176,7 @@ class GovernanceService(BaseService):
     def get(self, profile: str) -> GovernanceProfile:
 
         if profile not in self._profiles:
-            raise GovernanceProfileNotFound(profile)
+            raise GovernanceProfileNotFoundError(profile)
 
         return self._profiles[profile]
 
@@ -216,7 +216,7 @@ class GovernanceService(BaseService):
         """
 
         if engine not in self._engines:
-            raise GovernanceEngineNotFound(engine)
+            raise GovernanceEngineNotFoundError(engine)
 
         governance_engine = self._engines[engine]
 
@@ -346,7 +346,7 @@ class GovernanceService(BaseService):
         """
 
         if profile not in self._profiles:
-            raise GovernanceProfileNotFound(profile)
+            raise GovernanceProfileNotFoundError(profile)
 
         del self._profiles[profile]
 

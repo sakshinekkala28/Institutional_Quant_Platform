@@ -45,7 +45,7 @@ class RiskError(Exception):
     """Base risk exception."""
 
 
-class RiskProfileNotFound(RiskError):
+class RiskProfileNotFoundError(RiskError):
     """Risk profile not found."""
 
 
@@ -157,7 +157,7 @@ class RiskService(BaseService):
     def get(self, name: str) -> RiskProfile:
 
         if name not in self._profiles:
-            raise RiskProfileNotFound(name)
+            raise RiskProfileNotFoundError(name)
 
         return self._profiles[name]
 
@@ -431,7 +431,7 @@ class RiskService(BaseService):
     def remove(self, profile: str) -> None:
 
         if profile not in self._profiles:
-            raise RiskProfileNotFound(profile)
+            raise RiskProfileNotFoundError(profile)
 
         del self._profiles[profile]
 

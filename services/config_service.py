@@ -49,7 +49,7 @@ class ConfigServiceError(Exception):
     """Base configuration exception."""
 
 
-class ConfigurationNotFound(ConfigServiceError):
+class ConfigurationNotFoundError(ConfigServiceError):
     """Raised when configuration section/key is missing."""
 
 
@@ -280,7 +280,7 @@ class ConfigService(BaseService):
             if default is not None:
                 return default
 
-            raise ConfigurationNotFound(f"Unknown configuration section '{section}'.")
+            raise ConfigurationNotFoundError(f"Unknown configuration section '{section}'.")
 
         configuration = self._configuration_registry[section]
 
@@ -305,7 +305,7 @@ class ConfigService(BaseService):
         if default is not None:
             return default
 
-        raise ConfigurationNotFound(f"Configuration '{override_key}' not found.")
+        raise ConfigurationNotFoundError(f"Configuration '{override_key}' not found.")
 
     # ========================================================
     # Exists

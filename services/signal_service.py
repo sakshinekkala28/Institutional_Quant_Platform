@@ -42,7 +42,7 @@ class SignalError(Exception):
     """Base signal exception."""
 
 
-class SignalNotFound(SignalError):
+class SignalNotFoundError(SignalError):
     """Signal not available."""
 
 
@@ -129,7 +129,7 @@ class SignalService(BaseService):
     def get_signal(self, name: str) -> pd.DataFrame:
 
         if name not in self._signals:
-            raise SignalNotFound(name)
+            raise SignalNotFoundError(name)
 
         return self._signals[name]
 
@@ -473,7 +473,7 @@ class SignalService(BaseService):
     def remove_signal(self, signal: str) -> None:
 
         if signal not in self._signals:
-            raise SignalNotFound(signal)
+            raise SignalNotFoundError(signal)
 
         del self._signals[signal]
 

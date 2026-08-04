@@ -45,7 +45,7 @@ class OptimizationError(Exception):
     """Base optimization exception."""
 
 
-class OptimizerNotFound(OptimizationError):
+class OptimizerNotFoundError(OptimizationError):
     """Optimizer profile not found."""
 
 
@@ -170,7 +170,7 @@ class OptimizationService(BaseService):
     def get(self, name: str) -> OptimizationProfile:
 
         if name not in self._profiles:
-            raise OptimizerNotFound(name)
+            raise OptimizerNotFoundError(name)
 
         return self._profiles[name]
 
@@ -331,7 +331,7 @@ class OptimizationService(BaseService):
         """
 
         if profile not in self._profiles:
-            raise OptimizerNotFound(profile)
+            raise OptimizerNotFoundError(profile)
 
         del self._profiles[profile]
 

@@ -46,7 +46,7 @@ class NotificationError(Exception):
     """Base notification exception."""
 
 
-class NotificationNotFound(NotificationError):
+class NotificationNotFoundError(NotificationError):
     """Notification not found."""
 
 
@@ -365,7 +365,7 @@ class NotificationService(BaseService):
             if notification.notification_id == notification_id:
                 return notification
 
-        raise NotificationNotFound(notification_id)
+        raise NotificationNotFoundError(notification_id)
 
     def notifications(self) -> list[Notification]:
 

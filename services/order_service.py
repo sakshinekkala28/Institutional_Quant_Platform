@@ -82,7 +82,7 @@ class OrderError(Exception):
     """Base order exception."""
 
 
-class OrderNotFound(OrderError):
+class OrderNotFoundError(OrderError):
     """Order not found."""
 
 
@@ -189,7 +189,7 @@ class OrderService(BaseService):
     def get(self, order_id: str) -> Order:
 
         if order_id not in self._orders:
-            raise OrderNotFound(order_id)
+            raise OrderNotFoundError(order_id)
 
         return self._orders[order_id]
 
@@ -456,7 +456,7 @@ class OrderService(BaseService):
         """
 
         if order_id not in self._orders:
-            raise OrderNotFound(order_id)
+            raise OrderNotFoundError(order_id)
 
         del self._orders[order_id]
 

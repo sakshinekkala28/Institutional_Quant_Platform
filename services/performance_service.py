@@ -43,7 +43,7 @@ class PerformanceError(Exception):
     """Base performance exception."""
 
 
-class PerformanceProfileNotFound(PerformanceError):
+class PerformanceProfileNotFoundError(PerformanceError):
     """Performance profile not found."""
 
 
@@ -168,7 +168,7 @@ class PerformanceService(BaseService):
     def get(self, profile: str) -> PerformanceProfile:
 
         if profile not in self._profiles:
-            raise PerformanceProfileNotFound(profile)
+            raise PerformanceProfileNotFoundError(profile)
 
         return self._profiles[profile]
 
@@ -348,7 +348,7 @@ class PerformanceService(BaseService):
         """
 
         if profile not in self._profiles:
-            raise PerformanceProfileNotFound(profile)
+            raise PerformanceProfileNotFoundError(profile)
 
         del self._profiles[profile]
 

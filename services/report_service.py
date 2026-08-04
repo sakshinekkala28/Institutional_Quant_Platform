@@ -45,11 +45,11 @@ class ReportError(Exception):
     """Base report exception."""
 
 
-class ReportProfileNotFound(ReportError):
+class ReportProfileNotFoundError(ReportError):
     """Report profile not found."""
 
 
-class ReportEngineNotFound(ReportError):
+class ReportEngineNotFoundError(ReportError):
     """Report engine not registered."""
 
 
@@ -176,7 +176,7 @@ class ReportService(BaseService):
     def get(self, profile: str) -> ReportProfile:
 
         if profile not in self._profiles:
-            raise ReportProfileNotFound(profile)
+            raise ReportProfileNotFoundError(profile)
 
         return self._profiles[profile]
 
@@ -216,7 +216,7 @@ class ReportService(BaseService):
         """
 
         if engine not in self._engines:
-            raise ReportEngineNotFound(engine)
+            raise ReportEngineNotFoundError(engine)
 
         report_engine = self._engines[engine]
 
@@ -339,7 +339,7 @@ class ReportService(BaseService):
         """
 
         if profile not in self._profiles:
-            raise ReportProfileNotFound(profile)
+            raise ReportProfileNotFoundError(profile)
 
         del self._profiles[profile]
 

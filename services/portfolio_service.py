@@ -43,7 +43,7 @@ class PortfolioError(Exception):
     """Base portfolio exception."""
 
 
-class PortfolioNotFound(PortfolioError):
+class PortfolioNotFoundError(PortfolioError):
     """Portfolio does not exist."""
 
 
@@ -159,7 +159,7 @@ class PortfolioService(BaseService):
     def get(self, name: str) -> Portfolio:
 
         if name not in self._portfolios:
-            raise PortfolioNotFound(name)
+            raise PortfolioNotFoundError(name)
 
         return self._portfolios[name]
 
@@ -449,7 +449,7 @@ class PortfolioService(BaseService):
     def remove(self, portfolio: str) -> None:
 
         if portfolio not in self._portfolios:
-            raise PortfolioNotFound(portfolio)
+            raise PortfolioNotFoundError(portfolio)
 
         del self._portfolios[portfolio]
 

@@ -68,7 +68,7 @@ class TradeError(Exception):
     """Base trade exception."""
 
 
-class TradeNotFound(TradeError):
+class TradeNotFoundError(TradeError):
     """Trade not found."""
 
 
@@ -177,7 +177,7 @@ class TradeService(BaseService):
     def get(self, trade_id: str) -> Trade:
 
         if trade_id not in self._trades:
-            raise TradeNotFound(trade_id)
+            raise TradeNotFoundError(trade_id)
 
         return self._trades[trade_id]
 
@@ -452,7 +452,7 @@ class TradeService(BaseService):
         """
 
         if trade_id not in self._trades:
-            raise TradeNotFound(trade_id)
+            raise TradeNotFoundError(trade_id)
 
         del self._trades[trade_id]
 

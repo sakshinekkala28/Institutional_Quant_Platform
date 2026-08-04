@@ -44,7 +44,7 @@ class RebalanceError(Exception):
     """Base rebalance exception."""
 
 
-class RebalanceProfileNotFound(RebalanceError):
+class RebalanceProfileNotFoundError(RebalanceError):
     """Rebalance profile not found."""
 
 
@@ -156,7 +156,7 @@ class RebalanceService(BaseService):
     def get(self, name: str) -> RebalanceProfile:
 
         if name not in self._profiles:
-            raise RebalanceProfileNotFound(name)
+            raise RebalanceProfileNotFoundError(name)
 
         return self._profiles[name]
 
@@ -424,7 +424,7 @@ class RebalanceService(BaseService):
     def remove(self, profile: str) -> None:
 
         if profile not in self._profiles:
-            raise RebalanceProfileNotFound(profile)
+            raise RebalanceProfileNotFoundError(profile)
 
         del self._profiles[profile]
 

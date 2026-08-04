@@ -45,11 +45,11 @@ class BacktestError(Exception):
     """Base backtest exception."""
 
 
-class BacktestProfileNotFound(BacktestError):
+class BacktestProfileNotFoundError(BacktestError):
     """Backtest profile not found."""
 
 
-class BacktestEngineNotFound(BacktestError):
+class BacktestEngineNotFoundError(BacktestError):
     """Backtest engine not registered."""
 
 
@@ -182,7 +182,7 @@ class BacktestService(BaseService):
     def get(self, profile: str) -> BacktestProfile:
 
         if profile not in self._profiles:
-            raise BacktestProfileNotFound(profile)
+            raise BacktestProfileNotFoundError(profile)
 
         return self._profiles[profile]
 
@@ -222,7 +222,7 @@ class BacktestService(BaseService):
         """
 
         if engine not in self._engines:
-            raise BacktestEngineNotFound(engine)
+            raise BacktestEngineNotFoundError(engine)
 
         backtest_engine = self._engines[engine]
 
@@ -339,7 +339,7 @@ class BacktestService(BaseService):
         """
 
         if profile not in self._profiles:
-            raise BacktestProfileNotFound(profile)
+            raise BacktestProfileNotFoundError(profile)
 
         del self._profiles[profile]
 

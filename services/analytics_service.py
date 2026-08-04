@@ -44,11 +44,11 @@ class AnalyticsError(Exception):
     """Base analytics exception."""
 
 
-class AnalyticsProfileNotFound(AnalyticsError):
+class AnalyticsProfileNotFoundError(AnalyticsError):
     """Analytics profile not found."""
 
 
-class AnalyticsEngineNotFound(AnalyticsError):
+class AnalyticsEngineNotFoundError(AnalyticsError):
     """Analytics engine not registered."""
 
 
@@ -169,7 +169,7 @@ class AnalyticsService(BaseService):
     def get(self, profile: str) -> AnalyticsProfile:
 
         if profile not in self._profiles:
-            raise AnalyticsProfileNotFound(profile)
+            raise AnalyticsProfileNotFoundError(profile)
 
         return self._profiles[profile]
 
@@ -209,7 +209,7 @@ class AnalyticsService(BaseService):
         """
 
         if engine not in self._engines:
-            raise AnalyticsEngineNotFound(engine)
+            raise AnalyticsEngineNotFoundError(engine)
 
         analytics_engine = self._engines[engine]
 
@@ -320,7 +320,7 @@ class AnalyticsService(BaseService):
         """
 
         if profile not in self._profiles:
-            raise AnalyticsProfileNotFound(profile)
+            raise AnalyticsProfileNotFoundError(profile)
 
         del self._profiles[profile]
 

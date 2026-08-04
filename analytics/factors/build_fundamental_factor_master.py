@@ -50,7 +50,7 @@ def safe_float(value):
 
         return float(value)
 
-    except:
+    except Exception:
         return np.nan
 
 
@@ -62,7 +62,7 @@ def get_growth(current, previous):
 
         return (current - previous) / abs(previous)
 
-    except:
+    except Exception:
         return np.nan
 
 
@@ -131,7 +131,7 @@ for batch_start in range(0, total, BATCH_SIZE):
                 if capital_employed and capital_employed > 0:
                     roce = ebit / capital_employed
 
-            except:
+            except Exception:
                 pass
 
             profit_growth = np.nan
@@ -142,7 +142,7 @@ for batch_start in range(0, total, BATCH_SIZE):
                 if len(net_income) >= 2:
                     profit_growth = get_growth(net_income.iloc[0], net_income.iloc[1])
 
-            except:
+            except Exception:
                 pass
 
             results.append(

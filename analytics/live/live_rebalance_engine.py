@@ -6,12 +6,12 @@
 from pathlib import Path
 import warnings
 
-warnings.filterwarnings("ignore")
-
 import numpy as np
 import pandas as pd
 
 from ingestion.database_manager import DatabaseManager
+
+warnings.filterwarnings("ignore")
 
 # =========================================================
 # ENGINE
@@ -172,10 +172,10 @@ def validate_columns(df, required, file_name):
         raise ValueError(f"{file_name} missing {missing}")
 
 
-def enforce_position_caps(df, MAX_POSITION_WEIGHT):
+def enforce_position_caps(df, max_position_weight):
 
     for _ in range(20):
-        excess = df["Target_Weight"] > MAX_POSITION_WEIGHT
+        excess = df["Target_Weight"] > max_position_weight
 
         if not excess.any():
             break
@@ -1407,7 +1407,7 @@ try:
 
     print("✓ Covariance Loaded")
 
-except:
+except Exception:
     print("⚠ Covariance Missing")
 
 # =====================================
@@ -1462,7 +1462,11 @@ if cov_matrix is not None:
 
             nearest = (
                 target.loc[target["Yahoo_Symbol"].isin(cov_matrix.index)]
-                .assign(VolGap=lambda x: abs(x["Volatility_252D"] - proxy))
+                .assign(
+                    VolGap=lambda x, proxy=proxy: abs(
+                        x["Volatility_252D"] - proxy
+                    )
+                )
                 .sort_values("VolGap")
                 .iloc[0]["Yahoo_Symbol"]
             )
