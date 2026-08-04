@@ -35,30 +35,14 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from optimization.black_litterman import (
-    BlackLittermanEngine,
-)
-from optimization.constraint_manager import (
-    ConstraintManager,
-)
-from optimization.covariance_engine import (
-    CovarianceEngine,
-)
-from optimization.efficient_frontier import (
-    EfficientFrontierEngine,
-)
-from optimization.expected_return_engine import (
-    ExpectedReturnEngine,
-)
-from optimization.mean_variance_optimizer import (
-    MeanVarianceOptimizer,
-)
-from optimization.portfolio_optimizer import (
-    PortfolioOptimizer,
-)
-from optimization.risk_parity_optimizer import (
-    RiskParityOptimizer,
-)
+from optimization.black_litterman import BlackLittermanEngine
+from optimization.constraint_manager import ConstraintManager
+from optimization.covariance_engine import CovarianceEngine
+from optimization.efficient_frontier import EfficientFrontierEngine
+from optimization.expected_return_engine import ExpectedReturnEngine
+from optimization.mean_variance_optimizer import MeanVarianceOptimizer
+from optimization.portfolio_optimizer import PortfolioOptimizer
+from optimization.risk_parity_optimizer import RiskParityOptimizer
 
 # ==========================================================
 # PORTFOLIO OPTIMIZER

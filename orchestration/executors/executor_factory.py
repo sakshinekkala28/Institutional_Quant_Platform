@@ -19,18 +19,10 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.executors.base_executor import (
-    BaseExecutor,
-)
-from orchestration.executors.parallel_executor import (
-    ParallelExecutor,
-)
-from orchestration.executors.retry_executor import (
-    RetryExecutor,
-)
-from orchestration.executors.sequential_executor import (
-    SequentialExecutor,
-)
+from orchestration.executors.base_executor import BaseExecutor
+from orchestration.executors.parallel_executor import ParallelExecutor
+from orchestration.executors.retry_executor import RetryExecutor
+from orchestration.executors.sequential_executor import SequentialExecutor
 
 # from orchestration.executors.distributed_executor import (
 # DistributedExecutor,

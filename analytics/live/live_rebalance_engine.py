@@ -2237,15 +2237,14 @@ if governance_status != "FAIL":
     elif portfolio_turnover > MAX_PORTFOLIO_TURNOVER:
         approval_status = "CONDITIONAL_APPROVAL"
 
+    elif approval_score >= 85:
+        approval_status = "APPROVED"
+
+    elif approval_score >= 70:
+        approval_status = "CONDITIONAL_APPROVAL"
+
     else:
-        if approval_score >= 85:
-            approval_status = "APPROVED"
-
-        elif approval_score >= 70:
-            approval_status = "CONDITIONAL_APPROVAL"
-
-        else:
-            approval_status = "REJECTED"
+        approval_status = "REJECTED"
 
 print("Approval Score:", round(approval_score, 0))
 

@@ -33,18 +33,10 @@ from pathlib import Path
 from threading import RLock
 from typing import Any
 
-from orchestration.models.engine_result import (
-    EngineResult,
-)
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
-from orchestration.models.master_result import (
-    MasterResult,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
+from orchestration.models.engine_result import EngineResult
+from orchestration.models.engine_status import EngineStatus
+from orchestration.models.master_result import MasterResult
+from orchestration.models.pipeline_result import PipelineResult
 
 # =========================================================
 # EXECUTION REPORT

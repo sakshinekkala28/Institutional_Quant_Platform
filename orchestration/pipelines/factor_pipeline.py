@@ -23,21 +23,11 @@ from __future__ import annotations
 from analytics.factors.build_fundamental_factor_master import (
     main as build_factor_master_engine,
 )
-from analytics.factors.factor_engine import (
-    main as factor_engine,
-)
-from analytics.factors.factor_rank_engine import (
-    main as factor_rank_engine,
-)
-from analytics.factors.factor_snapshot_engine import (
-    main as factor_snapshot_engine,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
-from orchestration.pipelines.base_pipeline import (
-    BasePipeline,
-)
+from analytics.factors.factor_engine import main as factor_engine
+from analytics.factors.factor_rank_engine import main as factor_rank_engine
+from analytics.factors.factor_snapshot_engine import main as factor_snapshot_engine
+from orchestration.models.pipeline_result import PipelineResult
+from orchestration.pipelines.base_pipeline import BasePipeline
 
 # ==========================================================
 # FACTOR PIPELINE

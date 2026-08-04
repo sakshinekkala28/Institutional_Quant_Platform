@@ -15,8 +15,4 @@ def normalize_datetime(
         errors="coerce",
     )
 
-    return (
-        series
-        .dt.tz_convert("Asia/Kolkata")
-        .dt.tz_localize(None)
-    )
+    return series.dt.tz_convert("Asia/Kolkata").dt.tz_localize(None)

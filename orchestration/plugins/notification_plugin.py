@@ -24,9 +24,7 @@ from enum import Enum
 import logging
 from typing import Any
 
-from orchestration.plugins.base_plugin import (
-    BasePlugin,
-)
+from orchestration.plugins.base_plugin import BasePlugin
 
 logger = logging.getLogger(__name__)
 

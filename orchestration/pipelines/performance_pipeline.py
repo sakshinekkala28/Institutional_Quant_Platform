@@ -21,12 +21,8 @@ from __future__ import annotations
 from analytics.benchmark.benchmark_constituents_engine import (
     main as benchmark_constituents_engine,
 )
-from analytics.benchmark.benchmark_engine import (
-    main as benchmark_engine,
-)
-from analytics.capacity.capacity_engine import (
-    main as capacity_engine,
-)
+from analytics.benchmark.benchmark_engine import main as benchmark_engine
+from analytics.capacity.capacity_engine import main as capacity_engine
 from analytics.performance.brinson_attribution_engine import (
     main as brinson_attribution_engine,
 )
@@ -40,12 +36,8 @@ from analytics.performance.performance_attribution_engine import (
 from analytics.performance.security_attribution_engine import (
     main as security_attribution_engine,
 )
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
-from orchestration.pipelines.base_pipeline import (
-    BasePipeline,
-)
+from orchestration.models.pipeline_result import PipelineResult
+from orchestration.pipelines.base_pipeline import BasePipeline
 
 # ==========================================================
 # PERFORMANCE PIPELINE

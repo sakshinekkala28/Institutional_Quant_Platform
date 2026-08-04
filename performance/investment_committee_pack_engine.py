@@ -508,7 +508,9 @@ class ExecutiveDashboardEngine:
                         else (
                             "BUY"
                             if pack_score >= 65
-                            else "HOLD" if pack_score >= 50 else "REDUCE"
+                            else "HOLD"
+                            if pack_score >= 50
+                            else "REDUCE"
                         )
                     ),
                 },
@@ -528,7 +530,9 @@ class ExecutiveDashboardEngine:
                         else (
                             "B"
                             if pack_score >= 70
-                            else "C" if pack_score >= 55 else "D"
+                            else "C"
+                            if pack_score >= 55
+                            else "D"
                         )
                     ),
                 },

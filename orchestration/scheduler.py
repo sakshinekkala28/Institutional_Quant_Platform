@@ -29,12 +29,8 @@ from datetime import datetime, timedelta
 import threading
 import time
 
-from orchestration.master_orchestrator import (
-    MasterOrchestrator,
-)
-from orchestration.models.master_result import (
-    MasterResult,
-)
+from orchestration.master_orchestrator import MasterOrchestrator
+from orchestration.models.master_result import MasterResult
 
 # =========================================================
 # SCHEDULED JOB

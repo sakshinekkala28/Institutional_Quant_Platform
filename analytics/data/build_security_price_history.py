@@ -27,14 +27,13 @@ data/raw/security_price_history.csv
 from datetime import datetime
 from pathlib import Path
 import time
-import duckdb
 
+import duckdb
 import numpy as np
 import pandas as pd
 import yfinance as yf
 
 from utils.file_utils import ensure_parent_directory
-
 
 # =========================================================
 # CONFIGURATION
@@ -124,6 +123,7 @@ print(f"Universe Size : {len(symbols):,}")
 # DOWNLOAD HELPERS
 # =========================================================
 
+
 def download_symbol_history(
     symbol: str,
 ) -> pd.DataFrame:
@@ -139,10 +139,8 @@ def download_symbol_history(
         else f"{symbol}.NS"
     )
 
-    for attempt in range(MAX_RETRIES):
-
+    for _attempt in range(MAX_RETRIES):
         try:
-
             ticker = yf.Ticker(yahoo_symbol)
 
             df = ticker.history(
@@ -152,7 +150,6 @@ def download_symbol_history(
             )
 
             if df.empty:
-
                 time.sleep(
                     RETRY_SLEEP_SECONDS,
                 )
@@ -167,19 +164,13 @@ def download_symbol_history(
                 df.columns,
                 pd.MultiIndex,
             ):
-
-                df.columns = (
-                    df.columns.get_level_values(
-                        0,
-                    )
+                df.columns = df.columns.get_level_values(
+                    0,
                 )
 
             df = df.reset_index()
 
-            df.columns = [
-                str(column).strip()
-                for column in df.columns
-            ]
+            df.columns = [str(column).strip() for column in df.columns]
 
             # Store the original platform symbol
             df["Symbol"] = symbol
@@ -187,10 +178,7 @@ def download_symbol_history(
             return df
 
         except Exception as exc:
-
-            print(
-                f"ERROR {symbol}: {exc}"
-            )
+            print(f"ERROR {symbol}: {exc}")
 
             time.sleep(
                 RETRY_SLEEP_SECONDS,
@@ -217,12 +205,7 @@ failure_records = []
 
 download_start = datetime.now()
 
-price_dir = (
-    ROOT
-    / "data"
-    / "raw"
-    / "prices"
-)
+price_dir = ROOT / "data" / "raw" / "prices"
 
 ensure_parent_directory(
     price_dir / "dummy.parquet",
@@ -366,8 +349,7 @@ for batch in chunk_list(symbols, BATCH_SIZE):
             # =====================================================
 
             history.to_parquet(
-                price_dir
-                / f"{symbol}.parquet",
+                price_dir / f"{symbol}.parquet",
                 index=False,
             )
 
@@ -421,12 +403,7 @@ for batch in chunk_list(symbols, BATCH_SIZE):
                 # CHECKPOINT SAVE
                 # =====================================================
 
-                if (
-                    len(all_prices)
-                    % CHECKPOINT_INTERVAL
-                    == 0
-                ):
-
+                if len(all_prices) % CHECKPOINT_INTERVAL == 0:
                     checkpoint = pd.concat(
                         all_prices,
                         ignore_index=True,
@@ -441,10 +418,7 @@ for batch in chunk_list(symbols, BATCH_SIZE):
                         index=False,
                     )
 
-                    print(
-                        f"💾 Checkpoint Saved "
-                        f"({len(all_prices):,} securities)"
-                    )
+                    print(f"💾 Checkpoint Saved ({len(all_prices):,} securities)")
 
                 if len(all_prices) % 500 == 0:
                     print(f"Loaded {len(all_prices):,} securities...")
@@ -473,26 +447,13 @@ for batch in chunk_list(symbols, BATCH_SIZE):
 
     print(f"Total Loaded  : {len(all_prices):,}")
 
-    elapsed = (
-        datetime.now()
-        - download_start
-    ).total_seconds()
+    elapsed = (datetime.now() - download_start).total_seconds()
 
-    progress = (
-        len(all_prices)        
-        / len(symbols)
-        * 100
-    )
+    progress = len(all_prices) / len(symbols) * 100
 
-    print(
-        f"Progress      : "
-        f"{progress:.2f}%"
-    )
+    print(f"Progress      : {progress:.2f}%")
 
-    print(
-        f"Elapsed       : "
-        f"{elapsed:.1f}s"
-    )
+    print(f"Elapsed       : {elapsed:.1f}s")
 
 # =========================================================
 # DOWNLOAD COMPLETION CHECK

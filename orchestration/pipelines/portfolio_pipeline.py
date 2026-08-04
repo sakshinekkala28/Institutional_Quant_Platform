@@ -20,12 +20,8 @@ Responsibilities
 
 from __future__ import annotations
 
-from analytics.portfolio.factor_optimizer import (
-    main as factor_optimizer_engine,
-)
-from analytics.portfolio.optimizer_engine import (
-    main as optimizer_engine,
-)
+from analytics.portfolio.factor_optimizer import main as factor_optimizer_engine
+from analytics.portfolio.optimizer_engine import main as optimizer_engine
 from analytics.portfolio.portfolio_constraints_engine import (
     main as portfolio_constraints_engine,
 )
@@ -33,27 +29,15 @@ from analytics.portfolio.portfolio_constraints_engine import (
 # ==========================================================
 # PORTFOLIO ENGINES
 # ==========================================================
-from analytics.portfolio.portfolio_engine import (
-    main as portfolio_engine,
-)
+from analytics.portfolio.portfolio_engine import main as portfolio_engine
 from analytics.portfolio.portfolio_history_engine import (
     main as portfolio_history_engine,
 )
-from analytics.portfolio.portfolio_monitor import (
-    main as portfolio_monitor_engine,
-)
-from analytics.portfolio.portfolio_optimizer import (
-    main as portfolio_optimizer_engine,
-)
-from analytics.portfolio.rebalancing_engine import (
-    main as rebalancing_engine,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
-from orchestration.pipelines.base_pipeline import (
-    BasePipeline,
-)
+from analytics.portfolio.portfolio_monitor import main as portfolio_monitor_engine
+from analytics.portfolio.portfolio_optimizer import main as portfolio_optimizer_engine
+from analytics.portfolio.rebalancing_engine import main as rebalancing_engine
+from orchestration.models.pipeline_result import PipelineResult
+from orchestration.pipelines.base_pipeline import BasePipeline
 
 # ==========================================================
 # PORTFOLIO PIPELINE

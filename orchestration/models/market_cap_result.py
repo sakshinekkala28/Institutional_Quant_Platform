@@ -3,7 +3,6 @@ from dataclasses import dataclass
 
 @dataclass(slots=True)
 class MarketCapResult:
-
     market_cap: float
 
     status: str

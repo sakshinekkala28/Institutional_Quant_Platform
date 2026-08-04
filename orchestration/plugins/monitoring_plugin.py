@@ -22,12 +22,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from orchestration.health_manager import (
-    HealthManager,
-)
-from orchestration.plugins.base_plugin import (
-    BasePlugin,
-)
+from orchestration.health_manager import HealthManager
+from orchestration.plugins.base_plugin import BasePlugin
 
 # ==========================================================
 # MONITORING PLUGIN

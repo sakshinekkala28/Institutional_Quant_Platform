@@ -23,12 +23,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from orchestration.metrics_collector import (
-    MetricsCollector,
-)
-from orchestration.plugins.base_plugin import (
-    BasePlugin,
-)
+from orchestration.metrics_collector import MetricsCollector
+from orchestration.plugins.base_plugin import BasePlugin
 
 # ==========================================================
 # METRICS PLUGIN

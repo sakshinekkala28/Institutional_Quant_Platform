@@ -4,8 +4,9 @@
 # ==========================================================
 
 import pandas as pd
-import requests
 import plotly.express as px
+import requests
+
 import streamlit as st
 
 st.set_page_config(page_title="Institutional Quant Platform", layout="wide")

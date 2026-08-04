@@ -35,30 +35,14 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from backtesting.backtest_engine import (
-    BacktestEngine,
-)
-from backtesting.backtest_report import (
-    BacktestReport,
-)
-from backtesting.benchmark_engine import (
-    BenchmarkEngine,
-)
-from backtesting.cash_manager import (
-    CashManager,
-)
-from backtesting.event_engine import (
-    EventEngine,
-)
-from backtesting.performance_engine import (
-    PerformanceEngine,
-)
-from backtesting.portfolio_tracker import (
-    PortfolioTracker,
-)
-from backtesting.position_manager import (
-    PositionManager,
-)
+from backtesting.backtest_engine import BacktestEngine
+from backtesting.backtest_report import BacktestReport
+from backtesting.benchmark_engine import BenchmarkEngine
+from backtesting.cash_manager import CashManager
+from backtesting.event_engine import EventEngine
+from backtesting.performance_engine import PerformanceEngine
+from backtesting.portfolio_tracker import PortfolioTracker
+from backtesting.position_manager import PositionManager
 
 # ==========================================================
 # BACKTEST ENGINE

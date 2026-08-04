@@ -21,9 +21,7 @@ from __future__ import annotations
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from config.settings import (
-    STOP_ON_FAILURE,
-)
+from config.settings import STOP_ON_FAILURE
 
 # =========================================================
 # PIPELINE DEFINITION
@@ -49,9 +47,7 @@ class PipelineDefinition:
 # IMPORT PIPELINES
 # =========================================================
 
-from orchestration.pipelines.data_pipeline import (
-    main as data_pipeline,
-)
+from orchestration.pipelines.data_pipeline import main as data_pipeline
 
 #
 # Uncomment as they become available.

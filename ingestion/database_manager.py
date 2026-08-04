@@ -228,8 +228,7 @@ class DatabaseManager:
             return pd.read_csv(csv_file)
 
         raise FileNotFoundError(
-            f"No DuckDB table or CSV found for '{table_name}'. "
-            f"Expected CSV: {csv_file}"
+            f"No DuckDB table or CSV found for '{table_name}'. Expected CSV: {csv_file}"
         )
 
     def exists(self, table_name):

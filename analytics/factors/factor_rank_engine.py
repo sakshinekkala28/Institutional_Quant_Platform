@@ -33,8 +33,8 @@ from __future__ import annotations
 
 from datetime import datetime
 
-import pandas as pd
 import numpy as np
+import pandas as pd
 
 from config.paths import (
     FACTOR_EXPOSURE_FILE,
@@ -44,25 +44,12 @@ from config.paths import (
     RANKING_REPORT_FILE,
     SECTOR_EXPOSURE_FILE,
 )
-from config.settings import (
-    DATE_FORMAT,
-    ENGINE_VERSION,
-)
-from orchestration.models.engine_result import (
-    EngineResult,
-)
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
-from utils.file_utils import (
-    ensure_parent_directory,
-)
-from utils.logger import (
-    get_logger,
-)
-from utils.timer import (
-    Timer,
-)
+from config.settings import DATE_FORMAT, ENGINE_VERSION
+from orchestration.models.engine_result import EngineResult
+from orchestration.models.engine_status import EngineStatus
+from utils.file_utils import ensure_parent_directory
+from utils.logger import get_logger
+from utils.timer import Timer
 
 # =========================================================
 # CONFIG
@@ -249,19 +236,15 @@ def main() -> EngineResult:
             # =====================================================
 
             for column in rank_columns:
-
-                df[column] = (
-                    pd.to_numeric(
-                        df[column],
-                        errors="coerce",
-                    )
-                    .replace(
-                        [
-                            np.inf,
-                            -np.inf,
-                        ],
-                        np.nan,
-                    )
+                df[column] = pd.to_numeric(
+                    df[column],
+                    errors="coerce",
+                ).replace(
+                    [
+                        np.inf,
+                        -np.inf,
+                    ],
+                    np.nan,
                 )
 
                 # Missing values receive the worst rank
@@ -332,7 +315,6 @@ def main() -> EngineResult:
             ]
 
             for column in required_rank_columns:
-
                 df[column] = (
                     pd.to_numeric(
                         df[column],
@@ -388,59 +370,42 @@ def main() -> EngineResult:
             # CLEAN FINAL ALPHA SCORE
             # -------------------------------------------------
 
-            df["Alpha_Adjusted"] = (
-                pd.to_numeric(
-                    df["Alpha_Adjusted"],
-                    errors="coerce",
-                )
-                .replace(
-                    [
-                        np.inf,
-                        -np.inf,
-                    ],
-                    np.nan,
-                )
+            df["Alpha_Adjusted"] = pd.to_numeric(
+                df["Alpha_Adjusted"],
+                errors="coerce",
+            ).replace(
+                [
+                    np.inf,
+                    -np.inf,
+                ],
+                np.nan,
             )
 
-            missing_alpha = int(
-                df["Alpha_Adjusted"]
-                .isna()
-                .sum()
-            )
+            missing_alpha = int(df["Alpha_Adjusted"].isna().sum())
 
             if missing_alpha > 0:
-
                 logger.warning(
                     "Replacing %s missing Alpha_Adjusted values.",
                     missing_alpha,
                 )
 
-                df["Alpha_Adjusted"] = (
-                    df["Alpha_Adjusted"]
-                    .fillna(
-                        df["Alpha_Adjusted"].min() - 1.0
-                    )
+                df["Alpha_Adjusted"] = df["Alpha_Adjusted"].fillna(
+                    df["Alpha_Adjusted"].min() - 1.0
                 )
 
             logger.info(
                 "Alpha_Adjusted Missing : %s",
-                int(
-                    df["Alpha_Adjusted"]
-                    .isna()
-                    .sum()
-                ),
+                int(df["Alpha_Adjusted"].isna().sum()),
             )
 
             logger.info(
                 "Alpha_Adjusted Min : %.6f",
-                df["Alpha_Adjusted"]
-                .min(),
+                df["Alpha_Adjusted"].min(),
             )
 
             logger.info(
                 "Alpha_Adjusted Max : %.6f",
-                df["Alpha_Adjusted"]
-                .max(),
+                df["Alpha_Adjusted"].max(),
             )
 
             # -------------------------------------------------
@@ -457,12 +422,9 @@ def main() -> EngineResult:
                 .astype("Int64")
             )
 
-            df["Percentile"] = (
-                df["Alpha_Adjusted"]
-                .rank(
-                    pct=True,
-                    ascending=True,
-                )
+            df["Percentile"] = df["Alpha_Adjusted"].rank(
+                pct=True,
+                ascending=True,
             )
 
             # =================================================

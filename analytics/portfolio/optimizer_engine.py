@@ -92,11 +92,11 @@ if not RETURNS_FILE.exists():
 
 returns_matrix = pd.read_parquet(RETURNS_FILE)
 
-if USE_SHRINKAGE_COVARIANCE:
-    covariance_file = SHRINKAGE_FILE
-
-else:
-    covariance_file = COVARIANCE_FILE
+covariance_file = (
+    SHRINKAGE_FILE
+    if USE_SHRINKAGE_COVARIANCE
+    else COVARIANCE_FILE
+)
 
 if not covariance_file.exists():
     raise FileNotFoundError(covariance_file)
@@ -556,7 +556,6 @@ try:
     )
 
 except np.linalg.LinAlgError:
-
     eigvals = np.linalg.eigvalsh(Sigma)
 
     print("\nSmallest Eigenvalue :", eigvals.min())

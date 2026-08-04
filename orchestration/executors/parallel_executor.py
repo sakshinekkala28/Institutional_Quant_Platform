@@ -24,23 +24,13 @@ Responsibilities
 
 from __future__ import annotations
 
-from concurrent.futures import (
-    Future,
-    ThreadPoolExecutor,
-    as_completed,
-)
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from datetime import datetime
 from threading import Lock
 
-from orchestration.executors.base_executor import (
-    BaseExecutor,
-)
-from orchestration.models.engine_result import (
-    EngineResult,
-)
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
+from orchestration.executors.base_executor import BaseExecutor
+from orchestration.models.engine_result import EngineResult
+from orchestration.models.engine_status import EngineStatus
 
 
 class ParallelExecutor(BaseExecutor):

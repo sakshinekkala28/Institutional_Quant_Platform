@@ -22,18 +22,10 @@ from __future__ import annotations
 from datetime import datetime
 from time import perf_counter
 
-from orchestration.base_engine import (
-    BaseEngine,
-)
-from orchestration.executors.base_executor import (
-    BaseExecutor,
-)
-from orchestration.models.engine_result import (
-    EngineResult,
-)
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
+from orchestration.base_engine import BaseEngine
+from orchestration.executors.base_executor import BaseExecutor
+from orchestration.models.engine_result import EngineResult
+from orchestration.models.engine_status import EngineStatus
 
 
 class SequentialExecutor(BaseExecutor):

@@ -30,9 +30,7 @@ Supported Backends
 
 from __future__ import annotations
 
-from orchestration.adapters.base_adapter import (
-    BaseAdapter,
-)
+from orchestration.adapters.base_adapter import BaseAdapter
 
 # =========================================================
 # ADAPTER FACTORY

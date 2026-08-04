@@ -22,18 +22,10 @@ Internally delegates all work to MasterOrchestrator.
 
 from __future__ import annotations
 
-from orchestration.execution_context import (
-    ExecutionContext,
-)
-from orchestration.execution_report import (
-    ExecutionReport,
-)
-from orchestration.master_orchestrator import (
-    MasterOrchestrator,
-)
-from orchestration.models.master_result import (
-    MasterResult,
-)
+from orchestration.execution_context import ExecutionContext
+from orchestration.execution_report import ExecutionReport
+from orchestration.master_orchestrator import MasterOrchestrator
+from orchestration.models.master_result import MasterResult
 
 # =========================================================
 # ORCHESTRATOR

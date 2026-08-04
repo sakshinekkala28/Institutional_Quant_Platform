@@ -20,9 +20,7 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.pipelines.portfolio_pipeline import (
-    main as portfolio_pipeline,
-)
+from orchestration.pipelines.portfolio_pipeline import main as portfolio_pipeline
 
 # ==========================================================
 # STAGE

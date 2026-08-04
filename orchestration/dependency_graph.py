@@ -28,12 +28,8 @@ from __future__ import annotations
 
 from collections import defaultdict, deque
 
-from orchestration.base_engine import (
-    BaseEngine,
-)
-from orchestration.engine_registry import (
-    EngineRegistry,
-)
+from orchestration.base_engine import BaseEngine
+from orchestration.engine_registry import EngineRegistry
 
 
 class DependencyGraph:

@@ -24,15 +24,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from orchestration.base_engine import (
-    BaseEngine,
-)
-from orchestration.dependency_graph import (
-    DependencyGraph,
-)
-from orchestration.engine_registry import (
-    EngineRegistry,
-)
+from orchestration.base_engine import BaseEngine
+from orchestration.dependency_graph import DependencyGraph
+from orchestration.engine_registry import EngineRegistry
 
 # =========================================================
 # PIPELINE DEFINITION

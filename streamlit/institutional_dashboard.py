@@ -6,9 +6,9 @@ import sys
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
+import requests
 
 import streamlit as st
-import requests
 
 ROOT_DIR = Path(__file__).resolve().parents[1]
 
@@ -37,7 +37,6 @@ class APIClient:
             return response.json()
 
         except Exception as exc:
-
             st.warning(f"Unable to fetch {endpoint}: {exc}")
 
             return None
@@ -112,7 +111,6 @@ def render_api_response(response):
     # List of records
     # ----------------------------
     if isinstance(response, list):
-
         if len(response) == 0:
             st.info("No records available.")
             return
@@ -127,7 +125,6 @@ def render_api_response(response):
     # Dictionary response
     # ----------------------------
     if isinstance(response, dict):
-
         # Nested tables
         nested_tables = {k: v for k, v in response.items() if isinstance(v, list)}
 
@@ -137,7 +134,6 @@ def render_api_response(response):
         }
 
         if scalar_metrics:
-
             cols = st.columns(min(4, len(scalar_metrics)))
 
             for i, (k, v) in enumerate(scalar_metrics.items()):
@@ -147,7 +143,6 @@ def render_api_response(response):
                 )
 
         for name, table in nested_tables.items():
-
             st.subheader(name.replace("_", " ").title())
 
             st.dataframe(
@@ -156,7 +151,6 @@ def render_api_response(response):
             )
 
         with st.expander("Raw API Response"):
-
             st.json(response)
 
         return
@@ -297,13 +291,11 @@ with executive_tab:
 # ==========================================================
 
 with portfolio_tab:
-
     st.subheader("Live Portfolio")
 
     portfolio = APIClient.get("portfolio/live")
 
     if portfolio:
-
         portfolio_df = pd.DataFrame(portfolio)
 
         weight_col = next(
@@ -327,7 +319,6 @@ with portfolio_tab:
         )
 
         if weight_col:
-
             col2.metric(
                 "Weight Sum",
                 f"{portfolio_df[weight_col].sum():.2%}",
@@ -339,7 +330,6 @@ with portfolio_tab:
             )
 
         if "Expected_Alpha" in portfolio_df:
-
             col4.metric(
                 "Expected Alpha",
                 f"{portfolio_df['Expected_Alpha'].mean():.2%}",
@@ -351,7 +341,6 @@ with portfolio_tab:
         )
 
         if weight_col and "Sector" in portfolio_df.columns:
-
             sector = (
                 portfolio_df.groupby(
                     "Sector",
@@ -381,7 +370,6 @@ with portfolio_tab:
 # ==========================================================
 
 with signals_tab:
-
     st.subheader("Signals")
 
     signals = APIClient.get("signals")
@@ -393,7 +381,6 @@ with signals_tab:
 # ==========================================================
 
 with risk_tab:
-
     st.subheader("Risk Dashboard")
 
     risk = APIClient.get("risk/latest")
@@ -405,7 +392,6 @@ with risk_tab:
 # ==========================================================
 
 with performance_tab:
-
     st.subheader("Performance")
 
     performance = APIClient.get("performance")

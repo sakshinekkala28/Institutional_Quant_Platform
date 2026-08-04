@@ -34,18 +34,10 @@ from __future__ import annotations
 from collections.abc import Iterable
 from typing import Any
 
-from orchestration.events.event_bus import (
-    EventBus,
-)
-from orchestration.hook_manager import (
-    HookManager,
-)
-from orchestration.plugin_registry import (
-    PluginRegistry,
-)
-from orchestration.plugins.base_plugin import (
-    BasePlugin,
-)
+from orchestration.events.event_bus import EventBus
+from orchestration.hook_manager import HookManager
+from orchestration.plugin_registry import PluginRegistry
+from orchestration.plugins.base_plugin import BasePlugin
 
 # =========================================================
 # PLUGIN MANAGER

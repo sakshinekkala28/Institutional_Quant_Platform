@@ -23,9 +23,7 @@ from __future__ import annotations
 from collections.abc import Iterator
 import inspect
 
-from orchestration.plugins.base_plugin import (
-    BasePlugin,
-)
+from orchestration.plugins.base_plugin import BasePlugin
 
 # =========================================================
 # PLUGIN REGISTRY

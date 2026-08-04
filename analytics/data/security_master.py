@@ -21,10 +21,7 @@ import time
 
 import pandas as pd
 
-from config.paths import (
-    SECURITY_MASTER_FILE,
-    UPDATED_STOCKS_FILE,
-)
+from config.paths import SECURITY_MASTER_FILE, UPDATED_STOCKS_FILE
 from config.settings import (
     DATE_FORMAT,
     DEFAULT_ASSET_CLASS,
@@ -32,17 +29,10 @@ from config.settings import (
     DEFAULT_CURRENCY,
     DEFAULT_EXCHANGE,
 )
-from config.thresholds import (
-    MID_CAP_MAX,
-    SMALL_CAP_MAX,
-)
+from config.thresholds import MID_CAP_MAX, SMALL_CAP_MAX
 from orchestration.models.engine_result import EngineResult
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
-from utils.file_utils import (
-    ensure_parent_directory,
-)
+from orchestration.models.engine_status import EngineStatus
+from utils.file_utils import ensure_parent_directory
 from utils.logger import get_logger
 
 logger = get_logger(__name__)

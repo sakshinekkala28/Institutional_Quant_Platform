@@ -52,7 +52,13 @@ for col in required_cols:
 
 symbols_df = universe[["Symbol", "Yahoo_Symbol"]].dropna().drop_duplicates()
 
-symbol_map = dict(zip(symbols_df["Yahoo_Symbol"], symbols_df["Symbol"]))
+symbol_map = dict(
+    zip(
+        symbols_df["Yahoo_Symbol"],
+        symbols_df["Symbol"],
+        strict=True,
+    )
+)
 
 symbols = symbols_df["Yahoo_Symbol"].tolist()
 

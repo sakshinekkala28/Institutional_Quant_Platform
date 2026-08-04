@@ -1,8 +1,8 @@
 from pathlib import Path
 
-from scipy.optimize import minimize
 import numpy as np
 import pandas as pd
+from scipy.optimize import minimize
 
 # =====================================================
 # CONFIG
@@ -143,7 +143,14 @@ universe = universe.merge(sector_map, on="Symbol", how="left")
 factor_cols = ["Momentum", "Quality", "Value", "Growth", "Size", "Liquidity", "LowVol"]
 
 universe = universe.merge(
-    factor_exposures[["Symbol"] + factor_cols], on="Symbol", how="left"
+    factor_exposures[
+        [
+            "Symbol",
+            *factor_cols,
+        ]
+    ],
+    on="Symbol",
+    how="left",
 )
 
 # =====================================================
@@ -157,17 +164,13 @@ n = len(universe)
 # -----------------------------------------------------
 
 transaction_cost = (
-    1
-    / np.sqrt(
-        universe["ADV_20D"].fillna(
-            universe["ADV_20D"].median()
-        )
-    )
+    1 / np.sqrt(universe["ADV_20D"].fillna(universe["ADV_20D"].median()))
 ).values
 
 # -----------------------------------------------------
 # OBJECTIVE FUNCTION
 # -----------------------------------------------------
+
 
 def objective(weights: np.ndarray) -> float:
     """
@@ -186,24 +189,16 @@ def objective(weights: np.ndarray) -> float:
         weights,
     )
 
-    portfolio_variance = (
-        weights.T
-        @ Sigma
-        @ weights
-    )
+    portfolio_variance = weights.T @ Sigma @ weights
 
-    turnover = np.sum(
-        (weights - current_weights) ** 2
-    )
+    turnover = np.sum((weights - current_weights) ** 2)
 
     tc = np.dot(
         transaction_cost,
         weights,
     )
 
-    concentration = np.sum(
-        weights**2
-    )
+    concentration = np.sum(weights**2)
 
     return (
         -portfolio_return
@@ -212,6 +207,7 @@ def objective(weights: np.ndarray) -> float:
         + 0.05 * tc
         + 0.10 * concentration
     )
+
 
 # -----------------------------------------------------
 # INITIAL WEIGHTS
@@ -254,10 +250,7 @@ constraints.append(
 constraints.append(
     {
         "type": "ineq",
-        "fun": lambda w: (
-            (1 / 25)
-            - np.sum(w**2)
-        ),
+        "fun": lambda w: (1 / 25) - np.sum(w**2),
     }
 )
 
@@ -267,12 +260,7 @@ constraints.append(
     {
         "type": "ineq",
         "fun": lambda w: (
-            MAX_TRACKING_ERROR**2
-            - (
-                (w - benchmark).T
-                @ Sigma
-                @ (w - benchmark)
-            )
+            MAX_TRACKING_ERROR**2 - ((w - benchmark).T @ Sigma @ (w - benchmark))
         ),
     }
 )
@@ -282,18 +270,12 @@ constraints.append(
 # =====================================================
 
 for sector in universe["Sector"].dropna().unique():
-
-    idx = np.where(
-        universe["Sector"] == sector
-    )[0]
+    idx = np.where(universe["Sector"] == sector)[0]
 
     constraints.append(
         {
             "type": "ineq",
-            "fun": lambda w, idx=idx: (
-                MAX_SECTOR_WEIGHT
-                - np.sum(w[idx])
-            ),
+            "fun": lambda w, idx=idx: MAX_SECTOR_WEIGHT - np.sum(w[idx]),
         }
     )
 
@@ -302,66 +284,41 @@ for sector in universe["Sector"].dropna().unique():
 # =====================================================
 
 for factor in factor_cols:
-
-    exposure = (
-        universe[factor]
-        .fillna(0)
-        .values
-    )
+    exposure = universe[factor].fillna(0).values
 
     constraints.append(
         {
             "type": "ineq",
-            "fun": lambda w, e=exposure: (
-                FACTOR_LIMIT
-                - np.dot(e, w)
-            ),
+            "fun": lambda w, e=exposure: FACTOR_LIMIT - np.dot(e, w),
         }
     )
 
     constraints.append(
         {
             "type": "ineq",
-            "fun": lambda w, e=exposure: (
-                FACTOR_LIMIT
-                + np.dot(e, w)
-            ),
+            "fun": lambda w, e=exposure: FACTOR_LIMIT + np.dot(e, w),
         }
     )
 
 # Momentum
 
-momentum = (
-    universe["Momentum"]
-    .fillna(0)
-    .values
-)
+momentum = universe["Momentum"].fillna(0).values
 
 constraints.append(
     {
         "type": "ineq",
-        "fun": lambda w: (
-            0.80
-            - np.dot(momentum, w)
-        ),
+        "fun": lambda w: 0.80 - np.dot(momentum, w),
     }
 )
 
 # Growth
 
-growth = (
-    universe["Growth"]
-    .fillna(0)
-    .values
-)
+growth = universe["Growth"].fillna(0).values
 
 constraints.append(
     {
         "type": "ineq",
-        "fun": lambda w: (
-            0.80
-            - np.dot(growth, w)
-        ),
+        "fun": lambda w: 0.80 - np.dot(growth, w),
     }
 )
 
@@ -389,10 +346,7 @@ print("Status :", result.message)
 print("Iterations :", result.nit)
 
 if not result.success:
-
-    raise RuntimeError(
-        result.message
-    )
+    raise RuntimeError(result.message)
 
 # =====================================================
 # RESULTS

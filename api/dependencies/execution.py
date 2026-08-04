@@ -34,30 +34,14 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from execution.execution_engine import (
-    ExecutionEngine,
-)
-from execution.execution_simulator import (
-    ExecutionAnalytics,
-)
-from execution.market_impact import (
-    MarketImpact,
-)
-from execution.monitoring_engine import (
-    MonitoringEngine,
-)
-from execution.order_router import (
-    OrderRouter,
-)
-from execution.slippage_engine import (
-    SlippageEngine,
-)
-from execution.trade_engine import (
-    TradeEngine,
-)
-from execution.transaction_cost_engine import (
-    TransactionCostEngine,
-)
+from execution.execution_engine import ExecutionEngine
+from execution.execution_simulator import ExecutionAnalytics
+from execution.market_impact import MarketImpact
+from execution.monitoring_engine import MonitoringEngine
+from execution.order_router import OrderRouter
+from execution.slippage_engine import SlippageEngine
+from execution.trade_engine import TradeEngine
+from execution.transaction_cost_engine import TransactionCostEngine
 
 # ==========================================================
 # EXECUTION ENGINE

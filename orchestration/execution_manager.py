@@ -22,15 +22,9 @@ from __future__ import annotations
 
 from time import perf_counter
 
-from orchestration.execution_report import (
-    ExecutionReport,
-)
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
+from orchestration.execution_report import ExecutionReport
+from orchestration.models.engine_status import EngineStatus
+from orchestration.models.pipeline_result import PipelineResult
 
 
 class ExecutionManager:

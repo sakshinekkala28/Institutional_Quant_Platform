@@ -16,28 +16,16 @@ data/raw/symbol_metadata.csv
 """
 
 import time
+import traceback
 
 import pandas as pd
 
-from analytics.data.providers.yahoo_market_cap_provider import (
-    fetch_market_cap,
-)
-
-from config.paths import (
-    SYMBOL_METADATA_FILE,
-)
-from config.thresholds import (
-    COOLDOWN_AFTER,
-    COOLDOWN_SECONDS,
-    SAVE_INTERVAL,
-)
+from analytics.data.providers.yahoo_market_cap_provider import fetch_market_cap
+from config.paths import SYMBOL_METADATA_FILE
+from config.thresholds import COOLDOWN_AFTER, COOLDOWN_SECONDS, SAVE_INTERVAL
 from orchestration.models.engine_result import EngineResult
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
-from utils.file_utils import (
-    ensure_parent_directory,
-)
+from orchestration.models.engine_status import EngineStatus
+from utils.file_utils import ensure_parent_directory
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -89,9 +77,7 @@ def main() -> EngineResult:
         }
 
         for column, default in metadata_columns.items():
-
             if column not in df.columns:
-
                 df[column] = default
 
         df["Market_Cap"] = pd.to_numeric(
@@ -233,19 +219,11 @@ def main() -> EngineResult:
                 # FINAL STATISTICS
                 # =====================================================
 
-                filled = int(
-                    (df["Market_Cap"] > 0).sum()
-                )
+                filled = int((df["Market_Cap"] > 0).sum())
 
-                missing = int(
-                    (df["Market_Cap"] <= 0).sum()
-                )
+                missing = int((df["Market_Cap"] <= 0).sum())
 
-                coverage = (
-                    filled / len(df) * 100
-                    if len(df)
-                    else 0.0
-                )
+                coverage = filled / len(df) * 100 if len(df) else 0.0
 
                 newly_filled = max(
                     0,
@@ -279,7 +257,6 @@ def main() -> EngineResult:
         # =====================================================
         # REPORT
         # =====================================================
-
 
         print("\n" + "=" * 70)
 
@@ -331,8 +308,6 @@ def main() -> EngineResult:
 
     except Exception as exc:
 
-        import traceback
-
         duration = time.perf_counter() - start_time
 
         print("\n" + "=" * 80)
@@ -355,8 +330,8 @@ def main() -> EngineResult:
             },
         )
 
-if __name__ == "__main__":
 
+if __name__ == "__main__":
     result = main()
 
     print("\n" + "=" * 80)

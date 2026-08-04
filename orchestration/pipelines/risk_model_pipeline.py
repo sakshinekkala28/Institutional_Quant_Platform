@@ -23,49 +23,23 @@ Responsibilities
 
 from __future__ import annotations
 
-from analytics.risk.build_beta_master import (
-    main as beta_master_engine,
-)
-from analytics.risk.build_beta_model import (
-    main as beta_model_engine,
-)
+from analytics.risk.build_beta_master import main as beta_master_engine
+from analytics.risk.build_beta_model import main as beta_model_engine
 
 # ==========================================================
 # RISK MODEL ENGINES
 # ==========================================================
-from analytics.risk.build_daily_returns import (
-    main as daily_returns_engine,
-)
-from analytics.risk.build_factor_covariance import (
-    main as factor_covariance_engine,
-)
-from analytics.risk.build_factor_exposure_matrix import (
-    main as exposure_matrix_engine,
-)
-from analytics.risk.build_factor_returns import (
-    main as factor_returns_engine,
-)
-from analytics.risk.build_factor_risk_model import (
-    main as factor_risk_model_builder,
-)
-from analytics.risk.build_specific_risk import (
-    main as specific_risk_engine,
-)
-from analytics.risk.build_volatility_model import (
-    main as volatility_model_engine,
-)
-from analytics.risk.covariance_matrix_engine import (
-    main as covariance_matrix_engine,
-)
-from analytics.risk.factor_risk_model import (
-    main as factor_risk_model_engine,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
-from orchestration.pipelines.base_pipeline import (
-    BasePipeline,
-)
+from analytics.risk.build_daily_returns import main as daily_returns_engine
+from analytics.risk.build_factor_covariance import main as factor_covariance_engine
+from analytics.risk.build_factor_exposure_matrix import main as exposure_matrix_engine
+from analytics.risk.build_factor_returns import main as factor_returns_engine
+from analytics.risk.build_factor_risk_model import main as factor_risk_model_builder
+from analytics.risk.build_specific_risk import main as specific_risk_engine
+from analytics.risk.build_volatility_model import main as volatility_model_engine
+from analytics.risk.covariance_matrix_engine import main as covariance_matrix_engine
+from analytics.risk.factor_risk_model import main as factor_risk_model_engine
+from orchestration.models.pipeline_result import PipelineResult
+from orchestration.pipelines.base_pipeline import BasePipeline
 
 # ==========================================================
 # RISK MODEL PIPELINE

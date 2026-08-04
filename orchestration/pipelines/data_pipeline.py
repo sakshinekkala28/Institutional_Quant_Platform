@@ -19,30 +19,14 @@ Responsibilities
 
 from __future__ import annotations
 
-from analytics.data.generate_metadata import (
-    main as stock_metadata_engine,
-)
-from analytics.data.incremental_price_update import (
-    main as price_update_engine,
-)
-from analytics.data.market_cap_enrichment import (
-    main as market_cap_engine,
-)
-from analytics.data.security_master import (
-    main as security_master_engine,
-)
-from analytics.data.symbol_metadata import (
-    main as symbol_metadata_engine,
-)
-from analytics.data.updated_stocks import (
-    main as universe_engine,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
-from orchestration.pipelines.base_pipeline import (
-    BasePipeline,
-)
+from analytics.data.generate_metadata import main as stock_metadata_engine
+from analytics.data.incremental_price_update import main as price_update_engine
+from analytics.data.market_cap_enrichment import main as market_cap_engine
+from analytics.data.security_master import main as security_master_engine
+from analytics.data.symbol_metadata import main as symbol_metadata_engine
+from analytics.data.updated_stocks import main as universe_engine
+from orchestration.models.pipeline_result import PipelineResult
+from orchestration.pipelines.base_pipeline import BasePipeline
 
 # ==========================================================
 # DATA PIPELINE

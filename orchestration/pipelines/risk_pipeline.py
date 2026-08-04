@@ -23,52 +23,24 @@ Responsibilities
 
 from __future__ import annotations
 
-from analytics.risk.build_factor_covariance import (
-    main as covariance_builder_engine,
-)
-from analytics.risk.build_factor_exposure_matrix import (
-    main as exposure_matrix_engine,
-)
-from analytics.risk.build_factor_returns import (
-    main as factor_returns_engine,
-)
-from analytics.risk.build_factor_risk_model import (
-    main as factor_risk_builder,
-)
-from analytics.risk.build_specific_risk import (
-    main as specific_risk_engine,
-)
-from analytics.risk.exposure_engine import (
-    main as exposure_engine,
-)
-from analytics.risk.factor_risk_model import (
-    main as factor_risk_engine,
-)
-from analytics.risk.portfolio_risk_engine import (
-    main as portfolio_risk_engine,
-)
+from analytics.risk.build_factor_covariance import main as covariance_builder_engine
+from analytics.risk.build_factor_exposure_matrix import main as exposure_matrix_engine
+from analytics.risk.build_factor_returns import main as factor_returns_engine
+from analytics.risk.build_factor_risk_model import main as factor_risk_builder
+from analytics.risk.build_specific_risk import main as specific_risk_engine
+from analytics.risk.exposure_engine import main as exposure_engine
+from analytics.risk.factor_risk_model import main as factor_risk_engine
+from analytics.risk.portfolio_risk_engine import main as portfolio_risk_engine
 
 # ==========================================================
 # RISK ENGINES
 # ==========================================================
-from analytics.risk.returns_matrix_builder import (
-    main as returns_matrix_engine,
-)
-from analytics.risk.risk_budget_engine import (
-    main as risk_budget_engine,
-)
-from analytics.risk.risk_dashboard_engine import (
-    main as risk_dashboard_engine,
-)
-from analytics.risk.stress_test_engine import (
-    main as stress_test_engine,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
-from orchestration.pipelines.base_pipeline import (
-    BasePipeline,
-)
+from analytics.risk.returns_matrix_builder import main as returns_matrix_engine
+from analytics.risk.risk_budget_engine import main as risk_budget_engine
+from analytics.risk.risk_dashboard_engine import main as risk_dashboard_engine
+from analytics.risk.stress_test_engine import main as stress_test_engine
+from orchestration.models.pipeline_result import PipelineResult
+from orchestration.pipelines.base_pipeline import BasePipeline
 
 # ==========================================================
 # RISK PIPELINE

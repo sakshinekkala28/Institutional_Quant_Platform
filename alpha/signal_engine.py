@@ -8,8 +8,9 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-
+from typing import ClassVar
 import warnings
+
 import numpy as np
 import pandas as pd
 
@@ -18,7 +19,6 @@ warnings.filterwarnings("ignore")
 # ==========================================================
 # CONFIGURATION
 # ==========================================================
-
 
 @dataclass(frozen=True)
 class SignalConfig:
@@ -40,7 +40,6 @@ class SignalConfig:
 # ==========================================================
 # PATH MANAGER
 # ==========================================================
-
 
 class PathManager:
     def __init__(self):
@@ -88,7 +87,6 @@ class PathManager:
 # DATA LOADER
 # ==========================================================
 
-
 class DataLoader:
     @staticmethod
     def load_csv(path: Path, required_columns: list[str] | None = None) -> pd.DataFrame:
@@ -121,7 +119,6 @@ class DataLoader:
 # ==========================================================
 # DATA VALIDATOR
 # ==========================================================
-
 
 class DataValidator:
     @staticmethod
@@ -157,7 +154,6 @@ class DataValidator:
 # DATA STANDARDIZER
 # ==========================================================
 
-
 class DataStandardizer:
     @staticmethod
     def standardize_master_columns(df: pd.DataFrame) -> pd.DataFrame:
@@ -178,9 +174,10 @@ class DataStandardizer:
 
         duplicate_cols = [c for c in df.columns if c.endswith(("_x", "_y"))]
 
-        df = df.drop(columns=duplicate_cols, errors="ignore")
-
-        return df
+        return df.drop(
+            columns=duplicate_cols,
+            errors="ignore",
+        )
 
     @staticmethod
     def standardize_security_master(security_master: pd.DataFrame) -> pd.DataFrame:
@@ -197,7 +194,6 @@ class DataStandardizer:
 # ==========================================================
 # FACTOR NORMALIZER
 # ==========================================================
-
 
 class FactorNormalizer:
     @staticmethod
@@ -229,7 +225,6 @@ class FactorNormalizer:
 # SIGNAL FRESHNESS ENGINE
 # ==========================================================
 
-
 class SignalFreshnessEngine:
     @staticmethod
     def apply(df: pd.DataFrame, half_life_days: int = 90) -> pd.DataFrame:
@@ -253,7 +248,6 @@ class SignalFreshnessEngine:
 # ==========================================================
 # COVERAGE ANALYTICS
 # ==========================================================
-
 
 class CoverageAnalytics:
     @staticmethod
@@ -287,11 +281,12 @@ class CoverageAnalytics:
             ),
         }
 
-        report = pd.DataFrame(
-            {"Metric": metrics.keys(), "Coverage_%": metrics.values()}
+        return pd.DataFrame(
+            {
+                "Metric": metrics.keys(),
+                "Coverage_%": metrics.values(),
+            }
         )
-
-        return report
 
     @staticmethod
     def print_report(target: pd.DataFrame):
@@ -308,7 +303,6 @@ class CoverageAnalytics:
 # ==========================================================
 # FACTOR EXPOSURE EXPORTER
 # ==========================================================
-
 
 class ExposureExporter:
     @staticmethod
@@ -339,7 +333,6 @@ class ExposureExporter:
 # ==========================================================
 # FACTOR ENGINE
 # ==========================================================
-
 
 class FactorEngine:
     def __init__(self, df: pd.DataFrame):
@@ -480,9 +473,8 @@ class FactorEngine:
 # FACTOR HEALTH ENGINE
 # ==========================================================
 
-
 class FactorHealthEngine:
-    FACTORS = [
+    FACTORS: ClassVar[list[str]] = [
         "Signal_Factor",
         "Momentum_Factor",
         "Quality_Factor",
@@ -517,9 +509,9 @@ class FactorHealthEngine:
 # FACTOR CORRELATION ENGINE
 # ==========================================================
 
-
 class FactorCorrelationEngine:
-    FACTORS = [
+
+    FACTORS: ClassVar[list[str]] = [
         "Signal_Factor",
         "Momentum_Factor",
         "Quality_Factor",
@@ -540,7 +532,6 @@ class FactorCorrelationEngine:
 # ==========================================================
 # FACTOR DIAGNOSTICS ENGINE
 # ==========================================================
-
 
 class FactorDiagnostics:
     @staticmethod
@@ -565,9 +556,10 @@ class FactorDiagnostics:
 # REGIME ENGINE
 # ==========================================================
 
-
 class RegimeEngine:
-    REGIME_WEIGHTS = {
+    REGIME_WEIGHTS: ClassVar[
+        dict[str, dict[str, float]]
+    ] = {
         "BULL": {
             "Signal": 0.20,
             "Momentum": 0.25,
@@ -613,7 +605,6 @@ class RegimeEngine:
 # ALPHA ENGINE
 # ==========================================================
 
-
 class AlphaEngine:
     @staticmethod
     def build_composite_alpha(df, regime_name="SIDEWAYS"):
@@ -639,7 +630,6 @@ class AlphaEngine:
 # SECTOR ALPHA ENGINE
 # ==========================================================
 
-
 class SectorAlphaEngine:
     @staticmethod
     def build(df):
@@ -662,7 +652,6 @@ class SectorAlphaEngine:
 # UNIVERSE BUILDER
 # ==========================================================
 
-
 class UniverseBuilder:
     @staticmethod
     def build(df, config):
@@ -682,7 +671,6 @@ class UniverseBuilder:
 # ==========================================================
 # SELECTION SCORE ENGINE
 # ==========================================================
-
 
 class SelectionScoreEngine:
     @staticmethod
@@ -705,7 +693,6 @@ class SelectionScoreEngine:
 # SIGNAL ENGINE
 # ==========================================================
 
-
 class SignalEngine:
     def __init__(self):
 
@@ -717,7 +704,7 @@ class SignalEngine:
 
     def load_data(self):
 
-        data = {
+        return {
             "signals": self.loader.load_csv(
                 self.paths.signal_file,
                 required_columns=["Symbol", "Signal", "Signal_Score"],
@@ -733,7 +720,6 @@ class SignalEngine:
             "regime": self.loader.load_csv(self.paths.regime_file),
         }
 
-        return data
 
     def build_alpha_universe(self, data):
 

@@ -21,15 +21,9 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.dependency_graph import (
-    DependencyGraph,
-)
-from orchestration.engine_registry import (
-    EngineRegistry,
-)
-from orchestration.pipeline_builder import (
-    PipelineDefinition,
-)
+from orchestration.dependency_graph import DependencyGraph
+from orchestration.engine_registry import EngineRegistry
+from orchestration.pipeline_builder import PipelineDefinition
 
 
 class PipelineValidator:

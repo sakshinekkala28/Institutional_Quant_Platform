@@ -197,16 +197,15 @@ breadth_raw["Date"] = pd.to_datetime(
     errors="coerce",
 )
 
-if getattr(
-    breadth_raw["Date"].dt,
-    "tz",
-    None,
-) is not None:
-
-    breadth_raw["Date"] = (
-        breadth_raw["Date"]
-        .dt.tz_localize(None)
+if (
+    getattr(
+        breadth_raw["Date"].dt,
+        "tz",
+        None,
     )
+    is not None
+):
+    breadth_raw["Date"] = breadth_raw["Date"].dt.tz_localize(None)
 
 latest_date = breadth_raw["Date"].max()
 

@@ -20,9 +20,7 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.pipelines.execution_pipeline import (
-    main as execution_pipeline,
-)
+from orchestration.pipelines.execution_pipeline import main as execution_pipeline
 
 # ==========================================================
 # STAGE

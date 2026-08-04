@@ -22,15 +22,9 @@ from __future__ import annotations
 
 import time
 
-from orchestration.executors.sequential_executor import (
-    SequentialExecutor,
-)
-from orchestration.models.engine_result import (
-    EngineResult,
-)
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
+from orchestration.executors.sequential_executor import SequentialExecutor
+from orchestration.models.engine_result import EngineResult
+from orchestration.models.engine_status import EngineStatus
 
 
 class RetryExecutor(SequentialExecutor):

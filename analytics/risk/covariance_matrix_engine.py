@@ -101,11 +101,11 @@ AUDIT_FILE = RISK_DIR / "covariance_audit.csv"
 
 print("\n📥 Loading Return Matrices...")
 
-if USE_LOG_RETURNS:
-    input_file = LOG_RETURNS_FILE
-
-else:
-    input_file = RETURNS_FILE
+input_file = (
+    LOG_RETURNS_FILE
+    if USE_LOG_RETURNS
+    else RETURNS_FILE
+)
 
 if not input_file.exists():
     raise FileNotFoundError(f"Missing file: {input_file}")
@@ -131,8 +131,8 @@ if not isinstance(returns_matrix.index, pd.DatetimeIndex):
     try:
         returns_matrix.index = pd.to_datetime(returns_matrix.index)
 
-    except Exception:
-        raise ValueError("Date index invalid.")
+    except Exception as err:
+        raise ValueError("Date index invalid.") from err
 
 # =========================================================
 # MATRIX VALIDATION

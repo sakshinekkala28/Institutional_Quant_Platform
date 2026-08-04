@@ -20,12 +20,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
 
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
+from orchestration.models.engine_status import EngineStatus
+from orchestration.models.pipeline_result import PipelineResult
 
 
 @dataclass(slots=True)

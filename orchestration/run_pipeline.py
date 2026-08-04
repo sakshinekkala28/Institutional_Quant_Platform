@@ -37,12 +37,8 @@ import logging
 from pathlib import Path
 import sys
 
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
-from orchestration.orchestrator import (
-    Orchestrator,
-)
+from orchestration.models.engine_status import EngineStatus
+from orchestration.orchestrator import Orchestrator
 
 logger = logging.getLogger(__name__)
 

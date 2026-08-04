@@ -29,10 +29,7 @@ import numpy as np
 from scipy.stats import norm
 
 from core.constants import RiskConstants
-from core.math.statistics import (
-    mean,
-    standard_deviation,
-)
+from core.math.statistics import mean, standard_deviation
 
 # ==========================================================
 # HISTORICAL VAR

@@ -9,10 +9,7 @@ from pathlib import Path
 import pandas as pd
 
 from core.settings import settings
-from execution.transaction_cost_engine import (
-    CostUniverseBuilder,
-    TransactionCostEngine,
-)
+from execution.transaction_cost_engine import CostUniverseBuilder, TransactionCostEngine
 
 # ==========================================================
 # LOGGING

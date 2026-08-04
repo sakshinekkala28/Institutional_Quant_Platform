@@ -24,9 +24,7 @@ from __future__ import annotations
 # IMPORTS
 # ==========================================================
 # Replace with monitoring_pipeline when implemented.
-from orchestration.pipelines.reporting_pipeline import (
-    main as monitoring_pipeline,
-)
+from orchestration.pipelines.reporting_pipeline import main as monitoring_pipeline
 
 # ==========================================================
 # MONITORING STAGE

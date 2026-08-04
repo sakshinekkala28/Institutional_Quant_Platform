@@ -29,10 +29,10 @@ import time
 import pandas as pd
 import yfinance as yf
 
-from utils.logger import get_logger
-
-logger = get_logger(__name__)
-
+from config.paths import (
+    SYMBOL_METADATA_FILE,
+    VALID_STOCKS_FILE,
+)
 from config.settings import (
     DATE_FORMAT,
 )
@@ -42,30 +42,31 @@ from config.thresholds import (
     MAX_RETRIES,
     SAVE_INTERVAL,
 )
-from orchestration.models.engine_result import EngineResult
+from orchestration.models.engine_result import (
+    EngineResult,
+)
 from orchestration.models.engine_status import (
     EngineStatus,
 )
 from utils.file_utils import (
     ensure_parent_directory,
 )
+from utils.logger import (
+    get_logger,
+)
+
+logger = get_logger(__name__)
+
 
 ENGINE_NAME = "SymbolMetadata"
 
-TODAY = pd.Timestamp.now().strftime(DATE_FORMAT)
-# =========================================================
-# PATHS
-# =========================================================
-
-from config.paths import (
-    SYMBOL_METADATA_FILE,
-    VALID_STOCKS_FILE,
+TODAY = pd.Timestamp.now().strftime(
+    DATE_FORMAT
 )
 
 # =========================================================
 # FETCH METADATA
 # =========================================================
-
 
 def fetch_metadata(symbol: str) -> dict:
 
@@ -129,7 +130,6 @@ def fetch_metadata(symbol: str) -> dict:
 # SAVE CHECKPOINT
 # =========================================================
 
-
 def save_checkpoint(records):
 
     df = pd.DataFrame(records)
@@ -167,7 +167,6 @@ def save_checkpoint(records):
 # =========================================================
 # MAIN
 # =========================================================
-
 
 def main():
     """

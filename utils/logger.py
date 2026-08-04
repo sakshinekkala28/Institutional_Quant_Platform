@@ -14,14 +14,8 @@ from __future__ import annotations
 
 import logging
 
-from config.paths import (
-    LOG_DIR,
-)
-from config.settings import (
-    ENABLE_CONSOLE_LOGGING,
-    ENABLE_FILE_LOGGING,
-    LOG_LEVEL,
-)
+from config.paths import LOG_DIR
+from config.settings import ENABLE_CONSOLE_LOGGING, ENABLE_FILE_LOGGING, LOG_LEVEL
 
 LOG_FILE = LOG_DIR / "platform.log"
 

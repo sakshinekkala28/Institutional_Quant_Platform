@@ -20,9 +20,7 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.pipelines.reporting_pipeline import (
-    main as reporting_pipeline,
-)
+from orchestration.pipelines.reporting_pipeline import main as reporting_pipeline
 
 # ==========================================================
 # REPORTING STAGE

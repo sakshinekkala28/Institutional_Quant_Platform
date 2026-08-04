@@ -18,9 +18,7 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.pipelines.factor_pipeline import (
-    main as factor_pipeline,
-)
+from orchestration.pipelines.factor_pipeline import main as factor_pipeline
 
 # ==========================================================
 # STAGE

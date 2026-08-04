@@ -19,10 +19,10 @@ data/logs/invalid_symbols.csv
 
 =========================================================
 """
-
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import time
+import traceback
 
 import pandas as pd
 import yfinance as yf
@@ -33,20 +33,10 @@ from config.paths import (
     PRICE_UPDATE_FAILURE_FILE,
     UPDATED_STOCKS_FILE,
 )
-from config.thresholds import (
-    FULL_HISTORY_YEARS,
-    MAX_WORKERS,
-)
-from orchestration.models.engine_result import (
-    EngineResult,
-)
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
-from utils.file_utils import (
-    ensure_directory,
-    ensure_parent_directory,
-)
+from config.thresholds import MAX_WORKERS
+from orchestration.models.engine_result import EngineResult
+from orchestration.models.engine_status import EngineStatus
+from utils.file_utils import ensure_directory, ensure_parent_directory
 from utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -57,32 +47,49 @@ logger = get_logger(__name__)
 
 ENGINE_NAME = "IncrementalPriceUpdate"
 
-# =========================================================
-# DOWNLOAD FULL HISTORY
-# =========================================================
-
 
 def download_full_history(
     symbol: str,
 ) -> pd.DataFrame:
     """
-    Download full historical price data
-    from Yahoo Finance.
+    Download complete historical price history
+    for a security from Yahoo Finance.
     """
 
-    return yf.download(
+    df = yf.download(
         f"{symbol}.NS",
-        period=f"{FULL_HISTORY_YEARS}y",
+        start="1990-01-01",
         auto_adjust=True,
         progress=False,
         threads=False,
     )
 
+    if df.empty:
+        return pd.DataFrame()
+
+    df = df.reset_index()
+
+    if isinstance(
+        df.columns,
+        pd.MultiIndex,
+    ):
+        df.columns = df.columns.get_level_values(0)
+
+    df.columns = [
+        str(column).replace(
+            " ",
+            "_",
+        )
+        for column in df.columns
+    ]
+
+    df["Symbol"] = symbol
+
+    return df
 
 # =========================================================
-# UPDATE SYMBOL
+# DOWNLOAD FULL HISTORY
 # =========================================================
-
 
 def update_symbol(
     symbol: str,
@@ -97,25 +104,33 @@ def update_symbol(
 
     output_file = price_dir / f"{symbol}.parquet"
 
+    status = "FAILED"
+
     try:
+
         # =====================================================
         # NEW FILE
         # =====================================================
 
         if not output_file.exists():
+
             df = download_full_history(symbol)
 
             if len(df) < 252:
+
                 new_invalid.append(
                     {
                         "Symbol": symbol,
-                        "Reason": (f"Insufficient History ({len(df)} rows)"),
+                        "Reason": (
+                            f"Insufficient History ({len(df)} rows)"
+                        ),
                     }
                 )
 
-                return "INVALID"
+                status = "INVALID"
 
-            if df.empty:
+            elif df.empty:
+
                 new_invalid.append(
                     {
                         "Symbol": symbol,
@@ -123,123 +138,136 @@ def update_symbol(
                     }
                 )
 
-                return "INVALID"
+                status = "INVALID"
 
-            df = df.reset_index()
+            else:
 
-            if isinstance(
-                df.columns,
-                pd.MultiIndex,
-            ):
-                df.columns = [c[0] for c in df.columns]
-
-            df.columns = [
-                str(c).replace(
-                    " ",
-                    "_",
+                output_file.parent.mkdir(
+                    parents=True,
+                    exist_ok=True,
                 )
-                for c in df.columns
-            ]
 
-            df["Symbol"] = symbol
+                df.to_parquet(
+                    output_file,
+                    index=False,
+                )
 
-            output_file.parent.mkdir(
-                parents=True,
-                exist_ok=True,
-            )
-
-            df.to_parquet(
-                output_file,
-                index=False,
-            )
-
-            return "NEW"
+                status = "NEW"
 
         # =====================================================
         # EXISTING FILE
         # =====================================================
 
-        existing = pd.read_parquet(output_file)
+        else:
 
-        if len(existing) < 252:
-            new_invalid.append(
-                {
-                    "Symbol": symbol,
-                    "Reason": (f"Corrupted History ({len(existing)} rows)"),
-                }
-            )
+            existing = pd.read_parquet(output_file)
 
-            return "INVALID"
+            if len(existing) < 252:
 
-        if existing.empty:
-            return "SKIPPED"
+                new_invalid.append(
+                    {
+                        "Symbol": symbol,
+                        "Reason": (
+                            f"Corrupted History ({len(existing)} rows)"
+                        ),
+                    }
+                )
 
-        last_date = pd.to_datetime(existing["Date"]).max()
+                status = "INVALID"
 
-        if last_date.normalize() >= expected_date:
-            return "SKIPPED"
+            elif existing.empty:
 
-        start_date = last_date + pd.Timedelta(days=1)
+                status = "SKIPPED"
 
-        new_data = yf.download(
-            f"{symbol}.NS",
-            start=start_date.strftime("%Y-%m-%d"),
-            auto_adjust=True,
-            progress=False,
-            threads=False,
-        )
+            else:
 
-        if new_data.empty:
-            return "SKIPPED"
+                last_date = pd.to_datetime(
+                    existing["Date"]
+                ).max()
 
-        new_data = new_data.reset_index()
+                if last_date.normalize() >= expected_date:
 
-        if isinstance(
-            new_data.columns,
-            pd.MultiIndex,
-        ):
-            new_data.columns = [c[0] for c in new_data.columns]
+                    status = "SKIPPED"
 
-        new_data.columns = [
-            str(c).replace(
-                " ",
-                "_",
-            )
-            for c in new_data.columns
-        ]
+                else:
 
-        new_data["Symbol"] = symbol
+                    start_date = (
+                        last_date
+                        + pd.Timedelta(days=1)
+                    )
 
-        updated = pd.concat(
-            [
-                existing,
-                new_data,
-            ],
-            ignore_index=True,
-        )
+                    new_data = yf.download(
+                        f"{symbol}.NS",
+                        start=start_date.strftime("%Y-%m-%d"),
+                        auto_adjust=True,
+                        progress=False,
+                        threads=False,
+                    )
 
-        updated = updated.drop_duplicates(subset=["Date"]).sort_values("Date")
+                    if new_data.empty:
 
-        updated.to_parquet(
-            output_file,
-            index=False,
-        )
+                        status = "SKIPPED"
 
-        return "UPDATED"
+                    else:
+
+                        new_data = new_data.reset_index()
+
+                        if isinstance(
+                            new_data.columns,
+                            pd.MultiIndex,
+                        ):
+                            new_data.columns = [
+                                c[0]
+                                for c in new_data.columns
+                            ]
+
+                        new_data.columns = [
+                            str(c).replace(
+                                " ",
+                                "_",
+                            )
+                            for c in new_data.columns
+                        ]
+
+                        new_data["Symbol"] = symbol
+
+                        updated = (
+                            pd.concat(
+                                [
+                                    existing,
+                                    new_data,
+                                ],
+                                ignore_index=True,
+                            )
+                            .drop_duplicates(
+                                subset=["Date"]
+                            )
+                            .sort_values("Date")
+                        )
+
+                        updated.to_parquet(
+                            output_file,
+                            index=False,
+                        )
+
+                        status = "UPDATED"
 
     # =========================================================
     # EXCEPTION HANDLING
     # =========================================================
 
-    except Exception as e:
+    except Exception as exc:
+
         failures.append(
             {
                 "Symbol": symbol,
-                "Error": str(e),
+                "Error": str(exc),
             }
         )
 
-        return "FAILED"
+        status = "FAILED"
+
+    return status
 
 
 # =========================================================
@@ -483,20 +511,15 @@ def main() -> EngineResult:
     # =========================================================
 
     except Exception as exc:
-
         duration = time.perf_counter() - start_time
 
-        logger.exception(
-            "Market Cap Enrichment Engine failed."
-        )
+        logger.exception("Market Cap Enrichment Engine failed.")
 
         print("\n" + "=" * 70)
         print("❌ MARKET CAP ENRICHMENT FAILED")
         print("=" * 70)
         print(f"Exception Type : {type(exc).__name__}")
         print(f"Exception      : {exc}")
-
-        import traceback
 
         traceback.print_exc()
 

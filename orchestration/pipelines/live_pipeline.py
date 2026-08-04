@@ -18,18 +18,10 @@ from __future__ import annotations
 # ==========================================================
 # LIVE ENGINES
 # ==========================================================
-from analytics.live.build_factor_expected_returns import (
-    main as expected_returns_engine,
-)
-from analytics.live.live_rebalance_engine import (
-    main as live_rebalance_engine,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
-from orchestration.pipelines.base_pipeline import (
-    BasePipeline,
-)
+from analytics.live.build_factor_expected_returns import main as expected_returns_engine
+from analytics.live.live_rebalance_engine import main as live_rebalance_engine
+from orchestration.models.pipeline_result import PipelineResult
+from orchestration.pipelines.base_pipeline import BasePipeline
 
 # ==========================================================
 # LIVE PIPELINE

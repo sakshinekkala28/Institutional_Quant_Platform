@@ -37,9 +37,7 @@ from dataclasses import dataclass, field
 from backtesting.backtest_report import BacktestReport
 from core.models.risk_report import RiskReport
 from execution.execution_report import ExecutionReport
-from optimization.optimization_report import (
-    OptimizationReport,
-)
+from optimization.optimization_report import OptimizationReport
 
 
 @dataclass(slots=True)

@@ -25,11 +25,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from reportlab.lib.styles import getSampleStyleSheet
-from reportlab.platypus import (
-    Paragraph,
-    SimpleDocTemplate,
-    Spacer,
-)
+from reportlab.platypus import Paragraph, SimpleDocTemplate, Spacer
 
 from reporting.base_report import BaseReport
 

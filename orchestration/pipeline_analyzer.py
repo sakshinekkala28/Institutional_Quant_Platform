@@ -21,9 +21,7 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.pipeline_builder import (
-    PipelineDefinition,
-)
+from orchestration.pipeline_builder import PipelineDefinition
 
 
 class PipelineAnalyzer:

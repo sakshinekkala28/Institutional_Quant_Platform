@@ -24,9 +24,7 @@ from __future__ import annotations
 from enum import Enum
 import logging
 
-from orchestration.orchestrator import (
-    Orchestrator,
-)
+from orchestration.orchestrator import Orchestrator
 
 logger = logging.getLogger(__name__)
 

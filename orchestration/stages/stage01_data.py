@@ -18,9 +18,7 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.pipelines.data_pipeline import (
-    main as data_pipeline,
-)
+from orchestration.pipelines.data_pipeline import main as data_pipeline
 
 # ==========================================================
 # STAGE

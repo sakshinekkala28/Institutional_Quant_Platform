@@ -2,7 +2,6 @@ from enum import Enum
 
 
 class MarketCapStatus(str, Enum):
-
     SUCCESS = "SUCCESS"
 
     NO_MARKET_CAP = "NO_MARKET_CAP"

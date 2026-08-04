@@ -21,27 +21,13 @@ from __future__ import annotations
 # ==========================================================
 # REGIME ENGINES
 # ==========================================================
-from analytics.regime.benchmark_prices import (
-    main as benchmark_prices_engine,
-)
-from analytics.regime.macro_regime_engine import (
-    main as macro_regime_engine,
-)
-from analytics.regime.market_breadth_engine import (
-    main as market_breadth_engine,
-)
-from analytics.regime.market_regime_engine import (
-    main as market_regime_engine,
-)
-from analytics.regime.regime_engine import (
-    main as regime_engine,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
-from orchestration.pipelines.base_pipeline import (
-    BasePipeline,
-)
+from analytics.regime.benchmark_prices import main as benchmark_prices_engine
+from analytics.regime.macro_regime_engine import main as macro_regime_engine
+from analytics.regime.market_breadth_engine import main as market_breadth_engine
+from analytics.regime.market_regime_engine import main as market_regime_engine
+from analytics.regime.regime_engine import main as regime_engine
+from orchestration.models.pipeline_result import PipelineResult
+from orchestration.pipelines.base_pipeline import BasePipeline
 
 # ==========================================================
 # REGIME PIPELINE

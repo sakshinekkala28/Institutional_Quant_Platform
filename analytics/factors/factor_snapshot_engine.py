@@ -28,6 +28,7 @@ from __future__ import annotations
 
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
+from functools import partial
 
 import numpy as np
 import pandas as pd
@@ -39,27 +40,12 @@ from config.paths import (
     PRICE_HISTORY_DIRECTORY,
     SECURITY_MASTER_FILE,
 )
-from config.settings import (
-    DATE_FORMAT,
-    ENGINE_VERSION,
-    MAX_WORKERS,
-    TRADING_DAYS,
-)
-from orchestration.models.engine_result import (
-    EngineResult,
-)
-from orchestration.models.engine_status import (
-    EngineStatus,
-)
-from utils.file_utils import (
-    ensure_parent_directory,
-)
-from utils.logger import (
-    get_logger,
-)
-from utils.timer import (
-    Timer,
-)
+from config.settings import DATE_FORMAT, ENGINE_VERSION, MAX_WORKERS, TRADING_DAYS
+from orchestration.models.engine_result import EngineResult
+from orchestration.models.engine_status import EngineStatus
+from utils.file_utils import ensure_parent_directory
+from utils.logger import get_logger
+from utils.timer import Timer
 
 # =========================================================
 # CONFIG
@@ -416,9 +402,9 @@ def main() -> EngineResult:
                     max_workers=MAX_WORKERS,
                 ) as executor:
                     results = executor.map(
-                        lambda security: calculate_snapshot(
-                            security,
-                            snapshot_date,
+                        partial(
+                            calculate_snapshot,
+                            snapshot_date=snapshot_date,
                         ),
                         symbols,
                     )

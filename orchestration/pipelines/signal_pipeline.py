@@ -16,25 +16,15 @@ Responsibilities
 
 from __future__ import annotations
 
-from analytics.alpha.price_history_engine import (
-    main as price_history_engine,
-)
-from analytics.live.build_factor_expected_returns import (
-    main as expected_returns_engine,
-)
+from analytics.alpha.price_history_engine import main as price_history_engine
+from analytics.live.build_factor_expected_returns import main as expected_returns_engine
 
 # ==========================================================
 # SIGNAL ENGINES
 # ==========================================================
-from analytics.signals.signal_engine import (
-    main as signal_engine,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
-from orchestration.pipelines.base_pipeline import (
-    BasePipeline,
-)
+from analytics.signals.signal_engine import main as signal_engine
+from orchestration.models.pipeline_result import PipelineResult
+from orchestration.pipelines.base_pipeline import BasePipeline
 
 # ==========================================================
 # SIGNAL PIPELINE

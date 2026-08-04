@@ -19,9 +19,7 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.pipelines.alpha_pipeline import (
-    main as alpha_pipeline,
-)
+from orchestration.pipelines.alpha_pipeline import main as alpha_pipeline
 
 # ==========================================================
 # STAGE

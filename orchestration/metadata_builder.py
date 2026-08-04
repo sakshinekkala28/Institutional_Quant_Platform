@@ -25,21 +25,11 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from orchestration.execution_context import (
-    ExecutionContext,
-)
-from orchestration.execution_report import (
-    ExecutionReport,
-)
-from orchestration.models.engine_result import (
-    EngineResult,
-)
-from orchestration.models.master_result import (
-    MasterResult,
-)
-from orchestration.models.pipeline_result import (
-    PipelineResult,
-)
+from orchestration.execution_context import ExecutionContext
+from orchestration.execution_report import ExecutionReport
+from orchestration.models.engine_result import EngineResult
+from orchestration.models.master_result import MasterResult
+from orchestration.models.pipeline_result import PipelineResult
 
 # =========================================================
 # METADATA BUILDER

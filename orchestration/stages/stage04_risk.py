@@ -19,9 +19,7 @@ Responsibilities
 
 from __future__ import annotations
 
-from orchestration.pipelines.risk_pipeline import (
-    main as risk_pipeline,
-)
+from orchestration.pipelines.risk_pipeline import main as risk_pipeline
 
 # ==========================================================
 # STAGE

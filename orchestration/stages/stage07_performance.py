@@ -25,9 +25,7 @@ from __future__ import annotations
 # ==========================================================
 # Replace this import once a dedicated performance pipeline
 # has been implemented.
-from orchestration.pipelines.reporting_pipeline import (
-    main as performance_pipeline,
-)
+from orchestration.pipelines.reporting_pipeline import main as performance_pipeline
 
 # ==========================================================
 # PERFORMANCE STAGE

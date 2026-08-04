@@ -667,9 +667,9 @@ new_weight = candidate_portfolio.loc[
 if new_weight > MAX_TURNOVER:
     scaling_factor = MAX_TURNOVER / new_weight
 
-    candidate_portfolio.loc[
-        candidate_portfolio["New_Position"], "Weight"
-    ] *= scaling_factor
+    candidate_portfolio.loc[candidate_portfolio["New_Position"], "Weight"] *= (
+        scaling_factor
+    )
 
     candidate_portfolio["Weight"] = (
         candidate_portfolio["Weight"] / candidate_portfolio["Weight"].sum()
