@@ -1,9 +1,9 @@
 Metric,Value
-Portfolio_Return,0.6717187981693311
-Benchmark_Return,0.042451815975908386
-Active_Return,0.6292669821934227
-Allocation_Effect,0.06475852997233486
-Selection_Effect,0.5608959393418241
-Interaction_Effect,0.003612512879263716
-Total_Attribution,0.6292669821934227
+Portfolio_Return,0.7071890218383364
+Benchmark_Return,0.081732023282862
+Active_Return,0.6254569985554744
+Allocation_Effect,0.060911583085853566
+Selection_Effect,0.5361445480315646
+Interaction_Effect,0.02840086743805621
+Total_Attribution,0.6254569985554744
 Residual,0.0

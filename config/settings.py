@@ -20,6 +20,8 @@ PLATFORM_NAME = "Institutional Quant Platform"
 
 PLATFORM_VERSION = "1.0.0"
 
+ENGINE_VERSION = "1.0.0"
+
 ENVIRONMENT = "development"
 # development
 # testing
@@ -110,3 +112,7 @@ SHOW_SUMMARY = True
 SHOW_BANNER = True
 
 EXPORT_HEALTH_REPORTS = True
+
+MAX_WORKERS = 5
+
+TRADING_DAYS = 252

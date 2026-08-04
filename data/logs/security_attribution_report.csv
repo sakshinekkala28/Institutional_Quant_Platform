@@ -1,10 +1,10 @@
 Metric,Value
-Portfolio_Return,0.7904894073578719
-Benchmark_Return,0.09192531093371493
-Active_Return,0.698564096424157
-Hit_Ratio,0.98
-Top5_Share,0.4134947178457544
+Portfolio_Return,0.7071890218383365
+Benchmark_Return,0.07902298932200012
+Active_Return,0.6281660325163364
+Hit_Ratio,0.96
+Top5_Share,0.4387559200812457
 Quality_Score,99.99999999999889
 Securities,50
-Run_Date,2026-08-03
+Run_Date,2026-08-04
 Engine_Version,1.0.0

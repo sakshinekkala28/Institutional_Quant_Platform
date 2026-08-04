@@ -74,7 +74,23 @@ for idx, file in enumerate(
         if not all(col in df.columns for col in required):
             continue
 
-        df["Date"] = pd.to_datetime(df["Date"])
+        # =========================================
+        # NORMALIZE DATES
+        # =========================================
+
+        df["Date"] = pd.to_datetime(
+            df["Date"],
+            errors="coerce",
+            utc=True,
+        )
+
+        df["Date"] = (
+            df["Date"]
+            .dt.tz_convert(
+                "Asia/Kolkata",
+            )
+            .dt.tz_localize(None)
+        )
 
         df = df.sort_values("Date")
 
@@ -171,6 +187,26 @@ breadth_raw = pd.DataFrame(daily_stats)
 
 if breadth_raw.empty:
     raise RuntimeError("No breadth data generated.")
+
+# =========================================
+# STANDARDIZE BREADTH DATES
+# =========================================
+
+breadth_raw["Date"] = pd.to_datetime(
+    breadth_raw["Date"],
+    errors="coerce",
+)
+
+if getattr(
+    breadth_raw["Date"].dt,
+    "tz",
+    None,
+) is not None:
+
+    breadth_raw["Date"] = (
+        breadth_raw["Date"]
+        .dt.tz_localize(None)
+    )
 
 latest_date = breadth_raw["Date"].max()
 

@@ -1,7 +1,7 @@
 Metric,Value
 Portfolio_NAV,100000000.0
-Portfolio_Capacity_5pct,8028164115.26392
-Portfolio_Capacity_10pct,16056328230.52784
-Portfolio_Capacity_20pct,32112656461.05568
-Average_Days_To_Liquidate,0.010199412203658078
+Portfolio_Capacity_5pct,7577622111.94157
+Portfolio_Capacity_10pct,15155244223.88314
+Portfolio_Capacity_20pct,30310488447.76628
+Average_Days_To_Liquidate,0.009253719104800093
 Median_Liquidity_Score,51.0

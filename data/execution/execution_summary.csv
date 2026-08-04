@@ -1,10 +1,10 @@
 Metric,Value
 Total_Trades,50
 Unique_Securities,50
-Execution_Value,118996490.35839844
+Execution_Value,124095181.34962463
 Implementation_Shortfall,0.0
-Execution_Cost,59498.24517919921
+Execution_Cost,62047.59067481231
 Average_Slippage,0.0
 Quality_Score,99.95
-Run_Date,2026-08-03
+Run_Date,2026-08-04
 Engine_Version,1.0.0

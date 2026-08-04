@@ -34,6 +34,7 @@ from __future__ import annotations
 from datetime import datetime
 
 import pandas as pd
+import numpy as np
 
 from config.paths import (
     FACTOR_EXPOSURE_FILE,
@@ -243,6 +244,29 @@ def main() -> EngineResult:
 
             rank_columns = [column for column in df.columns if column.endswith("_Rank")]
 
+            # =====================================================
+            # CLEAN RANK COLUMNS
+            # =====================================================
+
+            for column in rank_columns:
+
+                df[column] = (
+                    pd.to_numeric(
+                        df[column],
+                        errors="coerce",
+                    )
+                    .replace(
+                        [
+                            np.inf,
+                            -np.inf,
+                        ],
+                        np.nan,
+                    )
+                )
+
+                # Missing values receive the worst rank
+                df[column] = df[column].fillna(0.0)
+
             validation = []
 
             for column in rank_columns:
@@ -295,6 +319,36 @@ def main() -> EngineResult:
             logger.info("Ranking completed successfully.")
 
             # =================================================
+            # VALIDATE INPUT RANKS
+            # =================================================
+
+            required_rank_columns = [
+                "Momentum_12M_Rank",
+                "Momentum_6M_Rank",
+                "ADV_20D_Rank",
+                "Distance_52W_High_Rank",
+                "Log_Market_Cap_Rank",
+                "Volatility_20D_Rank",
+            ]
+
+            for column in required_rank_columns:
+
+                df[column] = (
+                    pd.to_numeric(
+                        df[column],
+                        errors="coerce",
+                    )
+                    .replace(
+                        [
+                            np.inf,
+                            -np.inf,
+                        ],
+                        np.nan,
+                    )
+                    .fillna(0.0)
+                )
+
+            # =================================================
             # COMPOSITE ALPHA SCORE
             # =================================================
 
@@ -330,18 +384,85 @@ def main() -> EngineResult:
 
             logger.info("Generating institutional ranking...")
 
+            # -------------------------------------------------
+            # CLEAN FINAL ALPHA SCORE
+            # -------------------------------------------------
+
+            df["Alpha_Adjusted"] = (
+                pd.to_numeric(
+                    df["Alpha_Adjusted"],
+                    errors="coerce",
+                )
+                .replace(
+                    [
+                        np.inf,
+                        -np.inf,
+                    ],
+                    np.nan,
+                )
+            )
+
+            missing_alpha = int(
+                df["Alpha_Adjusted"]
+                .isna()
+                .sum()
+            )
+
+            if missing_alpha > 0:
+
+                logger.warning(
+                    "Replacing %s missing Alpha_Adjusted values.",
+                    missing_alpha,
+                )
+
+                df["Alpha_Adjusted"] = (
+                    df["Alpha_Adjusted"]
+                    .fillna(
+                        df["Alpha_Adjusted"].min() - 1.0
+                    )
+                )
+
+            logger.info(
+                "Alpha_Adjusted Missing : %s",
+                int(
+                    df["Alpha_Adjusted"]
+                    .isna()
+                    .sum()
+                ),
+            )
+
+            logger.info(
+                "Alpha_Adjusted Min : %.6f",
+                df["Alpha_Adjusted"]
+                .min(),
+            )
+
+            logger.info(
+                "Alpha_Adjusted Max : %.6f",
+                df["Alpha_Adjusted"]
+                .max(),
+            )
+
+            # -------------------------------------------------
+            # FINAL RANK
+            # -------------------------------------------------
+
             df["Rank"] = (
                 df["Alpha_Adjusted"]
                 .rank(
                     ascending=False,
                     method="dense",
+                    na_option="bottom",
                 )
-                .astype(int)
+                .astype("Int64")
             )
 
-            df["Percentile"] = df["Alpha_Adjusted"].rank(
-                pct=True,
-                ascending=True,
+            df["Percentile"] = (
+                df["Alpha_Adjusted"]
+                .rank(
+                    pct=True,
+                    ascending=True,
+                )
             )
 
             # =================================================

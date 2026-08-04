@@ -5,7 +5,7 @@
 # Core
 numpy>=2.3.0
 pandas>=2.3.0
-scipy>=1.16.0
+scipy>=1.13
 
 # Dashboard
 streamlit>=1.48.0
@@ -48,3 +48,6 @@ beautifulsoup4>=4.13.4
 # Utilities
 rich>=14.1.0
 tqdm>=4.67.1
+
+
+cvxpy>=1.6.5

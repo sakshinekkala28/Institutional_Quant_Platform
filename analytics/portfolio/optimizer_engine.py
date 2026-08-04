@@ -252,7 +252,45 @@ mu = (
     .values
 )
 
-Sigma = covariance_matrix.values
+Sigma = covariance_matrix.astype(float).values
+
+Sigma = np.nan_to_num(
+    Sigma,
+    nan=0.0,
+    posinf=0.0,
+    neginf=0.0,
+)
+
+Sigma = (Sigma + Sigma.T) / 2
+
+diag = np.diag(Sigma)
+
+diag = np.where(
+    diag <= 1e-12,
+    1e-6,
+    diag,
+)
+
+np.fill_diagonal(
+    Sigma,
+    diag,
+)
+
+print("\n========== SIGMA DIAGNOSTICS ==========")
+
+print("Shape:", Sigma.shape)
+
+print("NaN :", np.isnan(Sigma).sum())
+
+print("Inf :", np.isinf(Sigma).sum())
+
+print("Finite :", np.isfinite(Sigma).sum())
+
+print("Diagonal NaN :", np.isnan(np.diag(Sigma)).sum())
+
+print("Diagonal <=0 :", (np.diag(Sigma) <= 0).sum())
+
+print("=======================================")
 
 asset_symbols = valid_symbols
 
@@ -509,11 +547,23 @@ print("\n📈 Building Maximum Sharpe Portfolio...")
 
 excess_returns = mu - RISK_FREE_RATE
 
-try:
-    inv_sigma = np.linalg.pinv(Sigma)
+Sigma = Sigma + np.eye(len(Sigma)) * 1e-6
 
-except Exception:
-    inv_sigma = np.linalg.pinv(Sigma + (np.eye(len(Sigma)) * 1e-8))
+try:
+    inv_sigma = np.linalg.pinv(
+        Sigma,
+        rcond=1e-10,
+    )
+
+except np.linalg.LinAlgError:
+
+    eigvals = np.linalg.eigvalsh(Sigma)
+
+    print("\nSmallest Eigenvalue :", eigvals.min())
+
+    print("Largest Eigenvalue  :", eigvals.max())
+
+    raise
 
 max_sharpe_weights = inv_sigma @ excess_returns
 
