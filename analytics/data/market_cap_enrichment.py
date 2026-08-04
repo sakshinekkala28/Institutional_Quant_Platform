@@ -18,7 +18,10 @@ data/raw/symbol_metadata.csv
 import time
 
 import pandas as pd
-import yfinance as yf
+
+from analytics.data.providers.yahoo_market_cap_provider import (
+    fetch_market_cap,
+)
 
 from config.paths import (
     SYMBOL_METADATA_FILE,
@@ -26,7 +29,6 @@ from config.paths import (
 from config.thresholds import (
     COOLDOWN_AFTER,
     COOLDOWN_SECONDS,
-    MAX_RETRIES,
     SAVE_INTERVAL,
 )
 from orchestration.models.engine_result import EngineResult
@@ -45,75 +47,6 @@ logger = get_logger(__name__)
 # =========================================================
 
 ENGINE_NAME = "MarketCapEnrichment"
-
-# =========================================================
-# FETCH MARKET CAP
-# =========================================================
-
-
-def fetch_market_cap(symbol: str) -> float:
-    """
-    Fetch Market Cap from Yahoo Finance.
-    """
-
-    yahoo_symbol = f"{symbol}.NS"
-
-    for attempt in range(MAX_RETRIES):
-        try:
-            ticker = yf.Ticker(yahoo_symbol)
-
-            # ---------------------------------------------
-            # FAST INFO
-            # ---------------------------------------------
-
-            try:
-                market_cap = ticker.fast_info.get(
-                    "marketCap",
-                    0,
-                )
-
-                if market_cap and market_cap > 0:
-                    return float(market_cap)
-
-            except Exception:
-                pass
-
-            # ---------------------------------------------
-            # FALLBACK
-            # ---------------------------------------------
-
-            try:
-                info = ticker.get_info()
-
-                market_cap = info.get(
-                    "marketCap",
-                    0,
-                )
-
-                if market_cap and market_cap > 0:
-                    return float(market_cap)
-
-            except Exception:
-                pass
-
-        except Exception as e:
-            error = str(e).lower()
-
-            if "429" in error or "rate limit" in error or "too many requests" in error:
-                wait_time = 15 * (attempt + 1)
-
-                print(f"⚠️ Rate Limit: {symbol}")
-
-                print(f"⏳ Sleeping {wait_time}s")
-
-                time.sleep(wait_time)
-
-            else:
-                print(f"❌ {symbol}: {e}")
-
-                time.sleep(2)
-
-    return 0.0
 
 
 # =========================================================
@@ -147,6 +80,20 @@ def main() -> EngineResult:
         if "Market_Cap" not in df.columns:
             df["Market_Cap"] = 0.0
 
+        metadata_columns = {
+            "Market_Cap_Status": "UNKNOWN",
+            "Market_Cap_Source": "Yahoo",
+            "Market_Cap_Last_Updated": "",
+            "Market_Cap_Attempts": 0,
+            "Market_Cap_Last_Error": "",
+        }
+
+        for column, default in metadata_columns.items():
+
+            if column not in df.columns:
+
+                df[column] = default
+
         df["Market_Cap"] = pd.to_numeric(
             df["Market_Cap"],
             errors="coerce",
@@ -160,11 +107,17 @@ def main() -> EngineResult:
 
         total = len(missing_rows)
 
-        existing = (df["Market_Cap"] > 0).sum()
+        existing = int((df["Market_Cap"] > 0).sum())
 
         print(f"Existing Market Caps : {existing:,}")
 
         print(f"Need Fetch : {total:,}")
+
+        filled = (df["Market_Cap"] > 0).sum()
+
+        missing = (df["Market_Cap"] <= 0).sum()
+
+        coverage = filled / len(df) * 100
 
         newly_filled = filled - existing
 
@@ -211,14 +164,58 @@ def main() -> EngineResult:
                 .upper()
             )
 
-            market_cap = fetch_market_cap(symbol)
+            # =====================================================
+            # FETCH MARKET CAP
+            # =====================================================
+
+            result = fetch_market_cap(symbol)
+
+            # =====================================================
+            # UPDATE DATAFRAME
+            # =====================================================
 
             df.loc[
                 row_idx,
                 "Market_Cap",
-            ] = market_cap
+            ] = result.market_cap
 
-            print(f"[{counter:,}/{total:,}] {symbol:<15} {market_cap:,.0f}")
+            df.loc[
+                row_idx,
+                "Market_Cap_Status",
+            ] = result.status
+
+            df.loc[
+                row_idx,
+                "Market_Cap_Source",
+            ] = result.source
+
+            df.loc[
+                row_idx,
+                "Market_Cap_Attempts",
+            ] = result.attempts
+
+            df.loc[
+                row_idx,
+                "Market_Cap_Last_Error",
+            ] = result.error or ""
+
+            df.loc[
+                row_idx,
+                "Market_Cap_Last_Updated",
+            ] = pd.Timestamp.now(
+                tz="UTC",
+            ).isoformat()
+
+            # =====================================================
+            # PROGRESS
+            # =====================================================
+
+            print(
+                f"[{counter:,}/{total:,}] "
+                f"{symbol:<15} "
+                f"{result.market_cap:,.0f} "
+                f"[{result.status}]"
+            )
 
             # ================================================
             # CHECKPOINT
@@ -230,6 +227,29 @@ def main() -> EngineResult:
                 df.to_csv(
                     SYMBOL_METADATA_FILE,
                     index=False,
+                )
+
+                # =====================================================
+                # FINAL STATISTICS
+                # =====================================================
+
+                filled = int(
+                    (df["Market_Cap"] > 0).sum()
+                )
+
+                missing = int(
+                    (df["Market_Cap"] <= 0).sum()
+                )
+
+                coverage = (
+                    filled / len(df) * 100
+                    if len(df)
+                    else 0.0
+                )
+
+                newly_filled = max(
+                    0,
+                    filled - existing,
                 )
 
                 print(f"💾 Checkpoint Saved ({counter:,})")
@@ -260,11 +280,6 @@ def main() -> EngineResult:
         # REPORT
         # =====================================================
 
-        filled = (df["Market_Cap"] > 0).sum()
-
-        missing = (df["Market_Cap"] <= 0).sum()
-
-        coverage = filled / len(df) * 100
 
         print("\n" + "=" * 70)
 
@@ -303,7 +318,7 @@ def main() -> EngineResult:
 
         return EngineResult(
             engine=ENGINE_NAME,
-            status="SUCCESS",
+            status=EngineStatus.SUCCESS,
             records=len(df),
             output=SYMBOL_METADATA_FILE,
             duration=duration,
@@ -314,24 +329,44 @@ def main() -> EngineResult:
     # EXCEPTION HANDLING
     # =========================================================
 
-    except Exception as e:
+    except Exception as exc:
+
+        import traceback
+
         duration = time.perf_counter() - start_time
+
+        print("\n" + "=" * 80)
+        print("❌ MARKET CAP ENRICHMENT FAILED")
+        print("=" * 80)
+        print(f"Exception Type : {type(exc).__name__}")
+        print(f"Exception      : {exc}")
+        print("\nTraceback:")
+        traceback.print_exc()
+        print("=" * 80)
 
         return EngineResult(
             engine=ENGINE_NAME,
             status=EngineStatus.FAILED,
             duration=duration,
             metadata={
-                "error": str(e),
+                "error": str(exc),
+                "exception_type": type(exc).__name__,
+                "traceback": traceback.format_exc(),
             },
         )
 
-
-# =========================================================
-# ENTRY POINT
-# =========================================================
-
 if __name__ == "__main__":
+
     result = main()
 
-    print(f"\nEngine Status : {result.status}")
+    print("\n" + "=" * 80)
+    print(f"Engine Status : {result.status}")
+
+    if result.metadata:
+        print("\nMetadata:")
+        for key, value in result.metadata.items():
+            print(f"{key}:")
+            print(value)
+            print()
+
+    print("=" * 80)

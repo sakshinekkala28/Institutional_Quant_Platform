@@ -27,10 +27,14 @@ data/raw/security_price_history.csv
 from datetime import datetime
 from pathlib import Path
 import time
+import duckdb
 
 import numpy as np
 import pandas as pd
 import yfinance as yf
+
+from utils.file_utils import ensure_parent_directory
+
 
 # =========================================================
 # CONFIGURATION
@@ -48,6 +52,8 @@ RETRY_SLEEP_SECONDS = 3
 
 MIN_OBSERVATIONS = 252
 
+CHECKPOINT_INTERVAL = 100
+
 # =========================================================
 # PATHS
 # =========================================================
@@ -56,13 +62,17 @@ ROOT = Path(__file__).resolve().parents[2]
 
 UNIVERSE_FILE = ROOT / "data" / "raw" / "security_master.csv"
 
-OUTPUT_FILE = ROOT / "data" / "raw" / "security_price_history.csv"
+OUTPUT_FILE = ROOT / "data" / "raw" / "security_price_history.parquet"
+
+DATABASE_FILE = ROOT / "data" / "institutional_quant.db"
 
 COVERAGE_REPORT_FILE = ROOT / "data" / "logs" / "security_price_coverage.csv"
 
 FAILURE_REPORT_FILE = ROOT / "data" / "logs" / "security_price_failures.csv"
 
 AUDIT_REPORT_FILE = ROOT / "data" / "logs" / "security_price_audit.csv"
+
+CHECKPOINT_FILE = ROOT / "data" / "cache" / "security_price_checkpoint.parquet"
 
 OUTPUT_FILE.parent.mkdir(parents=True, exist_ok=True)
 
@@ -114,41 +124,77 @@ print(f"Universe Size : {len(symbols):,}")
 # DOWNLOAD HELPERS
 # =========================================================
 
+def download_symbol_history(
+    symbol: str,
+) -> pd.DataFrame:
 
-def download_symbol_history(symbol: str) -> pd.DataFrame:
+    yahoo_symbol = (
+        symbol
+        if symbol.endswith(
+            (
+                ".NS",
+                ".BO",
+            )
+        )
+        else f"{symbol}.NS"
+    )
 
     for attempt in range(MAX_RETRIES):
+
         try:
-            df = yf.download(
-                symbol,
+
+            ticker = yf.Ticker(yahoo_symbol)
+
+            df = ticker.history(
                 start=START_DATE,
                 auto_adjust=False,
-                progress=False,
-                threads=False,
+                actions=False,
             )
 
             if df.empty:
-                time.sleep(RETRY_SLEEP_SECONDS)
+
+                time.sleep(
+                    RETRY_SLEEP_SECONDS,
+                )
 
                 continue
 
-            # Fix yfinance MultiIndex columns
+            # ---------------------------------------------
+            # Flatten MultiIndex Columns
+            # ---------------------------------------------
 
-            if isinstance(df.columns, pd.MultiIndex):
-                df.columns = df.columns.get_level_values(0)
+            if isinstance(
+                df.columns,
+                pd.MultiIndex,
+            ):
+
+                df.columns = (
+                    df.columns.get_level_values(
+                        0,
+                    )
+                )
 
             df = df.reset_index()
 
-            df.columns = [str(c).strip() for c in df.columns]
+            df.columns = [
+                str(column).strip()
+                for column in df.columns
+            ]
 
+            # Store the original platform symbol
             df["Symbol"] = symbol
 
             return df
 
-        except Exception as e:
-            print(f"ERROR {symbol}: {e}")
+        except Exception as exc:
 
-            time.sleep(RETRY_SLEEP_SECONDS)
+            print(
+                f"ERROR {symbol}: {exc}"
+            )
+
+            time.sleep(
+                RETRY_SLEEP_SECONDS,
+            )
 
     return pd.DataFrame()
 
@@ -170,6 +216,17 @@ coverage_records = []
 failure_records = []
 
 download_start = datetime.now()
+
+price_dir = (
+    ROOT
+    / "data"
+    / "raw"
+    / "prices"
+)
+
+ensure_parent_directory(
+    price_dir / "dummy.parquet",
+)
 
 # =========================================================
 # BATCH SUMMARY
@@ -304,6 +361,16 @@ for batch in chunk_list(symbols, BATCH_SIZE):
 
             history = history.dropna(subset=["Date", "Close"])
 
+            # =====================================================
+            # SAVE INDIVIDUAL SECURITY
+            # =====================================================
+
+            history.to_parquet(
+                price_dir
+                / f"{symbol}.parquet",
+                index=False,
+            )
+
             history = history[history["Close"] > 0]
 
             if history.empty:
@@ -350,6 +417,35 @@ for batch in chunk_list(symbols, BATCH_SIZE):
 
                 batch_success += 1
 
+                # =====================================================
+                # CHECKPOINT SAVE
+                # =====================================================
+
+                if (
+                    len(all_prices)
+                    % CHECKPOINT_INTERVAL
+                    == 0
+                ):
+
+                    checkpoint = pd.concat(
+                        all_prices,
+                        ignore_index=True,
+                    )
+
+                    ensure_parent_directory(
+                        CHECKPOINT_FILE,
+                    )
+
+                    checkpoint.to_parquet(
+                        CHECKPOINT_FILE,
+                        index=False,
+                    )
+
+                    print(
+                        f"💾 Checkpoint Saved "
+                        f"({len(all_prices):,} securities)"
+                    )
+
                 if len(all_prices) % 500 == 0:
                     print(f"Loaded {len(all_prices):,} securities...")
 
@@ -376,6 +472,27 @@ for batch in chunk_list(symbols, BATCH_SIZE):
     print(f"Batch Failed  : {batch_failures:,}")
 
     print(f"Total Loaded  : {len(all_prices):,}")
+
+    elapsed = (
+        datetime.now()
+        - download_start
+    ).total_seconds()
+
+    progress = (
+        len(all_prices)        
+        / len(symbols)
+        * 100
+    )
+
+    print(
+        f"Progress      : "
+        f"{progress:.2f}%"
+    )
+
+    print(
+        f"Elapsed       : "
+        f"{elapsed:.1f}s"
+    )
 
 # =========================================================
 # DOWNLOAD COMPLETION CHECK
@@ -719,9 +836,33 @@ security_prices = security_prices.drop(
     errors="ignore",
 )
 
-security_prices.to_parquet(
-    ROOT / "data/raw/security_price_history.parquet", index=False
+ensure_parent_directory(
+    OUTPUT_FILE,
 )
+
+security_prices.to_parquet(
+    OUTPUT_FILE,
+    index=False,
+)
+
+
+# =========================================================
+# BUILD DUCKDB DATABASE
+# =========================================================
+
+database = duckdb.connect(
+    DATABASE_FILE,
+)
+
+database.execute(
+    f"""
+    CREATE OR REPLACE TABLE security_price_history AS
+    SELECT *
+    FROM read_parquet('{OUTPUT_FILE.as_posix()}')
+    """
+)
+
+database.close()
 
 # =========================================================
 # SAVE REPORTS
@@ -858,9 +999,13 @@ print(f"Coverage Score      : {coverage_report['Coverage_Score'].mean():.2f}")
 
 print(f"Runtime (seconds)   : {runtime_seconds:,.1f}")
 
-print("\nOutput File:")
+print("\nParquet File:")
 
 print(OUTPUT_FILE)
+
+print("\nDuckDB Database:")
+
+print(DATABASE_FILE)
 
 print("=====================================================")
 

@@ -482,15 +482,32 @@ def main() -> EngineResult:
     # EXCEPTION HANDLING
     # =========================================================
 
-    except Exception as e:
+    except Exception as exc:
+
         duration = time.perf_counter() - start_time
+
+        logger.exception(
+            "Market Cap Enrichment Engine failed."
+        )
+
+        print("\n" + "=" * 70)
+        print("❌ MARKET CAP ENRICHMENT FAILED")
+        print("=" * 70)
+        print(f"Exception Type : {type(exc).__name__}")
+        print(f"Exception      : {exc}")
+
+        import traceback
+
+        traceback.print_exc()
 
         return EngineResult(
             engine=ENGINE_NAME,
             status=EngineStatus.FAILED,
             duration=duration,
             metadata={
-                "error": str(e),
+                "error": str(exc),
+                "exception_type": type(exc).__name__,
+                "traceback": traceback.format_exc(),
             },
         )
 

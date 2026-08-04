@@ -64,6 +64,8 @@ MIN_PRICE_COVERAGE = 0.90
 # YAHOO FINANCE
 # =========================================================
 
+MAX_WORKERS = 3
+
 MAX_RETRIES = 3
 
 SAVE_INTERVAL = 50

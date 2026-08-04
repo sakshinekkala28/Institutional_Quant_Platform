@@ -29,7 +29,7 @@ import yfinance as yf
 # CONFIG
 # =========================================================
 
-YEARS_HISTORY = 5
+YEARS_HISTORY = 10
 
 MAX_WORKERS = 2
 

@@ -61,6 +61,35 @@ UNIVERSE_REPORT_FILE = LOG_DIR / "universe_report.csv"
 STOCK_METADATA_HEALTH_FILE = LOG_DIR / "stock_metadata_health.csv"
 
 # =========================================================
+# LOG FILES
+# =========================================================
+
+PRICE_UPDATE_FAILURE_FILE = (
+    LOG_DIR
+    / "price_update_failures.csv"
+)
+
+INVALID_SYMBOL_FILE = (
+    LOG_DIR
+    / "invalid_symbols.csv"
+)
+
+MARKET_CAP_REPORT_FILE = (
+    LOG_DIR
+    / "market_cap_report.csv"
+)
+
+MARKET_CAP_FAILURE_FILE = (
+    LOG_DIR
+    / "market_cap_failures.csv"
+)
+
+MARKET_CAP_CACHE_FILE = (
+    CACHE_DIR
+    / "market_cap_cache.parquet"
+)
+
+# =========================================================
 # DIRECTORIES
 # =========================================================
 

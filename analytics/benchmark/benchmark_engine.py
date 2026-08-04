@@ -85,6 +85,15 @@ portfolio["Portfolio_Return"] = portfolio["Portfolio_Value"].pct_change()
 
 portfolio = portfolio.dropna()
 
+# Remove previously calculated benchmark columns
+portfolio = portfolio.drop(
+    columns=[
+        "Benchmark_Return",
+        "Active_Return",
+    ],
+    errors="ignore",
+)
+
 # =========================================================
 # DOWNLOAD BENCHMARK
 # =========================================================
@@ -104,18 +113,59 @@ benchmark = yf.download(
 )
 
 if benchmark.empty:
-    raise ValueError("Benchmark download failed.")
+    raise ValueError(
+        f"Unable to download benchmark: {BENCHMARK_SYMBOL}"
+    )
 
-if isinstance(benchmark.columns, pd.MultiIndex):
-    benchmark.columns = [c[0] for c in benchmark.columns]
+benchmark = benchmark.copy()
+
+# Flatten MultiIndex if present
+if isinstance(
+    benchmark.columns,
+    pd.MultiIndex,
+):
+    benchmark.columns = [
+        "_".join(
+            str(i)
+            for i in col
+            if i != ""
+        )
+        for col in benchmark.columns
+    ]
 
 benchmark = benchmark.reset_index()
 
-benchmark.columns = [str(c).strip() for c in benchmark.columns]
+benchmark.columns = (
+    benchmark.columns
+    .astype(str)
+    .str.strip()
+)
 
-benchmark["Date"] = pd.to_datetime(benchmark["Date"])
+print("\nDownloaded Columns:")
+print(benchmark.columns.tolist())
 
-benchmark["Benchmark_Return"] = benchmark["Close"].pct_change()
+# Find Close column automatically
+close_cols = [
+    c
+    for c in benchmark.columns
+    if c.startswith("Close")
+]
+
+if not close_cols:
+    raise ValueError(
+        f"No Close column found.\nColumns: {benchmark.columns.tolist()}"
+    )
+
+close_col = close_cols[0]
+
+benchmark["Date"] = pd.to_datetime(
+    benchmark["Date"]
+)
+
+benchmark["Benchmark_Return"] = (
+    benchmark[close_col]
+    .pct_change()
+)
 
 benchmark = benchmark[
     [
@@ -123,6 +173,7 @@ benchmark = benchmark[
         "Benchmark_Return",
     ]
 ].dropna()
+
 
 # =========================================================
 # MERGE
