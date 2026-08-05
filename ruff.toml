@@ -13,14 +13,6 @@ line-length = 88
 
 indent-width = 4
 
-fix = true
-
-unsafe-fixes = false
-
-preview = true
-
-respect-gitignore = true
-
 ###############################################################################
 # Files
 ###############################################################################
@@ -48,12 +40,6 @@ exclude = [
     "generated",
     "tmp",
     "temp",
-]
-
-extend-exclude = [
-    ".idea",
-    ".vscode",
-    "*.egg-info",
 ]
 
 extend-include = [
@@ -85,14 +71,17 @@ select = [
 ]
 
 ignore = [
-    "whitespace-before-punctuation",
-    "line-too-long",
-    "too-many-arguments",
-    "magic-value-comparison",
-    "too-many-branches",
-    "too-many-statements",
+    "E203",
+    "E501",
+    "PLR0913",
+    "PLR2004",
+    "PLR0912",
+    "PLR0915",
 ]
 
+fixable = ["ALL"]
+
+unfixable = []
 
 ###############################################################################
 # Imports
@@ -104,28 +93,17 @@ combine-as-imports = true
 
 force-sort-within-sections = true
 
-force-wrap-aliases = true
-
 known-first-party = [
-
     "analytics",
     "alpha",
     "api",
-    "backtesting",
-    "config",
     "core",
     "dashboard",
     "data",
     "deployment",
     "execution",
-    "fundamentals",
-    "governance",
-    "ingestion",
     "infrastructure",
     "market_data",
-    "metrics",
-    "ml",
-    "mlflow_track",
     "monitoring",
     "optimization",
     "orchestration",
@@ -134,13 +112,9 @@ known-first-party = [
     "reporting",
     "research",
     "risk",
-    "scanner",
-    "services",
-    "signals",
     "telemetry",
     "tests",
     "utils",
-
 ]
 
 ###############################################################################
@@ -166,8 +140,8 @@ convention = "google"
 [lint.per-file-ignores]
 
 "tests/**/*.py" = [
-    "assert",
-    "magic-value-comparison",
+    "S101",
+    "PLR2004",
 ]
 
 "docs/**/*.py" = [
@@ -175,15 +149,15 @@ convention = "google"
 ]
 
 "scripts/**/*.py" = [
-    "print",
+    "T201",
 ]
 
 "api/dependencies/*.py" = [
-    "function-call-in-default-argument",
+    "B008",
 ]
 
 "docs/development/examples/*.py" = [
-    "function-call-in-default-argument",
+    "B008",
 ]
 
 ###############################################################################

@@ -198,8 +198,8 @@ select = [
 ]
 
 ignore = [
-    "PLR0913",
-    "PLR0917",
+    "too-many-arguments",
+    "too-many-positional-arguments",
 ]
 
 [tool.ruff.format]

@@ -32,7 +32,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from api.config import Settings, get_settings as _get_settings
+from api.config import (
+    Settings,
+    get_settings as _get_settings,
+)
 
 # ==========================================================
 # SETTINGS
