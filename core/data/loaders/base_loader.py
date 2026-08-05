@@ -39,7 +39,7 @@ from datetime import UTC, datetime
 import hashlib
 from pathlib import Path
 from time import perf_counter
-from typing import Any, Generic, TypeVar, final
+from typing import Any, TypeVar, final
 
 import pandas as pd
 
@@ -94,7 +94,7 @@ class LoadMetadata:
 
 
 @dataclass(slots=True)
-class LoadResult(Generic[T]):
+class LoadResult[T]:
     data: T
 
     metadata: LoadMetadata
@@ -229,14 +229,12 @@ class BaseLoader(ABC):
     # REQUIRED COLUMN VALIDATION
     # ======================================================
 
-    def validate_columns(dataframe: pd.DataFrame, required_columns: list[str]) -> None:
+    def validate_columns(self: pd.DataFrame, required_columns: list[str]) -> None:
         """
         Validate required columns.
         """
 
-        missing = [
-            column for column in required_columns if column not in dataframe.columns
-        ]
+        missing = [column for column in required_columns if column not in self.columns]
 
         if missing:
             raise MissingColumnError(f"Missing columns: {missing}")

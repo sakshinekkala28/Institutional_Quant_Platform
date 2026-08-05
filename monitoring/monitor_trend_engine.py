@@ -184,9 +184,7 @@ class AlertFrequencyEngine:
 
         logger.info("Calculating Alert Frequency")
 
-        counts = history.groupby("Status").size().reset_index(name="Count")
-
-        return counts
+        return history.groupby("Status").size().reset_index(name="Count")
 
 
 # ==========================================================

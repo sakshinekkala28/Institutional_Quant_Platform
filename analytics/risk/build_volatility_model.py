@@ -25,16 +25,20 @@ results = []
 
 for symbol, df in prices.groupby("Symbol"):
     try:
-        df = df.sort_values("Date")
+        symbol_df = df.sort_values("Date")
 
-        returns = df["Daily_Return"].dropna()
+        returns = symbol_df["Daily_Return"].dropna()
 
         if len(returns) < 100:
             continue
 
         vol_252 = returns.std() * np.sqrt(252)
 
-        vol_252 = np.clip(vol_252, 0.05, 3.00)
+        vol_252 = np.clip(
+            vol_252,
+            0.05,
+            3.00,
+        )
 
         atr_pct = returns.abs().rolling(14).mean().iloc[-1]
 

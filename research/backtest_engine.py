@@ -35,9 +35,7 @@ class PortfolioReturnEngine:
         if returns.shape[-1] != len(weights):
             raise ValueError("Returns columns must match weight vector length")
 
-        portfolio_returns = returns @ weights
-
-        return portfolio_returns
+        return returns @ weights
 
 
 # ==========================================================

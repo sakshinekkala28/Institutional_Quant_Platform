@@ -63,16 +63,14 @@ class RiskBudgetRepository:
 
         logger.info("Loading Governance Dashboard")
 
-        governance = pd.read_csv(GOVERNANCE_FILE)
-
-        return governance
+        return pd.read_csv(GOVERNANCE_FILE)
 
 
 class RiskBudgetSignalEngine:
     @staticmethod
     def extract(governance):
 
-        metrics = dict(zip(governance["Metric"], governance["Value"]))
+        metrics = dict(zip(governance["Metric"], governance["Value"], strict=False))
 
         governance_score = float(metrics.get("Governance_Score", 0))
 

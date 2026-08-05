@@ -344,11 +344,9 @@ class RegimeForecastEngine:
 
         forecast["Probability"] = forecast["Probability"] * 100
 
-        forecast = forecast.sort_values("Probability", ascending=False).reset_index(
+        return forecast.sort_values("Probability", ascending=False).reset_index(
             drop=True
         )
-
-        return forecast
 
 
 # ==========================================================
@@ -784,6 +782,8 @@ class RecommendationOverrideEngine:
 
         ranking = {"OVERWEIGHT": 4, "MARKET_WEIGHT": 3, "UNDERWEIGHT": 2, "REDUCE": 1}
 
+        forecast_rank = ranking.get(forecast_recommendation, 1)
+
         if macro_recommendation == "AGGRESSIVE_OVERWEIGHT":
             macro_rank = 4
 
@@ -798,8 +798,6 @@ class RecommendationOverrideEngine:
 
         else:
             macro_rank = forecast_rank
-
-        forecast_rank = ranking.get(forecast_recommendation, 1)
 
         final_rank = min(forecast_rank, macro_rank)
 
@@ -828,7 +826,13 @@ class PerformanceForecastEngine:
 
         macro_df = MacroRegimeLoader.load()
 
-        macro_metrics = dict(zip(macro_df["Metric"], macro_df["Value"]))
+        macro_metrics = dict(
+            zip(
+                macro_df["Metric"],
+                macro_df["Value"],
+                strict=True,
+            )
+        )
 
         regime_forecast = RegimeForecastEngine.calculate(regime_df)
 

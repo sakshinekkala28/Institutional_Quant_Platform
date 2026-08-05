@@ -307,7 +307,6 @@ def main() -> EngineResult:
     # =========================================================
 
     except Exception as exc:
-
         duration = time.perf_counter() - start_time
 
         print("\n" + "=" * 80)

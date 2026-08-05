@@ -769,11 +769,7 @@ historical_var_95 = np.percentile(historical_returns, 5)
 
 tail_returns = historical_returns[historical_returns <= historical_var_95]
 
-if len(tail_returns) > 0:
-    historical_cvar_95 = tail_returns.mean()
-
-else:
-    historical_cvar_95 = historical_var_95
+historical_cvar_95 = tail_returns.mean() if len(tail_returns) > 0 else historical_var_95
 
 # =========================================================
 # WORST CRISIS

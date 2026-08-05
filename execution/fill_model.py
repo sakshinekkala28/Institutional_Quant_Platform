@@ -81,11 +81,7 @@ class FillModel:
         order: Order,
     ) -> FillResult:
 
-        if self.allow_partial_fill:
-            executed = order.quantity
-
-        else:
-            executed = order.quantity
+        executed = order.quantity if self.allow_partial_fill else order.quantity
 
         remaining = max(
             0.0,

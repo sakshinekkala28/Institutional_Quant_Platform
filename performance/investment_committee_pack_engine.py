@@ -558,7 +558,9 @@ class InvestmentCommitteePackEngine:
 
         governance_committee = GovernanceCommitteeDashboardLoader.load()
 
-        alert_metrics = dict(zip(alert_governance["Metric"], alert_governance["Value"]))
+        alert_metrics = dict(
+            zip(alert_governance["Metric"], alert_governance["Value"], strict=False)
+        )
 
         scenarios = CommitteePackRepository.load_scenarios()
 
@@ -585,7 +587,11 @@ class InvestmentCommitteePackEngine:
         )
 
         governance_command_metrics = dict(
-            zip(governance_committee["Metric"], governance_committee["Value"])
+            zip(
+                governance_committee["Metric"],
+                governance_committee["Value"],
+                strict=False,
+            )
         )
 
         surveillance_review = SurveillanceReviewEngine.build(surveillance)

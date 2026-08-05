@@ -161,19 +161,13 @@ class DrawdownMetrics:
 
         maximum = 0
 
-        recovering = False
-
         for value in equity:
             if value >= peak:
                 peak = value
 
-                recovering = False
-
                 duration = 0
 
             else:
-                recovering = True
-
                 duration += 1
 
                 maximum = max(

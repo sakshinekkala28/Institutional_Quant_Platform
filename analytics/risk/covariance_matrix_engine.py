@@ -101,11 +101,7 @@ AUDIT_FILE = RISK_DIR / "covariance_audit.csv"
 
 print("\n📥 Loading Return Matrices...")
 
-input_file = (
-    LOG_RETURNS_FILE
-    if USE_LOG_RETURNS
-    else RETURNS_FILE
-)
+input_file = LOG_RETURNS_FILE if USE_LOG_RETURNS else RETURNS_FILE
 
 if not input_file.exists():
     raise FileNotFoundError(f"Missing file: {input_file}")

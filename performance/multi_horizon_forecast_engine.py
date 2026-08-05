@@ -49,7 +49,7 @@ class ForecastMetricsExtractor:
     def extract(forecast):
 
         if "Metric" in forecast.columns and "Value" in forecast.columns:
-            metrics = dict(zip(forecast["Metric"], forecast["Value"]))
+            metrics = dict(zip(forecast["Metric"], forecast["Value"], strict=False))
 
         else:
             metrics = forecast.iloc[0].to_dict()
@@ -273,7 +273,7 @@ def run_example():
 
     macro_df = MacroRegimeLoader.load()
 
-    macro_metrics = dict(zip(macro_df["Metric"], macro_df["Value"]))
+    macro_metrics = dict(zip(macro_df["Metric"], macro_df["Value"], strict=False))
 
     metrics = ForecastMetricsExtractor.extract(forecast)
 

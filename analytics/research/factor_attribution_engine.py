@@ -298,30 +298,25 @@ health_score = min(health_score, 100)
 # FACTOR TYPE
 # =========================================================
 
-
 def classify_factor(
     factor,
-):
+) -> str:
+
+    factor_group = "Technical"
 
     if "Momentum" in factor:
-        return "Momentum"
+        factor_group = "Momentum"
 
-    if "Volatility" in factor:
-        return "Risk"
+    elif "Volatility" in factor or "Drawdown" in factor:
+        factor_group = "Risk"
 
-    if "Drawdown" in factor:
-        return "Risk"
+    elif "ADV" in factor or "Volume" in factor:
+        factor_group = "Liquidity"
 
-    if "ADV" in factor:
-        return "Liquidity"
+    elif "Cap" in factor:
+        factor_group = "Size"
 
-    if "Volume" in factor:
-        return "Liquidity"
-
-    if "Cap" in factor:
-        return "Size"
-
-    return "Technical"
+    return factor_group
 
 
 rankings["Factor_Group"] = rankings["Factor"].apply(classify_factor)

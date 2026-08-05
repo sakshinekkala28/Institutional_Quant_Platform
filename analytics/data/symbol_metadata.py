@@ -60,13 +60,12 @@ logger = get_logger(__name__)
 
 ENGINE_NAME = "SymbolMetadata"
 
-TODAY = pd.Timestamp.now().strftime(
-    DATE_FORMAT
-)
+TODAY = pd.Timestamp.now().strftime(DATE_FORMAT)
 
 # =========================================================
 # FETCH METADATA
 # =========================================================
+
 
 def fetch_metadata(symbol: str) -> dict:
 
@@ -130,6 +129,7 @@ def fetch_metadata(symbol: str) -> dict:
 # SAVE CHECKPOINT
 # =========================================================
 
+
 def save_checkpoint(records):
 
     df = pd.DataFrame(records)
@@ -167,6 +167,7 @@ def save_checkpoint(records):
 # =========================================================
 # MAIN
 # =========================================================
+
 
 def main():
     """

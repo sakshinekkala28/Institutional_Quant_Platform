@@ -107,22 +107,21 @@ if risk:
 # SECTOR EXPOSURE
 # ==========================================================
 
-if portfolio:
-    if weight_col:
-        sector_weights = (
-            portfolio_df.groupby("Sector", as_index=False)[weight_col]
-            .sum()
-            .sort_values(weight_col, ascending=False)
-        )
+if portfolio and weight_col:
+    sector_weights = (
+        portfolio_df.groupby("Sector", as_index=False)[weight_col]
+        .sum()
+        .sort_values(weight_col, ascending=False)
+    )
 
-        fig = px.pie(
-            sector_weights,
-            names="Sector",
-            values=weight_col,
-            title="Sector Allocation",
-        )
+    fig = px.pie(
+        sector_weights,
+        names="Sector",
+        values=weight_col,
+        title="Sector Allocation",
+    )
 
-        st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, use_container_width=True)
 
 
 # ==========================================================

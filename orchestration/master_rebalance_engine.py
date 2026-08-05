@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from datetime import datetime
 import json
 import logging
@@ -99,11 +100,8 @@ class MasterRebalanceEngine:
 
     def log_event(self, event, details=None):
 
-        try:
+        with contextlib.suppress(Exception):
             self.audit_logger.log(event=event, details=details)
-
-        except Exception:
-            pass
 
     # ======================================================
     # TELEMETRY
@@ -111,11 +109,8 @@ class MasterRebalanceEngine:
 
     def track_metric(self, metric, value):
 
-        try:
+        with contextlib.suppress(Exception):
             self.telemetry.track_metric(metric, value)
-
-        except Exception:
-            pass
 
     # ======================================================
     # LOAD DATA

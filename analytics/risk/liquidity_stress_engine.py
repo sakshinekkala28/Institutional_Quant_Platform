@@ -724,11 +724,7 @@ liquidity_var_95 = np.percentile(stress_costs, 95)
 
 tail_costs = stress_costs[stress_costs >= liquidity_var_95]
 
-if len(tail_costs) > 0:
-    liquidity_cvar_95 = tail_costs.mean()
-
-else:
-    liquidity_cvar_95 = liquidity_var_95
+liquidity_cvar_95 = tail_costs.mean() if len(tail_costs) > 0 else liquidity_var_95
 
 # =========================================================
 # WORST SCENARIO

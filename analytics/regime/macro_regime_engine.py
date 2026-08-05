@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import logging
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -146,19 +148,31 @@ class MacroConfidenceEngine:
         return round(confidence, 2)
 
 
+@dataclass(slots=True)
+class MacroDashboardRequest:
+    macro_values: dict[str, Any]
+    score: float
+    confidence: float
+    regime: str
+    recommendation: str
+    risk: str
+
+
 class MacroDashboardBuilder:
     @staticmethod
-    def build(macro_values, score, confidence, regime, recommendation, risk):
+    def build(
+        request: MacroDashboardRequest,
+    ) -> pd.DataFrame:
 
         rows = [
-            {"Metric": "Macro_Score", "Value": score},
-            {"Metric": "Macro_Regime", "Value": regime},
-            {"Metric": "Macro_Risk_Level", "Value": risk},
-            {"Metric": "Macro_Confidence", "Value": confidence},
-            {"Metric": "Macro_Recommendation", "Value": recommendation},
+            {"Metric": "Macro_Score", "Value": request.score},
+            {"Metric": "Macro_Regime", "Value": request.regime},
+            {"Metric": "Macro_Risk_Level", "Value": request.risk},
+            {"Metric": "Macro_Confidence", "Value": request.confidence},
+            {"Metric": "Macro_Recommendation", "Value": request.recommendation},
         ]
 
-        for metric, value in macro_values.items():
+        for metric, value in request.macro_values.items():
             rows.append({"Metric": metric, "Value": value})
 
         return pd.DataFrame(rows)
@@ -194,7 +208,14 @@ def run_example():
     confidence = MacroConfidenceEngine.calculate(signals)
 
     dashboard = MacroDashboardBuilder.build(
-        macro_values, score, confidence, regime, recommendation, risk
+        MacroDashboardRequest(
+            macro_values=macro_values,
+            score=score,
+            confidence=confidence,
+            regime=regime,
+            recommendation=recommendation,
+            risk=risk,
+        )
     )
 
     MacroRegimeExporter.export(dashboard)

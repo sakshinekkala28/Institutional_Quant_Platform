@@ -30,7 +30,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from threading import Lock, RLock
 from typing import Any
 
@@ -41,13 +41,13 @@ from core.services.base_service import BaseService
 # ============================================================
 
 
-class OrderSide(str, Enum):
+class OrderSide(StrEnum):
     BUY = "BUY"
 
     SELL = "SELL"
 
 
-class OrderType(str, Enum):
+class OrderType(StrEnum):
     MARKET = "MARKET"
 
     LIMIT = "LIMIT"
@@ -57,7 +57,7 @@ class OrderType(str, Enum):
     STOP_LIMIT = "STOP_LIMIT"
 
 
-class OrderStatus(str, Enum):
+class OrderStatus(StrEnum):
     NEW = "NEW"
 
     VALIDATED = "VALIDATED"

@@ -761,7 +761,7 @@ class DependencyGraph:
                     try:
                         start = path.index(child)
 
-                        cycles.append(path[start:] + [child])
+                        cycles.append([*path[start:], child])
 
                     except ValueError:
                         pass
@@ -1111,11 +1111,7 @@ class DependencyGraph:
         for node in self.execution_order():
             deps = self.upstream(node)
 
-            if deps:
-                dependency_text = ", ".join(deps)
-
-            else:
-                dependency_text = "ROOT"
+            dependency_text = ", ".join(deps) if deps else "ROOT"
 
             lines.append(f"{node:<35}<-- {dependency_text}")
 

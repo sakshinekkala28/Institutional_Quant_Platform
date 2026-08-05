@@ -152,7 +152,9 @@ if not factor_rankings.empty and "Symbol" in factor_rankings.columns:
     rank_cols = [c for c in factor_rankings.columns if c != "Symbol"]
 
     universe = universe.merge(
-        factor_rankings[["Symbol"] + rank_cols], on="Symbol", how="left"
+        factor_rankings[["Symbol", *rank_cols]],
+        on="Symbol",
+        how="left",
     )
 
 # =========================================================
@@ -162,7 +164,9 @@ if not factor_rankings.empty and "Symbol" in factor_rankings.columns:
 capacity_cols = [c for c in capacity_analysis.columns if c != "Symbol"]
 
 universe = universe.merge(
-    capacity_analysis[["Symbol"] + capacity_cols], on="Symbol", how="left"
+    capacity_analysis[["Symbol", *capacity_cols]],
+    on="Symbol",
+    how="left",
 )
 
 # ==========================================

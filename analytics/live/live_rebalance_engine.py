@@ -1462,11 +1462,7 @@ if cov_matrix is not None:
 
             nearest = (
                 target.loc[target["Yahoo_Symbol"].isin(cov_matrix.index)]
-                .assign(
-                    VolGap=lambda x, proxy=proxy: abs(
-                        x["Volatility_252D"] - proxy
-                    )
-                )
+                .assign(VolGap=lambda x, proxy=proxy: abs(x["Volatility_252D"] - proxy))
                 .sort_values("VolGap")
                 .iloc[0]["Yahoo_Symbol"]
             )

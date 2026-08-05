@@ -204,7 +204,9 @@ factor_loadings["Symbol"] = (
 )
 
 portfolio_factor = portfolio.merge(
-    factor_loadings[["Symbol"] + factor_columns], on="Symbol", how="inner"
+    factor_loadings[["Symbol", *factor_columns]],
+    on="Symbol",
+    how="inner",
 )
 
 matched_symbols = set(portfolio_factor["Symbol"])

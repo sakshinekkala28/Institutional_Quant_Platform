@@ -83,14 +83,18 @@ class GovernanceSignalEngine:
     @staticmethod
     def build(forecast_df, horizon_df, decision_df, stress_dashboard):
 
-        forecast_metrics = dict(zip(forecast_df["Metric"], forecast_df["Value"]))
+        dict(zip(forecast_df["Metric"], forecast_df["Value"], strict=False))
 
-        horizon_metrics = dict(zip(horizon_df["Metric"], horizon_df["Value"]))
+        horizon_metrics = dict(
+            zip(horizon_df["Metric"], horizon_df["Value"], strict=False)
+        )
 
-        decision_metrics = dict(zip(decision_df["Metric"], decision_df["Value"]))
+        decision_metrics = dict(
+            zip(decision_df["Metric"], decision_df["Value"], strict=False)
+        )
 
         stress_metrics = dict(
-            zip(stress_dashboard["Metric"], stress_dashboard["Value"])
+            zip(stress_dashboard["Metric"], stress_dashboard["Value"], strict=False)
         )
 
         return {
@@ -116,7 +120,9 @@ class GovernanceScoringEngine:
 
         forecast_confidence = float(forecast.iloc[0]["Forecast_Confidence"])
 
-        alert_metrics = dict(zip(alert_governance["Metric"], alert_governance["Value"]))
+        alert_metrics = dict(
+            zip(alert_governance["Metric"], alert_governance["Value"], strict=False)
+        )
 
         alert_health = float(alert_metrics.get("Alert_Health_Score", 0))
 

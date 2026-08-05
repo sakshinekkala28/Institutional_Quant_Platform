@@ -20,6 +20,7 @@ warnings.filterwarnings("ignore")
 # CONFIGURATION
 # ==========================================================
 
+
 @dataclass(frozen=True)
 class SignalConfig:
     ENGINE_VERSION: str = "5.0.0"
@@ -40,6 +41,7 @@ class SignalConfig:
 # ==========================================================
 # PATH MANAGER
 # ==========================================================
+
 
 class PathManager:
     def __init__(self):
@@ -87,6 +89,7 @@ class PathManager:
 # DATA LOADER
 # ==========================================================
 
+
 class DataLoader:
     @staticmethod
     def load_csv(path: Path, required_columns: list[str] | None = None) -> pd.DataFrame:
@@ -119,6 +122,7 @@ class DataLoader:
 # ==========================================================
 # DATA VALIDATOR
 # ==========================================================
+
 
 class DataValidator:
     @staticmethod
@@ -153,6 +157,7 @@ class DataValidator:
 # ==========================================================
 # DATA STANDARDIZER
 # ==========================================================
+
 
 class DataStandardizer:
     @staticmethod
@@ -195,6 +200,7 @@ class DataStandardizer:
 # FACTOR NORMALIZER
 # ==========================================================
 
+
 class FactorNormalizer:
     @staticmethod
     def percentile_rank(series: pd.Series) -> pd.Series:
@@ -225,6 +231,7 @@ class FactorNormalizer:
 # SIGNAL FRESHNESS ENGINE
 # ==========================================================
 
+
 class SignalFreshnessEngine:
     @staticmethod
     def apply(df: pd.DataFrame, half_life_days: int = 90) -> pd.DataFrame:
@@ -248,6 +255,7 @@ class SignalFreshnessEngine:
 # ==========================================================
 # COVERAGE ANALYTICS
 # ==========================================================
+
 
 class CoverageAnalytics:
     @staticmethod
@@ -304,6 +312,7 @@ class CoverageAnalytics:
 # FACTOR EXPOSURE EXPORTER
 # ==========================================================
 
+
 class ExposureExporter:
     @staticmethod
     def export(df: pd.DataFrame, output_path: Path):
@@ -333,6 +342,7 @@ class ExposureExporter:
 # ==========================================================
 # FACTOR ENGINE
 # ==========================================================
+
 
 class FactorEngine:
     def __init__(self, df: pd.DataFrame):
@@ -473,6 +483,7 @@ class FactorEngine:
 # FACTOR HEALTH ENGINE
 # ==========================================================
 
+
 class FactorHealthEngine:
     FACTORS: ClassVar[list[str]] = [
         "Signal_Factor",
@@ -509,8 +520,8 @@ class FactorHealthEngine:
 # FACTOR CORRELATION ENGINE
 # ==========================================================
 
-class FactorCorrelationEngine:
 
+class FactorCorrelationEngine:
     FACTORS: ClassVar[list[str]] = [
         "Signal_Factor",
         "Momentum_Factor",
@@ -532,6 +543,7 @@ class FactorCorrelationEngine:
 # ==========================================================
 # FACTOR DIAGNOSTICS ENGINE
 # ==========================================================
+
 
 class FactorDiagnostics:
     @staticmethod
@@ -556,10 +568,9 @@ class FactorDiagnostics:
 # REGIME ENGINE
 # ==========================================================
 
+
 class RegimeEngine:
-    REGIME_WEIGHTS: ClassVar[
-        dict[str, dict[str, float]]
-    ] = {
+    REGIME_WEIGHTS: ClassVar[dict[str, dict[str, float]]] = {
         "BULL": {
             "Signal": 0.20,
             "Momentum": 0.25,
@@ -605,6 +616,7 @@ class RegimeEngine:
 # ALPHA ENGINE
 # ==========================================================
 
+
 class AlphaEngine:
     @staticmethod
     def build_composite_alpha(df, regime_name="SIDEWAYS"):
@@ -630,6 +642,7 @@ class AlphaEngine:
 # SECTOR ALPHA ENGINE
 # ==========================================================
 
+
 class SectorAlphaEngine:
     @staticmethod
     def build(df):
@@ -652,6 +665,7 @@ class SectorAlphaEngine:
 # UNIVERSE BUILDER
 # ==========================================================
 
+
 class UniverseBuilder:
     @staticmethod
     def build(df, config):
@@ -671,6 +685,7 @@ class UniverseBuilder:
 # ==========================================================
 # SELECTION SCORE ENGINE
 # ==========================================================
+
 
 class SelectionScoreEngine:
     @staticmethod
@@ -692,6 +707,7 @@ class SelectionScoreEngine:
 # ==========================================================
 # SIGNAL ENGINE
 # ==========================================================
+
 
 class SignalEngine:
     def __init__(self):
@@ -719,7 +735,6 @@ class SignalEngine:
             ),
             "regime": self.loader.load_csv(self.paths.regime_file),
         }
-
 
     def build_alpha_universe(self, data):
 

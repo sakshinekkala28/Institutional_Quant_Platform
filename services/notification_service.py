@@ -29,7 +29,7 @@ Responsibilities
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from threading import Lock, RLock
 import time
 from typing import Any
@@ -55,7 +55,7 @@ class NotificationNotFoundError(NotificationError):
 # ============================================================
 
 
-class NotificationChannel(str, Enum):
+class NotificationChannel(StrEnum):
     EMAIL = "EMAIL"
 
     SLACK = "SLACK"
@@ -74,7 +74,7 @@ class NotificationChannel(str, Enum):
 # ============================================================
 
 
-class NotificationStatus(str, Enum):
+class NotificationStatus(StrEnum):
     PENDING = "PENDING"
 
     SENT = "SENT"

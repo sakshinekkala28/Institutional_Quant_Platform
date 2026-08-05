@@ -13,7 +13,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 import logging
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 logger = logging.getLogger(__name__)
 
@@ -44,7 +44,7 @@ T = TypeVar("T")
 # ======================================================================
 
 
-class Repository(ABC, Generic[T]):
+class Repository[T](ABC):
     """
     Base repository contract.
 

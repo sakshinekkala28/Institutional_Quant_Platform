@@ -148,11 +148,7 @@ else:
 
     benchmark_total_return = np.nan
 
-if "Active_Return" in equity.columns:
-    active_returns = equity["Active_Return"]
-
-else:
-    active_returns = None
+active_returns = equity["Active_Return"] if "Active_Return" in equity.columns else None
 
 portfolio_total_return = (1 + portfolio_returns).prod() - 1
 
@@ -226,11 +222,7 @@ else:
 # DRAWDOWN
 # =========================================================
 
-if "Drawdown" in equity.columns:
-    max_drawdown = equity["Drawdown"].min()
-
-else:
-    max_drawdown = np.nan
+max_drawdown = equity["Drawdown"].min() if "Drawdown" in equity.columns else np.nan
 
 # =========================================================
 # PERFORMANCE ATTRIBUTION

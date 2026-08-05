@@ -92,11 +92,7 @@ if not RETURNS_FILE.exists():
 
 returns_matrix = pd.read_parquet(RETURNS_FILE)
 
-covariance_file = (
-    SHRINKAGE_FILE
-    if USE_SHRINKAGE_COVARIANCE
-    else COVARIANCE_FILE
-)
+covariance_file = SHRINKAGE_FILE if USE_SHRINKAGE_COVARIANCE else COVARIANCE_FILE
 
 if not covariance_file.exists():
     raise FileNotFoundError(covariance_file)

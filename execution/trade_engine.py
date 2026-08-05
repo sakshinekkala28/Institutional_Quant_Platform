@@ -67,9 +67,7 @@ class TurnoverEngine:
     @staticmethod
     def calculate_turnover(trades):
 
-        turnover = trades["Trade_Weight"].abs().sum()
-
-        return turnover
+        return trades["Trade_Weight"].abs().sum()
 
     @staticmethod
     def reduce_turnover(trades, threshold=0.001):
@@ -78,9 +76,7 @@ class TurnoverEngine:
 
         trades.loc[trades["Trade_Weight"].abs() < threshold, "Trade_Weight"] = 0
 
-        trades = RebalanceEngine.classify(trades)
-
-        return trades
+        return RebalanceEngine.classify(trades)
 
     @staticmethod
     def trade_count(trades):

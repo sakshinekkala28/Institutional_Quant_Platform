@@ -81,9 +81,7 @@ class DataQualityEngine:
 
         iqr = q3 - q1
 
-        outliers = (df[column] > q3 + 1.5 * iqr).sum()
-
-        return outliers
+        return (df[column] > q3 + 1.5 * iqr).sum()
 
 
 # ==========================================================

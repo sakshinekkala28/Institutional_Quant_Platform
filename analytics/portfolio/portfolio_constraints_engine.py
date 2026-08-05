@@ -3,6 +3,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
 import logging
+from typing import ClassVar
 import uuid
 
 import pandas as pd
@@ -55,7 +56,7 @@ class ConstraintContext:
 
 
 class PortfolioConstraintValidator:
-    REQUIRED_METRICS = [
+    REQUIRED_METRICS: ClassVar[list[str]] = [
         "Risk_Budget_Score",
         "Risk_Regime",
         "Target_Cash_Level",
@@ -99,16 +100,20 @@ class PortfolioConstraintRepository:
 
         logger.info("Loading CIO Risk Budget Dashboard")
 
-        dashboard = pd.read_csv(INPUT_FILE)
-
-        return dashboard
+        return pd.read_csv(INPUT_FILE)
 
 
 class ConstraintSignalEngine:
     @staticmethod
     def extract(dashboard) -> dict:
 
-        metrics = dict(zip(dashboard["Metric"], dashboard["Value"]))
+        metrics = dict(
+            zip(
+                dashboard["Metric"],
+                dashboard["Value"],
+                strict=True,
+            )
+        )
 
         return ConstraintContext(
             risk_budget_score=float(metrics.get("Risk_Budget_Score", 0)),
@@ -427,7 +432,7 @@ class ConstraintMetadataEngine:
 
 
 class ConstraintPolicyEngine:
-    POLICY = {
+    POLICY: ClassVar[dict[str, dict[str, float]]] = {
         "AGGRESSIVE": {
             "Target_Holdings": 35,
             "Max_Beta": 1.30,

@@ -73,12 +73,7 @@ equity["SMA_12M"] = equity["Portfolio_Value"].rolling(12).mean()
 
 latest = equity.iloc[-1]
 
-trend_score = 50
-
-if latest["SMA_6M"] > latest["SMA_12M"]:
-    trend_score = 100
-else:
-    trend_score = 0
+trend_score = 100 if latest["SMA_6M"] > latest["SMA_12M"] else 0
 
 # =========================================================
 # VOLATILITY SCORE

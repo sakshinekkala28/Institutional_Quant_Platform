@@ -109,7 +109,7 @@ class CIODashboard:
     @staticmethod
     def build(portfolio, performance_report, factor_report, sector_report):
 
-        dashboard = {
+        return {
             "Portfolio_Value": portfolio.get("Portfolio_Value", pd.Series([0])).sum(),
             "Annual_Return": performance_report["Annual_Return"],
             "Annual_Volatility": performance_report["Annual_Volatility"],
@@ -120,8 +120,6 @@ class CIODashboard:
                 "Contribution", ascending=False
             ).iloc[0]["Sector"],
         }
-
-        return dashboard
 
 
 # ==========================================================

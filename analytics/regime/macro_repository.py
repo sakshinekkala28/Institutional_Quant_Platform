@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import logging
 from pathlib import Path
+from typing import ClassVar
 
 import pandas as pd
 
@@ -33,7 +34,10 @@ VIX_FILE = MACRO_DIR / "vix.csv"
 
 
 class MacroValidator:
-    REQUIRED_COLUMNS = ["Date", "Value"]
+    REQUIRED_COLUMNS: ClassVar[list[str]] = [
+        "Date",
+        "Value",
+    ]
 
     @staticmethod
     def validate():
@@ -83,9 +87,11 @@ class MacroRepository:
 
         df["Date"] = pd.to_datetime(df["Date"])
 
-        df = df.sort_values("Date").reset_index(drop=True)
-
-        return df
+        return df.sort_values(
+            "Date",
+        ).reset_index(
+            drop=True,
+        )
 
     @staticmethod
     def load():

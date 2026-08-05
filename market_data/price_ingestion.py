@@ -5,6 +5,7 @@
 
 from __future__ import annotations
 
+import contextlib
 from dataclasses import dataclass
 from datetime import datetime
 import logging
@@ -338,9 +339,7 @@ class YahooDownloadEngine:
         if not frames:
             return pd.DataFrame()
 
-        prices = pd.concat(frames, ignore_index=True)
-
-        return prices
+        return pd.concat(frames, ignore_index=True)
 
 
 # ==========================================================
@@ -448,9 +447,7 @@ class IncrementalUpdateEngine:
 
         covered = set(prices["Symbol"].unique())
 
-        missing = universe.loc[~universe["Yahoo_Symbol"].isin(covered)]
-
-        return missing
+        return universe.loc[~universe["Yahoo_Symbol"].isin(covered)]
 
     def merge_prices(
         self, existing_prices: pd.DataFrame, new_prices: pd.DataFrame
@@ -476,7 +473,7 @@ class CoverageAnalytics:
     @staticmethod
     def build_report(prices: pd.DataFrame) -> pd.DataFrame:
 
-        report = (
+        return (
             prices.groupby("Symbol")
             .agg(
                 First_Date=("Date", "min"),
@@ -486,8 +483,6 @@ class CoverageAnalytics:
             )
             .reset_index()
         )
-
-        return report
 
     @staticmethod
     def save_report(report: pd.DataFrame, config: PriceIngestionConfig) -> None:
@@ -508,9 +503,7 @@ class MissingSymbolAnalytics:
 
         covered = set(prices["Symbol"].unique())
 
-        missing = universe.loc[~universe["Yahoo_Symbol"].isin(covered)].copy()
-
-        return missing
+        return universe.loc[~universe["Yahoo_Symbol"].isin(covered)].copy()
 
     @staticmethod
     def save_report(report: pd.DataFrame, config: PriceIngestionConfig) -> None:
@@ -872,11 +865,8 @@ class PriceIngestionEngine:
         except Exception:
             pass
 
-        try:
+        with contextlib.suppress(Exception):
             TelemetryAdapter.track("price_ingestion_runs", 1)
-
-        except Exception:
-            pass
 
     # ======================================================
     # SUMMARY

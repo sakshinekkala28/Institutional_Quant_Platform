@@ -70,9 +70,13 @@ class GovernanceCommitteeMetrics:
     @staticmethod
     def build(governance, committee, executive):
 
-        governance_metrics = dict(zip(governance["Metric"], governance["Value"]))
+        governance_metrics = dict(
+            zip(governance["Metric"], governance["Value"], strict=False)
+        )
 
-        executive_metrics = dict(zip(executive["Metric"], executive["Value"]))
+        executive_metrics = dict(
+            zip(executive["Metric"], executive["Value"], strict=False)
+        )
 
         return {
             "Governance_Score": governance_metrics.get("Governance_Score"),

@@ -55,7 +55,7 @@ class AlertGovernanceEngine:
 
         logger.info("Calculating Alert Governance")
 
-        metrics = dict(zip(dashboard["Metric"], dashboard["Value"]))
+        metrics = dict(zip(dashboard["Metric"], dashboard["Value"], strict=False))
 
         total_alerts = int(metrics.get("Total_Alerts", 0))
 

@@ -12,14 +12,14 @@ Central event definitions.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 # ==========================================================
 # PLATFORM EVENTS
 # ==========================================================
 
 
-class Event(str, Enum):
+class Event(StrEnum):
     # ------------------------------------------------------
     # PLATFORM
     # ------------------------------------------------------

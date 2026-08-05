@@ -617,18 +617,12 @@ class ConditionalValueAtRiskEngine:
         std = returns.std()
 
         if confidence == 0.95:
-            z = 1.645
-
             pdf = 0.103
 
         elif confidence == 0.99:
-            z = 2.326
-
             pdf = 0.026
 
         else:
-            z = 1.645
-
             pdf = 0.103
 
         cvar = mean - (std * pdf / (1 - confidence))
@@ -1106,11 +1100,9 @@ class PerformanceDashboardEngine:
     @staticmethod
     def build(statistics: dict) -> pd.DataFrame:
 
-        dashboard = pd.DataFrame(
+        return pd.DataFrame(
             {"Metric": list(statistics.keys()), "Value": list(statistics.values())}
         )
-
-        return dashboard
 
 
 # ==========================================================
@@ -1124,7 +1116,7 @@ class PerformanceAuditEngine:
         portfolio: pd.DataFrame, performance_df: pd.DataFrame, statistics: dict
     ) -> pd.DataFrame:
 
-        audit = pd.DataFrame(
+        return pd.DataFrame(
             {
                 "Timestamp": [pd.Timestamp.now()],
                 "Holdings": [len(portfolio)],
@@ -1135,8 +1127,6 @@ class PerformanceAuditEngine:
                 "Max_Drawdown": [statistics["Max_Drawdown"]],
             }
         )
-
-        return audit
 
 
 # ==========================================================
@@ -1305,9 +1295,7 @@ class RegimeTransitionEngine:
 
         probability_matrix = matrix.div(matrix.sum(axis=1), axis=0)
 
-        probability_matrix = probability_matrix.round(4)
-
-        return probability_matrix
+        return probability_matrix.round(4)
 
 
 # ==========================================================
@@ -1367,62 +1355,105 @@ class RegimeScorecardEngine:
 # ==========================================================
 
 
+@dataclass(slots=True)
+class ExportRequest:
+    performance_df: pd.DataFrame
+    rolling_df: pd.DataFrame
+    statistics: dict
+
+    audit_df: pd.DataFrame
+
+    var_report: pd.DataFrame
+    cvar_report: pd.DataFrame
+    tail_risk_report: pd.DataFrame
+    risk_dashboard: pd.DataFrame
+
+    regime_stats: pd.DataFrame
+    transition_matrix: pd.DataFrame
+    persistence_df: pd.DataFrame
+    regime_scorecard: pd.DataFrame
+
+
 class ExportEngine:
     @staticmethod
     def save(
-        performance_df: pd.DataFrame,
-        rolling_df: pd.DataFrame,
-        statistics: dict,
-        audit_df: pd.DataFrame,
-        var_report: pd.DataFrame,
-        cvar_report: pd.DataFrame,
-        tail_risk_report: pd.DataFrame,
-        risk_dashboard: pd.DataFrame,
-        regime_stats: pd.DataFrame,
-        transition_matrix: pd.DataFrame,
-        persistence_df: pd.DataFrame,
-        regime_scorecard: pd.DataFrame,
+        request: ExportRequest,
     ):
 
         logger.info("Exporting Reports")
 
-        performance_df[["Date", "Portfolio_NAV", "Cumulative_Return"]].to_csv(
+        request.performance_df[["Date", "Portfolio_NAV", "Cumulative_Return"]].to_csv(
             PORTFOLIO_NAV_FILE, index=False
         )
 
-        performance_df[["Date", "Portfolio_Return"]].to_csv(
+        request.performance_df[["Date", "Portfolio_Return"]].to_csv(
             PORTFOLIO_RETURNS_FILE, index=False
         )
 
-        performance_df[["Date", "Benchmark_Return"]].to_csv(
+        request.performance_df[["Date", "Benchmark_Return"]].to_csv(
             BENCHMARK_RETURNS_FILE, index=False
         )
 
-        rolling_df.to_csv(ROLLING_PERFORMANCE_FILE, index=False)
-
-        pd.DataFrame([statistics]).to_csv(PERFORMANCE_SUMMARY_FILE, index=False)
-
-        PerformanceDashboardEngine.build(statistics).to_csv(
-            PERFORMANCE_DASHBOARD_FILE, index=False
+        request.rolling_df.to_csv(
+            ROLLING_PERFORMANCE_FILE,
+            index=False,
         )
 
-        audit_df.to_csv(PERFORMANCE_AUDIT_FILE, index=False)
+        pd.DataFrame([request.statistics]).to_csv(
+            PERFORMANCE_SUMMARY_FILE,
+            index=False,
+        )
 
-        var_report.to_csv(OUTPUT_DIR / "var_report.csv", index=False)
+        PerformanceDashboardEngine.build(
+            request.statistics,
+        ).to_csv(
+            PERFORMANCE_DASHBOARD_FILE,
+            index=False,
+        )
 
-        cvar_report.to_csv(OUTPUT_DIR / "cvar_report.csv", index=False)
+        request.audit_df.to_csv(
+            PERFORMANCE_AUDIT_FILE,
+            index=False,
+        )
 
-        tail_risk_report.to_csv(OUTPUT_DIR / "tail_risk_report.csv", index=False)
+        request.var_report.to_csv(
+            OUTPUT_DIR / "var_report.csv",
+            index=False,
+        )
 
-        risk_dashboard.to_csv(OUTPUT_DIR / "risk_dashboard.csv", index=False)
+        request.cvar_report.to_csv(
+            OUTPUT_DIR / "cvar_report.csv",
+            index=False,
+        )
 
-        regime_stats.to_csv(REGIME_STATISTICS_FILE, index=False)
+        request.tail_risk_report.to_csv(
+            OUTPUT_DIR / "tail_risk_report.csv",
+            index=False,
+        )
 
-        transition_matrix.to_csv(REGIME_TRANSITION_FILE)
+        request.risk_dashboard.to_csv(
+            OUTPUT_DIR / "risk_dashboard.csv",
+            index=False,
+        )
 
-        persistence_df.to_csv(REGIME_PERSISTENCE_FILE, index=False)
+        request.regime_stats.to_csv(
+            REGIME_STATISTICS_FILE,
+            index=False,
+        )
 
-        regime_scorecard.to_csv(REGIME_SCORECARD_FILE, index=False)
+        request.transition_matrix.to_csv(
+            REGIME_TRANSITION_FILE,
+        )
+
+        request.persistence_df.to_csv(
+            REGIME_PERSISTENCE_FILE,
+            index=False,
+        )
+
+        request.regime_scorecard.to_csv(
+            REGIME_SCORECARD_FILE,
+            index=False,
+        )
 
         logger.info("Performance Reports Exported")
 
@@ -1562,18 +1593,20 @@ class PortfolioReturnEngine:
         audit_df = PerformanceAuditEngine.build(portfolio, performance_df, statistics)
 
         ExportEngine.save(
-            performance_df,
-            rolling_df,
-            statistics,
-            audit_df,
-            var_report,
-            cvar_report,
-            tail_risk_report,
-            risk_dashboard,
-            regime_stats,
-            transition_matrix,
-            persistence_df,
-            regime_scorecard,
+            ExportRequest(
+                performance_df=performance_df,
+                rolling_df=rolling_df,
+                statistics=statistics,
+                audit_df=audit_df,
+                var_report=var_report,
+                cvar_report=cvar_report,
+                tail_risk_report=tail_risk_report,
+                risk_dashboard=risk_dashboard,
+                regime_stats=regime_stats,
+                transition_matrix=transition_matrix,
+                persistence_df=persistence_df,
+                regime_scorecard=regime_scorecard,
+            )
         )
 
         logger.info("Portfolio Return Engine Complete")

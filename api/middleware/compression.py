@@ -202,10 +202,7 @@ def validate_configuration(
     if compresslevel < 1:
         return False
 
-    if compresslevel > 9:
-        return False
-
-    return True
+    return not compresslevel > 9
 
 
 # ==========================================================

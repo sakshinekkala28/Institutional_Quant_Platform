@@ -1,7 +1,7 @@
-from enum import Enum
+from enum import StrEnum
 
 
-class MarketCapStatus(str, Enum):
+class MarketCapStatus(StrEnum):
     SUCCESS = "SUCCESS"
 
     NO_MARKET_CAP = "NO_MARKET_CAP"

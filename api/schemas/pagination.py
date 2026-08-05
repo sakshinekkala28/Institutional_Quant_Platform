@@ -24,7 +24,7 @@ Provides
 
 from __future__ import annotations
 
-from typing import Any, Generic, TypeVar
+from typing import Any, TypeVar
 
 from pydantic import Field
 
@@ -124,9 +124,8 @@ class PageMetadata(
 # ==========================================================
 
 
-class PageResponse(
+class PageResponse[T](
     APIModel,
-    Generic[T],
 ):
     """
     Generic page response.
@@ -184,9 +183,8 @@ class CursorMetadata(
 # ==========================================================
 
 
-class CursorResponse(
+class CursorResponse[T](
     APIModel,
-    Generic[T],
 ):
     """
     Cursor response.

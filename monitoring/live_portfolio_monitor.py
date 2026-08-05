@@ -336,7 +336,7 @@ class StressMonitorEngine:
 
         rejected = stress_metrics["Rejected_Scenarios"]
 
-        stress_average = stress_metrics["Stress_Average"]
+        stress_metrics["Stress_Average"]
 
         stress_view = stress_metrics["Stress_View"]
 

@@ -521,9 +521,7 @@ class TransactionCostEngine:
 
     def enrich_trades(self, trades: pd.DataFrame, costs: pd.DataFrame) -> pd.DataFrame:
 
-        enriched = trades.merge(costs, on="Symbol", how="left")
-
-        return enriched
+        return trades.merge(costs, on="Symbol", how="left")
 
 
 # ==========================================================
@@ -596,7 +594,7 @@ class CostAnalytics:
     @staticmethod
     def build(enriched_cost_df: pd.DataFrame) -> pd.DataFrame:
 
-        analytics = (
+        return (
             enriched_cost_df.groupby("Liquidity_Flag")
             .agg(
                 Trades=("Symbol", "count"),
@@ -605,8 +603,6 @@ class CostAnalytics:
             )
             .reset_index()
         )
-
-        return analytics
 
 
 # ==========================================================
@@ -764,9 +760,7 @@ class RebalanceCostIntegration:
 
         pipeline = TransactionCostPipeline(security_master_path, volatility_path)
 
-        results = pipeline.run(trades)
-
-        return results
+        return pipeline.run(trades)
 
 
 # ==========================================================

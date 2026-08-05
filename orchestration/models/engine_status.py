@@ -10,10 +10,10 @@ EngineResult and PipelineResult.
 =========================================================
 """
 
-from enum import Enum
+from enum import StrEnum
 
 
-class EngineStatus(str, Enum):
+class EngineStatus(StrEnum):
     """
     Standard execution lifecycle for platform engines.
     """

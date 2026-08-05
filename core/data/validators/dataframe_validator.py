@@ -124,9 +124,8 @@ class DataFrameValidator(BaseValidator):
         # Unique Index
         # -----------------------------------------------
 
-        if self.require_unique_index:
-            if not data.index.is_unique:
-                issues.append(self.error("DataFrame index contains duplicate values."))
+        if self.require_unique_index and not data.index.is_unique:
+            issues.append(self.error("DataFrame index contains duplicate values."))
 
         # -----------------------------------------------
         # Row Count

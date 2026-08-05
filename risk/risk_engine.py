@@ -21,9 +21,7 @@ class CovarianceEngine:
 
         eigvals = np.maximum(eigvals, 1e-5)
 
-        repaired = eigvecs @ np.diag(eigvals) @ eigvecs.T
-
-        return repaired
+        return eigvecs @ np.diag(eigvals) @ eigvecs.T
 
     @staticmethod
     def shrink_covariance(covariance_matrix, shrinkage=0.10):
@@ -68,9 +66,7 @@ class TrackingErrorEngine:
     @staticmethod
     def calculate(active_weights, covariance_matrix):
 
-        tracking_error = np.sqrt(active_weights.T @ covariance_matrix @ active_weights)
-
-        return tracking_error
+        return np.sqrt(active_weights.T @ covariance_matrix @ active_weights)
 
 
 # ==========================================================
@@ -88,9 +84,7 @@ class RiskContributionEngine:
 
         component_risk = weights * marginal_risk
 
-        risk_pct = component_risk / component_risk.sum()
-
-        return risk_pct
+        return component_risk / component_risk.sum()
 
 
 # ==========================================================

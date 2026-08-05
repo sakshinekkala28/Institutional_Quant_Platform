@@ -25,10 +25,7 @@ benchmark["Date"] = pd.to_datetime(benchmark["Date"])
 benchmark = benchmark.sort_values("Date")
 
 # Find usable close column
-if benchmark["Close"].notna().sum() > 100:
-    close_col = "Close"
-else:
-    close_col = "Close.1"
+close_col = "Close" if benchmark["Close"].notna().sum() > 100 else "Close.1"
 
 benchmark["Benchmark_Return"] = benchmark[close_col].pct_change()
 
@@ -66,10 +63,7 @@ for symbol in prices["Symbol"].unique():
 
         variance = np.var(bench_ret)
 
-        if variance == 0:
-            beta = 1.0
-        else:
-            beta = covariance / variance
+        beta = 1.0 if variance == 0 else covariance / variance
 
         beta = np.clip(beta, 0.25, 3.00)
 

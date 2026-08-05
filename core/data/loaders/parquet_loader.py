@@ -81,7 +81,7 @@ class ParquetLoader(BaseLoader):
         """
 
         try:
-            dataframe = pd.read_parquet(
+            return pd.read_parquet(
                 path=self.source,
                 engine=self.engine,
                 columns=self.columns,
@@ -90,8 +90,6 @@ class ParquetLoader(BaseLoader):
                 filters=self.filters,
                 use_nullable_dtypes=self.use_nullable_dtypes,
             )
-
-            return dataframe
 
         except ImportError as exc:
             raise DataLoadError(

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import logging
 from pathlib import Path
+from typing import Any
 
 import pandas as pd
 
@@ -146,6 +148,16 @@ class SurveillanceValidator:
         logger.info("Surveillance Validation Passed")
 
 
+@dataclass(slots=True)
+class AlertRequest:
+    category: str
+    severity: str
+    metric: str
+    value: Any
+    threshold: Any
+    message: str
+
+
 # ==========================================================
 # ALERT FACTORY
 # ==========================================================
@@ -154,16 +166,16 @@ class SurveillanceValidator:
 class AlertFactory:
     @staticmethod
     def create(
-        category: str, severity: str, metric: str, value, threshold, message: str
+        request: AlertRequest,
     ) -> dict:
 
         return {
-            "Category": category,
-            "Severity": severity,
-            "Metric": metric,
-            "Value": value,
-            "Threshold": threshold,
-            "Message": message,
+            "Category": request.category,
+            "Severity": request.severity,
+            "Metric": request.metric,
+            "Value": request.value,
+            "Threshold": request.threshold,
+            "Message": request.message,
         }
 
 
@@ -185,12 +197,14 @@ class PerformanceAlertEngine:
         if metrics["Sharpe_Ratio"] < settings.surveillance.MIN_SHARPE:
             alerts.append(
                 AlertFactory.create(
-                    category="Performance",
-                    severity="WARNING",
-                    metric="Sharpe_Ratio",
-                    value=metrics["Sharpe_Ratio"],
-                    threshold=settings.surveillance.MIN_SHARPE,
-                    message=("Sharpe Ratio below threshold"),
+                    AlertRequest(
+                        category="Performance",
+                        severity="WARNING",
+                        metric="Sharpe_Ratio",
+                        value=metrics["Sharpe_Ratio"],
+                        threshold=settings.surveillance.MIN_SHARPE,
+                        message="Sharpe Ratio below threshold",
+                    )
                 )
             )
 

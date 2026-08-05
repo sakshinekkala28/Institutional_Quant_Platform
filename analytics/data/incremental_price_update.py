@@ -19,6 +19,7 @@ data/logs/invalid_symbols.csv
 
 =========================================================
 """
+
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 import time
@@ -87,9 +88,11 @@ def download_full_history(
 
     return df
 
+
 # =========================================================
 # DOWNLOAD FULL HISTORY
 # =========================================================
+
 
 def update_symbol(
     symbol: str,
@@ -107,30 +110,24 @@ def update_symbol(
     status = "FAILED"
 
     try:
-
         # =====================================================
         # NEW FILE
         # =====================================================
 
         if not output_file.exists():
-
             df = download_full_history(symbol)
 
             if len(df) < 252:
-
                 new_invalid.append(
                     {
                         "Symbol": symbol,
-                        "Reason": (
-                            f"Insufficient History ({len(df)} rows)"
-                        ),
+                        "Reason": (f"Insufficient History ({len(df)} rows)"),
                     }
                 )
 
                 status = "INVALID"
 
             elif df.empty:
-
                 new_invalid.append(
                     {
                         "Symbol": symbol,
@@ -141,7 +138,6 @@ def update_symbol(
                 status = "INVALID"
 
             else:
-
                 output_file.parent.mkdir(
                     parents=True,
                     exist_ok=True,
@@ -159,42 +155,29 @@ def update_symbol(
         # =====================================================
 
         else:
-
             existing = pd.read_parquet(output_file)
 
             if len(existing) < 252:
-
                 new_invalid.append(
                     {
                         "Symbol": symbol,
-                        "Reason": (
-                            f"Corrupted History ({len(existing)} rows)"
-                        ),
+                        "Reason": (f"Corrupted History ({len(existing)} rows)"),
                     }
                 )
 
                 status = "INVALID"
 
             elif existing.empty:
-
                 status = "SKIPPED"
 
             else:
-
-                last_date = pd.to_datetime(
-                    existing["Date"]
-                ).max()
+                last_date = pd.to_datetime(existing["Date"]).max()
 
                 if last_date.normalize() >= expected_date:
-
                     status = "SKIPPED"
 
                 else:
-
-                    start_date = (
-                        last_date
-                        + pd.Timedelta(days=1)
-                    )
+                    start_date = last_date + pd.Timedelta(days=1)
 
                     new_data = yf.download(
                         f"{symbol}.NS",
@@ -205,21 +188,16 @@ def update_symbol(
                     )
 
                     if new_data.empty:
-
                         status = "SKIPPED"
 
                     else:
-
                         new_data = new_data.reset_index()
 
                         if isinstance(
                             new_data.columns,
                             pd.MultiIndex,
                         ):
-                            new_data.columns = [
-                                c[0]
-                                for c in new_data.columns
-                            ]
+                            new_data.columns = [c[0] for c in new_data.columns]
 
                         new_data.columns = [
                             str(c).replace(
@@ -239,9 +217,7 @@ def update_symbol(
                                 ],
                                 ignore_index=True,
                             )
-                            .drop_duplicates(
-                                subset=["Date"]
-                            )
+                            .drop_duplicates(subset=["Date"])
                             .sort_values("Date")
                         )
 
@@ -257,7 +233,6 @@ def update_symbol(
     # =========================================================
 
     except Exception as exc:
-
         failures.append(
             {
                 "Symbol": symbol,

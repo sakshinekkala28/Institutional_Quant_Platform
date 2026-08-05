@@ -193,13 +193,11 @@ class PriceRepository:
 
         returns = self.get_returns()
 
-        matrix = returns.pivot(
+        return returns.pivot(
             index=self.config.DATE_COLUMN,
             columns=self.config.SYMBOL_COLUMN,
             values="Return",
         )
-
-        return matrix
 
     # ======================================================
     # PRICE MATRIX
@@ -209,13 +207,11 @@ class PriceRepository:
 
         self._check_loaded()
 
-        matrix = self.prices.pivot(
+        return self.prices.pivot(
             index=self.config.DATE_COLUMN,
             columns=self.config.SYMBOL_COLUMN,
             values=self.config.CLOSE_COLUMN,
         )
-
-        return matrix
 
     # ======================================================
     # LATEST PRICES
@@ -225,13 +221,11 @@ class PriceRepository:
 
         self._check_loaded()
 
-        latest = (
+        return (
             self.prices.sort_values(self.config.DATE_COLUMN)
             .groupby(self.config.SYMBOL_COLUMN)
             .tail(1)
         )
-
-        return latest
 
     # ======================================================
     # COVERAGE REPORT
@@ -241,7 +235,7 @@ class PriceRepository:
 
         self._check_loaded()
 
-        report = (
+        return (
             self.prices.groupby(self.config.SYMBOL_COLUMN)
             .agg(
                 First_Date=(self.config.DATE_COLUMN, "min"),
@@ -250,8 +244,6 @@ class PriceRepository:
             )
             .reset_index()
         )
-
-        return report
 
     # ======================================================
     # HISTORY FILTER

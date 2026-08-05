@@ -34,7 +34,7 @@ Inherited By
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 import pandas as pd
 
@@ -59,7 +59,7 @@ logger = LoggingManager.get_logger(__name__)
 # ==========================================================
 
 
-class BaseRepository(ABC, Generic[T]):
+class BaseRepository[T](ABC):
     """
     Institutional Base Repository.
     """

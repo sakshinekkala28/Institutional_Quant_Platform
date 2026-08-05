@@ -82,7 +82,7 @@ for factor, file_name in factor_files.items():
 
     df = pd.read_csv(file)
 
-    score_col = [c for c in df.columns if "score" in c.lower()][0]
+    score_col = next(c for c in df.columns if "score" in c.lower())
 
     tmp = df[["Symbol", score_col]].copy()
 

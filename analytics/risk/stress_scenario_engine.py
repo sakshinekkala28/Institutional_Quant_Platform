@@ -555,11 +555,7 @@ stress_var_95 = np.percentile(stress_returns, 5)
 
 tail_returns = stress_returns[stress_returns <= stress_var_95]
 
-if len(tail_returns) > 0:
-    stress_cvar_95 = tail_returns.mean()
-
-else:
-    stress_cvar_95 = stress_var_95
+stress_cvar_95 = tail_returns.mean() if len(tail_returns) > 0 else stress_var_95
 
 # =========================================================
 # WORST CASE LOSS

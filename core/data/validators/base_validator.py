@@ -31,7 +31,7 @@ from __future__ import annotations
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
-from typing import Generic, TypeVar
+from typing import TypeVar
 
 import pandas as pd
 
@@ -69,7 +69,7 @@ class ValidationIssue:
 
 
 @dataclass(slots=True)
-class ValidationResult(Generic[T]):
+class ValidationResult[T]:
     passed: bool
 
     data: T

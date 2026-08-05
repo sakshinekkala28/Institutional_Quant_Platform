@@ -21,7 +21,7 @@ Responsibilities
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 import logging
 
 from orchestration.orchestrator import Orchestrator
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 # =========================================================
 
 
-class LifecycleState(str, Enum):
+class LifecycleState(StrEnum):
     CREATED = "CREATED"
 
     INITIALIZED = "INITIALIZED"

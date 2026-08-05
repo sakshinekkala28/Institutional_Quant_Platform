@@ -60,9 +60,13 @@ class DecisionScoringEngine:
     @staticmethod
     def calculate(executive, governance):
 
-        executive_metrics = dict(zip(executive["Metric"], executive["Value"]))
+        executive_metrics = dict(
+            zip(executive["Metric"], executive["Value"], strict=False)
+        )
 
-        governance_metrics = dict(zip(governance["Metric"], governance["Value"]))
+        governance_metrics = dict(
+            zip(governance["Metric"], governance["Value"], strict=False)
+        )
 
         pack_score = float(executive_metrics.get("Pack_Score", 0))
 
@@ -84,9 +88,13 @@ class CIODecisionEngine:
     @staticmethod
     def build(executive, governance, scores):
 
-        executive_metrics = dict(zip(executive["Metric"], executive["Value"]))
+        executive_metrics = dict(
+            zip(executive["Metric"], executive["Value"], strict=False)
+        )
 
-        governance_metrics = dict(zip(governance["Metric"], governance["Value"]))
+        governance_metrics = dict(
+            zip(governance["Metric"], governance["Value"], strict=False)
+        )
 
         forecast_bias = str(governance_metrics.get("Forecast_Bias", ""))
 

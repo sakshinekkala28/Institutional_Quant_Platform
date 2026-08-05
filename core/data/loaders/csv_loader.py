@@ -95,7 +95,7 @@ class CSVLoader(BaseLoader):
         """
 
         try:
-            dataframe = pd.read_csv(
+            return pd.read_csv(
                 filepath_or_buffer=self.source,
                 sep=self.separator,
                 encoding=self.encoding,
@@ -108,8 +108,6 @@ class CSVLoader(BaseLoader):
                 memory_map=self.memory_map,
                 compression=self.compression,
             )
-
-            return dataframe
 
         except UnicodeDecodeError as exc:
             raise DataLoadError(

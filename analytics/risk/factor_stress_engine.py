@@ -712,11 +712,7 @@ factor_var_95 = np.percentile(stress_returns, 5)
 
 tail_returns = stress_returns[stress_returns <= factor_var_95]
 
-if len(tail_returns) > 0:
-    factor_cvar_95 = tail_returns.mean()
-
-else:
-    factor_cvar_95 = factor_var_95
+factor_cvar_95 = tail_returns.mean() if len(tail_returns) > 0 else factor_var_95
 
 # =========================================================
 # WORST SCENARIO METRICS

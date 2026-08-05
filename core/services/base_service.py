@@ -72,9 +72,7 @@ class BaseService(ABC):
         start = perf_counter()
 
         try:
-            result = self.run(*args, **kwargs)
-
-            return result
+            return self.run(*args, **kwargs)
 
         finally:
             elapsed = perf_counter() - start

@@ -98,11 +98,7 @@ for idx in range(200, len(benchmark)):
 
     # Use latest available breadth up to this date
     mask = breadth["Date"] <= date
-    if mask.any():
-        latest_breadth = breadth.loc[mask].iloc[-1]
-    else:
-        latest_breadth = breadth.iloc[0]
-
+    latest_breadth = breadth.loc[mask].iloc[-1] if mask.any() else breadth.iloc[0]
     breadth_score = latest_breadth["BREADTH_SCORE"]
 
     regime = "SIDEWAYS"

@@ -30,7 +30,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
-from enum import Enum
+from enum import StrEnum
 from threading import Lock, RLock
 from typing import Any
 
@@ -41,13 +41,13 @@ from core.services.base_service import BaseService
 # ============================================================
 
 
-class TradeSide(str, Enum):
+class TradeSide(StrEnum):
     BUY = "BUY"
 
     SELL = "SELL"
 
 
-class TradeStatus(str, Enum):
+class TradeStatus(StrEnum):
     BOOKED = "BOOKED"
 
     ALLOCATED = "ALLOCATED"

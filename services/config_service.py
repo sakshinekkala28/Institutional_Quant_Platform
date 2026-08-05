@@ -280,7 +280,9 @@ class ConfigService(BaseService):
             if default is not None:
                 return default
 
-            raise ConfigurationNotFoundError(f"Unknown configuration section '{section}'.")
+            raise ConfigurationNotFoundError(
+                f"Unknown configuration section '{section}'."
+            )
 
         configuration = self._configuration_registry[section]
 
@@ -495,7 +497,7 @@ class ConfigService(BaseService):
         Validate every registered configuration section.
         """
 
-        for section, validator in self._validators.items():
+        for _section, validator in self._validators.items():
             validator()
 
         self._logger.info("Configuration validation completed successfully.")

@@ -340,7 +340,9 @@ class AlertGovernanceSlideBuilder:
 
         slide.shapes.title.text = "Alert Governance"
 
-        metrics = dict(zip(alert_governance["Metric"], alert_governance["Value"]))
+        metrics = dict(
+            zip(alert_governance["Metric"], alert_governance["Value"], strict=False)
+        )
 
         textbox = slide.shapes.add_textbox(
             Inches(0.5), Inches(1.2), Inches(8), Inches(4)

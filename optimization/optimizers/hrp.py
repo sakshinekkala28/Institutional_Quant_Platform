@@ -80,9 +80,7 @@ class HRPOptimizer(BaseOptimizer):
 
         correlation = covariance / np.outer(volatility, volatility)
 
-        correlation = np.nan_to_num(correlation)
-
-        return correlation
+        return np.nan_to_num(correlation)
 
     # =====================================================
     # DISTANCE
