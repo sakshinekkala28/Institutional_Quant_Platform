@@ -40,6 +40,7 @@ from core.services.base_service import BaseService
 # Exceptions
 # ============================================================
 
+
 class BacktestError(Exception):
     """Base backtest exception."""
 
@@ -55,6 +56,7 @@ class BacktestEngineNotFoundError(BacktestError):
 # ============================================================
 # Backtest Profile
 # ============================================================
+
 
 @dataclass(slots=True)
 class BacktestProfile:
@@ -86,6 +88,7 @@ class BacktestRegistration:
 # ============================================================
 # Backtest Service
 # ============================================================
+
 
 class BacktestService(BaseService):
     """

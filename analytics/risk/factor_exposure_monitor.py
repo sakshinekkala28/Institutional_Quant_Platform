@@ -132,7 +132,9 @@ risk_score = min(risk_score, 100)
 dominant_factor = factor_exposure.sort_values(
     "Abs_Exposure",
     ascending=False,
-).iloc[0]["Factor"]
+).iloc[
+    0
+]["Factor"]
 
 summary = pd.DataFrame(
     {

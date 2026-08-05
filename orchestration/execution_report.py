@@ -44,6 +44,7 @@ from orchestration.models.pipeline_result import PipelineResult
 # EXECUTION REPORT
 # =========================================================
 
+
 @dataclass(slots=True)
 class ExecutionReport:
     """
@@ -972,7 +973,6 @@ class ExecutionReport:
                         result.duration,
                     ]
                 )
-
 
     # =====================================================
     # CONTAINER

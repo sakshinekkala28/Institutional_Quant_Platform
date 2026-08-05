@@ -298,6 +298,7 @@ health_score = min(health_score, 100)
 # FACTOR TYPE
 # =========================================================
 
+
 def classify_factor(
     factor,
 ) -> str:

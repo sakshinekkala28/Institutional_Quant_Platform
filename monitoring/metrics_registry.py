@@ -175,8 +175,7 @@ class MetricsRegistry:
                 status = "WARNING"
 
         elif (
-            metric.critical_threshold is not None
-            and value > metric.critical_threshold
+            metric.critical_threshold is not None and value > metric.critical_threshold
         ):
             status = "CRITICAL"
 

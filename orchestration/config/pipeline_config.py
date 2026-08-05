@@ -78,7 +78,6 @@ class PipelineDefinition:
 
 
 PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
-
     PipelineDefinition(
         name="Data Pipeline",
         stage=1,
@@ -87,7 +86,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.data_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Signal Pipeline",
         stage=2,
@@ -96,7 +94,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.signal_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Factor Pipeline",
         stage=3,
@@ -105,7 +102,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.factor_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Alpha Pipeline",
         stage=4,
@@ -114,7 +110,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.alpha_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Regime Pipeline",
         stage=5,
@@ -123,7 +118,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.regime_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Risk Model Pipeline",
         stage=6,
@@ -132,7 +126,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.risk_model_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Risk Pipeline",
         stage=7,
@@ -141,7 +134,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.risk_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Portfolio Pipeline",
         stage=8,
@@ -150,7 +142,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.portfolio_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Execution Pipeline",
         stage=9,
@@ -159,7 +150,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.execution_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Live Pipeline",
         stage=10,
@@ -168,7 +158,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.live_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Performance Pipeline",
         stage=11,
@@ -177,7 +166,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.performance_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Reporting Pipeline",
         stage=12,
@@ -186,7 +174,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.reporting_pipeline",
         ),
     ),
-
     PipelineDefinition(
         name="Monitoring Pipeline",
         stage=13,
@@ -195,7 +182,6 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
             "orchestration.pipelines.monitoring_pipeline",
         ),
     ),
-
 )
 
 
@@ -205,8 +191,7 @@ PIPELINE_REGISTRY: tuple[PipelineDefinition, ...] = (
 
 
 PIPELINE_EXECUTION_ORDER: tuple[str, ...] = tuple(
-    pipeline.name
-    for pipeline in PIPELINE_REGISTRY
+    pipeline.name for pipeline in PIPELINE_REGISTRY
 )
 
 TOTAL_PIPELINES: int = len(PIPELINE_REGISTRY)
@@ -224,11 +209,7 @@ def enabled_pipelines() -> list[PipelineDefinition]:
     Return enabled pipelines.
     """
 
-    return [
-        pipeline
-        for pipeline in PIPELINE_REGISTRY
-        if pipeline.enabled
-    ]
+    return [pipeline for pipeline in PIPELINE_REGISTRY if pipeline.enabled]
 
 
 def disabled_pipelines() -> list[PipelineDefinition]:
@@ -236,11 +217,7 @@ def disabled_pipelines() -> list[PipelineDefinition]:
     Return disabled pipelines.
     """
 
-    return [
-        pipeline
-        for pipeline in PIPELINE_REGISTRY
-        if not pipeline.enabled
-    ]
+    return [pipeline for pipeline in PIPELINE_REGISTRY if not pipeline.enabled]
 
 
 def pipeline_names() -> list[str]:
@@ -248,10 +225,7 @@ def pipeline_names() -> list[str]:
     Return enabled pipeline names.
     """
 
-    return [
-        pipeline.name
-        for pipeline in enabled_pipelines()
-    ]
+    return [pipeline.name for pipeline in enabled_pipelines()]
 
 
 def pipeline_count() -> int:
@@ -291,8 +265,7 @@ def pipeline_exists(
     """
 
     return any(
-        pipeline.name.casefold() == name.casefold()
-        for pipeline in PIPELINE_REGISTRY
+        pipeline.name.casefold() == name.casefold() for pipeline in PIPELINE_REGISTRY
     )
 
 

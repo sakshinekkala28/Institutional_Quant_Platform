@@ -55,6 +55,7 @@ GOVERNANCE_COMMITTEE_DASHBOARD_FILE = (
 # REPOSITORY
 # ==========================================================
 
+
 class CommitteePackRepository:
     @staticmethod
     def load_forecast():
@@ -91,6 +92,7 @@ class CommitteePackRepository:
 # VALIDATOR
 # ==========================================================
 
+
 class CommitteePackValidator:
     @staticmethod
     def validate(forecast, governance, scenarios, stress):
@@ -112,6 +114,7 @@ class CommitteePackValidator:
 # EXECUTIVE RECOMMENDATION
 # ==========================================================
 
+
 class ExecutiveRecommendationEngine:
     @staticmethod
     def build(forecast, governance):
@@ -132,6 +135,7 @@ class ExecutiveRecommendationEngine:
 # ==========================================================
 # COMMITTEE SUMMARY ENGINE
 # ==========================================================
+
 
 class CommitteeSummaryEngine:
     @staticmethod
@@ -200,6 +204,7 @@ class CommitteeSummaryEngine:
 # SCENARIO REVIEW ENGINE
 # ==========================================================
 
+
 class ScenarioReviewEngine:
     @staticmethod
     def build(scenarios: pd.DataFrame) -> pd.DataFrame:
@@ -239,6 +244,7 @@ class ScenarioReviewEngine:
 # ==========================================================
 # STRESS REVIEW ENGINE
 # ==========================================================
+
 
 class StressReviewEngine:
     @staticmethod
@@ -286,6 +292,7 @@ class StressReviewEngine:
 # ==========================================================
 # GOVERNANCE REVIEW ENGINE
 # ==========================================================
+
 
 class GovernanceReviewEngine:
     @staticmethod
@@ -376,6 +383,7 @@ class GovernanceCommitteeDashboardLoader:
 # SURVEILLANCE REVIEW ENGINE
 # ==========================================================
 
+
 class SurveillanceReviewEngine:
     @staticmethod
     def build(surveillance: pd.DataFrame) -> pd.DataFrame:
@@ -411,6 +419,7 @@ class SurveillanceReviewEngine:
 # PACK SCORE ENGINE
 # ==========================================================
 
+
 class PackScoreEngine:
     @staticmethod
     def build(
@@ -443,6 +452,7 @@ class PackScoreEngine:
 # ==========================================================
 # EXECUTIVE DASHBOARD ENGINE
 # ==========================================================
+
 
 @dataclass(slots=True)
 class ExecutiveDashboardConfig:
@@ -530,11 +540,7 @@ class ExecutiveDashboardEngine:
                         else (
                             "BUY"
                             if config.pack_score >= 65
-                            else (
-                                "HOLD"
-                                if config.pack_score >= 50
-                                else "REDUCE"
-                            )
+                            else ("HOLD" if config.pack_score >= 50 else "REDUCE")
                         )
                     ),
                 },
@@ -560,20 +566,18 @@ class ExecutiveDashboardEngine:
                         else (
                             "B"
                             if config.pack_score >= 70
-                            else (
-                                "C"
-                                if config.pack_score >= 55
-                                else "D"
-                            )
+                            else ("C" if config.pack_score >= 55 else "D")
                         )
                     ),
                 },
             ]
         )
 
+
 # ==========================================================
 # INVESTMENT COMMITTEE PACK ENGINE
 # ==========================================================
+
 
 class InvestmentCommitteePackEngine:
     def run(self):

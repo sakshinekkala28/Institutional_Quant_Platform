@@ -51,6 +51,7 @@ class PortfolioNotFoundError(PortfolioError):
 # Portfolio Model
 # ============================================================
 
+
 @dataclass(slots=True)
 class Portfolio:
     name: str
@@ -64,7 +65,6 @@ class Portfolio:
     nav: float = 0.0
 
     metadata: dict[str, Any] = field(default_factory=dict)
-
 
 
 @dataclass(slots=True)
@@ -84,6 +84,7 @@ class PortfolioRegistration:
 # ============================================================
 # Portfolio Service
 # ============================================================
+
 
 class PortfolioService(BaseService):
     """

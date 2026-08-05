@@ -667,6 +667,7 @@ class CostTelemetry:
         with suppress(Exception):
             PIPELINE_RUNS.add(1)
 
+
 # ==========================================================
 # REPORT EXPORTER
 # ==========================================================

@@ -18,6 +18,7 @@ from risk.risk_engine import RiskEngine
 # SERVICE REGISTRY
 # ==========================================================
 
+
 class ServiceRegistry:
     def __init__(self):
 
@@ -43,6 +44,7 @@ class ServiceRegistry:
 # LAZY SERVICE LOADER
 # ==========================================================
 
+
 class LazyService:
     def __init__(self, factory):
 
@@ -62,6 +64,7 @@ class LazyService:
 # SERVICE FACTORY
 # ==========================================================
 
+
 class ServiceFactory:
     def __init__(self):
 
@@ -79,6 +82,7 @@ class ServiceFactory:
 # ==========================================================
 # SERVICE BUILDER
 # ==========================================================
+
 
 class PlatformServiceBuilder:
     @staticmethod

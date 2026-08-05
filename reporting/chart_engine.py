@@ -55,7 +55,6 @@ class ScatterChartConfig:
     ylabel: str = ""
 
 
-
 class ChartEngine:
     """
     Institutional chart engine.

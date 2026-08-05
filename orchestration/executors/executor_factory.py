@@ -36,9 +36,7 @@ class ExecutorFactory:
     Factory for execution strategies.
     """
 
-    _executors: ClassVar[
-        dict[str, type[BaseExecutor]]
-    ] = {
+    _executors: ClassVar[dict[str, type[BaseExecutor]]] = {
         "sequential": SequentialExecutor,
         "parallel": ParallelExecutor,
         "retry": RetryExecutor,

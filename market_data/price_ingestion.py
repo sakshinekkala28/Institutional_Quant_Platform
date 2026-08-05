@@ -626,6 +626,7 @@ class DataQualityEngine:
 # DUCKDB SYNCHRONIZATION
 # ==========================================================
 
+
 class DuckDBSynchronization:
     def __init__(self, config: PriceIngestionConfig):
 
@@ -663,6 +664,7 @@ class DuckDBSynchronization:
 # TELEMETRY INTEGRATION
 # ==========================================================
 
+
 class TelemetryAdapter:
     @staticmethod
     def track(
@@ -681,6 +683,7 @@ class TelemetryAdapter:
 # ==========================================================
 # MLFLOW INTEGRATION
 # ==========================================================
+
 
 class MLflowAdapter:
     @staticmethod

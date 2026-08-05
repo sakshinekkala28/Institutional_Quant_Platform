@@ -41,6 +41,7 @@ import pandas as pd
 # SIGNAL MONITOR RESULT
 # ==========================================================
 
+
 @dataclass(slots=True)
 class SignalMonitorResult:
     """
@@ -71,6 +72,7 @@ class SignalMonitorResult:
 # ==========================================================
 # SIGNAL MONITOR
 # ==========================================================
+
 
 @dataclass(slots=True)
 class SignalMonitorReportConfig:

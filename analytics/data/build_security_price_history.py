@@ -815,13 +815,11 @@ database = duckdb.connect(
     DATABASE_FILE,
 )
 
-database.execute(
-    f"""
+database.execute(f"""
     CREATE OR REPLACE TABLE security_price_history AS
     SELECT *
     FROM read_parquet('{OUTPUT_FILE.as_posix()}')
-    """
-)
+    """)
 
 database.close()
 

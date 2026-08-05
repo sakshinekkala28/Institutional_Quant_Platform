@@ -44,9 +44,7 @@ class AdapterFactory:
     Factory for platform adapters.
     """
 
-    _registry: ClassVar[
-        dict[str, type[BaseAdapter]]
-    ] = {}
+    _registry: ClassVar[dict[str, type[BaseAdapter]]] = {}
 
     # =====================================================
     # REGISTER

@@ -77,6 +77,7 @@ class ExecutionMonitorResult:
 # EXECUTION MONITOR
 # ==========================================================
 
+
 @dataclass(slots=True)
 class ExecutionReportConfig:
     """
@@ -96,6 +97,7 @@ class ExecutionReportConfig:
     order_status: str
     venue: str
     timestamp: str
+
 
 class ExecutionMonitor:
     """

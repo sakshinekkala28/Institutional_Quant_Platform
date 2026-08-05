@@ -183,7 +183,9 @@ def main() -> EngineResult:
             df.loc[
                 row_idx,
                 "Market_Cap_Last_Error",
-            ] = result.error or ""
+            ] = (
+                result.error or ""
+            )
 
             df.loc[
                 row_idx,

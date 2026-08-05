@@ -51,6 +51,7 @@ class AuditError(Exception):
 # Audit Event
 # ============================================================
 
+
 @dataclass(slots=True)
 class AuditEvent:
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
@@ -78,9 +79,11 @@ class AuditRecordRequest:
     severity: str = "INFO"
     metadata: dict[str, Any] | None = None
 
+
 # ============================================================
 # Audit Service
 # ============================================================
+
 
 class AuditService(BaseService):
     """

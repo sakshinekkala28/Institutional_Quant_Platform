@@ -71,7 +71,12 @@ class TrendValidator:
 
 
 class SeverityMapper:
-    MAP: ClassVar[dict[str, int]] = {"NORMAL": 0, "WATCH": 1, "WARNING": 2, "CRITICAL": 3}
+    MAP: ClassVar[dict[str, int]] = {
+        "NORMAL": 0,
+        "WATCH": 1,
+        "WARNING": 2,
+        "CRITICAL": 3,
+    }
 
     @classmethod
     def score(cls, status):

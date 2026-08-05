@@ -51,6 +51,7 @@ class MeanVarianceOptimizerConfig:
     min_weight: float = 0.0
     max_weight: float = 1.0
 
+
 class MeanVarianceOptimizer(BaseOptimizer):
     """
     Institutional Mean-Variance Optimizer.

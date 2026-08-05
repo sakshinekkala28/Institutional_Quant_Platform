@@ -14,6 +14,7 @@ import pandas as pd
 # PERFORMANCE ANALYTICS
 # ==========================================================
 
+
 class PerformanceAnalytics:
     @staticmethod
     def cumulative_return(returns):
@@ -38,6 +39,7 @@ class PerformanceAnalytics:
 # ==========================================================
 # SECTOR ATTRIBUTION
 # ==========================================================
+
 
 class SectorAttributionEngine:
     @staticmethod
@@ -64,6 +66,7 @@ class SectorAttributionEngine:
 # ==========================================================
 # FACTOR ATTRIBUTION
 # ==========================================================
+
 
 class FactorAttributionEngine:
     FACTORS: ClassVar[dict[str, str]] = [
@@ -103,6 +106,7 @@ class FactorAttributionEngine:
 # CIO DASHBOARD
 # ==========================================================
 
+
 class CIODashboard:
     @staticmethod
     def build(portfolio, performance_report, factor_report, sector_report):
@@ -123,6 +127,7 @@ class CIODashboard:
 # ==========================================================
 # PERFORMANCE ENGINE
 # ==========================================================
+
 
 class PerformanceEngine:
     def evaluate(self, portfolio, returns):

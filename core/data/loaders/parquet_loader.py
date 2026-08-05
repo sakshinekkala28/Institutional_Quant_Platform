@@ -43,6 +43,7 @@ class ParquetLoaderConfig:
     use_nullable_dtypes: bool = True
     dtype_backend: str = "numpy_nullable"
 
+
 class ParquetLoader(BaseLoader):
     """
     Institutional Parquet Loader.

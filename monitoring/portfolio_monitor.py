@@ -42,6 +42,7 @@ import numpy as np
 # PORTFOLIO MONITOR RESULT
 # ==========================================================
 
+
 @dataclass(slots=True)
 class PortfolioMonitorResult:
     """
@@ -73,6 +74,7 @@ class PortfolioMonitorResult:
 # PORTFOLIO MONITOR
 # ==========================================================
 
+
 @dataclass(slots=True)
 class PortfolioMonitorReportConfig:
     """
@@ -86,6 +88,7 @@ class PortfolioMonitorReportConfig:
     sector_weights: dict[str, float]
     turnover: float
     constraint_violations: int
+
 
 class PortfolioMonitor:
     """

@@ -42,6 +42,7 @@ import numpy as np
 # RISK MONITOR RESULT
 # ==========================================================
 
+
 @dataclass(slots=True)
 class RiskMonitorResult:
     """
@@ -73,6 +74,7 @@ class RiskMonitorResult:
 # RISK MONITOR
 # ==========================================================
 
+
 @dataclass(slots=True)
 class RiskMonitorReportConfig:
     """
@@ -85,6 +87,7 @@ class RiskMonitorReportConfig:
     gross_exposure: float
     nav: float
     breaches: int
+
 
 class RiskMonitor:
     """

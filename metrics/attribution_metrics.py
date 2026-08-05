@@ -51,7 +51,6 @@ class AttributionSummaryConfig:
     factor_returns: list[float] | np.ndarray
 
 
-
 class AttributionMetrics:
     """
     Institutional performance attribution metrics.

@@ -48,13 +48,13 @@ class HRPConfig:
     """
     Configuration for the Hierarchical Risk Parity optimizer.
     """
+
     covariance_matrix: CovarianceMatrix
     linkage_method: str = "single"
     long_only: bool = True
     fully_invested: bool = True
     min_weight: float = 0.0
     max_weight: float = 1.0
-
 
 
 class HRPOptimizer(BaseOptimizer):
@@ -77,7 +77,6 @@ class HRPOptimizer(BaseOptimizer):
         self.covariance_matrix = config.covariance_matrix
 
         self.linkage_method = config.linkage_method
-
 
     # =====================================================
     # CORRELATION

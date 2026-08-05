@@ -51,6 +51,7 @@ class MaximumSharpeOptimizerConfig:
     min_weight: float = 0.0
     max_weight: float = 1.0
 
+
 class MaximumSharpeOptimizer(BaseOptimizer):
     """
     Institutional Maximum Sharpe Optimizer.
