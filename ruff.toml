@@ -85,12 +85,12 @@ select = [
 ]
 
 ignore = [
-    "E203",
-    "E501",
-    "PLR0913",
-    "PLR2004",
-    "PLR0912",
-    "PLR0915",
+    "whitespace-before-punctuation",
+    "line-too-long",
+    "too-many-arguments",
+    "magic-value-comparison",
+    "too-many-branches",
+    "too-many-statements",
 ]
 
 
@@ -166,8 +166,8 @@ convention = "google"
 [lint.per-file-ignores]
 
 "tests/**/*.py" = [
-    "S101",
-    "PLR2004",
+    "assert",
+    "magic-value-comparison",
 ]
 
 "docs/**/*.py" = [
@@ -175,15 +175,15 @@ convention = "google"
 ]
 
 "scripts/**/*.py" = [
-    "T201",
+    "print",
 ]
 
 "api/dependencies/*.py" = [
-    "B008",
+    "function-call-in-default-argument",
 ]
 
 "docs/development/examples/*.py" = [
-    "B008",
+    "function-call-in-default-argument",
 ]
 
 ###############################################################################
