@@ -10,6 +10,7 @@ from dataclasses import dataclass
 from datetime import datetime
 import logging
 from pathlib import Path
+from typing import ClassVar
 import warnings
 
 import duckdb
@@ -92,7 +93,7 @@ logger = logging.getLogger(__name__)
 
 
 class PriceDataValidator:
-    REQUIRED_PRICE_COLUMNS = [
+    REQUIRED_PRICE_COLUMNS: ClassVar[dict[str, str]] = [
         "Date",
         "Open",
         "High",

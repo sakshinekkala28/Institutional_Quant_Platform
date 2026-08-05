@@ -80,9 +80,9 @@ class SchemaValidator(BaseValidator):
 
             actual_dtype = str(data[column].dtype)
 
-            expected_dtype = str(expected_dtype)
+            expected_dtype_str = str(expected_dtype)
 
-            if actual_dtype != expected_dtype:
+            if actual_dtype != expected_dtype_str:
                 issues.append(
                     self.error(
                         f"Column '{column}' "
@@ -115,7 +115,9 @@ class SchemaValidator(BaseValidator):
             if column not in data.columns:
                 continue
 
-            invalid = data[column].dropna().loc[lambda s: ~s.isin(allowed)]
+            invalid = data[column].dropna()
+
+            invalid = invalid[~invalid.isin(allowed)]
 
             if not invalid.empty:
                 issues.append(

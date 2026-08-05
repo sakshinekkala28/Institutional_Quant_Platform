@@ -32,7 +32,7 @@ from __future__ import annotations
 from collections import defaultdict
 from collections.abc import Callable
 import logging
-from typing import Any
+from typing import Any, ClassVar
 
 logger = logging.getLogger(__name__)
 
@@ -47,7 +47,7 @@ class HookManager:
     Lifecycle hook dispatcher.
     """
 
-    VALID_HOOKS = {
+    VALID_HOOKS: ClassVar[set[str]] = {
         "before_platform",
         "after_platform",
         "before_pipeline",

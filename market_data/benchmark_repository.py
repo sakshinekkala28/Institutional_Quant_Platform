@@ -8,6 +8,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 import logging
 from pathlib import Path
+from typing import ClassVar
 
 import pandas as pd
 
@@ -35,7 +36,7 @@ class BenchmarkRepositoryConfig:
 
 
 class BenchmarkRepository:
-    SUPPORTED_BENCHMARKS = {
+    SUPPORTED_BENCHMARKS: ClassVar[dict[str, str]] = {
         "NIFTY50",
         "NIFTY100",
         "NIFTY200",

@@ -1,5 +1,6 @@
 import logging
 from pathlib import Path
+from typing import ClassVar
 
 import pandas as pd
 
@@ -37,7 +38,7 @@ class AlertHistoryLoader:
 
 
 class AlertSeverityEngine:
-    SEVERITY_MAP = {
+    SEVERITY_MAP: ClassVar[dict[str, str]] = {
         "INFO": 0,
         "WATCH": 1,
         "MEDIUM": 1,

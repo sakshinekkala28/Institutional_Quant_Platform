@@ -27,8 +27,10 @@ Institutional Quant Platform
 
 from __future__ import annotations
 
+import csv
 from dataclasses import dataclass, field
 from datetime import datetime
+import json
 from pathlib import Path
 from threading import RLock
 from typing import Any
@@ -41,7 +43,6 @@ from orchestration.models.pipeline_result import PipelineResult
 # =========================================================
 # EXECUTION REPORT
 # =========================================================
-
 
 @dataclass(slots=True)
 class ExecutionReport:
@@ -792,8 +793,6 @@ class ExecutionReport:
         JSON serialization.
         """
 
-        import json
-
         return json.dumps(
             self.to_dict(),
             indent=indent,
@@ -837,8 +836,6 @@ class ExecutionReport:
         requires their corresponding from_dict()
         implementations.
         """
-
-        import json
 
         data = json.loads(path.read_text(encoding="utf-8"))
 
@@ -947,8 +944,6 @@ class ExecutionReport:
         Export engine execution results.
         """
 
-        import csv
-
         path.parent.mkdir(
             parents=True,
             exist_ok=True,
@@ -978,36 +973,6 @@ class ExecutionReport:
                     ]
                 )
 
-    # =====================================================
-    # CLEANUP
-    # =====================================================
-
-    def clear(
-        self,
-    ) -> None:
-        """
-        Reset report.
-        """
-
-        self.engine_results.clear()
-
-        self.pipeline_results.clear()
-
-        self.outputs.clear()
-
-        self.artifacts.clear()
-
-        self.warnings.clear()
-
-        self.errors.clear()
-
-        self.metadata.clear()
-
-        self.master_result = None
-
-        self.started_at = datetime.utcnow()
-
-        self.finished_at = None
 
     # =====================================================
     # CONTAINER

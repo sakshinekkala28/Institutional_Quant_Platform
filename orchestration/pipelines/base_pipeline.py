@@ -24,6 +24,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from collections.abc import Callable
 from time import perf_counter
+from typing import ClassVar
 
 from orchestration.executors.executor_factory import ExecutorFactory
 from orchestration.models.engine_result import EngineResult
@@ -40,7 +41,7 @@ class BasePipeline(ABC):
 
     EXECUTOR = "sequential"
 
-    ENGINES: list[tuple[str, Callable]] = []
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = []
 
     def __init__(self) -> None:
 
@@ -54,6 +55,7 @@ class BasePipeline(ABC):
         """
         Override if required.
         """
+        return
 
     def after_run(
         self,
@@ -62,6 +64,7 @@ class BasePipeline(ABC):
         """
         Override if required.
         """
+        return
 
     # =====================================================
     # VALIDATION

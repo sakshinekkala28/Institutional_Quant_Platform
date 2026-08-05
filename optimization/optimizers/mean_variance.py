@@ -14,7 +14,7 @@ Objective
 
     Maximize
 
-        μᵀw − λ wᵀΣw
+        Expected Return - Risk Aversion X Portfolio Variance
 
 Subject To
 
@@ -30,6 +30,8 @@ Inherited From
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 from scipy.optimize import minimize
 
@@ -39,6 +41,16 @@ from core.models.portfolio import Portfolio
 from optimization.base_optimizer import BaseOptimizer
 
 
+@dataclass(slots=True)
+class MeanVarianceOptimizerConfig:
+    covariance_matrix: CovarianceMatrix
+    expected_returns: ExpectedReturns
+    risk_aversion: float = 1.0
+    long_only: bool = True
+    fully_invested: bool = True
+    min_weight: float = 0.0
+    max_weight: float = 1.0
+
 class MeanVarianceOptimizer(BaseOptimizer):
     """
     Institutional Mean-Variance Optimizer.
@@ -46,27 +58,19 @@ class MeanVarianceOptimizer(BaseOptimizer):
 
     def __init__(
         self,
-        covariance_matrix: CovarianceMatrix,
-        expected_returns: ExpectedReturns,
-        risk_aversion: float = 1.0,
-        long_only: bool = True,
-        fully_invested: bool = True,
-        min_weight: float = 0.0,
-        max_weight: float = 1.0,
+        config: MeanVarianceOptimizerConfig,
     ) -> None:
 
         super().__init__(
-            long_only=long_only,
-            fully_invested=fully_invested,
-            min_weight=min_weight,
-            max_weight=max_weight,
+            long_only=config.long_only,
+            fully_invested=config.fully_invested,
+            min_weight=config.min_weight,
+            max_weight=config.max_weight,
         )
 
-        self.covariance_matrix = covariance_matrix
-
-        self.expected_returns = expected_returns
-
-        self.risk_aversion = risk_aversion
+        self.covariance_matrix = config.covariance_matrix
+        self.expected_returns = config.expected_returns
+        self.risk_aversion = config.risk_aversion
 
     # =====================================================
     # OBJECTIVE

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import ClassVar
 
 import pandas as pd
 
@@ -27,7 +28,7 @@ OUTPUT_FILE = PERFORMANCE_DIR / "cio_risk_budget_dashboard.csv"
 
 
 class RiskBudgetValidator:
-    REQUIRED_METRICS = [
+    REQUIRED_METRICS: ClassVar[list[str]] = [
         "Governance_Score",
         "Forecast_Confidence",
         "Stress_Severity_Score",
@@ -92,7 +93,11 @@ class RiskBudgetSignalEngine:
 
 
 class RiskBudgetScoringEngine:
-    MACRO_SCORE_MAP = {"LOW": 90, "MODERATE": 70, "HIGH": 40}
+    MACRO_SCORE_MAP: ClassVar[dict[str, int]] = {
+        "LOW": 90,
+        "MODERATE": 70,
+        "HIGH": 40,
+    }
 
     @staticmethod
     def calculate(signals):

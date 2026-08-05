@@ -26,8 +26,9 @@ Supports
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from optimization.base_optimizer import BaseOptimizer
-from optimization.optimizers.black_litterman import BlackLittermanOptimizer
 from optimization.optimizers.equal_weight import EqualWeightOptimizer
 from optimization.optimizers.hrp import HRPOptimizer
 from optimization.optimizers.max_sharpe import MaximumSharpeOptimizer
@@ -41,14 +42,13 @@ class OptimizerFactory:
     Institutional optimizer factory.
     """
 
-    _OPTIMIZERS = {
+    _OPTIMIZERS: ClassVar[dict[str, str]] = {
         "equal_weight": EqualWeightOptimizer,
         "minimum_variance": MinimumVarianceOptimizer,
         "max_sharpe": MaximumSharpeOptimizer,
         "mean_variance": MeanVarianceOptimizer,
         "risk_parity": RiskParityOptimizer,
         "hrp": HRPOptimizer,
-        "black_litterman": BlackLittermanOptimizer,
     }
 
     # =====================================================

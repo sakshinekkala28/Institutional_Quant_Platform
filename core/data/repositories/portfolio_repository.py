@@ -25,6 +25,7 @@ DataFrame
 from __future__ import annotations
 
 from pathlib import Path
+from typing import ClassVar
 
 import pandas as pd
 
@@ -40,7 +41,7 @@ class PortfolioRepository(BaseRepository[Portfolio]):
     Institutional Portfolio Repository.
     """
 
-    REQUIRED_COLUMNS = [
+    REQUIRED_COLUMNS: ClassVar[list[str]] = [
         "Security_ID",
         "Symbol",
         "Company_Name",

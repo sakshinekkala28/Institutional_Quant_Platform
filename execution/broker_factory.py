@@ -31,6 +31,8 @@ Used By
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from execution.broker import Broker
 from execution.broker_simulator import BrokerSimulator
 
@@ -40,7 +42,7 @@ class BrokerFactory:
     Institutional broker factory.
     """
 
-    _registry: dict[str, type[Broker]] = {
+    _registry: ClassVar[dict[str, type[Broker]]] = {
         "SIMULATOR": BrokerSimulator,
     }
 

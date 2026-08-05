@@ -114,32 +114,6 @@ PLR0917 Too many positional arguments (7 > 5)
 43 |         source: str | Path,
    |
 
-RUF012 Mutable default value for class attribute
-  --> core/data/repositories/portfolio_repository.py:43:24
-   |
-41 |       """
-42 |
-43 |       REQUIRED_COLUMNS = [
-   |  ________________________^
-44 | |         "Security_ID",
-45 | |         "Symbol",
-46 | |         "Company_Name",
-47 | |         "Sector",
-48 | |         "Rank",
-49 | |         "Alpha_Adjusted",
-50 | |         "Weight",
-51 | |         "Last_Close",
-52 | |         "Market_Cap",
-53 | |         "ADV_20D",
-54 | |         "Portfolio_Date",
-55 | |         "Engine_Version",
-56 | |     ]
-   | |_____^
-57 |
-58 |       def __init__(self, source: str | Path) -> None:
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
 PLR0917 Too many positional arguments (8 > 5)
   --> core/data/validators/dataframe_validator.py:38:9
    |
@@ -150,28 +124,6 @@ PLR0917 Too many positional arguments (8 > 5)
 39 |         self,
 40 |         required_columns: list[str] | None = None,
    |
-
-PLW2901 `for` loop variable `expected_dtype` overwritten by assignment target
-  --> core/data/validators/schema_validator.py:83:13
-   |
-81 |             actual_dtype = str(data[column].dtype)
-82 |
-83 |             expected_dtype = str(expected_dtype)
-   |             ^^^^^^^^^^^^^^
-84 |
-85 |             if actual_dtype != expected_dtype:
-   |
-
-B023 Function definition does not bind loop variable `allowed`
-   --> core/data/validators/schema_validator.py:118:67
-    |
-116 |                 continue
-117 |
-118 |             invalid = data[column].dropna().loc[lambda s: ~s.isin(allowed)]
-    |                                                                   ^^^^^^^
-119 |
-120 |             if not invalid.empty:
-    |
 
 E402 Module level import not at top of file
   --> core/dependency_container.py:79:1
@@ -680,50 +632,6 @@ PLR0917 Too many positional arguments (6 > 5)
 51 |         covariance_matrix: CovarianceMatrix,
    |
 
-RUF002 Docstring contains ambiguous `σ` (GREEK SMALL LETTER SIGMA). Did you mean `o` (LATIN SMALL LETTER O)?
-  --> optimization/optimizers/max_sharpe.py:17:21
-   |
-15 |     Maximize
-16 |
-17 |         (Rp - Rf) / σ
-   |                     ^
-18 |
-19 | Subject To
-   |
-
-PLR0917 Too many positional arguments (7 > 5)
-  --> optimization/optimizers/max_sharpe.py:47:9
-   |
-45 |     """
-46 |
-47 |     def __init__(
-   |         ^^^^^^^^
-48 |         self,
-49 |         covariance_matrix: CovarianceMatrix,
-   |
-
-RUF002 Docstring contains ambiguous `−` (MINUS SIGN). Did you mean `-` (HYPHEN-MINUS)?
-  --> optimization/optimizers/mean_variance.py:17:13
-   |
-15 |     Maximize
-16 |
-17 |         μᵀw − λ wᵀΣw
-   |             ^
-18 |
-19 | Subject To
-   |
-
-PLR0917 Too many positional arguments (7 > 5)
-  --> optimization/optimizers/mean_variance.py:47:9
-   |
-45 |     """
-46 |
-47 |     def __init__(
-   |         ^^^^^^^^
-48 |         self,
-49 |         covariance_matrix: CovarianceMatrix,
-   |
-
 RUF012 Mutable default value for class attribute
   --> orchestration/adapter_factory.py:48:9
    |
@@ -944,60 +852,6 @@ PLC0415 `import` should be at the top-level of a file
 942 |         return hashlib.sha256(self.to_json().encode()).hexdigest()
     |
 
-PLC0415 `import` should be at the top-level of a file
-   --> orchestration/execution_report.py:795:9
-    |
-793 |         """
-794 |
-795 |         import json
-    |         ^^^^^^^^^^^
-796 |
-797 |         return json.dumps(
-    |
-
-PLC0415 `import` should be at the top-level of a file
-   --> orchestration/execution_report.py:841:9
-    |
-839 |         """
-840 |
-841 |         import json
-    |         ^^^^^^^^^^^
-842 |
-843 |         data = json.loads(path.read_text(encoding="utf-8"))
-    |
-
-PLC0415 `import` should be at the top-level of a file
-   --> orchestration/execution_report.py:950:9
-    |
-948 |         """
-949 |
-950 |         import csv
-    |         ^^^^^^^^^^
-951 |
-952 |         path.parent.mkdir(
-    |
-
-F811 Redefinition of unused `clear` from line 469
-   --> orchestration/execution_report.py:985:9
-    |
-983 |     # =====================================================
-984 |
-985 |     def clear(
-    |         ^^^^^ `clear` redefined here
-986 |         self,
-987 |     ) -> None:
-    |
-   ::: orchestration/execution_report.py:469:9
-    |
-467 |     # =====================================================
-468 |
-469 |     def clear(
-    |         ----- previous definition of `clear` here
-470 |         self,
-471 |     ) -> None:
-    |
-help: Remove definition: `clear`
-
 B027 `BaseExecutor.before_execution` is an empty method in an abstract base class, but has no abstract decorator
    --> orchestration/executors/base_executor.py:93:5
     |
@@ -1093,26 +947,6 @@ RUF009 Do not perform function call `datetime.utcnow` in dataclass defaults
 62 |
 63 |     metadata: dict[str, Any] | None = None
    |
-
-RUF012 Mutable default value for class attribute
-  --> orchestration/hook_manager.py:50:19
-   |
-48 |       """
-49 |
-50 |       VALID_HOOKS = {
-   |  ___________________^
-51 | |         "before_platform",
-52 | |         "after_platform",
-53 | |         "before_pipeline",
-54 | |         "after_pipeline",
-55 | |         "before_engine",
-56 | |         "after_engine",
-57 | |     }
-   | |_____^
-58 |
-59 |       def __init__(
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
 
 F811 Redefinition of unused `generate_trades` from line 289
    --> orchestration/master_rebalance_engine.py:465:9
@@ -1282,75 +1116,6 @@ PLC0415 `import` should be at the top-level of a file
 479 |
 480 |         return json.dumps(
     |
-
-RUF012 Mutable default value for class attribute
-  --> orchestration/pipelines/alpha_pipeline.py:47:15
-   |
-45 |       EXECUTOR = "sequential"
-46 |
-47 |       ENGINES = [
-   |  _______________^
-48 | |         (
-49 | |             "Signal Engine",
-50 | |             signal_engine,
-51 | |         ),
-52 | |         (
-53 | |             "Price History Engine",
-54 | |             price_history_engine,
-55 | |         ),
-56 | |         (
-57 | |             "Expected Return Engine",
-58 | |             expected_return_engine,
-59 | |         ),
-60 | |     ]
-   | |_____^
-61 |
-62 |       # =====================================================
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
-RUF012 Mutable default value for class attribute
-  --> orchestration/pipelines/base_pipeline.py:43:43
-   |
-41 |     EXECUTOR = "sequential"
-42 |
-43 |     ENGINES: list[tuple[str, Callable]] = []
-   |                                           ^^
-44 |
-45 |     def __init__(self) -> None:
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
-B027 `BasePipeline.before_run` is an empty method in an abstract base class, but has no abstract decorator
-  --> orchestration/pipelines/base_pipeline.py:53:5
-   |
-51 |       # =====================================================
-52 |
-53 | /     def before_run(self) -> None:
-54 | |         """
-55 | |         Override if required.
-56 | |         """
-   | |___________^
-57 |
-58 |       def after_run(
-   |
-
-B027 `BasePipeline.after_run` is an empty method in an abstract base class, but has no abstract decorator
-  --> orchestration/pipelines/base_pipeline.py:58:5
-   |
-56 |           """
-57 |
-58 | /     def after_run(
-59 | |         self,
-60 | |         result: PipelineResult,
-61 | |     ) -> None:
-62 | |         """
-63 | |         Override if required.
-64 | |         """
-   | |___________^
-65 |
-66 |       # =====================================================
-   |
 
 RUF012 Mutable default value for class attribute
   --> orchestration/pipelines/data_pipeline.py:45:15
@@ -1788,35 +1553,6 @@ SIM105 Use `contextlib.suppress(Exception)` instead of `try`-`except`-`pass`
     |
 help: Replace `try`-`except`-`pass` with `with contextlib.suppress(Exception): ...`
 
-RUF012 Mutable default value for class attribute
-  --> performance/cio_risk_budget_engine.py:30:24
-   |
-29 |   class RiskBudgetValidator:
-30 |       REQUIRED_METRICS = [
-   |  ________________________^
-31 | |         "Governance_Score",
-32 | |         "Forecast_Confidence",
-33 | |         "Stress_Severity_Score",
-34 | |         "Macro_Risk_Level",
-35 | |         "Governance_Status",
-36 | |     ]
-   | |_____^
-37 |
-38 |       @staticmethod
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
-RUF012 Mutable default value for class attribute
-  --> performance/cio_risk_budget_engine.py:95:23
-   |
-94 | class RiskBudgetScoringEngine:
-95 |     MACRO_SCORE_MAP = {"LOW": 90, "MODERATE": 70, "HIGH": 40}
-   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-96 |
-97 |     @staticmethod
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
 PLR0917 Too many positional arguments (8 > 5)
    --> performance/investment_committee_pack_engine.py:458:9
     |
@@ -2084,4 +1820,4 @@ N818 Exception name `MetricAlreadyExists` should be named with an Error suffix
 49 |     """Metric already registered."""
    |
 
-Found 141 errors.
+Found 123 errors.
