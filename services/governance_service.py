@@ -220,7 +220,14 @@ class GovernanceService(BaseService):
 
         governance_engine = self._engines[engine]
 
-        return governance_engine(profile=self.get(profile), *args, **kwargs)
+        profile_obj = self.get(profile)
+
+        kwargs["profile"] = profile_obj
+
+        return governance_engine(
+            *args,
+            **kwargs,
+        )
 
     # =====================================================
     # Compliance

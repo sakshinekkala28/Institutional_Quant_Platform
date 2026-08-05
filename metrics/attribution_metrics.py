@@ -32,7 +32,24 @@ Used By
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
+
+
+@dataclass(slots=True)
+class AttributionSummaryConfig:
+    """
+    Configuration for attribution summary generation.
+    """
+
+    portfolio_weights: list[float] | np.ndarray
+    benchmark_weights: list[float] | np.ndarray
+    portfolio_returns: list[float] | np.ndarray
+    benchmark_returns: list[float] | np.ndarray
+    factor_exposures: list[float] | np.ndarray
+    factor_returns: list[float] | np.ndarray
+
 
 
 class AttributionMetrics:
@@ -257,36 +274,31 @@ class AttributionMetrics:
     @classmethod
     def summary(
         cls,
-        portfolio_weights: list[float] | np.ndarray,
-        benchmark_weights: list[float] | np.ndarray,
-        portfolio_returns: list[float] | np.ndarray,
-        benchmark_returns: list[float] | np.ndarray,
-        factor_exposures: list[float] | np.ndarray,
-        factor_returns: list[float] | np.ndarray,
+        config: AttributionSummaryConfig,
     ) -> dict:
 
         attribution = cls.brinson(
-            portfolio_weights,
-            benchmark_weights,
-            portfolio_returns,
-            benchmark_returns,
+            config.portfolio_weights,
+            config.benchmark_weights,
+            config.portfolio_returns,
+            config.benchmark_returns,
         )
 
         return {
             **attribution,
             "ActiveReturn": cls.active_return(
-                portfolio_weights,
-                benchmark_weights,
-                portfolio_returns,
-                benchmark_returns,
+                config.portfolio_weights,
+                config.benchmark_weights,
+                config.portfolio_returns,
+                config.benchmark_returns,
             ),
             "FactorContribution": cls.factor_contribution(
-                factor_exposures,
-                factor_returns,
+                config.factor_exposures,
+                config.factor_returns,
             ),
             "AssetContributions": cls.asset_contributions(
-                portfolio_weights,
-                portfolio_returns,
+                config.portfolio_weights,
+                config.portfolio_returns,
             ),
         }
 

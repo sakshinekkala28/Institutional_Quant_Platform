@@ -16,6 +16,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import ClassVar
+
 # ==========================================================
 # EXECUTION ENGINES
 # ==========================================================
@@ -44,7 +47,7 @@ class ExecutionPipeline(BasePipeline):
     #
     EXECUTOR = "sequential"
 
-    ENGINES = [
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = [
         (
             "Execution Engine",
             execution_engine,

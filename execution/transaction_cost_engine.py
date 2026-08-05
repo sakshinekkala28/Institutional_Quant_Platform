@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+from contextlib import suppress
 from dataclasses import dataclass
 import logging
 from pathlib import Path
@@ -14,6 +15,8 @@ import numpy as np
 import pandas as pd
 
 from core.settings import settings
+from mlflow_track.mlflow_manager import mlflow
+from telemetry.telemetry import PIPELINE_RUNS
 
 # ==========================================================
 # LOGGING
@@ -31,7 +34,7 @@ logger = logging.getLogger(__name__)
 # ==========================================================
 
 
-@dataclass
+@dataclass(slots=True)
 class CostConfig:
     # ------------------------------------------
     # COMMISSION
@@ -83,7 +86,7 @@ class CostConfig:
 # ==========================================================
 
 
-@dataclass
+@dataclass(slots=True)
 class CostInput:
     symbol: str
 
@@ -103,7 +106,7 @@ class CostInput:
 # ==========================================================
 
 
-@dataclass
+@dataclass(slots=True)
 class CostOutput:
     symbol: str
 
@@ -643,7 +646,6 @@ class CostMLflowTracker:
     def log_metrics(summary):
 
         try:
-            import mlflow
 
             for key, value in summary.items():
                 if isinstance(value, (int, float)):
@@ -662,14 +664,8 @@ class CostTelemetry:
     @staticmethod
     def track():
 
-        try:
-            from telemetry.telemetry import PIPELINE_RUNS
-
+        with suppress(Exception):
             PIPELINE_RUNS.add(1)
-
-        except Exception:
-            pass
-
 
 # ==========================================================
 # REPORT EXPORTER

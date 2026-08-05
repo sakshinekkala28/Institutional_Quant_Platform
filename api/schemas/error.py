@@ -263,7 +263,7 @@ class ServiceUnavailableError(
 # ==========================================================
 
 
-class TimeoutError(
+class APITimeoutError(
     APIError,
 ):
     """
@@ -284,6 +284,7 @@ class TimeoutError(
 
 __all__ = [
     "APIError",
+    "APITimeoutError",
     "AuthenticationError",
     "AuthorizationError",
     "BadRequestError",
@@ -293,6 +294,5 @@ __all__ = [
     "RateLimitError",
     "ResourceNotFoundError",
     "ServiceUnavailableError",
-    "TimeoutError",
     "ValidationError",
 ]

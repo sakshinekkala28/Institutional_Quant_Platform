@@ -213,7 +213,14 @@ class AnalyticsService(BaseService):
 
         analytics_engine = self._engines[engine]
 
-        return analytics_engine(profile=self.get(profile), *args, **kwargs)
+        profile_obj = self.get(profile)
+
+        kwargs["profile"] = profile_obj
+
+        return analytics_engine(
+            *args,
+            **kwargs,
+        )
 
     # =====================================================
     # Standard Analytics

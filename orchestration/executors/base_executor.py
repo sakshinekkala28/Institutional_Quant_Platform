@@ -96,6 +96,7 @@ class BaseExecutor(ABC):
         """
         Hook executed before execution begins.
         """
+        return
 
     def after_execution(
         self,
@@ -103,6 +104,7 @@ class BaseExecutor(ABC):
         """
         Hook executed after execution finishes.
         """
+        return
 
     def before_engine(
         self,
@@ -111,6 +113,7 @@ class BaseExecutor(ABC):
         """
         Hook executed before an engine runs.
         """
+        return
 
     def after_engine(
         self,
@@ -120,6 +123,7 @@ class BaseExecutor(ABC):
         """
         Hook executed after an engine runs.
         """
+        return
 
     # =====================================================
     # RESULTS

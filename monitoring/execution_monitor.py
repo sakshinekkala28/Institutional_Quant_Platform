@@ -77,6 +77,25 @@ class ExecutionMonitorResult:
 # EXECUTION MONITOR
 # ==========================================================
 
+@dataclass(slots=True)
+class ExecutionReportConfig:
+    """
+    Inputs required to generate an execution report.
+    """
+
+    executed_quantity: float
+    remaining_quantity: float
+    average_execution_price: float
+    market_price: float
+    slippage: float
+    implementation_shortfall: float
+    commission: float
+    fees: float
+    fill_ratio: float
+    execution_latency: float
+    order_status: str
+    venue: str
+    timestamp: str
 
 class ExecutionMonitor:
     """
@@ -299,52 +318,39 @@ class ExecutionMonitor:
     @classmethod
     def report(
         cls,
-        executed_quantity: float,
-        ordered_quantity: float,
-        slippage_bps: float,
-        impact_bps: float,
-        trade_value: float,
-        adv: float,
-        latency_ms: float,
-        rejected_orders: int,
-        total_orders: int,
-        commissions: float,
-        slippage_cost: float,
-        impact_cost: float,
-        execution_price: float,
-        vwap_price: float,
+        config: ExecutionReportConfig,
     ) -> dict:
 
         return {
             "FillRate": cls.fill_rate(
-                executed_quantity,
-                ordered_quantity,
+                config.executed_quantity,
+                config.ordered_quantity,
             ).summary(),
             "Slippage": cls.slippage(
-                slippage_bps,
+                config.slippage_bps,
             ).summary(),
             "MarketImpact": cls.market_impact(
-                impact_bps,
+                config.impact_bps,
             ).summary(),
             "ParticipationRate": cls.participation_rate(
-                trade_value,
-                adv,
+                config.trade_value,
+                config.adv,
             ).summary(),
             "ExecutionLatency": cls.latency(
-                latency_ms,
+                config.latency_ms,
             ).summary(),
             "OrderRejectionRate": cls.rejection_rate(
-                rejected_orders,
-                total_orders,
+                config.rejected_orders,
+                config.total_orders,
             ).summary(),
             "ExecutionCost": cls.execution_cost(
-                commissions,
-                slippage_cost,
-                impact_cost,
+                config.commissions,
+                config.slippage_cost,
+                config.impact_cost,
             ).summary(),
             "VWAPPerformance": cls.vwap_performance(
-                execution_price,
-                vwap_price,
+                config.execution_price,
+                config.vwap_price,
             ).summary(),
         }
 

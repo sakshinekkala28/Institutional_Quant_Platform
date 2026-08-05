@@ -262,7 +262,14 @@ class PerformanceService(BaseService):
 
         analytics = self._engines[engine]
 
-        return analytics(profile=self.get(profile), *args, **kwargs)
+        profile_obj = self.get(profile)
+
+        kwargs["profile"] = profile_obj
+
+        return analytics(
+            *args,
+            **kwargs,
+        )
 
     def rolling_metrics(self, profile: str, *args, **kwargs):
 

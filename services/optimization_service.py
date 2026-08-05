@@ -216,7 +216,15 @@ class OptimizationService(BaseService):
 
         engine = self._optimizers[optimizer]
 
-        return engine(profile=self.get(profile), universe=universe, *args, **kwargs)
+        profile_obj = self.get(profile)
+
+        kwargs["profile"] = profile_obj
+        kwargs["universe"] = universe
+
+        return engine(
+            *args,
+            **kwargs,
+        )
 
     # =====================================================
     # Standard Optimizers

@@ -42,7 +42,6 @@ import numpy as np
 # RISK MONITOR RESULT
 # ==========================================================
 
-
 @dataclass(slots=True)
 class RiskMonitorResult:
     """
@@ -50,15 +49,10 @@ class RiskMonitorResult:
     """
 
     metric: str
-
     status: str
-
     value: float | int
-
     threshold: float | int | None
-
     timestamp: datetime
-
     metadata: dict
 
     def summary(
@@ -79,6 +73,18 @@ class RiskMonitorResult:
 # RISK MONITOR
 # ==========================================================
 
+@dataclass(slots=True)
+class RiskMonitorReportConfig:
+    """
+    Inputs required to generate the risk monitoring report.
+    """
+
+    portfolio_returns: list[float] | np.ndarray
+    benchmark_returns: list[float] | np.ndarray
+    weights: list[float] | np.ndarray
+    gross_exposure: float
+    nav: float
+    breaches: int
 
 class RiskMonitor:
     """
@@ -366,41 +372,36 @@ class RiskMonitor:
     @classmethod
     def report(
         cls,
-        portfolio_returns,
-        benchmark_returns,
-        weights,
-        gross_exposure: float,
-        nav: float,
-        breaches: int,
+        config: RiskMonitorReportConfig,
     ) -> dict:
 
         return {
             "Volatility": cls.volatility(
-                portfolio_returns,
+                config.portfolio_returns,
             ).summary(),
             "VaR": cls.value_at_risk(
-                portfolio_returns,
+                config.portfolio_returns,
             ).summary(),
             "ExpectedShortfall": cls.expected_shortfall(
-                portfolio_returns,
+                config.portfolio_returns,
             ).summary(),
             "Beta": cls.beta(
-                portfolio_returns,
-                benchmark_returns,
+                config.portfolio_returns,
+                config.benchmark_returns,
             ).summary(),
             "TrackingError": cls.tracking_error(
-                portfolio_returns,
-                benchmark_returns,
+                config.portfolio_returns,
+                config.benchmark_returns,
             ).summary(),
             "Concentration": cls.concentration(
-                weights,
+                config.weights,
             ).summary(),
             "Leverage": cls.leverage(
-                gross_exposure,
-                nav,
+                config.gross_exposure,
+                config.nav,
             ).summary(),
             "RiskLimitBreaches": cls.limit_breaches(
-                breaches,
+                config.breaches,
             ).summary(),
         }
 

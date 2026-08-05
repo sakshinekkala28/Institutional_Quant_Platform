@@ -33,10 +33,27 @@ Used By
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import matplotlib.pyplot as plt
 import numpy as np
+
+
+@dataclass(slots=True)
+class ScatterChartConfig:
+    """
+    Configuration for scatter chart generation.
+    """
+
+    x: Any
+    y: Any
+    filename: str | Path
+    title: str = "Scatter Plot"
+    xlabel: str = ""
+    ylabel: str = ""
+
 
 
 class ChartEngine:
@@ -299,32 +316,27 @@ class ChartEngine:
     @classmethod
     def scatter(
         cls,
-        x,
-        y,
-        filename,
-        title="Scatter Plot",
-        xlabel="",
-        ylabel="",
-    ):
+        config: ScatterChartConfig,
+    ) -> None:
 
         figure = plt.figure(figsize=(8, 5))
 
         plt.scatter(
-            x,
-            y,
+            config.x,
+            config.y,
         )
 
-        plt.xlabel(xlabel)
+        plt.xlabel(config.xlabel)
 
-        plt.ylabel(ylabel)
+        plt.ylabel(config.ylabel)
 
-        plt.title(title)
+        plt.title(config.title)
 
         plt.grid(alpha=0.30)
 
         cls._save(
             figure,
-            filename,
+            config.filename,
         )
 
     # =====================================================

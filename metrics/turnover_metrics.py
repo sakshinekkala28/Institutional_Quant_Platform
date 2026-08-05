@@ -31,7 +31,23 @@ Used By
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
+
+
+@dataclass(slots=True)
+class TurnoverSummaryConfig:
+    buy_value: float
+    sell_value: float
+    average_portfolio_value: float
+    traded_value: float
+    number_of_trades: int
+    periods: int
+    holding_periods: list[float] | np.ndarray
+    trade_values: list[float] | np.ndarray
+    holdings: int
+    average_daily_volume: float
 
 
 class TurnoverMetrics:
@@ -166,45 +182,36 @@ class TurnoverMetrics:
     @classmethod
     def summary(
         cls,
-        buy_value: float,
-        sell_value: float,
-        traded_value: float,
-        average_portfolio_value: float,
-        trade_values: list[float] | np.ndarray,
-        holding_periods: list[int] | np.ndarray,
-        number_of_trades: int,
-        periods: int,
-        holdings: int,
-        average_daily_volume: float,
+        config: TurnoverSummaryConfig,
     ) -> dict:
 
         return {
             "PortfolioTurnover": cls.portfolio_turnover(
-                buy_value,
-                sell_value,
-                average_portfolio_value,
+                config.buy_value,
+                config.sell_value,
+                config.average_portfolio_value,
             ),
             "GrossTurnover": cls.gross_turnover(
-                traded_value,
-                average_portfolio_value,
+                config.traded_value,
+                config.average_portfolio_value,
             ),
             "TradeFrequency": cls.trade_frequency(
-                number_of_trades,
-                periods,
+                config.number_of_trades,
+                config.periods,
             ),
             "AverageHoldingPeriod": cls.average_holding_period(
-                holding_periods,
+                config.holding_periods,
             ),
             "AverageTradeSize": cls.average_trade_size(
-                trade_values,
+                config.trade_values,
             ),
             "PortfolioChurn": cls.portfolio_churn(
-                number_of_trades,
-                holdings,
+                config.number_of_trades,
+                config.holdings,
             ),
             "CapacityUtilization": cls.capacity_utilization(
-                traded_value,
-                average_daily_volume,
+                config.traded_value,
+                config.average_daily_volume,
             ),
         }
 

@@ -25,9 +25,23 @@ Responsibilities
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import pandas as pd
 
 from core.data.validators.base_validator import BaseValidator, ValidationIssue
+
+
+@dataclass(slots=True)
+class DataFrameValidatorConfig:
+    required_columns: list[str] | None = None
+    allow_empty: bool = False
+    allow_duplicate_rows: bool = False
+    allow_duplicate_columns: bool = False
+    max_null_percentage: float = 100.0
+    require_unique_index: bool = False
+    min_rows: int | None = None
+    max_rows: int | None = None
 
 
 class DataFrameValidator(BaseValidator):
@@ -37,31 +51,24 @@ class DataFrameValidator(BaseValidator):
 
     def __init__(
         self,
-        required_columns: list[str] | None = None,
-        allow_empty: bool = False,
-        allow_duplicate_rows: bool = False,
-        allow_duplicate_columns: bool = False,
-        max_null_percentage: float = 100.0,
-        require_unique_index: bool = False,
-        min_rows: int | None = None,
-        max_rows: int | None = None,
+        config: DataFrameValidatorConfig,
     ) -> None:
 
-        self.required_columns = required_columns or []
+        self.required_columns = config.required_columns or []
 
-        self.allow_empty = allow_empty
+        self.allow_empty = config.allow_empty
 
-        self.allow_duplicate_rows = allow_duplicate_rows
+        self.allow_duplicate_rows = config.allow_duplicate_rows
 
-        self.allow_duplicate_columns = allow_duplicate_columns
+        self.allow_duplicate_columns = config.allow_duplicate_columns
 
-        self.max_null_percentage = max_null_percentage
+        self.max_null_percentage = config.max_null_percentage
 
-        self.require_unique_index = require_unique_index
+        self.require_unique_index = config.require_unique_index
 
-        self.min_rows = min_rows
+        self.min_rows = config.min_rows
 
-        self.max_rows = max_rows
+        self.max_rows = config.max_rows
 
     # =====================================================
     # VALIDATION

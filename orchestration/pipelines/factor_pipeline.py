@@ -17,6 +17,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import ClassVar
+
 # ==========================================================
 # FACTOR ENGINES
 # ==========================================================
@@ -46,7 +49,7 @@ class FactorPipeline(BasePipeline):
     #
     EXECUTOR = "sequential"
 
-    ENGINES = [
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = [
         (
             "Fundamental Factor Master",
             build_factor_master_engine,

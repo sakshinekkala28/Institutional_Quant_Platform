@@ -31,7 +31,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from execution.order import Order
+from services.order_service import Order
 
 # =====================================================
 # FILL RESULT
@@ -81,7 +81,7 @@ class FillModel:
         order: Order,
     ) -> FillResult:
 
-        executed = order.quantity if self.allow_partial_fill else order.quantity
+        executed = order.quantity
 
         remaining = max(
             0.0,
@@ -102,7 +102,7 @@ class FillModel:
         return FillResult(
             executed_quantity=executed,
             remaining_quantity=remaining,
-            average_price=order.price or 0.0,
+            average_price=order.limit_price or 0.0,
             fill_ratio=ratio,
             status=status,
         )

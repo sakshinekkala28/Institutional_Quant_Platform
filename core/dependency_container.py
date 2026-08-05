@@ -7,10 +7,16 @@ from __future__ import annotations
 
 from typing import Any
 
+from alpha.signal_engine import SignalEngine
+from execution.execution_simulator import ExecutionEngine
+from execution.trade_engine import TradeEngine
+from portfolio.portfolio_engine import PortfolioEngine
+from reporting.reporting_engine import ReportingEngine
+from risk.risk_engine import RiskEngine
+
 # ==========================================================
 # SERVICE REGISTRY
 # ==========================================================
-
 
 class ServiceRegistry:
     def __init__(self):
@@ -37,7 +43,6 @@ class ServiceRegistry:
 # LAZY SERVICE LOADER
 # ==========================================================
 
-
 class LazyService:
     def __init__(self, factory):
 
@@ -57,7 +62,6 @@ class LazyService:
 # SERVICE FACTORY
 # ==========================================================
 
-
 class ServiceFactory:
     def __init__(self):
 
@@ -73,20 +77,8 @@ class ServiceFactory:
 
 
 # ==========================================================
-# PLATFORM SERVICES
-# ==========================================================
-
-from alpha.signal_engine import SignalEngine
-from execution.execution_simulator import ExecutionEngine
-from execution.trade_engine import TradeEngine
-from portfolio.portfolio_engine import PortfolioEngine
-from reporting.reporting_engine import ReportingEngine
-from risk.risk_engine import RiskEngine
-
-# ==========================================================
 # SERVICE BUILDER
 # ==========================================================
-
 
 class PlatformServiceBuilder:
     @staticmethod

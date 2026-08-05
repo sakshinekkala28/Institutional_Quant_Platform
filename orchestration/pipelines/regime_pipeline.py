@@ -18,6 +18,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import ClassVar
+
 # ==========================================================
 # REGIME ENGINES
 # ==========================================================
@@ -46,7 +49,7 @@ class RegimePipeline(BasePipeline):
     #
     EXECUTOR = "sequential"
 
-    ENGINES = [
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = [
         (
             "Benchmark Prices",
             benchmark_prices_engine,

@@ -226,7 +226,13 @@ class ExecutionService(BaseService):
 
         engine = self._engines[algorithm]
 
-        return engine(profile=execution_profile, orders=orders, *args, **kwargs)
+        kwargs["profile"] = execution_profile
+        kwargs["orders"] = orders
+
+        return engine(
+            *args,
+            **kwargs,
+        )
 
     # =====================================================
     # Standard Execution Algorithms

@@ -24,6 +24,7 @@ Supports
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -33,6 +34,15 @@ from core.data.loaders.base_loader import BaseLoader
 from core.exceptions import DataLoadError
 
 
+@dataclass(slots=True)
+class ParquetLoaderConfig:
+    source: str | Path
+    columns: list[str] | None = None
+    engine: str = "pyarrow"
+    filters: Any | None = None
+    use_nullable_dtypes: bool = True
+    dtype_backend: str = "numpy_nullable"
+
 class ParquetLoader(BaseLoader):
     """
     Institutional Parquet Loader.
@@ -40,28 +50,22 @@ class ParquetLoader(BaseLoader):
 
     def __init__(
         self,
-        source: str | Path,
-        engine: str = "auto",
-        columns: list[str] | None = None,
-        storage_options: dict[str, Any] | None = None,
-        filesystem: Any | None = None,
-        filters: list | None = None,
-        use_nullable_dtypes: bool = False,
+        config: ParquetLoaderConfig,
     ) -> None:
 
-        super().__init__(source)
+        super().__init__(config.source)
 
-        self.engine = engine
+        self.engine = config.engine
 
-        self.columns = columns
+        self.columns = config.columns
 
-        self.storage_options = storage_options
+        self.storage_options = config.storage_options
 
-        self.filesystem = filesystem
+        self.filesystem = config.filesystem
 
-        self.filters = filters
+        self.filters = config.filters
 
-        self.use_nullable_dtypes = use_nullable_dtypes
+        self.use_nullable_dtypes = config.use_nullable_dtypes
 
     # =====================================================
     # PARQUET READER

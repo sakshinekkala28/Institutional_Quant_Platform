@@ -40,7 +40,6 @@ from core.services.base_service import BaseService
 # Exceptions
 # ============================================================
 
-
 class BacktestError(Exception):
     """Base backtest exception."""
 
@@ -57,28 +56,36 @@ class BacktestEngineNotFoundError(BacktestError):
 # Backtest Profile
 # ============================================================
 
-
 @dataclass(slots=True)
 class BacktestProfile:
     name: str
 
     strategy: str
-
     benchmark: str
-
     start_date: datetime | None = None
-
     end_date: datetime | None = None
-
     parameters: dict[str, Any] = field(default_factory=dict)
-
     metadata: dict[str, Any] = field(default_factory=dict)
+
+
+@dataclass(slots=True)
+class BacktestRegistration:
+    """
+    Backtest profile registration request.
+    """
+
+    name: str
+    strategy: str
+    benchmark: str
+    start_date: datetime | None = None
+    end_date: datetime | None = None
+    parameters: dict[str, Any] | None = None
+    metadata: dict[str, Any] | None = None
 
 
 # ============================================================
 # Backtest Service
 # ============================================================
-
 
 class BacktestService(BaseService):
     """
@@ -106,15 +113,10 @@ class BacktestService(BaseService):
         super().__init__()
 
         self._lock = RLock()
-
         self._profiles: dict[str, BacktestProfile] = {}
-
         self._engines: dict[str, Callable] = {}
-
         self._enabled = True
-
         self._initialized = True
-
         self._logger.info("BacktestService initialized.")
 
     # =====================================================
@@ -139,30 +141,24 @@ class BacktestService(BaseService):
 
     def register(
         self,
-        name: str,
-        strategy: str,
-        benchmark: str,
-        start_date: datetime | None = None,
-        end_date: datetime | None = None,
-        parameters: dict[str, Any] | None = None,
-        metadata: dict[str, Any] | None = None,
+        registration: BacktestRegistration,
     ) -> None:
         """
         Register backtest profile.
         """
 
         profile = BacktestProfile(
-            name=name,
-            strategy=strategy,
-            benchmark=benchmark,
-            start_date=start_date,
-            end_date=end_date,
-            parameters=parameters or {},
-            metadata=metadata or {},
+            name=registration.name,
+            strategy=registration.strategy,
+            benchmark=registration.benchmark,
+            start_date=registration.start_date,
+            end_date=registration.end_date,
+            parameters=registration.parameters or {},
+            metadata=registration.metadata or {},
         )
 
         with self._lock:
-            self._profiles[name] = profile
+            self._profiles[registration.name] = profile
 
     # =====================================================
     # Backtest Engine
@@ -226,7 +222,14 @@ class BacktestService(BaseService):
 
         backtest_engine = self._engines[engine]
 
-        return backtest_engine(profile=self.get(profile), *args, **kwargs)
+        profile_obj = self.get(profile)
+
+        kwargs["profile"] = profile_obj
+
+        return backtest_engine(
+            *args,
+            **kwargs,
+        )
 
     # =====================================================
     # Standard Backtests

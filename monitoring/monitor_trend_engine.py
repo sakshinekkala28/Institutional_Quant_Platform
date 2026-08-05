@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+from typing import ClassVar
 
 import pandas as pd
 
@@ -70,7 +71,7 @@ class TrendValidator:
 
 
 class SeverityMapper:
-    MAP = {"NORMAL": 0, "WATCH": 1, "WARNING": 2, "CRITICAL": 3}
+    MAP: ClassVar[dict[str, int]] = {"NORMAL": 0, "WATCH": 1, "WARNING": 2, "CRITICAL": 3}
 
     @classmethod
     def score(cls, status):

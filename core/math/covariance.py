@@ -95,7 +95,7 @@ def portfolio_variance(weights: np.ndarray, covariance: np.ndarray) -> float:
 
 def portfolio_volatility(weights: np.ndarray, covariance: np.ndarray) -> float:
     """
-    σ = √(wᵀΣw)
+    Portfolio Volatility = sqrt(w.T @ Covariance @ w)
     """
 
     variance = portfolio_variance(weights, covariance)
@@ -115,7 +115,7 @@ def marginal_risk(weights: np.ndarray, covariance: np.ndarray) -> np.ndarray:
     """
     Marginal contribution to risk.
 
-    Σw / σ
+    Covariance @ Weights / Portfolio Volatility
     """
 
     weights = np.asarray(weights, dtype=np.float64)

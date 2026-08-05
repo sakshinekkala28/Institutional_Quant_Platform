@@ -41,7 +41,6 @@ import pandas as pd
 # SIGNAL MONITOR RESULT
 # ==========================================================
 
-
 @dataclass(slots=True)
 class SignalMonitorResult:
     """
@@ -49,15 +48,10 @@ class SignalMonitorResult:
     """
 
     metric: str
-
     status: str
-
     value: float | int | str
-
     threshold: float | int | None
-
     timestamp: datetime
-
     metadata: dict
 
     def summary(
@@ -77,6 +71,20 @@ class SignalMonitorResult:
 # ==========================================================
 # SIGNAL MONITOR
 # ==========================================================
+
+@dataclass(slots=True)
+class SignalMonitorReportConfig:
+    """
+    Inputs required to generate the signal monitoring report.
+    """
+
+    signals: pd.DataFrame
+    universe_size: int
+    generated_at: datetime
+    scores: list[float] | np.ndarray
+    confidence_scores: list[float] | np.ndarray
+    previous_symbols: list[str] | set[str]
+    current_symbols: list[str] | set[str]
 
 
 class SignalMonitor:
@@ -267,35 +275,29 @@ class SignalMonitor:
     @classmethod
     def report(
         cls,
-        signals: pd.DataFrame,
-        universe_size: int,
-        generated_at: datetime,
-        scores,
-        confidence_scores,
-        previous_symbols,
-        current_symbols,
+        config: SignalMonitorReportConfig,
     ) -> dict:
 
         return {
             "Coverage": cls.coverage(
-                signals,
-                universe_size,
+                config.signals,
+                config.universe_size,
             ).summary(),
             "Freshness": cls.freshness(
-                generated_at,
+                config.generated_at,
             ).summary(),
             "Strength": cls.strength(
-                scores,
+                config.scores,
             ).summary(),
             "Confidence": cls.confidence(
-                confidence_scores,
+                config.confidence_scores,
             ).summary(),
             "Turnover": cls.turnover(
-                previous_symbols,
-                current_symbols,
+                config.previous_symbols,
+                config.current_symbols,
             ).summary(),
             "Distribution": cls.distribution(
-                scores,
+                config.scores,
             ).summary(),
         }
 

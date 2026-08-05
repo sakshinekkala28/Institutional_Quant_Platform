@@ -17,6 +17,16 @@ import duckdb
 import pandas as pd
 import yfinance as yf
 
+try:
+    from telemetry.telemetry import PIPELINE_RUNS
+except ModuleNotFoundError:
+    PIPELINE_RUNS = None
+
+try:
+    from mlflow_track.mlflow_manager import MLflowManager
+except ModuleNotFoundError:
+    MLflowManager = None
+
 warnings.filterwarnings("ignore")
 
 # ==========================================================
@@ -93,7 +103,7 @@ logger = logging.getLogger(__name__)
 
 
 class PriceDataValidator:
-    REQUIRED_PRICE_COLUMNS: ClassVar[dict[str, str]] = [
+    REQUIRED_PRICE_COLUMNS: ClassVar[list[str]] = [
         "Date",
         "Open",
         "High",
@@ -616,7 +626,6 @@ class DataQualityEngine:
 # DUCKDB SYNCHRONIZATION
 # ==========================================================
 
-
 class DuckDBSynchronization:
     def __init__(self, config: PriceIngestionConfig):
 
@@ -654,36 +663,38 @@ class DuckDBSynchronization:
 # TELEMETRY INTEGRATION
 # ==========================================================
 
-
 class TelemetryAdapter:
     @staticmethod
-    def track(metric_name, value):
+    def track(
+        metric_name: str,
+        value: float,
+    ) -> None:
 
-        try:
-            from telemetry.telemetry import PIPELINE_RUNS
+        if PIPELINE_RUNS is not None:
+            try:
+                PIPELINE_RUNS.add(value)
 
-            PIPELINE_RUNS.add(value)
-
-        except Exception:
-            pass
+            except Exception as exc:
+                logger.debug("Telemetry unavailable: %s", exc)
 
 
 # ==========================================================
 # MLFLOW INTEGRATION
 # ==========================================================
 
-
 class MLflowAdapter:
     @staticmethod
-    def log_metric(name, value):
+    def log_metric(
+        name: str,
+        value: float,
+    ) -> None:
 
-        try:
-            from mlflow_track.mlflow_manager import MLflowManager
+        if MLflowManager is not None:
+            try:
+                MLflowManager.log_metric(name, value)
 
-            MLflowManager.log_metric(name, value)
-
-        except Exception:
-            pass
+            except Exception as exc:
+                logger.debug("Mlflow unavailable: %s", exc)
 
 
 # ==========================================================

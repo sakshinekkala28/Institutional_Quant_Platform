@@ -23,6 +23,7 @@ Responsibilities
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+import json
 
 from orchestration.base_engine import BaseEngine
 from orchestration.dependency_graph import DependencyGraph
@@ -474,8 +475,6 @@ class PipelineBuilder:
         """
         Export pipeline as JSON.
         """
-
-        import json
 
         return json.dumps(
             self.to_dict(pipeline),

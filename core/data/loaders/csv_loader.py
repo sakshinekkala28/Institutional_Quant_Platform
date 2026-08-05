@@ -26,6 +26,7 @@ Supports
 
 from __future__ import annotations
 
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -35,6 +36,21 @@ from core.data.loaders.base_loader import BaseLoader
 from core.exceptions import DataLoadError
 
 
+@dataclass(slots=True)
+class CSVLoaderConfig:
+    source: str | Path
+    separator: str = ","
+    encoding: str = "utf-8"
+    header: int | None = 0
+    index_col: int | str | None = None
+    dtype: dict[str, Any] | None = None
+    parse_dates: list[str] | None = None
+    na_values: list[str] | None = None
+    low_memory: bool = False
+    memory_map: bool = True
+    compression: str | None = "infer"
+
+
 class CSVLoader(BaseLoader):
     """
     Institutional CSV Loader.
@@ -42,40 +58,30 @@ class CSVLoader(BaseLoader):
 
     def __init__(
         self,
-        source: str | Path,
-        separator: str = ",",
-        encoding: str = "utf-8",
-        header: int | None = 0,
-        index_col: int | str | None = None,
-        dtype: dict[str, Any] | None = None,
-        parse_dates: list[str] | None = None,
-        na_values: list[str] | None = None,
-        low_memory: bool = False,
-        memory_map: bool = True,
-        compression: str | None = "infer",
+        config: CSVLoaderConfig,
     ) -> None:
 
-        super().__init__(source)
+        super().__init__(config.source)
 
-        self.separator = separator
+        self.separator = config.separator
 
-        self.encoding = encoding
+        self.encoding = config.encoding
 
-        self.header = header
+        self.header = config.header
 
-        self.index_col = index_col
+        self.index_col = config.index_col
 
-        self.dtype = dtype
+        self.dtype = config.dtype
 
-        self.parse_dates = parse_dates
+        self.parse_dates = config.parse_dates
 
-        self.na_values = na_values
+        self.na_values = config.na_values
 
-        self.low_memory = low_memory
+        self.low_memory = config.low_memory
 
-        self.memory_map = memory_map
+        self.memory_map = config.memory_map
 
-        self.compression = compression
+        self.compression = config.compression
 
     # =====================================================
     # CSV READER

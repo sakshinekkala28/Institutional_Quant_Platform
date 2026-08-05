@@ -19,6 +19,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import ClassVar
+
 from analytics.live.live_rebalance_engine import main as live_dashboard_engine
 from analytics.performance.brinson_attribution_engine import main as brinson_engine
 
@@ -52,7 +55,7 @@ class ReportingPipeline(BasePipeline):
 
     EXECUTOR = "sequential"
 
-    ENGINES = [
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = [
         (
             "Performance Attribution",
             performance_engine,

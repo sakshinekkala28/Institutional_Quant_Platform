@@ -28,14 +28,13 @@ Responsibilities
 
 from __future__ import annotations
 
-from pathlib import Path
-
 from dataclasses import dataclass, field
+import json
+from pathlib import Path
 from threading import Lock, RLock
 import time
 from typing import Any
 import uuid
-import json
 
 from core.services.base_service import BaseService
 
@@ -52,32 +51,36 @@ class AuditError(Exception):
 # Audit Event
 # ============================================================
 
-
 @dataclass(slots=True)
 class AuditEvent:
     event_id: str = field(default_factory=lambda: str(uuid.uuid4()))
-
     timestamp: float = field(default_factory=time.time)
-
     event_type: str = ""
-
     source: str = ""
-
     actor: str = "SYSTEM"
-
     severity: str = "INFO"
-
     action: str = ""
-
     message: str = ""
-
     metadata: dict[str, Any] = field(default_factory=dict)
 
+
+@dataclass(slots=True)
+class AuditRecordRequest:
+    """
+    Parameters required to record an audit event.
+    """
+
+    event_type: str
+    source: str
+    action: str
+    message: str
+    actor: str = "SYSTEM"
+    severity: str = "INFO"
+    metadata: dict[str, Any] | None = None
 
 # ============================================================
 # Audit Service
 # ============================================================
-
 
 class AuditService(BaseService):
     """
@@ -85,7 +88,6 @@ class AuditService(BaseService):
     """
 
     _instance = None
-
     _instance_lock = Lock()
 
     def __new__(cls, *args, **kwargs):
@@ -105,13 +107,9 @@ class AuditService(BaseService):
         super().__init__()
 
         self._lock = RLock()
-
         self._events: list[AuditEvent] = []
-
         self._enabled = True
-
         self._initialized = True
-
         self._logger.info("AuditService initialized.")
 
     # =====================================================
@@ -136,29 +134,28 @@ class AuditService(BaseService):
 
     def record(
         self,
-        event_type: str,
-        source: str,
-        action: str,
-        message: str,
-        actor: str = "SYSTEM",
-        severity: str = "INFO",
-        metadata: dict[str, Any] | None = None,
+        request: AuditRecordRequest,
     ) -> AuditEvent:
 
         event = AuditEvent(
-            event_type=event_type,
-            source=source,
-            actor=actor,
-            severity=severity.upper(),
-            action=action,
-            message=message,
-            metadata=metadata or {},
+            event_type=request.event_type,
+            source=request.source,
+            actor=request.actor,
+            severity=request.severity.upper(),
+            action=request.action,
+            message=request.message,
+            metadata=request.metadata or {},
         )
 
         with self._lock:
             self._events.append(event)
 
-        self._logger.info("[%s] %s - %s", event.event_type, event.source, event.action)
+        self._logger.info(
+            "[%s] %s - %s",
+            event.event_type,
+            event.source,
+            event.action,
+        )
 
         return event
 

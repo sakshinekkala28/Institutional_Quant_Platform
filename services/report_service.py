@@ -220,8 +220,14 @@ class ReportService(BaseService):
 
         report_engine = self._engines[engine]
 
-        return report_engine(profile=self.get(profile), *args, **kwargs)
+        profile_obj = self.get(profile)
 
+        kwargs["profile"] = profile_obj
+
+        return report_engine(
+            *args,
+            **kwargs,
+        )
     # =====================================================
     # Standard Reports
     # =====================================================

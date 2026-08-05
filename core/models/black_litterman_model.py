@@ -82,12 +82,12 @@ class BlackLittermanModel:
         return self.equilibrium_returns.values
 
     @property
-    def P(self) -> np.ndarray:
+    def p(self) -> np.ndarray:
 
         return self.investor_view.pick_matrix
 
     @property
-    def Q(self) -> np.ndarray:
+    def q(self) -> np.ndarray:
 
         return self.investor_view.expected_returns
 
@@ -107,9 +107,9 @@ class BlackLittermanModel:
 
         tau_sigma = self.tau * sigma
 
-        middle = np.linalg.inv(self.P @ tau_sigma @ self.P.T + self.omega)
+        middle = np.linalg.inv(self.p @ tau_sigma @ self.p.T + self.omega)
 
-        adjustment = tau_sigma @ self.P.T @ middle @ (self.Q - self.P @ self.pi)
+        adjustment = tau_sigma @ self.p.T @ middle @ (self.q - self.p @ self.pi)
 
         posterior = self.pi + adjustment
 
@@ -129,10 +129,10 @@ class BlackLittermanModel:
 
         tau_sigma = self.tau * sigma
 
-        middle = np.linalg.inv(self.P @ tau_sigma @ self.P.T + self.omega)
+        middle = np.linalg.inv(self.p @ tau_sigma @ self.p.T + self.omega)
 
         posterior = (
-            sigma + tau_sigma - tau_sigma @ self.P.T @ middle @ self.P @ tau_sigma
+            sigma + tau_sigma - tau_sigma @ self.p.T @ middle @ self.p @ tau_sigma
         )
 
         return CovarianceMatrix(

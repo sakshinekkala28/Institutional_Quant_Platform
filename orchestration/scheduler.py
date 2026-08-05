@@ -24,6 +24,7 @@ It delegates execution to MasterOrchestrator.
 
 from __future__ import annotations
 
+from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
 import threading
@@ -311,13 +312,8 @@ class Scheduler:
 
             for job in self.registry.active_jobs():
                 if job.next_run is None or now >= job.next_run:
-                    try:
+                    with suppress(Exception):
                         self.run_job(job.name)
-
-                    except Exception:
-                        # Continue scheduling
-                        # remaining jobs.
-                        pass
 
             time.sleep(1)
 

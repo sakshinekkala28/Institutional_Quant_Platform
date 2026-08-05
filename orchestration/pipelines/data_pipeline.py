@@ -19,6 +19,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import ClassVar
+
 from analytics.data.generate_metadata import main as stock_metadata_engine
 from analytics.data.incremental_price_update import main as price_update_engine
 from analytics.data.market_cap_enrichment import main as market_cap_engine
@@ -42,7 +45,7 @@ class DataPipeline(BasePipeline):
 
     EXECUTOR = "sequential"
 
-    ENGINES = [
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = [
         (
             "Symbol Metadata",
             symbol_metadata_engine,

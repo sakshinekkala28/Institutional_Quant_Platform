@@ -93,13 +93,13 @@ class PortfolioPosition:
         """
         Portfolio-relative market value.
 
-        Placeholder until NAV
+        Placeholder until base_nav
         becomes configurable.
         """
 
-        NAV = 100_000_000
+        base_nav = 100_000_000
 
-        return NAV * self.weight
+        return base_nav * self.weight
 
     # =====================================================
     # EXPORT

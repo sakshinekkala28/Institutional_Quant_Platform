@@ -149,6 +149,9 @@ class MetricsRegistry:
         metric_name: str,
         value: float,
     ) -> str:
+        """
+        Validate a metric value against its thresholds.
+        """
 
         metric = self.get(metric_name)
 
@@ -158,27 +161,29 @@ class MetricsRegistry:
         if metric.warning_threshold is None:
             return "OK"
 
+        status = "OK"
+
         if metric.higher_is_better:
+
             if (
                 metric.critical_threshold is not None
                 and value < metric.critical_threshold
             ):
-                return "CRITICAL"
+                status = "CRITICAL"
 
-            if value < metric.warning_threshold:
-                return "WARNING"
+            elif value < metric.warning_threshold:
+                status = "WARNING"
 
-        else:
-            if (
-                metric.critical_threshold is not None
-                and value > metric.critical_threshold
-            ):
-                return "CRITICAL"
+        elif (
+            metric.critical_threshold is not None
+            and value > metric.critical_threshold
+        ):
+            status = "CRITICAL"
 
-            if value > metric.warning_threshold:
-                return "WARNING"
+        elif value > metric.warning_threshold:
+            status = "WARNING"
 
-        return "OK"
+        return status
 
     # =====================================================
     # METRIC NAMES

@@ -19,6 +19,8 @@ Responsibilities
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from orchestration.executors.base_executor import BaseExecutor
 from orchestration.executors.parallel_executor import ParallelExecutor
 from orchestration.executors.retry_executor import RetryExecutor
@@ -34,9 +36,8 @@ class ExecutorFactory:
     Factory for execution strategies.
     """
 
-    _executors: dict[
-        str,
-        type[BaseExecutor],
+    _executors: ClassVar[
+        dict[str, type[BaseExecutor]]
     ] = {
         "sequential": SequentialExecutor,
         "parallel": ParallelExecutor,

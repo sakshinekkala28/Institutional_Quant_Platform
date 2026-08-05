@@ -16,6 +16,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import ClassVar
+
 from analytics.alpha.price_history_engine import main as price_history_engine
 from analytics.live.build_factor_expected_returns import main as expected_returns_engine
 
@@ -43,7 +46,7 @@ class SignalPipeline(BasePipeline):
     #
     EXECUTOR = "sequential"
 
-    ENGINES = [
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = [
         (
             "Signal Engine",
             signal_engine,

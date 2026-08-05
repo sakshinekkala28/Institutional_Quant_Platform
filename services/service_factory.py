@@ -42,7 +42,7 @@ class ServiceFactoryError(Exception):
     """Base service factory exception."""
 
 
-class ServiceAlreadyRegistered(ServiceFactoryError):
+class ServiceAlreadyRegisteredError(ServiceFactoryError):
     """Service already exists."""
 
 
@@ -116,7 +116,7 @@ class ServiceFactory:
 
         with self._lock:
             if name in self._services:
-                raise ServiceAlreadyRegistered(name)
+                raise ServiceAlreadyRegisteredError(name)
 
             self._services[name] = ServiceDescriptor(name, service, singleton)
 

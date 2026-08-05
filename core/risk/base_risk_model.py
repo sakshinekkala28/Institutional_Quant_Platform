@@ -157,7 +157,7 @@ class BaseRiskModel(ABC):
         Asset return matrix.
 
         Shape:
-            (Assets × Observations)
+            (num_assets, num_observations)
         """
 
         return self.asset_returns.matrix

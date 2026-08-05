@@ -21,6 +21,8 @@ Responsibilities
 
 from __future__ import annotations
 
+import json
+
 from orchestration.pipeline_builder import PipelineDefinition
 
 
@@ -496,8 +498,6 @@ class PipelineAnalyzer:
         """
         Export analysis as JSON.
         """
-
-        import json
 
         return json.dumps(
             self.to_dict(pipeline),

@@ -26,6 +26,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import datetime
+import hashlib
+import json
 from pathlib import Path
 from threading import RLock
 from typing import Any
@@ -33,7 +35,6 @@ from typing import Any
 # =========================================================
 # EXECUTION CONTEXT
 # =========================================================
-
 
 @dataclass(slots=True)
 class ExecutionContext:
@@ -665,8 +666,6 @@ class ExecutionContext:
         JSON serialization.
         """
 
-        import json
-
         return json.dumps(
             self.to_dict(),
             indent=indent,
@@ -840,8 +839,6 @@ class ExecutionContext:
         Save execution context to disk.
         """
 
-        import json
-
         path.parent.mkdir(
             parents=True,
             exist_ok=True,
@@ -868,8 +865,6 @@ class ExecutionContext:
         """
         Load execution context.
         """
-
-        import json
 
         with path.open(
             "r",
@@ -936,8 +931,6 @@ class ExecutionContext:
         """
         Stable checksum of the execution state.
         """
-
-        import hashlib
 
         return hashlib.sha256(self.to_json().encode()).hexdigest()
 

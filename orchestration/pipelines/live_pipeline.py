@@ -15,6 +15,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import ClassVar
+
 # ==========================================================
 # LIVE ENGINES
 # ==========================================================
@@ -40,7 +43,7 @@ class LivePipeline(BasePipeline):
     #
     EXECUTOR = "sequential"
 
-    ENGINES = [
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = [
         (
             "Expected Returns",
             expected_returns_engine,

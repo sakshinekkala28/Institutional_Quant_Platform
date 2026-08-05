@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from dataclasses import dataclass
 import logging
 
 import pandas as pd
@@ -54,7 +55,6 @@ GOVERNANCE_COMMITTEE_DASHBOARD_FILE = (
 # REPOSITORY
 # ==========================================================
 
-
 class CommitteePackRepository:
     @staticmethod
     def load_forecast():
@@ -91,7 +91,6 @@ class CommitteePackRepository:
 # VALIDATOR
 # ==========================================================
 
-
 class CommitteePackValidator:
     @staticmethod
     def validate(forecast, governance, scenarios, stress):
@@ -113,7 +112,6 @@ class CommitteePackValidator:
 # EXECUTIVE RECOMMENDATION
 # ==========================================================
 
-
 class ExecutiveRecommendationEngine:
     @staticmethod
     def build(forecast, governance):
@@ -134,7 +132,6 @@ class ExecutiveRecommendationEngine:
 # ==========================================================
 # COMMITTEE SUMMARY ENGINE
 # ==========================================================
-
 
 class CommitteeSummaryEngine:
     @staticmethod
@@ -203,7 +200,6 @@ class CommitteeSummaryEngine:
 # SCENARIO REVIEW ENGINE
 # ==========================================================
 
-
 class ScenarioReviewEngine:
     @staticmethod
     def build(scenarios: pd.DataFrame) -> pd.DataFrame:
@@ -243,7 +239,6 @@ class ScenarioReviewEngine:
 # ==========================================================
 # STRESS REVIEW ENGINE
 # ==========================================================
-
 
 class StressReviewEngine:
     @staticmethod
@@ -291,7 +286,6 @@ class StressReviewEngine:
 # ==========================================================
 # GOVERNANCE REVIEW ENGINE
 # ==========================================================
-
 
 class GovernanceReviewEngine:
     @staticmethod
@@ -382,7 +376,6 @@ class GovernanceCommitteeDashboardLoader:
 # SURVEILLANCE REVIEW ENGINE
 # ==========================================================
 
-
 class SurveillanceReviewEngine:
     @staticmethod
     def build(surveillance: pd.DataFrame) -> pd.DataFrame:
@@ -418,7 +411,6 @@ class SurveillanceReviewEngine:
 # PACK SCORE ENGINE
 # ==========================================================
 
-
 class PackScoreEngine:
     @staticmethod
     def build(
@@ -452,18 +444,27 @@ class PackScoreEngine:
 # EXECUTIVE DASHBOARD ENGINE
 # ==========================================================
 
+@dataclass(slots=True)
+class ExecutiveDashboardConfig:
+    """
+    Executive dashboard inputs.
+    """
+
+    governance: pd.DataFrame
+    forecast: pd.DataFrame
+    scenarios: pd.DataFrame
+    stress_df: pd.DataFrame
+    governance_command_metrics: dict[str, object]
+    alert_metrics: dict[str, object]
+    pack_score: float
+    recommendation: str
+
 
 class ExecutiveDashboardEngine:
+
     @staticmethod
     def build(
-        governance: pd.DataFrame,
-        forecast: pd.DataFrame,
-        scenarios: pd.DataFrame,
-        stress_df: pd.DataFrame,
-        governance_command_metrics: dict,
-        alert_metrics: dict,
-        pack_score: float,
-        recommendation: str,
+        config: ExecutiveDashboardConfig,
     ) -> pd.DataFrame:
 
         logger.info("Building Executive Dashboard")
@@ -472,78 +473,107 @@ class ExecutiveDashboardEngine:
             [
                 {
                     "Metric": "Governance_Score",
-                    "Value": governance_command_metrics.get("Governance_Score", "N/A"),
+                    "Value": config.governance_command_metrics.get(
+                        "Governance_Score",
+                        "N/A",
+                    ),
                 },
                 {
                     "Metric": "Risk_Level",
-                    "Value": governance_command_metrics.get("Risk_Level", "N/A"),
+                    "Value": config.governance_command_metrics.get(
+                        "Risk_Level",
+                        "N/A",
+                    ),
                 },
                 {
                     "Metric": "Executive_Action",
-                    "Value": governance_command_metrics.get("Executive_Action", "N/A"),
+                    "Value": config.governance_command_metrics.get(
+                        "Executive_Action",
+                        "N/A",
+                    ),
                 },
-                {"Metric": "Pack_Score", "Value": pack_score},
-                {"Metric": "Recommendation", "Value": recommendation},
+                {
+                    "Metric": "Pack_Score",
+                    "Value": config.pack_score,
+                },
+                {
+                    "Metric": "Recommendation",
+                    "Value": config.recommendation,
+                },
                 {
                     "Metric": "Forecast_Regime",
-                    "Value": forecast.iloc[0]["Forecast_Regime"],
+                    "Value": config.forecast.iloc[0]["Forecast_Regime"],
                 },
                 {
                     "Metric": "Expected_Return_12M",
-                    "Value": forecast.iloc[0]["Expected_Return_12M"],
+                    "Value": config.forecast.iloc[0]["Expected_Return_12M"],
                 },
                 {
                     "Metric": "Scenario_Average",
-                    "Value": round(scenarios["Scenario_Score"].mean(), 2),
+                    "Value": round(
+                        config.scenarios["Scenario_Score"].mean(),
+                        2,
+                    ),
                 },
                 {
                     "Metric": "Stress_Average",
-                    "Value": round(stress_df["Stress_Score"].mean(), 2),
+                    "Value": round(
+                        config.stress_df["Stress_Score"].mean(),
+                        2,
+                    ),
                 },
                 {
                     "Metric": "Committee_View",
                     "Value": (
                         "STRONG_BUY"
-                        if pack_score >= 80
+                        if config.pack_score >= 80
                         else (
                             "BUY"
-                            if pack_score >= 65
-                            else "HOLD"
-                            if pack_score >= 50
-                            else "REDUCE"
+                            if config.pack_score >= 65
+                            else (
+                                "HOLD"
+                                if config.pack_score >= 50
+                                else "REDUCE"
+                            )
                         )
                     ),
                 },
                 {
                     "Metric": "Alert_Health_Score",
-                    "Value": alert_metrics.get("Alert_Health_Score", "N/A"),
+                    "Value": config.alert_metrics.get(
+                        "Alert_Health_Score",
+                        "N/A",
+                    ),
                 },
                 {
                     "Metric": "Alert_Escalation",
-                    "Value": alert_metrics.get("Alert_Escalation", "N/A"),
+                    "Value": config.alert_metrics.get(
+                        "Alert_Escalation",
+                        "N/A",
+                    ),
                 },
                 {
                     "Metric": "Pack_Grade",
                     "Value": (
                         "A"
-                        if pack_score >= 85
+                        if config.pack_score >= 85
                         else (
                             "B"
-                            if pack_score >= 70
-                            else "C"
-                            if pack_score >= 55
-                            else "D"
+                            if config.pack_score >= 70
+                            else (
+                                "C"
+                                if config.pack_score >= 55
+                                else "D"
+                            )
                         )
                     ),
                 },
             ]
         )
 
-
 # ==========================================================
 # INVESTMENT COMMITTEE PACK ENGINE
 # ==========================================================
-
 
 class InvestmentCommitteePackEngine:
     def run(self):

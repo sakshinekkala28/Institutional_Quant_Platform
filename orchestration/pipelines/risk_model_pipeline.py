@@ -23,6 +23,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import ClassVar
+
 from analytics.risk.build_beta_master import main as beta_master_engine
 from analytics.risk.build_beta_model import main as beta_model_engine
 
@@ -58,7 +61,7 @@ class RiskModelPipeline(BasePipeline):
     #
     EXECUTOR = "sequential"
 
-    ENGINES = [
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = [
         (
             "Daily Returns",
             daily_returns_engine,

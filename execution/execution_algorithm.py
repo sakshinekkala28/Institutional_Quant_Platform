@@ -35,7 +35,7 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 
 from execution.execution_report import ExecutionReport
-from execution.order import Order
+from services.order_service import Order
 
 
 class ExecutionAlgorithm(ABC):
@@ -72,6 +72,7 @@ class ExecutionAlgorithm(ABC):
         """
         Hook before execution.
         """
+        return
 
     # =====================================================
     # POST EXECUTION
@@ -84,6 +85,7 @@ class ExecutionAlgorithm(ABC):
         """
         Hook after execution.
         """
+        return
 
     # =====================================================
     # EXECUTION CONTRACT

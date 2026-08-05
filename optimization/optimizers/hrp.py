@@ -32,6 +32,8 @@ Outperform Out-of-Sample
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+
 import numpy as np
 from scipy.cluster.hierarchy import leaves_list, linkage
 from scipy.spatial.distance import squareform
@@ -41,6 +43,20 @@ from core.models.portfolio import Portfolio
 from optimization.base_optimizer import BaseOptimizer
 
 
+@dataclass(slots=True)
+class HRPConfig:
+    """
+    Configuration for the Hierarchical Risk Parity optimizer.
+    """
+    covariance_matrix: CovarianceMatrix
+    linkage_method: str = "single"
+    long_only: bool = True
+    fully_invested: bool = True
+    min_weight: float = 0.0
+    max_weight: float = 1.0
+
+
+
 class HRPOptimizer(BaseOptimizer):
     """
     Hierarchical Risk Parity Optimizer.
@@ -48,24 +64,20 @@ class HRPOptimizer(BaseOptimizer):
 
     def __init__(
         self,
-        covariance_matrix: CovarianceMatrix,
-        linkage_method: str = "single",
-        long_only: bool = True,
-        fully_invested: bool = True,
-        min_weight: float = 0.0,
-        max_weight: float = 1.0,
+        config: HRPConfig,
     ) -> None:
 
         super().__init__(
-            long_only=long_only,
-            fully_invested=fully_invested,
-            min_weight=min_weight,
-            max_weight=max_weight,
+            long_only=config.long_only,
+            fully_invested=config.fully_invested,
+            min_weight=config.min_weight,
+            max_weight=config.max_weight,
         )
 
-        self.covariance_matrix = covariance_matrix
+        self.covariance_matrix = config.covariance_matrix
 
-        self.linkage_method = linkage_method
+        self.linkage_method = config.linkage_method
+
 
     # =====================================================
     # CORRELATION

@@ -18,6 +18,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import ClassVar
+
 from analytics.benchmark.benchmark_constituents_engine import (
     main as benchmark_constituents_engine,
 )
@@ -56,7 +59,7 @@ class PerformancePipeline(BasePipeline):
     #
     EXECUTOR = "sequential"
 
-    ENGINES = [
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = [
         (
             "Benchmark Constituents",
             benchmark_constituents_engine,

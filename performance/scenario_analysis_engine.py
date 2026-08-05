@@ -357,31 +357,6 @@ class ScenarioSummaryEngine:
 
 
 # ==========================================================
-# SCENARIO SUMMARY ENGINE
-# ==========================================================
-
-
-class ScenarioSummaryEngine:
-    @staticmethod
-    def build(scenario_df: pd.DataFrame) -> pd.DataFrame:
-
-        logger.info("Building Scenario Summary")
-
-        best = scenario_df.sort_values("Scenario_Score", ascending=False).iloc[0]
-
-        worst = scenario_df.sort_values("Scenario_Score", ascending=True).iloc[0]
-
-        return pd.DataFrame(
-            [
-                {"Metric": "Best_Scenario", "Value": best["Scenario"]},
-                {"Metric": "Worst_Scenario", "Value": worst["Scenario"]},
-                {"Metric": "Best_Score", "Value": best["Scenario_Score"]},
-                {"Metric": "Worst_Score", "Value": worst["Scenario_Score"]},
-            ]
-        )
-
-
-# ==========================================================
 # SCENARIO DASHBOARD ENGINE
 # ==========================================================
 

@@ -42,7 +42,6 @@ import numpy as np
 # PORTFOLIO MONITOR RESULT
 # ==========================================================
 
-
 @dataclass(slots=True)
 class PortfolioMonitorResult:
     """
@@ -50,15 +49,10 @@ class PortfolioMonitorResult:
     """
 
     metric: str
-
     status: str
-
     value: float | int | str
-
     threshold: float | int | None
-
     timestamp: datetime
-
     metadata: dict
 
     def summary(
@@ -79,6 +73,19 @@ class PortfolioMonitorResult:
 # PORTFOLIO MONITOR
 # ==========================================================
 
+@dataclass(slots=True)
+class PortfolioMonitorReportConfig:
+    """
+    Inputs required to generate the portfolio monitor report.
+    """
+
+    portfolio_value: float
+    cash: float
+    weights: np.ndarray | list[float]
+    gross_exposure: float
+    sector_weights: dict[str, float]
+    turnover: float
+    constraint_violations: int
 
 class PortfolioMonitor:
     """
@@ -311,41 +318,35 @@ class PortfolioMonitor:
     @classmethod
     def report(
         cls,
-        portfolio_value: float,
-        cash: float,
-        weights,
-        gross_exposure: float,
-        sector_weights: dict,
-        turnover: float,
-        constraint_violations: int,
+        config: PortfolioMonitorReportConfig,
     ) -> dict:
 
         return {
             "PortfolioValue": cls.portfolio_value(
-                portfolio_value,
+                config.portfolio_value,
             ).summary(),
             "CashUtilization": cls.cash_utilization(
-                cash,
-                portfolio_value,
+                config.cash,
+                config.portfolio_value,
             ).summary(),
             "Concentration": cls.concentration(
-                weights,
+                config.weights,
             ).summary(),
             "PositionLimit": cls.position_limit(
-                weights,
+                config.weights,
             ).summary(),
             "Leverage": cls.leverage(
-                gross_exposure,
-                portfolio_value,
+                config.gross_exposure,
+                config.portfolio_value,
             ).summary(),
             "SectorExposure": cls.sector_exposure(
-                sector_weights,
+                config.sector_weights,
             ).summary(),
             "Turnover": cls.turnover(
-                turnover,
+                config.turnover,
             ).summary(),
             "ConstraintViolations": cls.constraint_violations(
-                constraint_violations,
+                config.constraint_violations,
             ).summary(),
         }
 

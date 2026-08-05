@@ -9,6 +9,7 @@ from dataclasses import dataclass
 from pathlib import Path
 
 import duckdb
+import numpy as np
 import pandas as pd
 
 # ==========================================================
@@ -82,8 +83,6 @@ class TableManager:
         """
         Save a pandas DataFrame into DuckDB with robust dtype normalization.
         """
-
-        import numpy as np
 
         df = dataframe.copy()
 

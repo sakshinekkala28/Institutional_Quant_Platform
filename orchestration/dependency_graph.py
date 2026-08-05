@@ -27,6 +27,7 @@ Responsibilities
 from __future__ import annotations
 
 from collections import defaultdict, deque
+import json
 
 from orchestration.base_engine import BaseEngine
 from orchestration.engine_registry import EngineRegistry
@@ -1058,8 +1059,6 @@ class DependencyGraph:
         """
         Export graph as JSON.
         """
-
-        import json
 
         return json.dumps(
             self.to_dict(),

@@ -21,7 +21,7 @@ Responsibilities
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from datetime import datetime
 from enum import StrEnum
 import logging
@@ -58,7 +58,7 @@ class HealthRecord:
 
     message: str = ""
 
-    timestamp: datetime = datetime.utcnow()
+    timestamp: datetime = field(default_factory=datetime.utcnow)
 
     metadata: dict[str, Any] | None = None
 

@@ -90,7 +90,6 @@ class OrderNotFoundError(OrderError):
 # Order Model
 # ============================================================
 
-
 @dataclass(slots=True)
 class Order:
     order_id: str
@@ -121,7 +120,6 @@ class Order:
 # ============================================================
 # Order Service
 # ============================================================
-
 
 class OrderService(BaseService):
     """

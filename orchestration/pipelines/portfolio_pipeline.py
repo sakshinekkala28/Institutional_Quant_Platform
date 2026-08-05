@@ -20,6 +20,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import ClassVar
+
 from analytics.portfolio.factor_optimizer import main as factor_optimizer_engine
 from analytics.portfolio.optimizer_engine import main as optimizer_engine
 from analytics.portfolio.portfolio_constraints_engine import (
@@ -56,7 +59,7 @@ class PortfolioPipeline(BasePipeline):
     #
     EXECUTOR = "sequential"
 
-    ENGINES = [
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = [
         (
             "Portfolio Engine",
             portfolio_engine,

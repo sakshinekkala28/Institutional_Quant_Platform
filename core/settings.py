@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 # ==========================================================
@@ -23,7 +23,7 @@ class EnvironmentSettings:
 
     PROJECT_NAME: str = "Institutional Quant Platform"
 
-    ROOT_DIR: Path = Path.cwd()
+    ROOT_DIR: Path = field(default_factory=Path.cwd)
 
 
 # ==========================================================

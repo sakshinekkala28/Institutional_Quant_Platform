@@ -4,19 +4,19 @@
 # ==========================================================
 
 
-class PlatformException(Exception):
+class PlatformExceptionError(Exception):
     """Base exception for platform"""
 
 
-class ConfigurationError(PlatformException):
+class ConfigurationError(PlatformExceptionError):
     pass
 
 
-class ValidationError(PlatformException):
+class ValidationError(PlatformExceptionError):
     pass
 
 
-class DataError(PlatformException):
+class DataError(PlatformExceptionError):
     pass
 
 
@@ -46,7 +46,7 @@ class EmptyDatasetError(DataError):
 # ==========================================================
 
 
-class PortfolioError(PlatformException):
+class PortfolioError(PlatformExceptionError):
     pass
 
 
@@ -63,15 +63,15 @@ class ConstraintViolationError(PortfolioError):
 # ==========================================================
 
 
-class RiskError(PlatformException):
+class RiskError(PlatformExceptionError):
     pass
 
 
-class RiskLimitBreach(RiskError):
+class RiskLimitBreachError(RiskError):
     pass
 
 
-class TrackingErrorBreach(RiskError):
+class TrackingErrorBreachError(RiskError):
     pass
 
 
@@ -80,7 +80,7 @@ class TrackingErrorBreach(RiskError):
 # ==========================================================
 
 
-class GovernanceError(PlatformException):
+class GovernanceError(PlatformExceptionError):
     pass
 
 
@@ -88,7 +88,7 @@ class ApprovalRequiredError(GovernanceError):
     pass
 
 
-class ComplianceFailure(GovernanceError):
+class ComplianceFailureError(GovernanceError):
     pass
 
 
@@ -97,13 +97,13 @@ class ComplianceFailure(GovernanceError):
 # ==========================================================
 
 
-class ExecutionError(PlatformException):
+class ExecutionError(PlatformExceptionError):
     pass
 
 
-class SlippageLimitExceeded(ExecutionError):
+class SlippageLimitExceededError(ExecutionError):
     pass
 
 
-class MarketImpactExceeded(ExecutionError):
+class MarketImpactExceededError(ExecutionError):
     pass

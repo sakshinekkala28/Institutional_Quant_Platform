@@ -5,6 +5,8 @@
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 import numpy as np
 import pandas as pd
 
@@ -14,7 +16,7 @@ import pandas as pd
 
 
 class PortfolioDataValidator:
-    REQUIRED_COLUMNS = {
+    REQUIRED_COLUMNS: ClassVar[list[str]] = {
         "ADV_20D": 1_000_000,
         "Beta": 1.0,
         "Volatility_252D": 0.25,

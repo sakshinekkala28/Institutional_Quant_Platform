@@ -30,6 +30,8 @@ Supported Backends
 
 from __future__ import annotations
 
+from typing import ClassVar
+
 from orchestration.adapters.base_adapter import BaseAdapter
 
 # =========================================================
@@ -42,9 +44,8 @@ class AdapterFactory:
     Factory for platform adapters.
     """
 
-    _registry: dict[
-        str,
-        type[BaseAdapter],
+    _registry: ClassVar[
+        dict[str, type[BaseAdapter]]
     ] = {}
 
     # =====================================================
@@ -134,7 +135,7 @@ class AdapterFactory:
     @classmethod
     def summary(
         cls,
-    ) -> dict:
+    ) -> dict[str, int | list[str]]:
 
         return {
             "registered": len(cls._registry),

@@ -51,7 +51,6 @@ class PortfolioNotFoundError(PortfolioError):
 # Portfolio Model
 # ============================================================
 
-
 @dataclass(slots=True)
 class Portfolio:
     name: str
@@ -67,10 +66,24 @@ class Portfolio:
     metadata: dict[str, Any] = field(default_factory=dict)
 
 
+
+@dataclass(slots=True)
+class PortfolioRegistration:
+    """
+    Portfolio registration request.
+    """
+
+    name: str
+    holdings: pd.DataFrame
+    benchmark: str = "NIFTY500"
+    cash: float = 0.0
+    nav: float = 0.0
+    metadata: dict[str, Any] | None = None
+
+
 # ============================================================
 # Portfolio Service
 # ============================================================
-
 
 class PortfolioService(BaseService):
     """
@@ -129,28 +142,23 @@ class PortfolioService(BaseService):
 
     def register(
         self,
-        name: str,
-        holdings: pd.DataFrame,
-        benchmark: str = "NIFTY500",
-        cash: float = 0.0,
-        nav: float = 0.0,
-        metadata: dict[str, Any] | None = None,
+        registration: PortfolioRegistration,
     ) -> None:
         """
         Register portfolio.
         """
 
         portfolio = Portfolio(
-            name=name,
-            holdings=holdings,
-            benchmark=benchmark,
-            cash=cash,
-            nav=nav,
-            metadata=metadata or {},
+            name=registration.name,
+            holdings=registration.holdings,
+            benchmark=registration.benchmark,
+            cash=registration.cash,
+            nav=registration.nav,
+            metadata=registration.metadata or {},
         )
 
         with self._lock:
-            self._portfolios[name] = portfolio
+            self._portfolios[registration.name] = portfolio
 
     # =====================================================
     # Retrieval

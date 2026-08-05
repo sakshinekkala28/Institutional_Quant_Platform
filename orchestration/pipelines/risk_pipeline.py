@@ -23,6 +23,9 @@ Responsibilities
 
 from __future__ import annotations
 
+from collections.abc import Callable
+from typing import ClassVar
+
 from analytics.risk.build_factor_covariance import main as covariance_builder_engine
 from analytics.risk.build_factor_exposure_matrix import main as exposure_matrix_engine
 from analytics.risk.build_factor_returns import main as factor_returns_engine
@@ -60,7 +63,7 @@ class RiskPipeline(BasePipeline):
     #
     EXECUTOR = "sequential"
 
-    ENGINES = [
+    ENGINES: ClassVar[list[tuple[str, Callable]]] = [
         (
             "Returns Matrix",
             returns_matrix_engine,

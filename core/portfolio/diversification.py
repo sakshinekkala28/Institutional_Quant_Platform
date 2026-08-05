@@ -107,7 +107,7 @@ class PortfolioDiversification:
     @staticmethod
     def diversification_score(portfolio: Portfolio) -> float:
         """
-        Diversification score (0–100).
+        Diversification score (0-100).
         """
 
         if portfolio.is_empty:
