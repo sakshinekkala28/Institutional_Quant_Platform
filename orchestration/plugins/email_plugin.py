@@ -19,13 +19,15 @@ Responsibilities
 
 from __future__ import annotations
 
+from email.message import EmailMessage
 import logging
 import smtplib
-from email.message import EmailMessage
 from typing import Any
 
-from orchestration.plugins.notification_plugin import (NotificationPlugin,
-                                                       NotificationSeverity)
+from orchestration.plugins.notification_plugin import (
+    NotificationPlugin,
+    NotificationSeverity,
+)
 
 logger = logging.getLogger(__name__)
 

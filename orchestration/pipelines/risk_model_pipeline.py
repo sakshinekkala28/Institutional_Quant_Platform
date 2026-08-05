@@ -28,6 +28,7 @@ from typing import ClassVar
 
 from analytics.risk.build_beta_master import main as beta_master_engine
 from analytics.risk.build_beta_model import main as beta_model_engine
+
 # ==========================================================
 # RISK MODEL ENGINES
 # ==========================================================

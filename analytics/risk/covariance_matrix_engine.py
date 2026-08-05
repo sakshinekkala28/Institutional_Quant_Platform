@@ -32,9 +32,9 @@ covariance_audit.csv
 =========================================================
 """
 
-import warnings
 from datetime import datetime
 from pathlib import Path
+import warnings
 
 import numpy as np
 import pandas as pd

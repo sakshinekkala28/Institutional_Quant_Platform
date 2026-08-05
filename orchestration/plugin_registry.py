@@ -20,8 +20,8 @@ Responsibilities
 
 from __future__ import annotations
 
-import inspect
 from collections.abc import Iterator
+import inspect
 
 from orchestration.plugins.base_plugin import BasePlugin
 

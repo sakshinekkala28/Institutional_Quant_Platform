@@ -24,11 +24,11 @@ It delegates execution to MasterOrchestrator.
 
 from __future__ import annotations
 
-import threading
-import time
 from contextlib import suppress
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
+import threading
+import time
 
 from orchestration.master_orchestrator import MasterOrchestrator
 from orchestration.models.master_result import MasterResult

@@ -22,8 +22,8 @@ Inherited From
 
 from __future__ import annotations
 
-import json
 from datetime import datetime
+import json
 from pathlib import Path
 
 from reporting.base_report import BaseReport

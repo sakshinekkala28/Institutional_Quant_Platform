@@ -19,9 +19,9 @@ Responsibilities
 
 from __future__ import annotations
 
-import logging
 from abc import ABC, abstractmethod
 from enum import StrEnum
+import logging
 from typing import Any
 
 from orchestration.plugins.base_plugin import BasePlugin

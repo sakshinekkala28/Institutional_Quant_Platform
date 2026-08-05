@@ -31,10 +31,10 @@ Used By
 
 from __future__ import annotations
 
-import statistics
 from collections import defaultdict
 from dataclasses import dataclass
 from datetime import datetime
+import statistics
 
 # ==========================================================
 # METRIC

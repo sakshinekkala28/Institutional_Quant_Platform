@@ -17,10 +17,10 @@ data/backtests/all_strategy_results.csv
 =========================================================
 """
 
-import traceback
 from concurrent.futures import ThreadPoolExecutor
 from datetime import datetime
 from pathlib import Path
+import traceback
 
 import numpy as np
 import pandas as pd

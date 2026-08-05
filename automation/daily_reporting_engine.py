@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import logging
 from datetime import datetime
+import logging
 
 import pandas as pd
 

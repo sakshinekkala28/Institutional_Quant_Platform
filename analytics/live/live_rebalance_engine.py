@@ -3,8 +3,8 @@
 # PART 1 - CONFIGURATION
 # =========================================================
 
-import warnings
 from pathlib import Path
+import warnings
 
 import numpy as np
 import pandas as pd

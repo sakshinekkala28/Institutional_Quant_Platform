@@ -24,8 +24,8 @@ from __future__ import annotations
 import importlib
 import inspect
 import logging
-import pkgutil
 from pathlib import Path
+import pkgutil
 from types import ModuleType
 from typing import Any
 

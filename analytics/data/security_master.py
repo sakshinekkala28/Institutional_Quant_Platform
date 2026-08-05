@@ -15,15 +15,20 @@ data/raw/security_master.csv
 =========================================================
 """
 
+from datetime import datetime
 import hashlib
 import time
-from datetime import datetime
 
 import pandas as pd
 
 from config.paths import SECURITY_MASTER_FILE, UPDATED_STOCKS_FILE
-from config.settings import (DATE_FORMAT, DEFAULT_ASSET_CLASS, DEFAULT_COUNTRY,
-                             DEFAULT_CURRENCY, DEFAULT_EXCHANGE)
+from config.settings import (
+    DATE_FORMAT,
+    DEFAULT_ASSET_CLASS,
+    DEFAULT_COUNTRY,
+    DEFAULT_CURRENCY,
+    DEFAULT_EXCHANGE,
+)
 from config.thresholds import MID_CAP_MAX, SMALL_CAP_MAX
 from orchestration.models.engine_result import EngineResult
 from orchestration.models.engine_status import EngineStatus

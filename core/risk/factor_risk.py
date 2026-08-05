@@ -28,9 +28,14 @@ Inherited From
 
 from __future__ import annotations
 
-from core.math.factor import (active_factor_exposure, factor_contribution,
-                              factor_variance, portfolio_factor_exposure, specific_risk,
-                              systematic_risk)
+from core.math.factor import (
+    active_factor_exposure,
+    factor_contribution,
+    factor_variance,
+    portfolio_factor_exposure,
+    specific_risk,
+    systematic_risk,
+)
 from core.models.risk_report import RiskReport
 from core.risk.base_risk_model import BaseRiskModel
 

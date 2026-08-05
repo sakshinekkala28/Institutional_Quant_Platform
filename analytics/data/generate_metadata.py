@@ -15,16 +15,25 @@ data/raw/stock_metadata.csv
 =========================================================
 """
 
-import time
 from datetime import datetime
+import time
 
 import numpy as np
 import pandas as pd
 
-from config.paths import (STOCK_METADATA_FILE, STOCK_METADATA_HEALTH_FILE,
-                          UPDATED_STOCKS_FILE)
-from config.settings import (DATE_FORMAT, DEFAULT_ASSET_CLASS, DEFAULT_COUNTRY,
-                             DEFAULT_CURRENCY, DEFAULT_EXCHANGE, PLATFORM_NAME)
+from config.paths import (
+    STOCK_METADATA_FILE,
+    STOCK_METADATA_HEALTH_FILE,
+    UPDATED_STOCKS_FILE,
+)
+from config.settings import (
+    DATE_FORMAT,
+    DEFAULT_ASSET_CLASS,
+    DEFAULT_COUNTRY,
+    DEFAULT_CURRENCY,
+    DEFAULT_EXCHANGE,
+    PLATFORM_NAME,
+)
 from config.thresholds import LARGE_CAP_THRESHOLD, MID_CAP_THRESHOLD
 from orchestration.models.engine_result import EngineResult
 from orchestration.models.engine_status import EngineStatus

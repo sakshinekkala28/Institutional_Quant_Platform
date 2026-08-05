@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import logging
-import uuid
 from dataclasses import asdict, dataclass
 from datetime import UTC, datetime
+import logging
 from typing import ClassVar
+import uuid
 
 import pandas as pd
 

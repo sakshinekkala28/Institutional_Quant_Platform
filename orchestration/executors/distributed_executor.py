@@ -25,9 +25,9 @@ Responsibilities
 
 from __future__ import annotations
 
-import logging
 from collections.abc import Iterable
 from concurrent.futures import FIRST_EXCEPTION, ThreadPoolExecutor, wait
+import logging
 
 from orchestration.executors.base_executor import BaseExecutor
 from orchestration.models.engine_result import EngineResult

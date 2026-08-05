@@ -20,16 +20,20 @@ data/logs/invalid_symbols.csv
 =========================================================
 """
 
-import time
-import traceback
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
+import time
+import traceback
 
 import pandas as pd
 import yfinance as yf
 
-from config.paths import (INVALID_SYMBOL_FILE, PRICE_DIR, PRICE_UPDATE_FAILURE_FILE,
-                          UPDATED_STOCKS_FILE)
+from config.paths import (
+    INVALID_SYMBOL_FILE,
+    PRICE_DIR,
+    PRICE_UPDATE_FAILURE_FILE,
+    UPDATED_STOCKS_FILE,
+)
 from config.thresholds import MAX_WORKERS
 from orchestration.models.engine_result import EngineResult
 from orchestration.models.engine_status import EngineStatus

@@ -6,12 +6,12 @@
 from __future__ import annotations
 
 import contextlib
-import logging
-import warnings
 from dataclasses import dataclass
 from datetime import datetime
+import logging
 from pathlib import Path
 from typing import ClassVar
+import warnings
 
 import duckdb
 import pandas as pd

@@ -27,8 +27,13 @@ Inherited From
 
 from __future__ import annotations
 
-from core.math.market import (active_return, alpha, beta, information_ratio,
-                              tracking_error)
+from core.math.market import (
+    active_return,
+    alpha,
+    beta,
+    information_ratio,
+    tracking_error,
+)
 from core.models.risk_report import RiskReport
 from core.risk.base_risk_model import BaseRiskModel
 

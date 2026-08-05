@@ -31,9 +31,9 @@ Used By
 
 from __future__ import annotations
 
+from datetime import datetime
 import logging
 import traceback
-from datetime import datetime
 
 from fastapi import FastAPI, HTTPException
 from fastapi.exceptions import RequestValidationError

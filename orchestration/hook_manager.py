@@ -29,9 +29,9 @@ Supported Hooks
 
 from __future__ import annotations
 
-import logging
 from collections import defaultdict
 from collections.abc import Callable
+import logging
 from typing import Any, ClassVar
 
 logger = logging.getLogger(__name__)

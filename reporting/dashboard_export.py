@@ -34,9 +34,9 @@ Combines
 
 from __future__ import annotations
 
-import json
 from dataclasses import dataclass, field
 from datetime import datetime
+import json
 
 from reporting.report_builder import ReportBuilder
 

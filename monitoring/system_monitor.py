@@ -33,11 +33,11 @@ Used By
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from datetime import datetime
 import os
 import platform
 import time
-from dataclasses import dataclass
-from datetime import datetime
 
 import psutil
 

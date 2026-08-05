@@ -28,8 +28,15 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
 
-from api.routers import (backtest, execution, monitoring, optimization, portfolio, risk,
-                         signals)
+from api.routers import (
+    backtest,
+    execution,
+    monitoring,
+    optimization,
+    portfolio,
+    risk,
+    signals,
+)
 
 APP_NAME = "Institutional Quant Platform"
 

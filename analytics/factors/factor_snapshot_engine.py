@@ -33,9 +33,13 @@ from functools import partial
 import numpy as np
 import pandas as pd
 
-from config.paths import (FACTOR_SNAPSHOT_DIRECTORY, FACTOR_SNAPSHOT_MASTER_FILE,
-                          FACTOR_SNAPSHOT_REPORT_FILE, PRICE_HISTORY_DIRECTORY,
-                          SECURITY_MASTER_FILE)
+from config.paths import (
+    FACTOR_SNAPSHOT_DIRECTORY,
+    FACTOR_SNAPSHOT_MASTER_FILE,
+    FACTOR_SNAPSHOT_REPORT_FILE,
+    PRICE_HISTORY_DIRECTORY,
+    SECURITY_MASTER_FILE,
+)
 from config.settings import DATE_FORMAT, ENGINE_VERSION, MAX_WORKERS, TRADING_DAYS
 from orchestration.models.engine_result import EngineResult
 from orchestration.models.engine_status import EngineStatus

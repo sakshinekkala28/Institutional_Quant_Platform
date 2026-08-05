@@ -34,9 +34,15 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from alpha.signal_engine import (AlphaEngine, FactorDiagnostics, FactorEngine,
-                                 RegimeEngine, SelectionScoreEngine, SignalEngine,
-                                 UniverseBuilder)
+from alpha.signal_engine import (
+    AlphaEngine,
+    FactorDiagnostics,
+    FactorEngine,
+    RegimeEngine,
+    SelectionScoreEngine,
+    SignalEngine,
+    UniverseBuilder,
+)
 
 # ==========================================================
 # SIGNAL ENGINE

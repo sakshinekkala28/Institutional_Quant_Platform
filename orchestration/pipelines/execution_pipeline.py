@@ -23,8 +23,9 @@ from typing import ClassVar
 # EXECUTION ENGINES
 # ==========================================================
 from analytics.execution.execution_engine_v1 import main as execution_engine
-from analytics.execution.execution_quality_engine import \
-    main as execution_quality_engine
+from analytics.execution.execution_quality_engine import (
+    main as execution_quality_engine,
+)
 from analytics.execution.transaction_cost_engine import main as transaction_cost_engine
 from orchestration.models.pipeline_result import PipelineResult
 from orchestration.pipelines.base_pipeline import BasePipeline

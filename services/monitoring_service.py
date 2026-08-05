@@ -27,10 +27,10 @@ Responsibilities
 
 from __future__ import annotations
 
-import time
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from threading import Lock, RLock
+import time
 from typing import Any
 
 from core.services.base_service import BaseService

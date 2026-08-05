@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-import time
 from contextlib import contextmanager
+import time
 
 from opentelemetry import trace
 from prometheus_client import Counter, Histogram

@@ -20,13 +20,13 @@ Responsibilities
 
 from __future__ import annotations
 
+from dataclasses import dataclass
+from datetime import datetime
 import os
+from pathlib import Path
 import platform
 import socket
 import sys
-from dataclasses import dataclass
-from datetime import datetime
-from pathlib import Path
 from time import perf_counter
 from typing import Any
 
