@@ -6,9 +6,9 @@
 
 from __future__ import annotations
 
+import logging
 from contextlib import suppress
 from dataclasses import dataclass
-import logging
 from pathlib import Path
 
 import numpy as np

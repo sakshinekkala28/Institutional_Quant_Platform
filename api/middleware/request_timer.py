@@ -32,9 +32,9 @@ Used By
 
 from __future__ import annotations
 
-from collections.abc import Callable
 import logging
 import time
+from collections.abc import Callable
 
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware

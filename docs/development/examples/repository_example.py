@@ -10,9 +10,9 @@ Repositories abstract data persistence from business logic.
 
 from __future__ import annotations
 
+import logging
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-import logging
 from typing import TypeVar
 
 logger = logging.getLogger(__name__)

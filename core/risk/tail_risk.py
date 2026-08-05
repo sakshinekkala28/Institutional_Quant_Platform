@@ -29,15 +29,8 @@ Inherited From
 
 from __future__ import annotations
 
-from core.math.tail import (
-    conditional_var,
-    expected_shortfall,
-    historical_var,
-    parametric_var,
-    tail_ratio,
-    tail_volatility,
-    worst_return,
-)
+from core.math.tail import (conditional_var, expected_shortfall, historical_var,
+                            parametric_var, tail_ratio, tail_volatility, worst_return)
 from core.models.risk_report import RiskReport
 from core.risk.base_risk_model import BaseRiskModel
 

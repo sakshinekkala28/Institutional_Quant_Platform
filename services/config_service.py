@@ -30,9 +30,9 @@ for configuration throughout the platform.
 
 from __future__ import annotations
 
-from copy import deepcopy
 import json
 import os
+from copy import deepcopy
 from pathlib import Path
 from threading import RLock
 from typing import Any

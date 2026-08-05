@@ -21,8 +21,8 @@ Responsibilities
 
 from __future__ import annotations
 
-from enum import StrEnum
 import logging
+from enum import StrEnum
 
 from orchestration.orchestrator import Orchestrator
 

@@ -7,10 +7,10 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from fastapi import FastAPI
-from fastapi.responses import JSONResponse
 import numpy as np
 import pandas as pd
+from fastapi import FastAPI
+from fastapi.responses import JSONResponse
 
 from ingestion.database_manager import DatabaseManager
 

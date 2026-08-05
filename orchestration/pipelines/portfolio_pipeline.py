@@ -25,17 +25,14 @@ from typing import ClassVar
 
 from analytics.portfolio.factor_optimizer import main as factor_optimizer_engine
 from analytics.portfolio.optimizer_engine import main as optimizer_engine
-from analytics.portfolio.portfolio_constraints_engine import (
-    main as portfolio_constraints_engine,
-)
-
+from analytics.portfolio.portfolio_constraints_engine import \
+    main as portfolio_constraints_engine
 # ==========================================================
 # PORTFOLIO ENGINES
 # ==========================================================
 from analytics.portfolio.portfolio_engine import main as portfolio_engine
-from analytics.portfolio.portfolio_history_engine import (
-    main as portfolio_history_engine,
-)
+from analytics.portfolio.portfolio_history_engine import \
+    main as portfolio_history_engine
 from analytics.portfolio.portfolio_monitor import main as portfolio_monitor_engine
 from analytics.portfolio.portfolio_optimizer import main as portfolio_optimizer_engine
 from analytics.portfolio.rebalancing_engine import main as rebalancing_engine

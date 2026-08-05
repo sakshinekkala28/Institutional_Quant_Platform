@@ -16,8 +16,8 @@ data/raw/updated_stocks.csv
 =========================================================
 """
 
-from pathlib import Path
 import time
+from pathlib import Path
 
 import pandas as pd
 

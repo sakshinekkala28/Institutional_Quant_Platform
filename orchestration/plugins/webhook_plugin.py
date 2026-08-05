@@ -24,10 +24,8 @@ from typing import Any
 
 import requests
 
-from orchestration.plugins.notification_plugin import (
-    NotificationPlugin,
-    NotificationSeverity,
-)
+from orchestration.plugins.notification_plugin import (NotificationPlugin,
+                                                       NotificationSeverity)
 
 logger = logging.getLogger(__name__)
 

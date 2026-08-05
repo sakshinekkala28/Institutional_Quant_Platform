@@ -35,23 +35,12 @@ Inherited From
 
 from __future__ import annotations
 
-from core.math.drawdown import (
-    average_drawdown,
-    drawdown_duration,
-    maximum_drawdown,
-    recovery_period,
-)
-from core.math.performance import (
-    calmar_ratio,
-    downside_capture_ratio,
-    gain_loss_ratio,
-    information_ratio,
-    omega_ratio,
-    sharpe_ratio,
-    sortino_ratio,
-    treynor_ratio,
-    upside_capture_ratio,
-)
+from core.math.drawdown import (average_drawdown, drawdown_duration, maximum_drawdown,
+                                recovery_period)
+from core.math.performance import (calmar_ratio, downside_capture_ratio,
+                                   gain_loss_ratio, information_ratio, omega_ratio,
+                                   sharpe_ratio, sortino_ratio, treynor_ratio,
+                                   upside_capture_ratio)
 from core.models.risk_report import RiskReport
 from core.risk.base_risk_model import BaseRiskModel
 

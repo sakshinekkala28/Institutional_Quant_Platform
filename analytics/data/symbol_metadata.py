@@ -31,12 +31,8 @@ import yfinance as yf
 
 from config.paths import SYMBOL_METADATA_FILE, VALID_STOCKS_FILE
 from config.settings import DATE_FORMAT
-from config.thresholds import (
-    COOLDOWN_AFTER,
-    COOLDOWN_SECONDS,
-    MAX_RETRIES,
-    SAVE_INTERVAL,
-)
+from config.thresholds import (COOLDOWN_AFTER, COOLDOWN_SECONDS, MAX_RETRIES,
+                               SAVE_INTERVAL)
 from orchestration.models.engine_result import EngineResult
 from orchestration.models.engine_status import EngineStatus
 from utils.file_utils import ensure_parent_directory

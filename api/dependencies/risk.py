@@ -42,24 +42,12 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from risk.governance_engine import (
-    AuditEngine,
-    ConcentrationEngine,
-    GovernanceEngine,
-    PositionLimitEngine,
-    SectorLimitEngine,
-    TurnoverGovernance,
-)
-from risk.risk_engine import (
-    BetaEngine,
-    CovarianceEngine,
-    FactorExposureEngine,
-    RiskContributionEngine,
-    RiskEngine,
-    TailRiskEngine,
-    TrackingErrorEngine,
-    VolatilityEngine,
-)
+from risk.governance_engine import (AuditEngine, ConcentrationEngine, GovernanceEngine,
+                                    PositionLimitEngine, SectorLimitEngine,
+                                    TurnoverGovernance)
+from risk.risk_engine import (BetaEngine, CovarianceEngine, FactorExposureEngine,
+                              RiskContributionEngine, RiskEngine, TailRiskEngine,
+                              TrackingErrorEngine, VolatilityEngine)
 
 # ==========================================================
 # RISK ENGINE

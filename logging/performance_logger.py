@@ -32,13 +32,13 @@ Used By
 
 from __future__ import annotations
 
+import json
+import statistics
+import time
 from dataclasses import dataclass
 from datetime import datetime
 from functools import wraps
-import json
 from pathlib import Path
-import statistics
-import time
 
 import psutil
 

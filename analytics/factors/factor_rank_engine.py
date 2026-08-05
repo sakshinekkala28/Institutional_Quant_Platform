@@ -36,14 +36,9 @@ from datetime import datetime
 import numpy as np
 import pandas as pd
 
-from config.paths import (
-    FACTOR_EXPOSURE_FILE,
-    FACTOR_MASTER_FILE,
-    FACTOR_RANK_MASTER_FILE,
-    PORTFOLIO_DIRECTORY,
-    RANKING_REPORT_FILE,
-    SECTOR_EXPOSURE_FILE,
-)
+from config.paths import (FACTOR_EXPOSURE_FILE, FACTOR_MASTER_FILE,
+                          FACTOR_RANK_MASTER_FILE, PORTFOLIO_DIRECTORY,
+                          RANKING_REPORT_FILE, SECTOR_EXPOSURE_FILE)
 from config.settings import DATE_FORMAT, ENGINE_VERSION
 from orchestration.models.engine_result import EngineResult
 from orchestration.models.engine_status import EngineStatus

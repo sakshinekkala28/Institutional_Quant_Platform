@@ -1,435 +1,295 @@
 name: 01 • Core CI
 
 on:
+  push:
+    branches:
+      - main
+      - develop
 
-    push:
+  pull_request:
+    branches:
+      - main
 
-        branches:
-
-            - main
-
-            - develop
-
-    pull_request:
-
-        branches:
-
-            - main
-
-    workflow_dispatch:
+  workflow_dispatch:
 
 permissions:
-
-    contents: read
-
-    checks: write
-
-    pull-requests: write
-
-    actions: read
+  contents: read
+  checks: write
+  pull-requests: write
 
 env:
-
-    PYTHONUNBUFFERED: "1"
-
-    PIP_DISABLE_PIP_VERSION_CHECK: "1"
-
-    PYTHONDONTWRITEBYTECODE: "1"
-
-    FORCE_COLOR: "1"
+  PYTHONUNBUFFERED: "1"
+  PYTHONDONTWRITEBYTECODE: "1"
+  PIP_DISABLE_PIP_VERSION_CHECK: "1"
+  FORCE_COLOR: "1"
 
 concurrency:
-
-    group: core-ci-${{ github.ref }}
-
-    cancel-in-progress: true
+  group: core-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
 
-    lint:
+  lint:
 
-        name: Ruff Lint
+    name: Ruff
 
-        runs-on: ubuntu-latest
+    runs-on: ubuntu-latest
 
-        strategy:
+    timeout-minutes: 10
 
-            matrix:
+    steps:
 
-                python-version:
+      - uses: actions/checkout@v4
 
-                    - "3.12"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
 
-        steps:
+      - name: Install
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
 
-            - name: Checkout Repository
+      - name: Ruff Check
+        run: |
+          ruff check .
 
-              uses: actions/checkout@v4
+  formatting:
 
-            - name: Setup Python
+    name: Formatting
 
-              uses: actions/setup-python@v5
+    runs-on: ubuntu-latest
 
-              with:
+    needs: lint
 
-                    python-version: ${{ matrix.python-version }}
+    timeout-minutes: 10
 
-                    cache: pip
+    steps:
 
-            - name: Install Dependencies
+      - uses: actions/checkout@v4
 
-              run: |
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
 
-                    python -m pip install --upgrade pip
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
 
-                    pip install -r requirements.txt
+      - name: Black
+        run: |
+          black --check .
 
-                    pip install \
-                        ruff \
-                        black \
-                        isort \
-                        mypy \
-                        pytest \
-                        pytest-cov
+      - name: Import Order
+        run: |
+          ruff check . --select I
 
-            - name: Ruff
+  typing:
 
-              run: |
+    name: Mypy
 
-                    ruff check .
+    runs-on: ubuntu-latest
 
-    formatting:
+    needs: formatting
 
-        name: Formatting
+    timeout-minutes: 15
 
-        runs-on: ubuntu-latest
+    steps:
 
-        needs:
+      - uses: actions/checkout@v4
 
-            - lint
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
 
-        steps:
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
 
-            - uses: actions/checkout@v4
+      - run: |
+          mypy .
 
-            - uses: actions/setup-python@v5
+  compile:
 
-              with:
+    name: Compile
 
-                    python-version: "3.12"
+    runs-on: ubuntu-latest
 
-                    cache: pip
+    needs: typing
 
-            - run: |
+    timeout-minutes: 10
 
-                    python -m pip install --upgrade pip
+    steps:
 
-                    pip install black isort
+      - uses: actions/checkout@v4
 
-            - name: Black
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
 
-              run: |
+      - run: |
+          python -m compileall -q .
 
-                    black --check .
+  unit-tests:
 
-            - name: isort
+    name: Unit Tests
 
-              run: |
+    runs-on: ubuntu-latest
 
-                    isort . --check-only
+    needs: compile
 
-    typing:
+    timeout-minutes: 30
 
-        name: Type Checking
+    steps:
 
-        runs-on: ubuntu-latest
+      - uses: actions/checkout@v4
 
-        needs:
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
 
-            - formatting
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
 
-        steps:
+      - run: |
+          python -m pytest \
+            tests/unit \
+            -v \
+            --cov=. \
+            --cov-report=xml \
+            --cov-report=html
 
-            - uses: actions/checkout@v4
-
-            - uses: actions/setup-python@v5
-
-              with:
-
-                    python-version: "3.12"
-
-                    cache: pip
-
-            - run: |
-
-                    python -m pip install --upgrade pip
-
-                    pip install -r requirements.txt
-
-                    pip install mypy
-
-            - name: Mypy
-
-              continue-on-error: true
-
-              run: |
-
-                    mypy .
-
-    compile:
-
-        name: Python Compile Check
-
-        runs-on: ubuntu-latest
-
-        needs:
-
-            - typing
-
-        steps:
-
-            - uses: actions/checkout@v4
-
-            - uses: actions/setup-python@v5
-
-              with:
-
-                    python-version: "3.12"
-
-                    cache: pip
-
-            - name: Compile
-
-              run: |
-
-                    python -m compileall .
-
-    unit-tests:
-
-        name: Unit Tests
-
-        runs-on: ubuntu-latest
-
-        needs:
-
-            - compile
-
-        steps:
-
-            - uses: actions/checkout@v4
-
-            - uses: actions/setup-python@v5
-
-              with:
-
-                    python-version: "3.12"
-
-                    cache: pip
-
-            - run: |
-
-                    python -m pip install --upgrade pip
-
-                    pip install -r requirements.txt
-
-                    pip install pytest pytest-cov
-
-            - name: Unit Tests
-
-              run: |
-
-                    pytest \
-                        tests/unit \
-                        -v \
-                        --cov=. \
-                        --cov-report=xml \
-                        --cov-report=html
-
-            - name: Upload Coverage
-
-              uses: actions/upload-artifact@v4
-
-              with:
-
-                    name: coverage-report
-
-                    path: |
-
-                        coverage.xml
-
-                        htmlcov/
-
-    integration-tests:
-
-        name: Integration Tests
-
-        runs-on: ubuntu-latest
-
-        needs:
-
-            - unit-tests
-
-        steps:
-
-            - uses: actions/checkout@v4
-
-            - uses: actions/setup-python@v5
-
-              with:
-
-                    python-version: "3.12"
-
-                    cache: pip
-
-            - run: |
-
-                    python -m pip install --upgrade pip
-
-                    pip install -r requirements.txt
-
-                    pip install pytest
-
-            - name: Integration Tests
-
-              run: |
-
-                    if [ -d tests/integration ]; then
-
-                        pytest tests/integration -v
-
-                    else
-
-                        echo "No integration tests."
-
-                    fi
-
-    performance-tests:
-
-        name: Performance Tests
-
-        runs-on: ubuntu-latest
-
-        needs:
-
-            - integration-tests
-
-        steps:
-
-            - uses: actions/checkout@v4
-
-            - uses: actions/setup-python@v5
-
-              with:
-
-                    python-version: "3.12"
-
-                    cache: pip
-
-            - run: |
-
-                    python -m pip install --upgrade pip
-
-                    pip install -r requirements.txt
-
-                    pip install pytest
-
-            - name: Performance Tests
-
-              run: |
-
-                    if [ -d tests/performance ]; then
-
-                        pytest tests/performance -v
-
-                    else
-
-                        echo "No performance tests."
-
-                    fi
-
-    docker-build:
-
-        name: Docker Build
-
-        runs-on: ubuntu-latest
-
-        needs:
-
-            - performance-tests
-
-        steps:
-
-            - uses: actions/checkout@v4
-
-            - name: Docker Build
-
-              run: |
-
-                    if [ -f Dockerfile ]; then
-
-                        docker build . \
-                            --tag institutional_quant:latest
-
-                    else
-
-                        echo "Dockerfile not found."
-
-                    fi
-
-    summary:
-
-        name: Pipeline Summary
-
-        runs-on: ubuntu-latest
-
-        needs:
-
-            - lint
-
-            - formatting
-
-            - typing
-
-            - compile
-
-            - unit-tests
-
-            - integration-tests
-
-            - performance-tests
-
-            - docker-build
-
+      - uses: actions/upload-artifact@v4
         if: always()
+        with:
+          name: coverage-report
+          path: |
+            coverage.xml
+            htmlcov/
 
-        steps:
+  integration-tests:
 
-            - name: Summary
+    name: Integration Tests
 
-              run: |
+    runs-on: ubuntu-latest
 
-                    echo "==========================================="
+    needs: unit-tests
 
-                    echo "Institutional Quant Platform"
+    timeout-minutes: 30
 
-                    echo "Core CI Pipeline"
+    steps:
 
-                    echo "==========================================="
+      - uses: actions/checkout@v4
 
-                    echo "Lint                 : ${{ needs.lint.result }}"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
 
-                    echo "Formatting           : ${{ needs.formatting.result }}"
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
 
-                    echo "Typing               : ${{ needs.typing.result }}"
+      - run: |
+          if [ -d tests/integration ]; then
+            python -m pytest tests/integration -v
+          else
+            echo "No integration tests."
+          fi
 
-                    echo "Compilation          : ${{ needs.compile.result }}"
+  performance-tests:
 
-                    echo "Unit Tests           : ${{ needs.unit-tests.result }}"
+    name: Performance Tests
 
-                    echo "Integration Tests    : ${{ needs.integration-tests.result }}"
+    runs-on: ubuntu-latest
 
-                    echo "Performance Tests    : ${{ needs.performance-tests.result }}"
+    needs: integration-tests
 
-                    echo "Docker Build         : ${{ needs.docker-build.result }}"
+    timeout-minutes: 60
 
-                    echo "==========================================="
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e .[dev]
+
+      - run: |
+          if [ -d tests/performance ]; then
+            python -m pytest tests/performance -v
+          else
+            echo "No performance tests."
+          fi
+
+  docker-build:
+
+    name: Docker Build
+
+    runs-on: ubuntu-latest
+
+    needs: performance-tests
+
+    timeout-minutes: 30
+
+    steps:
+
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build
+        run: |
+          if [ -f Dockerfile ]; then
+            docker buildx build \
+              --load \
+              -t institutional_quant:latest \
+              .
+          else
+            echo "Dockerfile not found."
+          fi
+
+  summary:
+
+    name: Pipeline Summary
+
+    runs-on: ubuntu-latest
+
+    if: always()
+
+    needs:
+      - lint
+      - formatting
+      - typing
+      - compile
+      - unit-tests
+      - integration-tests
+      - performance-tests
+      - docker-build
+
+    steps:
+
+      - name: Summary
+        run: |
+          echo "======================================"
+          echo "Institutional Quant Platform"
+          echo "======================================"
+          echo "Lint                : ${{ needs.lint.result }}"
+          echo "Formatting          : ${{ needs.formatting.result }}"
+          echo "Typing              : ${{ needs.typing.result }}"
+          echo "Compile             : ${{ needs.compile.result }}"
+          echo "Unit Tests          : ${{ needs.unit-tests.result }}"
+          echo "Integration Tests   : ${{ needs.integration-tests.result }}"
+          echo "Performance Tests   : ${{ needs.performance-tests.result }}"
+          echo "Docker Build        : ${{ needs.docker-build.result }}"
+          echo "======================================"

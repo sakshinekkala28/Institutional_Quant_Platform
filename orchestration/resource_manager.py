@@ -30,8 +30,8 @@ Managed Resources
 
 from __future__ import annotations
 
-from collections.abc import Callable
 import logging
+from collections.abc import Callable
 from typing import Any
 
 logger = logging.getLogger(__name__)

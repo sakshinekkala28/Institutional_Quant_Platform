@@ -34,15 +34,10 @@ from __future__ import annotations
 
 from functools import lru_cache
 
-from portfolio.portfolio_engine import (
-    BlackLittermanOverlay,
-    ConstraintEngine,
-    PortfolioConstructor,
-    PortfolioDataValidator,
-    PortfolioEngine,
-    PortfolioHealthCheck,
-    RiskParityAllocator,
-)
+from portfolio.portfolio_engine import (BlackLittermanOverlay, ConstraintEngine,
+                                        PortfolioConstructor, PortfolioDataValidator,
+                                        PortfolioEngine, PortfolioHealthCheck,
+                                        RiskParityAllocator)
 
 # ==========================================================
 # PORTFOLIO ENGINE

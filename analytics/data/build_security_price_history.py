@@ -24,9 +24,9 @@ data/raw/security_price_history.csv
 =========================================================
 """
 
+import time
 from datetime import datetime
 from pathlib import Path
-import time
 
 import duckdb
 import numpy as np

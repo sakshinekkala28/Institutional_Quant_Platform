@@ -29,15 +29,9 @@ Inherited From
 
 from __future__ import annotations
 
-from core.math.covariance import (
-    component_risk,
-    diversification_ratio,
-    effective_holdings,
-    marginal_risk,
-    portfolio_variance,
-    portfolio_volatility,
-    risk_contribution,
-)
+from core.math.covariance import (component_risk, diversification_ratio,
+                                  effective_holdings, marginal_risk, portfolio_variance,
+                                  portfolio_volatility, risk_contribution)
 from core.models.risk_report import RiskReport
 from core.risk.base_risk_model import BaseRiskModel
 

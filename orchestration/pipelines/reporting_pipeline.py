@@ -24,19 +24,15 @@ from typing import ClassVar
 
 from analytics.live.live_rebalance_engine import main as live_dashboard_engine
 from analytics.performance.brinson_attribution_engine import main as brinson_engine
-
 # ==========================================================
 # REPORTING ENGINES
 # ==========================================================
-from analytics.performance.performance_attribution_engine import (
-    main as performance_engine,
-)
-from analytics.performance.security_attribution_engine import (
-    main as security_attribution_engine,
-)
-from analytics.portfolio.portfolio_history_engine import (
-    main as portfolio_history_engine,
-)
+from analytics.performance.performance_attribution_engine import \
+    main as performance_engine
+from analytics.performance.security_attribution_engine import \
+    main as security_attribution_engine
+from analytics.portfolio.portfolio_history_engine import \
+    main as portfolio_history_engine
 from analytics.risk.risk_dashboard_engine import main as risk_dashboard_engine
 from orchestration.models.pipeline_result import PipelineResult
 from orchestration.pipelines.base_pipeline import BasePipeline

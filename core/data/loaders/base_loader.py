@@ -33,10 +33,10 @@ DuckDBLoader
 
 from __future__ import annotations
 
+import hashlib
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-import hashlib
 from pathlib import Path
 from time import perf_counter
 from typing import Any, TypeVar, final
