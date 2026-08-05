@@ -13,6 +13,14 @@ line-length = 88
 
 indent-width = 4
 
+fix = true
+
+unsafe-fixes = false
+
+preview = true
+
+respect-gitignore = true
+
 ###############################################################################
 # Files
 ###############################################################################
@@ -40,6 +48,12 @@ exclude = [
     "generated",
     "tmp",
     "temp",
+]
+
+extend-exclude = [
+    ".idea",
+    ".vscode",
+    "*.egg-info",
 ]
 
 extend-include = [
@@ -79,9 +93,6 @@ ignore = [
     "PLR0915",
 ]
 
-fixable = ["ALL"]
-
-unfixable = []
 
 ###############################################################################
 # Imports
@@ -93,17 +104,28 @@ combine-as-imports = true
 
 force-sort-within-sections = true
 
+force-wrap-aliases = true
+
 known-first-party = [
+
     "analytics",
     "alpha",
     "api",
+    "backtesting",
+    "config",
     "core",
     "dashboard",
     "data",
     "deployment",
     "execution",
+    "fundamentals",
+    "governance",
+    "ingestion",
     "infrastructure",
     "market_data",
+    "metrics",
+    "ml",
+    "mlflow_track",
     "monitoring",
     "optimization",
     "orchestration",
@@ -112,9 +134,13 @@ known-first-party = [
     "reporting",
     "research",
     "risk",
+    "scanner",
+    "services",
+    "signals",
     "telemetry",
     "tests",
     "utils",
+
 ]
 
 ###############################################################################
