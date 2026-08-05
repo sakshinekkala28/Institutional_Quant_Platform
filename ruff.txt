@@ -343,21 +343,6 @@ B008 Do not perform function call `Depends` in argument defaults; instead, perfo
 203 | ):
     |
 
-RUF012 Mutable default value for class attribute
-  --> execution/broker_factory.py:43:42
-   |
-41 |       """
-42 |
-43 |       _registry: dict[str, type[Broker]] = {
-   |  __________________________________________^
-44 | |         "SIMULATOR": BrokerSimulator,
-45 | |     }
-   | |_____^
-46 |
-47 |       # =====================================================
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
 B027 `ExecutionAlgorithm.pre_execute` is an empty method in an abstract base class, but has no abstract decorator
   --> execution/execution_algorithm.py:68:5
    |
@@ -434,63 +419,24 @@ PLC0415 `import` should be at the top-level of a file
 88 |         df = dataframe.copy()
    |
 
-RUF012 Mutable default value for class attribute
-  --> market_data/benchmark_repository.py:38:28
-   |
-37 |   class BenchmarkRepository:
-38 |       SUPPORTED_BENCHMARKS = {
-   |  ____________________________^
-39 | |         "NIFTY50",
-40 | |         "NIFTY100",
-41 | |         "NIFTY200",
-42 | |         "NIFTY500",
-43 | |         "MIDCAP150",
-44 | |         "SMALLCAP250",
-45 | |     }
-   | |_____^
-46 |
-47 |       def __init__(self, config: BenchmarkRepositoryConfig | None = None):
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
-RUF012 Mutable default value for class attribute
-   --> market_data/price_ingestion.py:95:30
-    |
- 94 |   class PriceDataValidator:
- 95 |       REQUIRED_PRICE_COLUMNS = [
-    |  ______________________________^
- 96 | |         "Date",
- 97 | |         "Open",
- 98 | |         "High",
- 99 | |         "Low",
-100 | |         "Close",
-101 | |         "Volume",
-102 | |         "Symbol",
-103 | |     ]
-    | |_____^
-104 |
-105 |       @classmethod
-    |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
 PLC0415 `import` should be at the top-level of a file
-   --> market_data/price_ingestion.py:662:13
+   --> market_data/price_ingestion.py:663:13
     |
-661 |         try:
-662 |             from telemetry.telemetry import PIPELINE_RUNS
+662 |         try:
+663 |             from telemetry.telemetry import PIPELINE_RUNS
     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-663 |
-664 |             PIPELINE_RUNS.add(value)
+664 |
+665 |             PIPELINE_RUNS.add(value)
     |
 
 PLC0415 `import` should be at the top-level of a file
-   --> market_data/price_ingestion.py:680:13
+   --> market_data/price_ingestion.py:681:13
     |
-679 |         try:
-680 |             from mlflow_track.mlflow_manager import MLflowManager
+680 |         try:
+681 |             from mlflow_track.mlflow_manager import MLflowManager
     |             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-681 |
-682 |             MLflowManager.log_metric(name, value)
+682 |
+683 |             MLflowManager.log_metric(name, value)
     |
 
 PLR0917 Too many positional arguments (6 > 5)
@@ -514,25 +460,6 @@ PLR0917 Too many positional arguments (10 > 5)
 169 |         buy_value: float,
     |
 help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
-
-RUF012 Mutable default value for class attribute
-  --> monitoring/alert_trend_engine.py:40:20
-   |
-39 |   class AlertSeverityEngine:
-40 |       SEVERITY_MAP = {
-   |  ____________________^
-41 | |         "INFO": 0,
-42 | |         "WATCH": 1,
-43 | |         "MEDIUM": 1,
-44 | |         "WARNING": 2,
-45 | |         "HIGH": 3,
-46 | |         "CRITICAL": 4,
-47 | |     }
-   | |_____^
-48 |
-49 |       @classmethod
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
 
 PLR0917 Too many positional arguments (14 > 5)
    --> monitoring/execution_monitor.py:300:9
@@ -600,27 +527,6 @@ PLR0917 Too many positional arguments (7 > 5)
     |
 help: Consider adding `@typing.override` if changing the function signature would violate the Liskov Substitution Principle
 
-RUF012 Mutable default value for class attribute
-  --> optimization/optimizer_factory.py:44:19
-   |
-42 |       """
-43 |
-44 |       _OPTIMIZERS = {
-   |  ___________________^
-45 | |         "equal_weight": EqualWeightOptimizer,
-46 | |         "minimum_variance": MinimumVarianceOptimizer,
-47 | |         "max_sharpe": MaximumSharpeOptimizer,
-48 | |         "mean_variance": MeanVarianceOptimizer,
-49 | |         "risk_parity": RiskParityOptimizer,
-50 | |         "hrp": HRPOptimizer,
-51 | |         "black_litterman": BlackLittermanOptimizer,
-52 | |     }
-   | |_____^
-53 |
-54 |       # =====================================================
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
 PLR0917 Too many positional arguments (6 > 5)
   --> optimization/optimizers/hrp.py:49:9
    |
@@ -644,114 +550,6 @@ RUF012 Mutable default value for class attribute
    |
 help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
 
-RUF012 Mutable default value for class attribute
-  --> orchestration/base_engine.py:57:23
-   |
-55 |     OWNER: str = "Institutional Quant Platform"
-56 |
-57 |     TAGS: list[str] = []
-   |                       ^^
-58 |
-59 |     ENABLED: bool = True
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
-RUF012 Mutable default value for class attribute
-  --> orchestration/base_engine.py:81:29
-   |
-79 |     # =====================================================
-80 |
-81 |     DEPENDS_ON: list[str] = []
-   |                             ^^
-82 |
-83 |     INPUTS: list[str] = []
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
-RUF012 Mutable default value for class attribute
-  --> orchestration/base_engine.py:83:25
-   |
-81 |     DEPENDS_ON: list[str] = []
-82 |
-83 |     INPUTS: list[str] = []
-   |                         ^^
-84 |
-85 |     OUTPUTS: list[str] = []
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
-RUF012 Mutable default value for class attribute
-  --> orchestration/base_engine.py:85:26
-   |
-83 |     INPUTS: list[str] = []
-84 |
-85 |     OUTPUTS: list[str] = []
-   |                          ^^
-86 |
-87 |     # =====================================================
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
-B027 `BaseEngine.pre_execute` is an empty method in an abstract base class, but has no abstract decorator
-   --> orchestration/base_engine.py:116:5
-    |
-114 |       # =====================================================
-115 |
-116 | /     def pre_execute(self, context) -> None:
-117 | |         """
-118 | |         Executed before execute().
-119 | |         """
-    | |___________^
-120 |
-121 |       def post_execute(
-    |
-
-B027 `BaseEngine.post_execute` is an empty method in an abstract base class, but has no abstract decorator
-   --> orchestration/base_engine.py:121:5
-    |
-119 |           """
-120 |
-121 | /     def post_execute(
-122 | |         self,
-123 | |         context,
-124 | |         result: Any,
-125 | |     ) -> None:
-126 | |         """
-127 | |         Executed after execute().
-128 | |         """
-    | |___________^
-129 |
-130 |       def validate_inputs(self, context) -> None:
-    |
-
-B027 `BaseEngine.validate_inputs` is an empty method in an abstract base class, but has no abstract decorator
-   --> orchestration/base_engine.py:130:5
-    |
-128 |           """
-129 |
-130 | /     def validate_inputs(self, context) -> None:
-131 | |         """
-132 | |         Optional input validation.
-133 | |         """
-    | |___________^
-134 |
-135 |       def validate_outputs(self, context) -> None:
-    |
-
-B027 `BaseEngine.validate_outputs` is an empty method in an abstract base class, but has no abstract decorator
-   --> orchestration/base_engine.py:135:5
-    |
-133 |           """
-134 |
-135 | /     def validate_outputs(self, context) -> None:
-136 | |         """
-137 | |         Optional output validation.
-138 | |         """
-    | |___________^
-139 |
-140 |       # =====================================================
-    |
-
 E402 Module level import not at top of file
   --> orchestration/config/pipeline_config.py:50:1
    |
@@ -774,39 +572,6 @@ PLC0415 `import` should be at the top-level of a file
 1063 |
 1064 |         return json.dumps(
      |
-
-RUF012 Mutable default value for class attribute
-  --> orchestration/engine_registry.py:64:24
-   |
-62 |       # =====================================================
-63 |
-64 |       DEFAULT_PACKAGES = [
-   |  ________________________^
-65 | |         "analytics",
-66 | |         "alpha",
-67 | |         "backtesting",
-68 | |         "execution",
-69 | |         "portfolio",
-70 | |         "reporting",
-71 | |         "research",
-72 | |         "risk",
-73 | |     ]
-   | |_____^
-74 |
-75 |       # =====================================================
-   |
-help: Consider initializing in `__init__` or annotating with `typing.ClassVar`
-
-PLW0603 Using the global statement to update `_registry` is discouraged
-   --> orchestration/engine_registry.py:851:12
-    |
-849 |     """
-850 |
-851 |     global _registry
-    |            ^^^^^^^^^
-852 |
-853 |     if _registry is None:
-    |
 
 PLC0415 `import` should be at the top-level of a file
    --> orchestration/execution_context.py:668:9
@@ -1820,4 +1585,4 @@ N818 Exception name `MetricAlreadyExists` should be named with an Error suffix
 49 |     """Metric already registered."""
    |
 
-Found 123 errors.
+Found 108 errors.

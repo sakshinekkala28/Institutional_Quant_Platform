@@ -30,7 +30,7 @@ from abc import ABC, abstractmethod
 from datetime import datetime
 from pathlib import Path
 from time import perf_counter
-from typing import Any
+from typing import Any, ClassVar
 
 
 class BaseEngine(ABC):
@@ -54,8 +54,6 @@ class BaseEngine(ABC):
 
     OWNER: str = "Institutional Quant Platform"
 
-    TAGS: list[str] = []
-
     ENABLED: bool = True
 
     CRITICAL: bool = True
@@ -78,11 +76,13 @@ class BaseEngine(ABC):
     # DEPENDENCIES
     # =====================================================
 
-    DEPENDS_ON: list[str] = []
+    TAGS: ClassVar[list[str]] = []
 
-    INPUTS: list[str] = []
+    DEPENDS_ON: ClassVar[list[str]] = []
 
-    OUTPUTS: list[str] = []
+    INPUTS: ClassVar[list[str]] = []
+
+    OUTPUTS: ClassVar[list[str]] = []
 
     # =====================================================
     # CONSTRUCTOR
@@ -117,6 +117,7 @@ class BaseEngine(ABC):
         """
         Executed before execute().
         """
+        return
 
     def post_execute(
         self,
@@ -126,16 +127,19 @@ class BaseEngine(ABC):
         """
         Executed after execute().
         """
+        return
 
     def validate_inputs(self, context) -> None:
         """
         Optional input validation.
         """
+        return
 
     def validate_outputs(self, context) -> None:
         """
         Optional output validation.
         """
+        return
 
     # =====================================================
     # EXECUTION

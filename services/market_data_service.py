@@ -44,11 +44,11 @@ class MarketDataError(Exception):
     """Base market data exception."""
 
 
-class DatasetNotLoaded(MarketDataError):
+class DatasetNotLoadedError(MarketDataError):
     """Dataset not loaded."""
 
 
-class DatasetAlreadyLoaded(MarketDataError):
+class DatasetAlreadyLoadedError(MarketDataError):
     """Dataset already loaded."""
 
 
@@ -123,7 +123,7 @@ class MarketDataService(BaseService):
 
         with self._lock:
             if name in self._datasets:
-                raise DatasetAlreadyLoaded(name)
+                raise DatasetAlreadyLoadedError(name)
 
             self._datasets[name] = dataframe
 
@@ -176,7 +176,7 @@ class MarketDataService(BaseService):
 
         with self._lock:
             if name not in self._datasets:
-                raise DatasetNotLoaded(name)
+                raise DatasetNotLoadedError(name)
 
             return self._datasets[name]
 
@@ -188,7 +188,7 @@ class MarketDataService(BaseService):
         """
 
         if name not in self._metadata:
-            raise DatasetNotLoaded(name)
+            raise DatasetNotLoadedError(name)
 
         return dict(self._metadata[name])
 
@@ -209,7 +209,7 @@ class MarketDataService(BaseService):
 
         with self._lock:
             if name not in self._datasets:
-                raise DatasetNotLoaded(name)
+                raise DatasetNotLoadedError(name)
 
             del self._datasets[name]
 
@@ -454,7 +454,7 @@ class MarketDataService(BaseService):
         dataframe = cache_service.get(f"market_data:{name}")
 
         if dataframe is None:
-            raise DatasetNotLoaded(name)
+            raise DatasetNotLoadedError(name)
 
         return dataframe
 

@@ -45,7 +45,7 @@ class TelemetryError(Exception):
     """Base telemetry exception."""
 
 
-class MetricAlreadyExists(TelemetryError):
+class MetricAlreadyExistsError(TelemetryError):
     """Metric already registered."""
 
 
@@ -219,7 +219,7 @@ class TelemetryService(BaseService):
 
         with self._lock:
             if name in self._counters:
-                raise MetricAlreadyExists(name)
+                raise MetricAlreadyExistsError(name)
 
             self._counters[name] = CounterMetric(name=name, description=description)
 
@@ -227,7 +227,7 @@ class TelemetryService(BaseService):
 
         with self._lock:
             if name in self._gauges:
-                raise MetricAlreadyExists(name)
+                raise MetricAlreadyExistsError(name)
 
             self._gauges[name] = GaugeMetric(name=name, description=description)
 
@@ -235,7 +235,7 @@ class TelemetryService(BaseService):
 
         with self._lock:
             if name in self._histograms:
-                raise MetricAlreadyExists(name)
+                raise MetricAlreadyExistsError(name)
 
             self._histograms[name] = HistogramMetric(name=name, description=description)
 

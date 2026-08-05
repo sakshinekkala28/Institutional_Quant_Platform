@@ -49,7 +49,7 @@ class CacheServiceError(Exception):
     """Base cache exception."""
 
 
-class CacheKeyNotFound(CacheServiceError):
+class CacheKeyNotFoundError(CacheServiceError):
     """Cache key does not exist."""
 
 
@@ -320,7 +320,7 @@ class CacheService(BaseService):
         value = self.get(key, default=None)
 
         if value is None:
-            raise CacheKeyNotFound(f"'{key}' not found.")
+            raise CacheKeyNotFoundError(f"'{key}' not found.")
 
         return value
 

@@ -8,10 +8,11 @@ from __future__ import annotations
 import numpy as np
 import pandas as pd
 
+from typing import ClassVar
+
 # ==========================================================
 # PERFORMANCE ANALYTICS
 # ==========================================================
-
 
 class PerformanceAnalytics:
     @staticmethod
@@ -37,7 +38,6 @@ class PerformanceAnalytics:
 # ==========================================================
 # SECTOR ATTRIBUTION
 # ==========================================================
-
 
 class SectorAttributionEngine:
     @staticmethod
@@ -65,9 +65,8 @@ class SectorAttributionEngine:
 # FACTOR ATTRIBUTION
 # ==========================================================
 
-
 class FactorAttributionEngine:
-    FACTORS = [
+    FACTORS: ClassVar[dict[str, str]] = [
         "Signal_Factor",
         "Momentum_Factor",
         "Quality_Factor",
@@ -104,7 +103,6 @@ class FactorAttributionEngine:
 # CIO DASHBOARD
 # ==========================================================
 
-
 class CIODashboard:
     @staticmethod
     def build(portfolio, performance_report, factor_report, sector_report):
@@ -125,7 +123,6 @@ class CIODashboard:
 # ==========================================================
 # PERFORMANCE ENGINE
 # ==========================================================
-
 
 class PerformanceEngine:
     def evaluate(self, portfolio, returns):

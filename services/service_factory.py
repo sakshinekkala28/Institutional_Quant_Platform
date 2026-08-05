@@ -46,7 +46,7 @@ class ServiceAlreadyRegistered(ServiceFactoryError):
     """Service already exists."""
 
 
-class ServiceNotRegistered(ServiceFactoryError):
+class ServiceNotRegisteredError(ServiceFactoryError):
     """Unknown service."""
 
 
@@ -130,7 +130,7 @@ class ServiceFactory:
         """
 
         if name not in self._services:
-            raise ServiceNotRegistered(name)
+            raise ServiceNotRegisteredError(name)
 
         descriptor = self._services[name]
 
@@ -176,10 +176,10 @@ class ServiceFactory:
         """
 
         if service not in self._services:
-            raise ServiceNotRegistered(service)
+            raise ServiceNotRegisteredError(service)
 
         if dependency not in self._services:
-            raise ServiceNotRegistered(dependency)
+            raise ServiceNotRegisteredError(dependency)
 
         descriptor = self._services[service]
 
@@ -210,7 +210,7 @@ class ServiceFactory:
             if descriptor.service_type is service_type:
                 return self.get(descriptor.name)
 
-        raise ServiceNotRegistered(service_type.__name__)
+        raise ServiceNotRegisteredError(service_type.__name__)
 
     # =====================================================
     # Startup
@@ -324,7 +324,7 @@ class ServiceFactory:
         """
 
         if name not in self._services:
-            raise ServiceNotRegistered(name)
+            raise ServiceNotRegisteredError(name)
 
         descriptor = self._services[name]
 

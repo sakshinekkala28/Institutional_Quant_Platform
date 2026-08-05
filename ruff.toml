@@ -39,12 +39,12 @@ exclude = [
     "artifacts",
     "generated",
     "tmp",
-    "temp"
+    "temp",
 ]
 
 extend-include = [
     "*.py",
-    "*.pyi"
+    "*.pyi",
 ]
 
 ###############################################################################
@@ -67,7 +67,7 @@ select = [
     "RET",
     "PIE",
     "PL",
-    "RUF"
+    "RUF",
 ]
 
 ignore = [
@@ -76,7 +76,7 @@ ignore = [
     "PLR0913",
     "PLR2004",
     "PLR0912",
-    "PLR0915"
+    "PLR0915",
 ]
 
 fixable = ["ALL"]
@@ -97,19 +97,24 @@ known-first-party = [
     "analytics",
     "alpha",
     "api",
+    "core",
     "dashboard",
     "data",
     "deployment",
     "execution",
     "infrastructure",
+    "market_data",
     "monitoring",
+    "optimization",
+    "orchestration",
+    "performance",
     "portfolio",
     "reporting",
     "research",
     "risk",
     "telemetry",
     "tests",
-    "utils"
+    "utils",
 ]
 
 ###############################################################################
@@ -136,15 +141,23 @@ convention = "google"
 
 "tests/**/*.py" = [
     "S101",
-    "PLR2004"
+    "PLR2004",
 ]
 
 "docs/**/*.py" = [
-    "D"
+    "D",
 ]
 
 "scripts/**/*.py" = [
-    "T201"
+    "T201",
+]
+
+"api/dependencies/*.py" = [
+    "B008",
+]
+
+"docs/development/examples/*.py" = [
+    "B008",
 ]
 
 ###############################################################################

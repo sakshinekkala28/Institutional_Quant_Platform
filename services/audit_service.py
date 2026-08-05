@@ -28,11 +28,14 @@ Responsibilities
 
 from __future__ import annotations
 
+from pathlib import Path
+
 from dataclasses import dataclass, field
 from threading import Lock, RLock
 import time
 from typing import Any
 import uuid
+import json
 
 from core.services.base_service import BaseService
 
@@ -452,9 +455,6 @@ class AuditService(BaseService):
         """
         Export audit log to JSON.
         """
-
-        import json
-        from pathlib import Path
 
         file = Path(path)
 

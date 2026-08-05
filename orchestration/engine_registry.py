@@ -26,10 +26,12 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Iterable
+from functools import cache
 import importlib
 import inspect
 import logging
 import pkgutil
+from typing import ClassVar
 
 from orchestration.base_engine import BaseEngine
 
@@ -61,7 +63,7 @@ class EngineRegistry:
     # DEFAULT SEARCH LOCATIONS
     # =====================================================
 
-    DEFAULT_PACKAGES = [
+    DEFAULT_PACKAGES: ClassVar[list[str]] = [
         "analytics",
         "alpha",
         "backtesting",
@@ -834,13 +836,7 @@ class EngineRegistry:
         )
 
 
-# =========================================================
-# SINGLETON
-# =========================================================
-
-_registry: EngineRegistry | None = None
-
-
+@cache
 def get_registry() -> EngineRegistry:
     """
     Return singleton registry.
@@ -848,11 +844,8 @@ def get_registry() -> EngineRegistry:
     Performs discovery only once.
     """
 
-    global _registry
+    registry = EngineRegistry()
 
-    if _registry is None:
-        _registry = EngineRegistry()
+    registry.discover()
 
-        _registry.discover()
-
-    return _registry
+    return registry

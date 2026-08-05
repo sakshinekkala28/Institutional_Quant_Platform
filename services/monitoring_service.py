@@ -44,7 +44,7 @@ class MonitoringError(Exception):
     """Base monitoring exception."""
 
 
-class ServiceAlreadyRegistered(MonitoringError):
+class ServiceAlreadyRegisteredError(MonitoringError):
     """Raised when service already exists."""
 
 
@@ -162,7 +162,7 @@ class MonitoringService(BaseService):
 
         with self._lock:
             if name in self._services:
-                raise ServiceAlreadyRegistered(name)
+                raise ServiceAlreadyRegisteredError(name)
 
             self._services[name] = ServiceStatus(name=name)
 
