@@ -634,15 +634,19 @@ class InvestmentCommitteePackEngine:
 
         pack_score = PackScoreEngine.build(governance, forecast, scenarios, stress_df)
 
+        executive_dashboard_config = ExecutiveDashboardConfig(
+            governance=governance,
+            forecast=forecast,
+            scenarios=scenarios,
+            stress_df=stress_df,
+            governance_command_metrics=governance_command_metrics,
+            alert_metrics=alert_metrics,
+            pack_score=pack_score,
+            recommendation=recommendation,
+        )
+
         executive_dashboard = ExecutiveDashboardEngine.build(
-            governance,
-            forecast,
-            scenarios,
-            stress_df,
-            governance_command_metrics,
-            alert_metrics,
-            pack_score,
-            recommendation,
+            executive_dashboard_config,
         )
 
         committee_pack = pd.concat(
