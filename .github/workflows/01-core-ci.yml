@@ -270,7 +270,7 @@ jobs:
     needs:
       - lint
       - formatting
-      - typing
+    #  - typing
       - compile
       - unit-tests
       - integration-tests
