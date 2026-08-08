@@ -1,0 +1,90 @@
+name: Orchestration
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "orchestration/**"
+      - "analytics/**"
+      - "core/**"
+      - "execution/**"
+      - "optimization/**"
+      - "reporting/**"
+
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "orchestration/**"
+      - "analytics/**"
+      - "core/**"
+      - "execution/**"
+      - "optimization/**"
+      - "reporting/**"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  orchestration:
+    name: Orchestration Validation
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          fi
+
+          if [ -f pyproject.toml ]; then
+            pip install -e .
+          fi
+
+      - name: Compile orchestration
+        run: |
+          python -m compileall -q orchestration
+
+      - name: Run orchestration tests
+        run: |
+          pytest -v tests \
+            -k "orchestration or pipeline or executor or engine"
+
+      - name: Validate imports
+        run: |
+          python - <<'PY'
+          import orchestration
+          import orchestration.engine_registry
+          import orchestration.dependency_graph
+          import orchestration.pipeline_builder
+          import orchestration.execution_context
+          import orchestration.master_orchestrator
+
+          print("Orchestration imports successful.")
+          PY
+
+      - name: Run platform pipeline
+        run: |
+          python -m orchestration.run_pipeline

@@ -1,0 +1,99 @@
+name: Platform Integration
+
+on:
+  workflow_dispatch:
+
+  push:
+    branches:
+      - main
+    paths:
+      - "orchestration/**"
+      - "analytics/**"
+      - "core/**"
+      - "execution/**"
+      - "optimization/**"
+      - "backtesting/**"
+      - "reporting/**"
+      - "monitoring/**"
+      - "services/**"
+      - "data/**"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: platform-integration-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+
+  integration:
+    name: Institutional Platform Integration
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          fi
+
+          pip install -e .
+
+      - name: Compile entire platform
+        run: |
+          python -m compileall -q .
+
+      - name: Ruff
+        run: |
+          ruff check .
+
+      - name: Unit tests
+        run: |
+          pytest -v tests/unit
+
+      - name: Integration tests
+        run: |
+          pytest -v tests/integration
+
+      - name: Performance tests
+        run: |
+          pytest -v tests/performance
+
+      - name: Platform import validation
+        run: |
+          python - <<'PY'
+          import analytics
+          import core
+          import execution
+          import optimization
+          import orchestration
+          import reporting
+          import services
+
+          print("All primary platform packages imported successfully.")
+          PY
+
+      - name: Run platform orchestrator
+        run: |
+          python -m orchestration.run_pipeline

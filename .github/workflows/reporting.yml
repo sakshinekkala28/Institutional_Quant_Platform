@@ -1,0 +1,83 @@
+name: Reporting
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "reporting/**"
+      - "core/**"
+
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "reporting/**"
+      - "core/**"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  reporting:
+    name: Reporting Validation
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install reporting dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+          pip install \
+            pandas \
+            numpy \
+            matplotlib \
+            openpyxl \
+            reportlab \
+            python-pptx
+
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+          pip install -e .
+
+      - name: Compile
+        run: |
+          python -m compileall -q reporting
+
+      - name: Lint
+        run: |
+          ruff check reporting
+
+      - name: Validate reporting imports
+        run: |
+          python - <<'PY'
+          import openpyxl
+          import reportlab
+          import pptx
+
+          print("Excel reporting dependency OK")
+          print("PDF reporting dependency OK")
+          print("PowerPoint reporting dependency OK")
+          PY
+
+      - name: Reporting tests
+        run: |
+          pytest -v tests \
+            -k "report or reporting or chart or excel or pdf or powerpoint"

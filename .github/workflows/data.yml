@@ -1,0 +1,74 @@
+name: Data Pipeline
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "data/**"
+      - "analytics/data/**"
+      - "core/data/**"
+
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "data/**"
+      - "analytics/data/**"
+      - "core/data/**"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  data:
+    name: Data Validation
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+          pip install -r requirements-dev.txt || true
+          pip install -e .
+
+      - name: Compile
+        run: |
+          python -m compileall -q data
+
+          if [ -d analytics/data ]; then
+            python -m compileall -q analytics/data
+          fi
+
+          if [ -d core/data ]; then
+            python -m compileall -q core/data
+          fi
+
+      - name: Lint
+        run: |
+          ruff check analytics/data
+
+          if [ -d core/data ]; then
+            ruff check core/data
+          fi
+
+      - name: Data tests
+        run: |
+          pytest -v tests \
+            -k "data or loader or ingestion or price"

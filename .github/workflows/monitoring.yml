@@ -1,0 +1,66 @@
+name: Monitoring
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "monitoring/**"
+      - "telemetry/**"
+      - "core/**"
+
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "monitoring/**"
+      - "telemetry/**"
+      - "core/**"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  monitoring:
+    name: Monitoring Validation
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt || true
+          pip install -r requirements-dev.txt || true
+          pip install -e .
+
+      - name: Compile
+        run: |
+          python -m compileall -q monitoring
+
+          if [ -d telemetry ]; then
+            python -m compileall -q telemetry
+          fi
+
+      - name: Lint
+        run: |
+          ruff check monitoring
+
+      - name: Tests
+        run: |
+          pytest -v tests \
+            -k "monitoring or telemetry or metrics or alert"

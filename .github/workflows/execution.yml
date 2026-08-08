@@ -1,0 +1,78 @@
+name: Execution
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+    paths:
+      - "execution/**"
+      - "core/**"
+
+  pull_request:
+    branches:
+      - main
+      - develop
+    paths:
+      - "execution/**"
+      - "core/**"
+
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+
+  execution:
+    name: Execution Validation
+    runs-on: ubuntu-latest
+
+    steps:
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+
+          if [ -f requirements.txt ]; then
+            pip install -r requirements.txt
+          fi
+
+          if [ -f requirements-dev.txt ]; then
+            pip install -r requirements-dev.txt
+          fi
+
+          pip install -e .
+
+      - name: Compile
+        run: |
+          python -m compileall -q execution
+
+      - name: Lint
+        run: |
+          ruff check execution
+
+      - name: Import validation
+        run: |
+          python - <<'PY'
+          import execution
+          import execution.execution_engine
+          import execution.execution_algorithm
+          import execution.base_execution_model
+
+          print("Execution package imports successfully.")
+          PY
+
+      - name: Execution tests
+        run: |
+          pytest -v tests \
+            -k "execution or order or broker or slippage or transaction or market"
