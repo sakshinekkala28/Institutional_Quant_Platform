@@ -285,8 +285,11 @@ class PipelineBuilder:
         self,
     ) -> None:
         """
-        Validate dependency graph.
+        Build and validate the dependency graph.
         """
+
+        if not self.graph.is_built:
+            self.graph.build()
 
         report = self.graph.validate()
 
@@ -315,9 +318,18 @@ class PipelineBuilder:
         )
 
         if cycles:
-            errors.append(f"Dependency cycles detected: {cycles}")
+            errors.append(
+                f"Dependency cycles detected: {cycles}"
+            )
 
-        raise RuntimeError("\n".join(errors))
+        if not errors:
+            errors.append(
+                "Dependency graph validation failed."
+            )
+
+        raise RuntimeError(
+            "\n".join(errors)
+        )
 
     # =====================================================
     # PIPELINE VALIDATION
