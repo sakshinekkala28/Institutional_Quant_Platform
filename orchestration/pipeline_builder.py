@@ -156,7 +156,7 @@ class PipelineBuilder:
         self._validate_pipeline(
             engines
         )
-        
+
         # ---------------------------------------------
         # Determine execution order
         # ---------------------------------------------
