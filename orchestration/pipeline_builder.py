@@ -332,6 +332,74 @@ class PipelineBuilder:
         )
 
     # =====================================================
+    # ENGINE SELECTION
+    # =====================================================
+
+    def _select_engines(
+        self,
+        stages: list[str] | None = None,
+        categories: list[str] | None = None,
+        engine_names: list[str] | None = None,
+    ) -> list[type[BaseEngine]]:
+        """
+        Select engines according to pipeline criteria.
+
+        Explicit engine names take precedence when supplied.
+        Stage and category filters are combined when provided.
+        """
+
+        if engine_names:
+            selected = []
+
+            missing = []
+
+            for name in engine_names:
+                if not self.registry.exists(name):
+                    missing.append(name)
+                    continue
+
+                selected.append(
+                    self.registry.get(name)
+                )
+
+            if missing:
+                raise KeyError(
+                    "Unknown engines: "
+                    + ", ".join(sorted(missing))
+                )
+
+            return selected
+
+        selected: dict[
+            str,
+            type[BaseEngine],
+        ] = {}
+
+        if stages:
+            for stage in stages:
+                for engine in self.registry.by_stage(stage):
+                    selected[engine.NAME] = engine
+
+        if categories:
+            for category in categories:
+                for engine in self.registry.by_category(
+                    category
+                ):
+                    selected[engine.NAME] = engine
+
+        if not stages and not categories:
+            for engine in self.registry.enabled():
+                selected[engine.NAME] = engine
+
+        return sorted(
+            selected.values(),
+            key=lambda engine: (
+                engine.PRIORITY,
+                engine.NAME,
+            ),
+        )
+    
+    # =====================================================
     # PIPELINE VALIDATION
     # =====================================================
 
