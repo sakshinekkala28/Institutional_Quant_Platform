@@ -38,7 +38,6 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
-
 # =========================================================
 # CONFIGURATION
 # =========================================================
@@ -190,20 +189,7 @@ def calculate_factor_premiums(
         / weights.sum()
     )
 
-    premiums = pd.Series(
-        {
-            factor: np.average(
-                factor_returns[factor].to_numpy(
-                    dtype=np.float64
-                ),
-                weights=weights,
-            )
-            for factor in FACTOR_COLS
-        },
-        dtype=np.float64,
-    )
-
-    return premiums
+    return
 
 
 # =========================================================
