@@ -286,7 +286,6 @@ jobs:
           echo "======================================"
           echo "Lint                : ${{ needs.lint.result }}"
           echo "Formatting          : ${{ needs.formatting.result }}"
-          echo "Typing              : ${{ needs.typing.result }}"
           echo "Compile             : ${{ needs.compile.result }}"
           echo "Unit Tests          : ${{ needs.unit-tests.result }}"
           echo "Integration Tests   : ${{ needs.integration-tests.result }}"

@@ -29,7 +29,7 @@ import pandas as pd
 
 ENGINE_VERSION = "1.0.0"
 
-PORTFOLIO_NAV = 10_000_000
+PORTFOLIO_NAV = 100_000
 
 # ---------------------------------------------------------
 # INDIA EQUITY COSTS

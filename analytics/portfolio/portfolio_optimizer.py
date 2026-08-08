@@ -36,7 +36,7 @@ MAX_SECTOR_WEIGHT = 0.25
 
 MAX_ADV_PARTICIPATION = 0.10
 
-PORTFOLIO_NAV = 100_000_000
+PORTFOLIO_NAV = 100_000
 
 # =========================================================
 # PATHS
