@@ -153,6 +153,10 @@ class PipelineBuilder:
 
         engines = self._expand_dependencies(engines)
 
+        self._validate_pipeline(
+            engines
+        )
+        
         # ---------------------------------------------
         # Determine execution order
         # ---------------------------------------------
@@ -398,7 +402,106 @@ class PipelineBuilder:
                 engine.NAME,
             ),
         )
-    
+
+
+    # =====================================================
+    # DEPENDENCY EXPANSION
+    # =====================================================
+
+    def _expand_dependencies(
+        self,
+        engines: list[type[BaseEngine]],
+    ) -> list[type[BaseEngine]]:
+        """
+        Include every upstream dependency required by
+        the selected engines.
+        """
+
+        selected_names = {
+            engine.NAME
+            for engine in engines
+        }
+
+        for engine in engines:
+            for dependency in self.graph.ancestors(
+                engine.NAME
+            ):
+                selected_names.add(
+                    dependency
+                )
+
+        expanded = [
+            self.registry.get(name)
+            for name in selected_names
+        ]
+
+        return sorted(
+            expanded,
+            key=lambda engine: (
+                engine.PRIORITY,
+                engine.NAME,
+            ),
+        )
+
+    # =====================================================
+    # PIPELINE METADATA
+    # =====================================================
+
+    def _build_metadata(
+        self,
+        pipeline_name: str,
+        engines: list[type[BaseEngine]],
+        execution_levels: list[list[str]],
+    ) -> dict:
+        """
+        Build pipeline metadata.
+        """
+
+        return {
+            "pipeline": pipeline_name,
+            "engine_count": len(engines),
+            "engines": [
+                engine.NAME
+                for engine in engines
+            ],
+            "categories": sorted(
+                {
+                    engine.CATEGORY
+                    for engine in engines
+                }
+            ),
+            "stages": sorted(
+                {
+                    engine.STAGE
+                    for engine in engines
+                }
+            ),
+            "critical_engines": [
+                engine.NAME
+                for engine in engines
+                if engine.CRITICAL
+            ],
+            "parallelizable_engines": [
+                engine.NAME
+                for engine in engines
+                if engine.PARALLELIZABLE
+            ],
+            "execution_levels": execution_levels,
+            "output_count": sum(
+                len(engine.OUTPUTS)
+                for engine in engines
+            ),
+            "input_count": sum(
+                len(engine.INPUTS)
+                for engine in engines
+            ),
+            "dependency_count": sum(
+                len(engine.DEPENDS_ON)
+                for engine in engines
+            ),
+        }
+
+
     # =====================================================
     # PIPELINE VALIDATION
     # =====================================================
